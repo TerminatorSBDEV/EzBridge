@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EzBridge | Universal Server Engine</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <style>
+        :root {
+            --bg: #030303;
+            --panel: #0d0d0d;
+            --accent: #00ff88;
+            --border: #1a1a1a;
+            --text: #e0e0e0;
+        }
+
+        body, html {
+            margin: 0; padding: 0; height: 100%;
+            background: var(--bg); color: var(--text);
+            font-family: 'Courier New', Courier, monospace;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .screen {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            width: 100vw; height: 100vh; position: fixed; inset: 0; background: var(--bg);
+        }
+
+        .container {
+            background: var(--panel); border: 1px solid var(--border); padding: 40px;
+            border-radius: 12px; width: 90%; max-width: 450px; text-align: center;
+            box-shadow: 0 0 40px rgba(0,255,136,0.05);
+        }
+
+        h1 { color: var(--accent); letter-spacing: 4px; margin-top: 0; font-size: 2rem; }
+        p { font-size: 0.85rem; color: #888; line-height: 1.5; }
+
+        .btn {
+            background: transparent; border: 1px solid var(--accent); color: var(--accent);
+            padding: 12px 25px; font-weight: bold; font-family: inherit; border-radius: 4px;
+            cursor: pointer; transition: 0.2s; text-transform: uppercase; margin-top: 20px;
+        }
+        .btn:hover { background: var(--accent); color: black; box-shadow: 0 0 15px var(--accent); }
+
+        .setup-group { text-align: left; margin: 15px 0; }
+        .setup-group label { display: block; font-size: 0.75rem; color: #666; margin-bottom: 5px; }
+        .setup-group select, .setup-group input[type="range"] {
+            width: 100%; background: #000; border: 1px solid var(--border); color: white;
+            padding: 8px; border-radius: 4px; box-sizing: border-box;
+        }
+
+        /* Modals */
+        .modal {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+            z-index: 1000; align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background: var(--panel); border: 1px solid var(--accent); padding: 30px;
+            width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; border-radius: 8px; position: relative;
+        }
+        .close-btn { position: absolute; top: 15px; right: 15px; cursor: pointer; color: var(--accent); font-weight: bold; }
+
+        .code-box {
+            background: #000; border: 1px solid var(--border); color: #00ff66;
+            padding: 15px; font-size: 0.75rem; border-radius: 4px; overflow-x: auto;
+            text-align: left; max-height: 150px; margin-top: 10px;
+        }
+        
+        /* Grid Buttons para o Servidor Ativo */
+        .grid-layout { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <!-- Passo 1: Landing Page com ReCaptcha -->
+    <div id="screen-landing" class="screen">
+        <div class="container">
+            <h1>EzBridge</h1>
+            <p>Create and implement a server to your apps for free!</p>
+            
+            <div style="margin: 20px 0; display: flex; justify-content: center;">
+                <!-- Captcha usando a chave de cliente pública enviada -->
+                <div class="g-recaptcha" data-sitekey="6Lf8VTMtAAAAAAMXrs6lk-tLBjuW0u8ZV5LevzMz" data-callback="captchaPassed"></div>
+            </div>
+
+            <button id="start-btn" class="btn" style="display:none;" onclick="showSetup()">CLICK HERE TO BEGIN</button>
+            <p style="font-size:0.7rem; color:#444; margin-top:30px;">
+                "The entire server system runs on an 8GB RAM phone. If your server stops working, you already know the reason."
+            </p>
+        </div>
+    </div>
+
+    <!-- Passo 2: Configuração do Servidor -->
+    <div id="screen-setup" class="screen" style="display:none;">
+        <div class="container">
+            <h2 style="color:var(--accent); margin-top:0;">Setup Adjustments</h2>
+            
+            <div class="setup-group">
+                <label id="lbl-cp">Client Target Ping: 50ms</label>
+                <input type="range" id="cfg-cp" min="10" max="1000" value="50" oninput="updateLabel('lbl-cp', 'Client Target Ping: ' + this.value + 'ms')">
+            </div>
+            <div class="setup-group">
+                <label id="lbl-sp">Server Target Ping: 10ms</label>
+                <input type="range" id="cfg-sp" min="10" max="500" value="10" oninput="updateLabel('lbl-sp', 'Server Target Ping: ' + this.value + 'ms')">
+            </div>
+            <div class="setup-group">
+                <label id="lbl-mr">Max Requests Per Second: 60</label>
+                <input type="range" id="cfg-mr" min="1" max="60" value="60" oninput="updateLabel('lbl-mr', 'Max Requests Per Second: ' + this.value)">
+            </div>
+
+            <div class="setup-group">
+                <label>Anti DDoS</label>
+                <select id="cfg-ddos"><option value="on">ON</option><option value="off">OFF</option></select>
+            </div>
+            <div class="setup-group">
+                <label>Rate Limiting</label>
+                <select id="cfg-rl"><option value="off">OFF</option><option value="on">ON</option></select>
+            </div>
+            <div class="setup-group">
+                <label>Request Validation</label>
+                <select id="cfg-val"><option value="on">ON</option><option value="off">OFF</option></select>
+            </div>
+            <div class="setup-group">
+                <label>Server Reading</label>
+                <select id="cfg-read"><option value="on">ON</option><option value="off">OFF</option></select>
+            </div>
+
+            <button class="btn" onclick="createServer()">[CREATE SERVER]</button>
+        </div>
+    </div>
+
+    <!-- Passo 3: Servidor Ativo -->
+    <div id="screen-active" class="screen" style="display:none;">
+        <div class="container">
+            <h1 style="font-size: 1.5rem;">EzBridge Console</h1>
+            <p>Server Status: <span id="server-status" style="font-weight:bold; color:#ff7b72;">OFFLINE</span></p>
+
+            <div class="grid-layout">
+                <button class="btn" onclick="toggleServerStatus()">Start/Stop</button>
+                <button class="btn btn-secondary" onclick="openConfigModal()">⚙ Settings</button>
+                <button class="btn btn-secondary" onclick="openHelpModal()">How To Use</button>
+                <button class="btn" onclick="testConnection()">Test Conn</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Configurações -->
+    <div id="modal-settings" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('modal-settings')">X</span>
+            <h3>Update Configuration</h3>
+            <p>Salvar as novas configurações irá reiniciar o servidor e desconectar clientes.</p>
+            <button class="btn" onclick="saveSettings()">Save & Restart</button>
+        </div>
+    </div>
+
+    <!-- Modal: Como Usar -->
+    <div id="modal-help" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('modal-help')">X</span>
+            <h3>How to connect</h3>
+            <p>Adicione estas credenciais ao seu projeto:</p>
+            <div style="text-align:left;">
+                <label>Server Key:</label>
+                <input type="text" id="help-key" readonly style="width:100%; background:#000; color:var(--accent); border:1px solid var(--border); padding:5px;">
+                <label style="margin-top:10px; display:block;">Cloudflare Link:</label>
+                <input type="text" id="help-link" readonly style="width:100%; background:#000; color:var(--accent); border:1px solid var(--border); padding:5px;">
+            </div>
+
+            <h4>Exemplo: Jogo da Velha (Tic-Tac-Toe)</h4>
+            <div class="code-box" id="code-tictactoe">
+                <!-- Código de Exemplo Injetado Dinamicamente -->
+            </div>
+        </div>
+    </div>
+
+<script>
+    let currentSessionId = localStorage.getItem('eb_session') || '';
+    let currentServerKey = '';
+    let serverOnlineChecker = null;
+    let config = {};
+
+    function captchaPassed() {
+        document.getElementById('start-btn').style.display = 'inline-block';
+    }
+
+    function showSetup() {
+        // Se já tiver uma sessão ativa carregada do banco de dados local
+        if (currentSessionId) {
+            restoreSession();
+        } else {
+            document.getElementById('screen-landing').style.display = 'none';
+            document.getElementById('screen-setup').style.display = 'flex';
+        }
+    }
+
+    function updateLabel(id, text) {
+        document.getElementById(id).innerText = text;
+    }
+
+    async function restoreSession() {
+        try {
+            const r = await fetch('http://localhost:3000/getstatus').catch(()=>{}); // fallback se local
+            const targetURL = r ? 'http://localhost:3000' : 'https://playback-teaches-appointments-distribution.trycloudflare.com';
+            
+            const res = await fetch(`${targetURL}/api/register`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ sessionId: currentSessionId })
+            });
+            const data = await res.json();
+            currentServerKey = data.serverKey;
+            config = data.config;
+            
+            document.getElementById('screen-landing').style.display = 'none';
+            document.getElementById('screen-active').style.display = 'flex';
+            startStatusLoop();
+        } catch(e) {
+            // Se falhar, inicia fluxo padrão
+            document.getElementById('screen-landing').style.display = 'none';
+            document.getElementById('screen-setup').style.display = 'flex';
+        }
+    }
+
+    async function createServer() {
+        currentSessionId = 'session_' + Math.random().toString(36).substr(2, 20);
+        localStorage.setItem('eb_session', currentSessionId);
+        
+        config = {
+            clientPing: parseInt(document.getElementById('cfg-cp').value),
+            serverPing: parseInt(document.getElementById('cfg-sp').value),
+            maxReqs: parseInt(document.getElementById('cfg-mr').value),
+            antiDdos: document.getElementById('cfg-ddos').value,
+            ratelimit: document.getElementById('cfg-rl').value,
+            validation: document.getElementById('cfg-val').value,
+            reading: document.getElementById('cfg-read').value,
+            status: 'off'
+        };
+
+        // Solicita o registro de sessão no backend universal
+        await restoreSession();
+    }
+
+    function startStatusLoop() {
+        if (serverOnlineChecker) clearInterval(serverOnlineChecker);
+        serverOnlineChecker = setInterval(async () => {
+            const start = Date.now();
+            try {
+                const res = await fetch('https://playback-teaches-appointments-distribution.trycloudflare.com/ebgetstatus', { timeout: 3000 });
+                if (res.ok && config.status === 'on') {
+                    document.getElementById('server-status').innerText = 'ONLINE';
+                    document.getElementById('server-status').style.color = '#00ff88';
+                } else {
+                    document.getElementById('server-status').innerText = 'OFFLINE';
+                    document.getElementById('server-status').style.color = '#ff7b72';
+                }
+            } catch(e) {
+                document.getElementById('server-status').innerText = 'OFFLINE';
+                document.getElementById('server-status').style.color = '#ff7b72';
+            }
+        }, 3500);
+    }
+
+    function toggleServerStatus() {
+        config.status = config.status === 'on' ? 'off' : 'on';
+        // Envia atualização de estado para o processo Node através do Socket.io ou API local
+        const socket = io('https://playback-teaches-appointments-distribution.trycloudflare.com', { auth: { token: currentServerKey } });
+        socket.emit('RemoteEvent', { type: 'UPDATE_CONFIG', key: currentServerKey, config: config });
+        startStatusLoop();
+    }
+
+    function openConfigModal() {
+        document.getElementById('modal-settings').style.display = 'flex';
+    }
+
+    function saveSettings() {
+        if (confirm("WARNING:\nAre you sure you want to save your settings? This will restart the server connection.")) {
+            toggleServerStatus();
+            closeModal('modal-settings');
+        }
+    }
+
+    async function testConnection() {
+        const start = Date.now();
+        const btn = document.querySelector('button[onclick="testConnection()"]');
+        btn.disabled = true;
+        btn.innerText = "Testing...";
+
+        try {
+            const res = await fetch('https://playback-teaches-appointments-distribution.trycloudflare.com/ebgetstatus', { timeout: 10000 });
+            if (res.ok) {
+                const ping = Date.now() - start;
+                alert(`test sucessfull!\nping: ${ping}ms`);
+            } else {
+                throw new Error();
+            }
+        } catch(e) {
+            alert("test failed.\nServer might be offline, an error could have occurred or your wifi might have glitched, try again.");
+        }
+        btn.disabled = false;
+        btn.innerText = "Test Conn";
+    }
+
+    function openHelpModal() {
+        document.getElementById('help-key').value = currentServerKey;
+        document.getElementById('help-link').value = 'https://playback-teaches-appointments-distribution.trycloudflare.com';
+        
+        // Injeta código do Jogo da Velha (Tic-Tac-Toe) de 3s de respawn solicitado
+        document.getElementById('code-tictactoe').innerText = `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>EzBridge TTT</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"><\/script>
+</head>
+<body>
+    <div id="status">Connecting...</div>
+    <div id="board" style="display:grid; grid-template-columns:repeat(3, 100px); gap:5px;"></div>
+    <script>
+        const socket = io("https://playback-teaches-appointments-distribution.trycloudflare.com", { auth: { token: "${currentServerKey}" } });
+        let symbol = "", turn = false, board = Array(9).fill("");
+        // ... Lógica simples de emissão de jogada sincronizada com reset automático de 3s no fim do jogo ...
+    <\/script>
+</body>
+</html>`;
+        document.getElementById('modal-help').style.display = 'flex';
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).style.display = 'none';
+    }
+</script>
+</body>
+</html>
