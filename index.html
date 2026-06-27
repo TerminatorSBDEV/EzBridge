@@ -202,7 +202,7 @@
     async function restoreSession() {
         try {
             const r = await fetch('http://localhost:3000/getstatus').catch(()=>{}); // fallback se local
-            const targetURL = r ? 'http://localhost:3000' : 'https://playback-teaches-appointments-distribution.trycloudflare.com';
+            const targetURL = r ? 'http://localhost:3000' : 'https://obtain-expenditure-otherwise-spider.trycloudflare.com';
             
             const res = await fetch(`${targetURL}/api/register`, {
                 method: 'POST',
