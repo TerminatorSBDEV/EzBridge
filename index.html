@@ -247,7 +247,7 @@
         serverOnlineChecker = setInterval(async () => {
             const start = Date.now();
             try {
-                const res = await fetch('https://playback-teaches-appointments-distribution.trycloudflare.com/ebgetstatus', { timeout: 3000 });
+                const res = await fetch('https://obtain-expenditure-otherwise-spider.trycloudflare.com/ebgetstatus', { timeout: 3000 });
                 if (res.ok && config.status === 'on') {
                     document.getElementById('server-status').innerText = 'ONLINE';
                     document.getElementById('server-status').style.color = '#00ff88';
