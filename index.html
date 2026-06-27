@@ -265,7 +265,7 @@
     function toggleServerStatus() {
         config.status = config.status === 'on' ? 'off' : 'on';
         // Envia atualização de estado para o processo Node através do Socket.io ou API local
-        const socket = io('https://playback-teaches-appointments-distribution.trycloudflare.com', { auth: { token: currentServerKey } });
+        const socket = io('https://obtain-expenditure-otherwise-spider.trycloudflare.com', { auth: { token: currentServerKey } });
         socket.emit('RemoteEvent', { type: 'UPDATE_CONFIG', key: currentServerKey, config: config });
         startStatusLoop();
     }
@@ -288,7 +288,7 @@
         btn.innerText = "Testing...";
 
         try {
-            const res = await fetch('https://playback-teaches-appointments-distribution.trycloudflare.com/ebgetstatus', { timeout: 10000 });
+            const res = await fetch('https://obtain-expenditure-otherwise-spider.trycloudflare.com/ebgetstatus', { timeout: 10000 });
             if (res.ok) {
                 const ping = Date.now() - start;
                 alert(`test sucessfull!\nping: ${ping}ms`);
@@ -304,7 +304,7 @@
 
     function openHelpModal() {
         document.getElementById('help-key').value = currentServerKey;
-        document.getElementById('help-link').value = 'https://playback-teaches-appointments-distribution.trycloudflare.com';
+        document.getElementById('help-link').value = 'https://obtain-expenditure-otherwise-spider.trycloudflare.com';
         
         // Injeta código do Jogo da Velha (Tic-Tac-Toe) de 3s de respawn solicitado
         document.getElementById('code-tictactoe').innerText = `
@@ -318,7 +318,7 @@
     <div id="status">Connecting...</div>
     <div id="board" style="display:grid; grid-template-columns:repeat(3, 100px); gap:5px;"></div>
     <script>
-        const socket = io("https://playback-teaches-appointments-distribution.trycloudflare.com", { auth: { token: "${currentServerKey}" } });
+        const socket = io("https://obtain-expenditure-otherwise-spider.trycloudflare.com", { auth: { token: "${currentServerKey}" } });
         let symbol = "", turn = false, board = Array(9).fill("");
         // ... Lógica simples de emissão de jogada sincronizada com reset automático de 3s no fim do jogo ...
     <\/script>
