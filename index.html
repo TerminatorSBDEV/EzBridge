@@ -1,523 +1,442 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EzBridge | Cloud Server Dashboard</title>
+    <title>EzBridge | Cloud Networking</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <style>
         :root {
-            --bg: #09090b;
-            --panel: #18181b;
-            --border: #27272a;
-            --accent: #10b981;
-            --accent-glow: rgba(16, 185, 129, 0.15);
-            --text: #f4f4f5;
-            --subtext: #a1a1aa;
+            --bg: #030712;
+            --panel: #0b0f19;
+            --accent: #00ff88;
+            --text: #f3f4f6;
+            --border: #1f2937;
         }
 
         body, html {
-            margin: 0; padding: 0;
-            background: var(--bg);
-            color: var(--text);
+            margin: 0; padding: 0; height: 100%;
+            background-color: var(--bg); color: var(--text);
             font-family: 'Segoe UI', system-ui, sans-serif;
-            height: 100%;
-            overflow-x: hidden;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
 
-        /* Loading Overlay Inicial */
-        #check-overlay {
+        /* Pop-up de Carregamento Inicial */
+        #loading-overlay {
             position: fixed; inset: 0; background: var(--bg);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 2000; transition: opacity 0.5s;
+            z-index: 9999; transition: 0.5s;
         }
 
-        .spinner {
-            width: 50px; height: 50px;
-            border: 4px solid var(--border);
-            border-top: 4px solid var(--accent);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
+        .loader {
+            border: 4px solid #111827; border-top: 4px solid var(--accent);
+            border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite;
         }
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Container Principal */
-        .app-container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 40px 20px;
+        /* Estilo da Interface Futurista */
+        .wrapper {
+            width: 90%; max-width: 500px; background: var(--panel);
+            border: 1px solid var(--border); border-radius: 16px; padding: 30px;
+            box-shadow: 0 20px 50px rgba(0,255,136,0.05); display: none;
         }
 
-        header {
-            text-align: center;
-            margin-bottom: 50px;
-        }
+        h1 { margin-top: 0; font-size: 2rem; letter-spacing: -1px; color: var(--accent); }
 
-        header h1 {
-            font-size: 2.5rem;
-            color: var(--accent);
-            letter-spacing: -1px;
-            margin-bottom: 10px;
-        }
-
-        .system-warning-card {
-            background: rgba(254, 240, 138, 0.05);
-            border: 1px solid rgba(254, 240, 138, 0.2);
-            border-radius: 8px;
-            padding: 15px;
-            font-size: 0.85rem;
-            color: #fef08a;
-            margin-bottom: 30px;
-            text-align: center;
-        }
-
-        /* Configurações de Criação de Servidores */
-        .config-card {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 30px;
-            margin-bottom: 40px;
-        }
-
-        .config-section {
-            margin-bottom: 25px;
-        }
-
-        .config-section h3 {
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 8px;
-            margin-bottom: 15px;
-            color: var(--accent);
-        }
-
-        .setting-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .setting-row label {
-            font-size: 0.9rem;
-            color: var(--subtext);
-        }
-
-        .setting-row select, .setting-row input[type="range"] {
-            background: #000;
-            border: 1px solid var(--border);
-            color: #fff;
-            padding: 8px 12px;
-            border-radius: 6px;
-            outline: none;
-        }
-
-        /* Active Server Panel */
-        #active-server-panel {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 30px;
-            display: none;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(239, 68, 68, 0.1);
-            color: #ef4444;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: bold;
-            align-self: flex-start;
-        }
-
-        .status-badge.online {
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--accent);
-        }
-
-        /* Modals */
-        .modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.85);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-content {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 30px;
-            width: 90%;
-            max-width: 600px;
-            position: relative;
-        }
-
-        .close-btn {
-            position: absolute;
-            top: 15px; right: 15px;
-            cursor: pointer;
-            font-size: 1.5rem;
-            color: var(--subtext);
-        }
-
-        textarea.code-copy-area {
-            width: 100%;
-            height: 180px;
-            background: #000;
-            border: 1px solid var(--border);
-            color: #10b981;
-            font-family: monospace;
-            padding: 10px;
-            box-sizing: border-box;
-            resize: none;
-            margin-top: 10px;
-        }
-
-        /* Botões */
         .btn {
-            background: var(--accent);
-            color: black;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
+            background: var(--accent); color: black; font-weight: bold;
+            border: none; padding: 14px 28px; border-radius: 8px; cursor: pointer;
+            width: 100%; font-size: 1rem; margin-top: 15px; transition: 0.2s;
+        }
+        .btn:hover { box-shadow: 0 0 15px var(--accent); }
+
+        .setup-group { margin: 15px 0; text-align: left; }
+        .setup-group label { display: block; font-size: 0.75rem; color: #6b7280; text-transform: uppercase; margin-bottom: 5px; }
+        .setup-group select, .setup-group input {
+            width: 100%; background: #030712; border: 1px solid var(--border);
+            color: white; padding: 10px; border-radius: 6px; box-sizing: border-box;
         }
 
-        .btn:hover { background: #059669; }
-        .btn-sec { background: transparent; border: 1px solid var(--border); color: #fff; }
-        .btn-sec:hover { background: #27272a; }
+        /* Notificação */
+        #notif-box {
+            position: fixed; top: 20px; right: 20px; background: #059669;
+            color: white; padding: 12px 24px; border-radius: 8px; display: none; z-index: 5000;
+        }
 
-        .btn-danger { background: #ef4444; color: white; }
-        .btn-danger:hover { background: #dc2626; }
+        /* Modais */
+        .modal {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+            z-index: 1000; justify-content: center; align-items: center;
+        }
+        .modal-body {
+            background: var(--panel); border: 1px solid var(--border);
+            padding: 30px; border-radius: 12px; width: 90%; max-width: 400px; position: relative;
+        }
+        .close-btn { position: absolute; top: 15px; right: 15px; cursor: pointer; font-weight: bold; }
+
+        pre { background: #010409; padding: 15px; border-radius: 8px; border: 1px solid var(--border); overflow-x: auto; color: #00ff88; font-family: monospace; font-size: 0.8rem; text-align: left; }
     </style>
 </head>
 <body>
 
-    <!-- Loading Overlay Inicial -->
-    <div id="check-overlay">
-        <div class="spinner"></div>
-        <div style="font-weight: bold;">Hold up, we're connecting you to our server checking your data...</div>
+    <!-- Overlay de Conexão Inicial -->
+    <div id="loading-overlay">
+        <div class="loader"></div>
+        <p style="margin-top: 20px; font-weight: bold;">Hold up, we're connecting you to our server checking your data...</p>
     </div>
 
-    <div class="app-container">
-        <header>
-            <h1>EzBridge</h1>
-            <p style="color: var(--subtext); margin: 0;">Create and implement a server to your apps for free!</p>
-        </header>
+    <!-- Notificações Flutuantes -->
+    <div id="notif-box">Configurações salvas!</div>
 
-        <div class="system-warning-card">
-            "The entire server system runs on a 8GB RAM phone, so if your server stops working, you already know the reason."
+    <!-- Tela 1: Boas Vindas & ReCaptcha -->
+    <div class="wrapper" id="view-welcome" style="display: block;">
+        <h1>EzBridge</h1>
+        <p style="color: #6b7280; line-height: 1.5; font-size: 0.95rem;">
+            Welcome to EB. Here, you are able to create, implement and store data for your apps and games for free! 
+            No more waiting, limits or registrations. 
+        </p>
+        <p style="font-size: 0.75rem; color: #ef4444; border-left: 2px solid #ef4444; padding-left: 10px;">
+            But don't you dare test my server safety, or the consequences will not be good.
+        </p>
+        
+        <!-- Google ReCaptcha -->
+        <div style="margin: 20px 0; display: flex; justify-content: center;">
+            <div class="g-recaptcha" data-sitekey="6Lf8VTMtAAAAAAMXrs6lk-tLBjuW0u8ZV5LevzMz" data-callback="captchaSolved"></div>
         </div>
 
-        <!-- Passo 1: Tela de Ajustes e Criação -->
-        <div id="creation-flow" class="config-card">
-            <h2 style="margin-top: 0; margin-bottom: 20px;">Before you create your server, try setting it up with the adjustments you'd like.</h2>
-            
-            <div class="config-section">
-                <h3>[PING SETTINGS]</h3>
-                <div class="setting-row">
-                    <label>Client Target Ping (ms):</label>
-                    <input type="range" id="cfg-client-ping" min="10" max="1000" value="50">
-                    <span id="lbl-client-ping">50ms</span>
-                </div>
-                <div class="setting-row">
-                    <label>Your Server's Target Ping (ms):</label>
-                    <input type="range" id="cfg-server-ping" min="10" max="500" value="10">
-                    <span id="lbl-server-ping">10ms</span>
-                </div>
-                <div class="setting-row">
-                    <label>Max Requests Per Second:</label>
-                    <input type="range" id="cfg-max-reqs" min="1" max="60" value="60">
-                    <span id="lbl-max-reqs">60</span>
-                </div>
-            </div>
+        <button class="btn" id="welcome-btn" disabled onclick="enterMainGui()">CLICK HERE TO BEGIN</button>
+        <div style="font-size: 0.7rem; color: #374151; margin-top: 15px; line-height: 1.4;">
+            "the entire server system runs on a 8gb ram phone, so if your server stops working, you already know the reason."
+        </div>
+    </div>
 
-            <div class="config-section">
-                <h3>[SAFETY SETTINGS]</h3>
-                <div class="setting-row">
-                    <label>Anti DDoS "server flood or attacks":</label>
-                    <select id="cfg-ddos">
-                        <option value="on" selected>ON</option>
-                        <option value="off">OFF</option>
-                    </select>
-                </div>
-                <div class="setting-row">
-                    <label>Ratelimiting:</label>
-                    <select id="cfg-ratelimit">
-                        <option value="off" selected>OFF</option>
-                        <option value="on">ON</option>
-                    </select>
-                </div>
-                <div class="setting-row">
-                    <label>Request Validation:</label>
-                    <select id="cfg-validation">
-                        <option value="on" selected>ON</option>
-                        <option value="off">OFF</option>
-                    </select>
-                </div>
-                <div class="setting-row">
-                    <label>Server Reading:</label>
-                    <select id="cfg-reading">
-                        <option value="on" selected>ON</option>
-                        <option value="off">OFF</option>
-                    </select>
-                </div>
-                <div class="setting-row">
-                    <label>Allow use on private projects:</label>
-                    <select id="cfg-private">
-                        <option value="off" selected>OFF</option>
-                        <option value="on">ON</option>
-                    </select>
-                </div>
-            </div>
-
-            <button class="btn" style="width: 100%; margin-top: 15px;" onclick="createServer()">[CREATE SERVER]</button>
+    <!-- Tela 2: Ajustes de Criação do Servidor -->
+    <div class="wrapper" id="view-setup">
+        <h1>Server Setup</h1>
+        <p style="color: #6b7280; font-size: 0.85rem; margin-bottom: 20px;">Ajuste as configurações antes de carregar o nó físico.</p>
+        
+        <div class="setup-group">
+            <label>Client Target Ping (Min: 10ms | Max: 1000ms)</label>
+            <input type="number" id="setup-client-ping" value="50" min="10" max="1000">
+        </div>
+        <div class="setup-group">
+            <label>Your Server's Target Ping (Min: 10ms | Max: 500ms)</label>
+            <input type="number" id="setup-server-ping" value="10" min="10" max="500">
+        </div>
+        <div class="setup-group">
+            <label>Max Requests Per Second (Min: 1 | Max: 60)</label>
+            <input type="number" id="setup-max-reqs" value="60" min="1" max="60">
+        </div>
+        <div class="setup-group">
+            <label>Anti DDoS</label>
+            <select id="setup-ddos"><option value="on" selected>ON</option><option value="off">OFF</option></select>
+        </div>
+        <div class="setup-group">
+            <label>Ratelimiting</label>
+            <select id="setup-ratelimit"><option value="off" selected>OFF</option><option value="on">ON</option></select>
+        </div>
+        <div class="setup-group">
+            <label>Request Validation</label>
+            <select id="setup-validation"><option value="on" selected>ON</option><option value="off">OFF</option></select>
+        </div>
+        <div class="setup-group">
+            <label>Server Reading</label>
+            <select id="setup-reading"><option value="on" selected>ON (Safe)</option><option value="off">OFF (Bypass)</option></select>
+        </div>
+        <div class="setup-group">
+            <label>Allow Private Projects</label>
+            <select id="setup-private"><option value="off" selected>OFF</option><option value="on">ON</option></select>
         </div>
 
-        <!-- Passo 2: Painel do Servidor Ativo -->
-        <div id="active-server-panel">
-            <h2 style="margin: 0; color: var(--accent);">Your Server</h2>
-            
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <button class="btn" id="btn-toggle-server" onclick="toggleServerPower()">Start Server</button>
-                <button class="btn btn-sec" onclick="openSettingsModal()">⚙</button>
-                <button class="btn btn-sec" onclick="openHowToModal()">How to Use</button>
-                <button class="btn btn-sec" id="btn-test-conn" onclick="testConnection()">Test Connection</button>
-            </div>
+        <button class="btn" onclick="createServer()">[CREATE SERVER]</button>
+    </div>
 
-            <div style="display: flex; align-items: center; gap: 15px; margin-top: 10px;">
+    <!-- Tela 3: Painel Administrativo do Servidor -->
+    <div class="wrapper" id="view-dashboard">
+        <h1>EzBridge</h1>
+        <p style="color:#6b7280; font-size:0.85rem;">Gerenciador ativo do seu servidor em nuvem.</p>
+        
+        <div style="border:1px solid var(--border); padding:15px; border-radius:8px; margin-bottom:15px; background: #030712;">
+            <div style="display:flex; justify-content:space-between; margin-bottom: 5px;">
                 <span>Server Status:</span>
-                <div id="status-badge" class="status-badge">OFFLINE</div>
+                <span id="dash-status-text" style="color:#ef4444; font-weight:bold;">OFFLINE</span>
             </div>
+            <div style="font-size:0.75rem; color:#4b5563;">Chave: <span id="dash-key-display">----</span></div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <button class="btn" id="start-stop-btn" onclick="toggleServer()" style="background:#2563eb; color:white;">[start server]</button>
+            <button class="btn btn-secondary" onclick="openSettingsModal()">[⚙ Settings]</button>
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <button class="btn btn-secondary" onclick="openHowToModal()">[how to use]</button>
+            <button class="btn" id="test-conn-btn" onclick="testConnection()" style="background:#059669; color:white;">[test connection]</button>
         </div>
     </div>
 
-    <!-- Modal: Configurações (Gear) -->
-    <div id="settings-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeModal('settings-modal')">×</span>
-            <h2>Settings Adjustments</h2>
-            <p style="color: var(--subtext); font-size: 0.85rem;">Saves will restart the server, disconnecting users.</p>
-            <div style="margin: 20px 0;" id="settings-form-placeholder"></div>
-            <button class="btn btn-danger" onclick="saveSettingsPrompt()">Save Adjustments</button>
+    <!-- Modal: Settings -->
+    <div id="modal-settings" class="modal">
+        <div class="modal-body">
+            <span class="close-btn" onclick="closeModal('modal-settings')">✕</span>
+            <h3 style="margin-top:0; color:var(--accent);">⚙ Ajustes de Rede</h3>
+            <div class="setup-group">
+                <label>Client Ping (ms)</label>
+                <input type="number" id="dash-client-ping" min="10" max="1000">
+            </div>
+            <div class="setup-group">
+                <label>DDoS Protection</label>
+                <select id="dash-ddos"><option value="on">ON</option><option value="off">OFF</option></select>
+            </div>
+            <button class="btn" onclick="saveSettings()">Save Changes</button>
         </div>
     </div>
 
     <!-- Modal: How to Use -->
-    <div id="how-to-modal" class="modal">
-        <div class="modal-content" style="max-width: 700px;">
-            <span class="close-btn" onclick="closeModal('how-to-modal')">×</span>
-            <h2>How to connect your server</h2>
-            <div style="margin: 15px 0;">
-                <p>1 - Server Key:</p>
-                <input type="text" id="copy-server-key" readonly>
-                <p>2 - Cloudflare Link:</p>
-                <input type="text" id="copy-cf-link" readonly>
+    <div id="modal-howto" class="modal">
+        <div class="modal-body" style="max-width: 600px; max-height: 80vh; overflow-y: auto;">
+            <span class="close-btn" onclick="closeModal('modal-howto')">✕</span>
+            <h3 style="margin-top:0; color:var(--accent);">How to Implement</h3>
+            <p style="font-size:0.8rem; color:#888;">Configure seu arquivo com os dados de integração ativos:</p>
+            
+            <div class="setup-group">
+                <label>1. Sua Chave de Acesso (Server Key)</label>
+                <input type="text" id="copy-key" readonly>
+                <button class="btn btn-secondary" style="padding:6px; font-size:0.8rem;" onclick="copyField('copy-key')">[COPY KEY]</button>
             </div>
-            <h3>Embed Game Example (Tic-Tac-Toe)</h3>
-            <textarea class="code-copy-area" id="tic-tac-toe-code" readonly></textarea>
+            <div class="setup-group">
+                <label>2. Seu Link Cloudflare Ativo</label>
+                <input type="text" id="copy-link" readonly>
+                <button class="btn btn-secondary" style="padding:6px; font-size:0.8rem;" onclick="copyField('copy-link')">[COPY LINK]</button>
+            </div>
+
+            <p style="font-size:0.8rem; color:#888; margin-top:20px;">Exemplo de código funcional (Tic-Tac-Toe Multiplayer com Auto-Reset de 3s):</p>
+            <pre id="code-snippet"></pre>
         </div>
     </div>
 
 <script>
-    // --- ATUALIZAÇÃO DO LINK DO CLOUDFLARE ---
-    // Linha 284: Substitua o link abaixo pelo novo gerado no Termux
-    const CLOUDFLARE_LINK = "https://destinations-screens-film-zen.trycloudflare.com";
-    const AUTH_KEY = "UVSOmc6cc";
+    // --- LINK DO CLOUDFLARE DO SEU TERMUX ---
+    const TUNNEL = "https://guam-sacramento-snowboard-emerging.trycloudflare.com";
+    const MASTER_AUTH = "default_key"; // Chave mestre de acesso
 
-    // Conectar ao servidor central para validação e persistência do usuário
-    const socket = io(CLOUDFLARE_LINK, { auth: { token: AUTH_KEY }, transports: ['websocket'] });
+    // Usando cookies/localStorage para restaurar a identidade única de 20 caracteres
+    let myId = localStorage.getItem('eb_user_id') || generateUserId();
+    localStorage.setItem('eb_user_id', myId);
 
-    let myId = localStorage.getItem('eb_user_id') || "";
-    let serverSettings = {};
-    let isServerPowerOn = false;
-    let localKey = "";
+    let socket;
+    let isServerOn = false;
+    let configServer = null;
+    let statusCheckerInterval = null;
 
-    // --- INITIALIZE & COOKIE SYSTEM ---
-    socket.on('connect', () => {
-        socket.emit('check_user_data', { userId: myId });
-    });
-
-    socket.on('user_data_checked', (res) => {
-        myId = res.userId;
-        localStorage.setItem('eb_user_id', myId);
-        
-        // Esconde o overlay de boot
-        document.getElementById('check-overlay').style.opacity = '0';
-        setTimeout(() => document.getElementById('check-overlay').style.display = 'none', 500);
-
-        if (res.data.servers && res.data.servers.length > 0) {
-            localKey = res.data.servers[0];
-            loadActiveServerPanel();
-        }
-    });
-
-    // --- RANGE SLIDERS DISPLAY ---
-    function setupSliders(prefix) {
-        const client = document.getElementById(prefix + 'client-ping');
-        const server = document.getElementById(prefix + 'server-ping');
-        const reqs = document.getElementById(prefix + 'max-reqs');
-
-        if (client) client.oninput = () => document.getElementById('lbl-' + prefix + 'client-ping').innerText = client.value + "ms";
-        if (server) server.oninput = () => document.getElementById('lbl-' + prefix + 'server-ping').innerText = server.value + "ms";
-        if (reqs) reqs.oninput = () => document.getElementById('lbl-' + prefix + 'max-reqs').innerText = reqs.value;
+    function generateUserId() {
+        let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        let str = "";
+        for (let i = 0; i < 20; i++) str += chars.charAt(Math.floor(Math.random() * chars.length));
+        return str;
     }
 
-    setupSliders('cfg-');
+    // Inicialização da Conexão Master
+    window.onload = () => {
+        socket = io(TUNNEL, { auth: { token: MASTER_AUTH } });
+        
+        socket.on('connect', () => {
+            document.getElementById('loading-overlay').style.opacity = 0;
+            setTimeout(() => {
+                document.getElementById('loading-overlay').style.display = 'none';
+            }, 500);
 
-    // --- CREATE SERVER FLOW ---
+            // Carrega servidor anterior se existir no cache local do usuário
+            const cachedServer = localStorage.getItem('eb_my_server');
+            if (cachedServer) {
+                configServer = JSON.parse(cachedServer);
+                showDashboard();
+            }
+        });
+
+        socket.on('connect_error', () => {
+            alert("Erro ao conectar ao Ezbridge Master. Verifique se o túnel no Termux está online.");
+        });
+    };
+
+    function captchaSolved() {
+        document.getElementById('welcome-btn').disabled = false;
+    }
+
+    function enterMainGui() {
+        document.getElementById('view-welcome').style.display = 'none';
+        if (configServer) {
+            showDashboard();
+        } else {
+            document.getElementById('view-setup').style.display = 'flex';
+        }
+    }
+
+    function generateServerKey() {
+        let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        let str = "";
+        for (let i = 0; i < 10; i++) str += chars.charAt(Math.floor(Math.random() * chars.length));
+        return str;
+    }
+
     function createServer() {
-        const settings = {
-            clientPing: document.getElementById('cfg-client-ping').value,
-            serverPing: document.getElementById('cfg-server-ping').value,
-            maxReqs: document.getElementById('cfg-max-reqs').value,
-            ddos: document.getElementById('cfg-ddos').value,
-            ratelimit: document.getElementById('cfg-ratelimit').value,
-            validation: document.getElementById('cfg-validation').value,
-            reading: document.getElementById('cfg-reading').value,
-            private: document.getElementById('cfg-private').value
+        configServer = {
+            key: generateServerKey(),
+            ownerId: myId,
+            settings: {
+                clientPing: document.getElementById('setup-client-ping').value,
+                serverPing: document.getElementById('setup-server-ping').value,
+                maxReqs: document.getElementById('setup-max-reqs').value,
+                antiDdos: document.getElementById('setup-ddos').value,
+                ratelimit: document.getElementById('setup-ratelimit').value,
+                validation: document.getElementById('setup-validation').value,
+                serverReading: document.getElementById('setup-reading').value,
+                privateProjects: document.getElementById('setup-private').value
+            }
         };
 
-        socket.emit('create_server', { userId: myId, settings });
+        localStorage.setItem('eb_my_server', JSON.stringify(configServer));
+        document.getElementById('view-setup').style.display = 'none';
+        showDashboard();
     }
 
-    socket.on('server_created', (data) => {
-        localKey = data.serverKey;
-        serverSettings = data.settings;
-        loadActiveServerPanel();
-    });
+    function showDashboard() {
+        document.getElementById('view-dashboard').style.display = 'flex';
+        document.getElementById('dash-key-display').innerText = configServer.key;
+        document.getElementById('copy-key').value = configServer.key;
+        document.getElementById('copy-link').value = TUNNEL;
 
-    function loadActiveServerPanel() {
-        document.getElementById('creation-flow').style.display = 'none';
-        document.getElementById('active-server-panel').style.display = 'flex';
-        
-        document.getElementById('copy-server-key').value = localKey;
-        document.getElementById('copy-cf-link').value = CLOUDFLARE_LINK;
-
-        // Gerar exemplo dinâmico do código do Tic-Tac-Toe
-        document.getElementById('tic-tac-toe-code').value = getTicTacToeCode(CLOUDFLARE_LINK, localKey);
+        // Injeta código do Tic Tac Toe com as credenciais dinâmicas do usuário
+        document.getElementById('code-snippet').innerText = getTicTacToeTemplate(configServer.key, TUNNEL);
     }
 
-    // --- ACTIVE CONTROLS ---
-    function toggleServerPower() {
-        isServerPowerOn = !isServerPowerOn;
-        const btn = document.getElementById('btn-toggle-server');
-        const badge = document.getElementById('status-badge');
+    function toggleServer() {
+        isServerOn = !isServerOn;
+        const btn = document.getElementById('start-stop-btn');
+        const status = document.getElementById('dash-status-text');
 
-        if (isServerPowerOn) {
-            btn.innerText = "Stop Server";
-            btn.className = "btn btn-danger";
-            badge.innerText = "ONLINE";
-            badge.className = "status-badge online";
-        } else {
-            btn.innerText = "Start Server";
-            btn.className = "btn";
-            badge.innerText = "OFFLINE";
-            badge.className = "status-badge";
-        }
-    }
-
-    async function testConnection() {
-        const testBtn = document.getElementById('btn-test-conn');
-        testBtn.disabled = true;
-        testBtn.innerText = "Testing...";
-
-        const start = Date.now();
-        
-        try {
-            const res = await fetch(CLOUDFLARE_LINK + "/ebgetstatus", { method: 'GET' });
-            if (res.ok) {
-                const diff = Date.now() - start;
-                alert(`test successful!\nping: ${diff}ms`);
-            } else {
-                throw new Error();
-            }
-        } catch {
-            alert("test failed.\nServer might be offline, an error could have occurred, or your Wi-Fi glitched. Try again.");
-        }
-
-        testBtn.disabled = false;
-        testBtn.innerText = "Test Connection";
-    }
-
-    // --- SETTINGS WINDOW ---
-    function openSettingsModal() {
-        const placeholder = document.getElementById('settings-form-placeholder');
-        placeholder.innerHTML = `
-            <div class="config-section">
-                <div class="setting-row">
-                    <label>Client Target Ping (ms):</label>
-                    <input type="range" id="edit-client-ping" min="10" max="1000" value="${serverSettings.clientPing || 50}">
-                    <span id="lbl-edit-client-ping">${serverSettings.clientPing || 50}ms</span>
-                </div>
-                <div class="setting-row">
-                    <label>Server Target Ping (ms):</label>
-                    <input type="range" id="edit-server-ping" min="10" max="500" value="${serverSettings.serverPing || 10}">
-                    <span id="lbl-edit-server-ping">${serverSettings.serverPing || 10}ms</span>
-                </div>
-            </div>
-        `;
-        document.getElementById('settings-modal').style.display = 'flex';
-        setupSliders('edit-');
-    }
-
-    function saveSettingsPrompt() {
-        if (confirm("Are you sure you want to save your settings? Because if you do, your server will restart and all clients connected will disconnect.")) {
-            serverSettings.clientPing = document.getElementById('edit-client-ping').value;
-            serverSettings.serverPing = document.getElementById('edit-server-ping').value;
+        if (isServerOn) {
+            btn.innerText = "[stop server]";
+            btn.style.background = "#ef4444";
             
-            socket.emit('save_server_settings', {
-                userId: myId,
-                serverKey: localKey,
-                settings: serverSettings
-            });
-            closeModal('settings-modal');
+            // Registra o servidor dinâmico no Node.js
+            socket.emit('register_server', configServer);
+            startStatusChecker();
+        } else {
+            btn.innerText = "[start server]";
+            btn.style.background = "#2563eb";
+            status.innerText = "OFFLINE";
+            status.style.color = "#ef4444";
+            if (statusCheckerInterval) clearInterval(statusCheckerInterval);
         }
     }
 
-    socket.on('settings_saved', () => {
-        alert("Settings saved successfully!");
-    });
+    function startStatusChecker() {
+        if (statusCheckerInterval) clearInterval(statusCheckerInterval);
+        
+        const status = document.getElementById('dash-status-text');
+        
+        statusCheckerInterval = setInterval(() => {
+            if (!isServerOn) return;
 
-    function openHowToModal() {
-        document.getElementById('how-to-modal').style.display = 'flex';
+            let start = Date.now();
+            
+            fetch(`${TUNNEL}/getstatus`, { method: 'GET' })
+                .then(res => res.text())
+                .then(text => {
+                    if (text === "OK" && Date.now() - start < 3000) {
+                        status.innerText = "ONLINE";
+                        status.style.color = "#00ff88";
+                    } else {
+                        status.innerText = "OFFLINE";
+                        status.style.color = "#ef4444";
+                    }
+                })
+                .catch(() => {
+                    status.innerText = "OFFLINE";
+                    status.style.color = "#ef4444";
+                });
+        }, 3500);
     }
 
-    function closeModal(id) {
-        document.getElementById(id).style.display = 'none';
+    function testConnection() {
+        const btn = document.getElementById('test-conn-btn');
+        btn.disabled = true;
+        btn.innerText = "Testing...";
+
+        let start = Date.now();
+
+        fetch(`${TUNNEL}/ebgetstatus`, { method: 'GET' })
+            .then(res => res.text())
+            .then(text => {
+                let ping = Date.now() - start;
+                alert(`test sucessfull!\nping: ${ping}ms`);
+                btn.disabled = false;
+                btn.innerText = "[test connection]";
+            })
+            .catch(() => {
+                alert("test failed.\nServer might be offline, an error could have occured or your wifi might have glitched, try again.");
+                btn.disabled = false;
+                btn.innerText = "[test connection]";
+            });
     }
 
-    // --- TIC TAC TOE TEMPLATE COMPILATION ---
-    function getTicTacToeCode(link, key) {
+    function openSettingsModal() {
+        document.getElementById('dash-client-ping').value = configServer.settings.clientPing;
+        document.getElementById('dash-ddos').value = configServer.settings.antiDdos;
+        document.getElementById('modal-settings').style.display = 'flex';
+    }
+
+    function saveSettings() {
+        const confirmSave = confirm("Are you sure you want save your settings? because if you do, your server will restart and all clients connected to it will disconnect, but don't worry, stored data is still safe.");
+        if (confirmSave) {
+            configServer.settings.clientPing = document.getElementById('dash-client-ping').value;
+            configServer.settings.antiDdos = document.getElementById('dash-ddos').value;
+            localStorage.setItem('eb_my_server', JSON.stringify(configServer));
+            
+            // Força reinício se estiver online
+            if (isServerOn) {
+                toggleServer(); // Stop
+                toggleServer(); // Restart
+            }
+            closeModal('modal-settings');
+            showNotif();
+        }
+    }
+
+    function showNotif() {
+        const box = document.getElementById('notif-box');
+        box.style.display = 'block';
+        setTimeout(() => { box.style.display = 'none'; }, 3000);
+    }
+
+    function openHowToModal() { document.getElementById('modal-howto').style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    function copyField(id) {
+        const input = document.getElementById(id);
+        input.select();
+        document.execCommand('copy');
+        alert("Copied to clipboard!");
+    }
+
+    function getTicTacToeTemplate(key, link) {
         return `<!DOCTYPE html>
 <html>
 <head>
-    <title>EzBridge Tic-Tac-Toe</title>
+    <title>Multiplayer Tic-Tac-Toe</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"><\/script>
     <style>
-        body { background: #000; color: #fff; text-align: center; font-family: sans-serif; }
-        .grid { display: grid; grid-template-columns: repeat(3, 100px); gap: 10px; margin: 20px auto; width: 320px; }
-        .cell { width: 100px; height: 100px; background: #111; border: 1px solid #333; font-size: 2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        body { background: #0c0f1d; color: white; font-family: sans-serif; text-align: center; }
+        .board { display: grid; grid-template-columns: repeat(3, 100px); gap: 10px; margin: 20px auto; width: 320px; }
+        .cell { width: 100px; height: 100px; background: #151a30; border: 2px solid #242c4d; font-size: 2.5rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
-    <h2>Multiplayer Tic-Tac-Toe</h2>
+    <h2>Tic-Tac-Toe Game</h2>
     <div id="status">Connecting...</div>
-    <div class="grid" id="board">
+    <div class="board" id="board">
         <div class="cell" onclick="makeMove(0)"></div>
         <div class="cell" onclick="makeMove(1)"></div>
         <div class="cell" onclick="makeMove(2)"></div>
@@ -529,44 +448,58 @@
         <div class="cell" onclick="makeMove(8)"></div>
     </div>
     <script>
-        const socket = io("${link}", { auth: { token: "${AUTH_KEY}" } });
-        let mySymbol = "";
-        let turn = false;
+        const socket = io("${link}", { auth: { token: "guest_allowed" } });
+        const SERVER_KEY = "${key}";
+        let mySymbol = "X";
         let boardState = Array(9).fill("");
 
-        socket.on('connect', () => {
-            document.getElementById('status').innerText = "Searching for player...";
-            socket.emit('RemoteEvent', { type: 'join_lobby', key: "${key}" });
+        socket.on("connect", () => {
+            document.getElementById("status").innerText = "Connected. Click board to play!";
+            socket.emit("RemoteEvent", { type: "sync_request", serverKey: SERVER_KEY });
         });
 
-        socket.on('RemoteEvent', (p) => {
-            if (p.type === 'game_start') {
-                mySymbol = p.symbol;
-                turn = p.turn;
-                document.getElementById('status').innerText = "Game Started! You are " + mySymbol + (turn ? " (Your Turn)" : " (Waiting...)");
-            }
-            if (p.type === 'board_update') {
-                boardState = p.board;
-                turn = p.nextTurnSymbol === mySymbol;
-                render();
-                if (p.winner) {
-                    document.getElementById('status').innerText = p.winner === "Tie" ? "It's a Tie!" : "Winner: " + p.winner;
-                    setTimeout(() => location.reload(), 3000);
-                } else {
-                    document.getElementById('status').innerText = turn ? "Your Turn" : "Opponent's Turn...";
-                }
+        socket.on("RemoteEvent", (packet) => {
+            if (packet.serverKey !== SERVER_KEY) return;
+            if (packet.type === "move") {
+                boardState[packet.idx] = packet.symbol;
+                updateUI();
+                checkGameResult();
             }
         });
 
         function makeMove(idx) {
-            if (!turn || boardState[idx] !== "") return;
+            if (boardState[idx] !== "") return;
             boardState[idx] = mySymbol;
-            socket.emit('RemoteEvent', { type: 'client_move', index: idx, symbol: mySymbol });
+            updateUI();
+            socket.emit("RemoteEvent", { type: "move", serverKey: SERVER_KEY, idx, symbol: mySymbol });
+            checkGameResult();
         }
 
-        function render() {
-            const cells = document.querySelectorAll('.cell');
-            cells.forEach((c, i) => c.innerText = boardState[i]);
+        function updateUI() {
+            const cells = document.querySelectorAll(".cell");
+            cells.forEach((cell, idx) => cell.innerText = boardState[idx]);
+        }
+
+        function checkGameResult() {
+            // Logica básica de vitória / empate
+            const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+            for (let w of wins) {
+                if (boardState[w[0]] && boardState[w[0]] === boardState[w[1]] && boardState[w[0]] === boardState[w[2]]) {
+                    document.getElementById("status").innerText = "Winner: " + boardState[w[0]] + "! Restarting in 3s...";
+                    setTimeout(resetGame, 3000);
+                    return;
+                }
+            }
+            if (!boardState.includes("")) {
+                document.getElementById("status").innerText = "Tie Game! Restarting in 3s...";
+                setTimeout(resetGame, 3000);
+            }
+        }
+
+        function resetGame() {
+            boardState = Array(9).fill("");
+            updateUI();
+            document.getElementById("status").innerText = "Play!";
         }
     <\/script>
 </body>
