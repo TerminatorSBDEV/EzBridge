@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EzBridge | Cloud Virtual Hosting</title>
-    <!-- Script do ReCaptcha V2 -->
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
@@ -24,7 +23,6 @@
             display: flex; align-items: center; justify-content: center;
         }
 
-        /* Modals */
         .overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.95);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -48,7 +46,6 @@
         .btn-secondary { background: #27272a; color: white; border: 1px solid var(--border); }
         .btn-secondary:hover { background: #3f3f46; }
 
-        /* Estilos do Formulário de Configuração */
         .settings-grid {
             text-align: left; display: flex; flex-direction: column; gap: 12px; margin: 20px 0;
         }
@@ -59,7 +56,6 @@
             padding: 8px 12px; border-radius: 6px; outline: none;
         }
 
-        /* Status & Botões da Dashboard */
         .dashboard-row { display: flex; gap: 10px; margin-top: 15px; }
         .status-indicator {
             padding: 10px; border-radius: 6px; background: #09090b;
@@ -69,7 +65,6 @@
         .dot { width: 8px; height: 8px; border-radius: 50%; background: red; }
         .dot.online { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
 
-        /* Modal "How to use" */
         .how-to-use-box {
             text-align: left; max-height: 400px; overflow-y: auto; padding: 10px;
         }
@@ -81,7 +76,6 @@
 </head>
 <body>
 
-    <!-- Passo 0: Buffering Inicial -->
     <div id="overlay-sync" class="overlay">
         <div class="card" style="border-color: var(--border);">
             <h3 style="margin-bottom: 20px;">Hold up, we're connecting you to our server checking your data...</h3>
@@ -89,36 +83,23 @@
         </div>
     </div>
 
-    <!-- Passo 1: Captcha de Entrada -->
     <div id="overlay-captcha" class="overlay" style="display:none;">
         <div class="card">
             <h1>EzBridge</h1>
-            <p style="font-size:0.85rem; color:#a1a1aa; line-height:1.5;">
-                Welcome to EB. Create and implement a secure server to your apps for free!
-            </p>
-            <p style="font-size:0.75rem; color:#ff5555; margin-bottom:20px;">
-                But don't you dare test my server or the consequences will not be good.
-            </p>
-            <!-- Div para renderização do ReCaptcha -->
             <div style="display: flex; justify-content: center; margin-bottom: 20px;">
                 <div class="g-recaptcha" data-sitekey="6Lf8VTMtAAAAAAMXrs6lk-tLBjuW0u8ZV5LevzMz" data-callback="captchaSolved"></div>
             </div>
         </div>
     </div>
 
-    <!-- Passo 2: Menu Principal (Começar) -->
     <div id="overlay-start" class="overlay" style="display:none;">
         <div class="card">
             <h1>EzBridge</h1>
             <p style="color:#a1a1aa; font-size:0.9rem; margin-bottom:25px;">Create and implement a server to your apps for free!</p>
             <button class="btn" onclick="openSetupUI()">[CLICK HERE TO BEGIN]</button>
-            <div style="font-size:0.7rem; color:#71717a; margin-top:20px; line-height:1.4;">
-                "the entire server system runs on a 8gb ram phone, so if your server stops working, you already know the reason."
-            </div>
         </div>
     </div>
 
-    <!-- Passo 3: Configuração do Servidor Virtual -->
     <div id="overlay-setup" class="overlay" style="display:none;">
         <div class="card" style="max-width: 500px;">
             <h2 id="setup-title">Setup Your Server</h2>
@@ -126,22 +107,21 @@
                 <h4 style="margin:0; color:var(--accent);">[PING SETTINGS]</h4>
                 <div class="settings-item">
                     <label>client target ping (10 - 1000ms)</label>
-                    <input type="number" id="cfg-client-ping" value="50" min="10" max="1000">
+                    <input type="number" id="cfg-client-ping" value="50">
                 </div>
                 <div class="settings-item">
                     <label>your server's target ping (10 - 500ms)</label>
-                    <input type="number" id="cfg-server-ping" value="10" min="10" max="500">
+                    <input type="number" id="cfg-server-ping" value="10">
                 </div>
                 <div class="settings-item">
                     <label>max requests per second (1 - 60)</label>
-                    <input type="number" id="cfg-max-reqs" value="60" min="1" max="60">
+                    <input type="number" id="cfg-max-reqs" value="60">
                 </div>
-
                 <h4 style="margin:10px 0 0 0; color:var(--accent);">[SAFETY SETTINGS]</h4>
                 <div class="settings-item">
                     <label>anti ddos / attack protection</label>
                     <select id="cfg-anti-ddos">
-                        <option value="true" selected>On (Highly Recommended)</option>
+                        <option value="true" selected>On</option>
                         <option value="false">Off</option>
                     </select>
                 </div>
@@ -162,15 +142,15 @@
                 <div class="settings-item">
                     <label>server reading (payload checking)</label>
                     <select id="cfg-reading">
-                        <option value="true" selected>On (Safe)</option>
-                        <option value="false">Off (Absolutely Risky!)</option>
+                        <option value="true" selected>On</option>
+                        <option value="false">Off</option>
                     </select>
                 </div>
                 <div class="settings-item">
                     <label>allow use on private projects</label>
                     <select id="cfg-private">
-                        <option value="false" selected>Off (Public Sites Only)</option>
-                        <option value="true">On (Allow localhost/local files)</option>
+                        <option value="false" selected>Off</option>
+                        <option value="true">On</option>
                     </select>
                 </div>
             </div>
@@ -179,16 +159,12 @@
         </div>
     </div>
 
-    <!-- Dashboard de Controle Real -->
     <div id="dashboard" class="card" style="display:none; width: 450px;">
         <h2>EzBridge Control</h2>
-        <p style="font-size:0.8rem; color:#888;">Manage your private server instance</p>
-        
         <div class="status-indicator">
             <div id="server-dot" class="dot"></div>
             <span>Server status: <span id="server-status-text">OFFLINE</span></span>
         </div>
-
         <div class="dashboard-row">
             <button class="btn" style="flex: 1;" onclick="toggleServerState()">[Start/Stop Server]</button>
             <button class="btn btn-secondary" style="width: 50px;" onclick="openEditSettings()">⚙</button>
@@ -199,43 +175,68 @@
         </div>
     </div>
 
-    <!-- Popups / Modais de Informações -->
     <div id="modal-howto" class="overlay" style="display:none;">
         <div class="card" style="max-width: 600px;">
             <h3 style="margin-bottom:15px;">How to Connect Your Server</h3>
             <div class="how-to-use-box">
-                <p style="font-size:0.85rem; color:#a1a1aa; line-height:1.4;">
-                    Adicione estas informações nas configurações de conexão do seu projeto (HTML ou roblox script):
-                </p>
                 <div class="setup-group">
                     <label>1. Server Auth Key</label>
                     <div style="display:flex; gap:10px;">
-                        <input type="text" id="copy-key" readonly style="flex-grow:1;">
+                        <input type="text" id="copy-key" readonly style="flex-grow:1; background:#000; border:1px solid var(--border); color:#fff; padding:5px;">
                         <button class="btn" style="width:auto; margin:0;" onclick="copyText('copy-key')">Copy</button>
                     </div>
                 </div>
-                <div class="setup-group">
+                <div class="setup-group" style="margin-top:10px;">
                     <label>2. Current Cloudflare Link</label>
                     <div style="display:flex; gap:10px;">
-                        <input type="text" id="copy-link" readonly style="flex-grow:1;">
+                        <input type="text" id="copy-link" readonly style="flex-grow:1; background:#000; border:1px solid var(--border); color:#fff; padding:5px;">
                         <button class="btn" style="width:auto; margin:0;" onclick="copyText('copy-link')">Copy</button>
                     </div>
                 </div>
-                <p style="font-size:0.75rem; color:#ff7b72;">
-                    * Você precisa configurar ambos no seu projeto, ou o servidor negará o acesso.
-                </p>
-                <button class="btn" onclick="openTicTacToeCode()">[View Tic-Tac-Toe Example]</button>
+                <div style="display:flex; gap:10px; margin-top:15px;">
+                    <button class="btn btn-blue" onclick="openCommandsModal()">[API Commands]</button>
+                    <button class="btn" onclick="openTicTacToeCode()">[View Tic-Tac-Toe Code]</button>
+                </div>
             </div>
             <button class="btn btn-secondary" onclick="closeHowToUse()">Close</button>
         </div>
     </div>
 
-    <!-- Modal do Jogo da Velha (Código de Exemplo) -->
+    <!-- Novo modal de Comandos da API -->
+    <div id="modal-commands" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 650px;">
+            <h3>EzBridge API Commands</h3>
+            <div class="how-to-use-box">
+                <h4 style="color:var(--accent);">Real-Time Events</h4>
+                <p style="font-size:0.8rem; color:#888;">Envie pacotes sincronizados para os outros clientes conectados:</p>
+                <div class="code-box">socket.emit("RemoteEvent", { type: "seu_tipo", data: "sua_payload" });</div>
+
+                <h4 style="color:var(--accent); margin-top:15px;">EBstorage Commands (Database)</h4>
+                <p style="font-size:0.8rem; color:#888;">Persistência física em disco direto no servidor virtual:</p>
+                
+                <p style="font-size:0.85rem; font-weight:bold;">1. Adicionar/Atualizar Dado:</p>
+                <div class="code-box">socket.emit("RemoteEvent", { type: "ebdata_add_pasta_subpasta_chave", data: "valor_ou_base64" });</div>
+                
+                <p style="font-size:0.85rem; font-weight:bold;">2. Recuperar Dado:</p>
+                <div class="code-box">socket.emit("RemoteEvent", { type: "ebdata_fetch_pasta_subpasta" });</div>
+
+                <p style="font-size:0.85rem; font-weight:bold;">3. Remover Dado:</p>
+                <div class="code-box">socket.emit("RemoteEvent", { type: "ebdata_remove_pasta_subpasta_chave" });</div>
+
+                <p style="font-size:0.85rem; font-weight:bold;">4. Criar Pasta de Organização:</p>
+                <div class="code-box">socket.emit("RemoteEvent", { type: "ebdata_addfolder", data: { folderName: "sua_pasta" } });</div>
+
+                <p style="font-size:0.85rem; font-weight:bold;">5. Limpar Tudo:</p>
+                <div class="code-box">socket.emit("RemoteEvent", { type: "ebdata_clear" });</div>
+            </div>
+            <button class="btn btn-secondary" onclick="closeCommandsModal()">Back</button>
+        </div>
+    </div>
+
     <div id="modal-code" class="overlay" style="display:none;">
         <div class="card" style="max-width: 700px;">
             <h3>Tic-Tac-Toe Example Code</h3>
-            <p style="font-size:0.8rem; color:#888;">Copy and use this standard HTML example to test your dynamic multiplayer virtual server:</p>
-            <textarea id="example-code" class="code-box" readonly rows="12" style="width:100%; border:none; resize:none;"></textarea>
+            <textarea id="example-code" class="code-box" readonly rows="12" style="width:100%; border:none; height:300px; resize:none;"></textarea>
             <div style="display:flex; gap:10px; margin-top:10px;">
                 <button class="btn" onclick="copyText('example-code')">Copy Code</button>
                 <button class="btn btn-secondary" onclick="closeTicTacToeCode()">Back</button>
@@ -244,21 +245,19 @@
     </div>
 
 <script>
-    // --- DIRETRIZ ATUALIZADA DO TÚNEL ---
-    const PUBLIC_TUNNEL_URL = "https://yang-bears-paperbacks-throat.trycloudflare.com";
+    // --- LINK ATUALIZADO DO SEU MASTER TÚNEL ---
+    const PUBLIC_TUNNEL_URL = "https://ssl-loves-comic-percent.trycloudflare.com";
 
-    // --- SESSION STATE (COOKIES) ---
     let ownerId = getCookie("eb_owner_id") || "";
     let serverKey = "";
     let serverActive = false;
     let serverSettings = {};
 
     let socket = io(PUBLIC_TUNNEL_URL, {
-        auth: { token: "default_key" }, // A página geradora usa a chave padrão de root do sistema
+        auth: { token: "default_key" },
         transports: ['websocket']
     });
 
-    // --- CONEXÃO INICIAL E SINCRONIZAÇÃO ---
     socket.on('connect', () => {
         socket.emit('eb_sync_session', { ownerId });
     });
@@ -283,21 +282,15 @@
         document.getElementById('overlay-start').style.display = 'flex';
     }
 
-    // --- OPERAÇÕES DA UI ---
     function openSetupUI() {
         document.getElementById('overlay-start').style.display = 'none';
         document.getElementById('overlay-setup').style.display = 'flex';
-        document.getElementById('setup-title').innerText = "Configure Your Server";
-        document.getElementById('setup-action-btn').innerText = "[CREATE SERVER]";
     }
 
     function closeSetupUI() {
         document.getElementById('overlay-setup').style.display = 'none';
-        if (serverKey) {
-            showDashboard();
-        } else {
-            document.getElementById('overlay-start').style.display = 'flex';
-        }
+        if (serverKey) showDashboard();
+        else document.getElementById('overlay-start').style.display = 'flex';
     }
 
     function createServerSubmit() {
@@ -313,12 +306,10 @@
         };
 
         if (serverKey) {
-            // Se já tem servidor, estamos editando
-            if (confirm("WARNING:\nAre you sure you want save your settings? Because if you do, your server will restart and all clients connected to it will disconnect, but don't worry, stored data is still safe.")) {
+            if (confirm("Are you sure? Server settings override will disconnect currently active clients.")) {
                 socket.emit('eb_save_settings', { key: serverKey, ownerId, settings });
             }
         } else {
-            // Novo servidor
             socket.emit('eb_create_server', { ownerId, settings });
         }
     }
@@ -326,7 +317,7 @@
     socket.on('server_created', (data) => {
         serverKey = data.key;
         serverSettings = data.settings;
-        serverActive = false; // Começa desligado
+        serverActive = false;
         document.getElementById('overlay-setup').style.display = 'none';
         showDashboard();
     });
@@ -363,10 +354,6 @@
     function openEditSettings() {
         document.getElementById('dashboard').style.display = 'none';
         document.getElementById('overlay-setup').style.display = 'flex';
-        document.getElementById('setup-title').innerText = "Modify Server Settings";
-        document.getElementById('setup-action-btn').innerText = "[SAVE SETTINGS]";
-
-        // Preenche os campos com as configurações atuais
         document.getElementById('cfg-client-ping').value = serverSettings.clientPing;
         document.getElementById('cfg-server-ping').value = serverSettings.serverPing;
         document.getElementById('cfg-max-reqs').value = serverSettings.maxReqs;
@@ -377,36 +364,19 @@
         document.getElementById('cfg-private').value = String(serverSettings.allowPrivate);
     }
 
-    // --- TESTE DE CONEXÃO ---
     function testConnection() {
         const btn = document.getElementById('test-conn-btn');
         btn.disabled = true;
         btn.innerText = "Testing...";
-
         const startTime = Date.now();
-        let received = false;
-
-        const timeout = setTimeout(() => {
-            if (!received) {
-                alert("test failed.\nServer might be offline, a error could have occured or your wifi might have glitched, try again.");
-                btn.disabled = false;
-                btn.innerText = "[Test Connection]";
-            }
-        }, 10000);
-
         socket.once('ebgetstatus_response', (data) => {
-            received = true;
-            clearTimeout(timeout);
-            const ping = Date.now() - startTime;
-            alert(`${data.status}\nping: ${ping}ms`);
+            alert(`${data.status}\nping: ${Date.now() - startTime}ms`);
             btn.disabled = false;
             btn.innerText = "[Test Connection]";
         });
-
         socket.emit('ebgetstatus');
     }
 
-    // --- AUXILIARES E GUIAS ---
     function openHowToUse() {
         document.getElementById('copy-key').value = serverKey;
         document.getElementById('copy-link').value = PUBLIC_TUNNEL_URL;
@@ -417,12 +387,20 @@
         document.getElementById('modal-howto').style.display = 'none';
     }
 
+    function openCommandsModal() {
+        document.getElementById('modal-commands').style.display = 'flex';
+    }
+
+    function closeCommandsModal() {
+        document.getElementById('modal-commands').style.display = 'none';
+    }
+
     function openTicTacToeCode() {
         const code = `<!DOCTYPE html>
-<html lang="pt-br">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Tic-Tac-Toe Example</title>
+    <title>Tic-Tac-Toe</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"><\/script>
     <style>
         body { background: #0c0c0e; color: #fff; font-family: sans-serif; text-align: center; }
@@ -460,7 +438,6 @@
         });
 
         socket.on("joined_successfully", () => {
-            // Emite ping para ver se há alguém na sala
             socket.emit("RemoteEvent", { type: "ttt_ping" });
         });
 
@@ -545,10 +522,9 @@
         const el = document.getElementById(id);
         el.select();
         document.execCommand('copy');
-        alert("Copied to clipboard!");
+        alert("Copied!");
     }
 
-    // --- COOKIE HELPERS ---
     function setCookie(name, value, days) {
         const d = new Date();
         d.setTime(d.getTime() + (days*24*60*60*1000));
