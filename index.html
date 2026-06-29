@@ -1,533 +1,574 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EzBridge | Cloud Console</title>
+    <title>EzBridge | Cloud Server Dashboard</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <style>
         :root {
-            --bg: #060814;
-            --panel: #0d1127;
-            --accent: #00ff88;
-            --border: #1f294d;
-            --text: #c9d1d9;
+            --bg: #09090b;
+            --panel: #18181b;
+            --border: #27272a;
+            --accent: #10b981;
+            --accent-glow: rgba(16, 185, 129, 0.15);
+            --text: #f4f4f5;
+            --subtext: #a1a1aa;
         }
 
         body, html {
-            margin: 0; padding: 0; min-height: 100%;
-            background: var(--bg); color: var(--text);
+            margin: 0; padding: 0;
+            background: var(--bg);
+            color: var(--text);
             font-family: 'Segoe UI', system-ui, sans-serif;
+            height: 100%;
+            overflow-x: hidden;
         }
 
-        /* Bloqueio de Carregamento de Inicialização */
-        #loading-overlay {
+        /* Loading Overlay Inicial */
+        #check-overlay {
             position: fixed; inset: 0; background: var(--bg);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 9999;
+            z-index: 2000; transition: opacity 0.5s;
         }
+
         .spinner {
-            width: 50px; height: 50px; border: 3px solid rgba(0,255,136,0.1);
-            border-top: 3px solid var(--accent); border-radius: 50%;
-            animation: spin 1s linear infinite; margin-bottom: 20px;
-        }
-
-        /* Telas Principais */
-        .screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; box-sizing: border-box;}
-        .box {
-            background: var(--panel); border: 2px solid var(--border); padding: 35px;
-            border-radius: 16px; text-align: center; width: 100%; max-width: 450px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
-        }
-
-        h1, h2, h3 { color: var(--accent); letter-spacing: 1px; }
-
-        .btn {
-            width: 100%; padding: 14px; margin: 10px 0; background: var(--accent);
-            border: none; color: black; font-weight: bold; border-radius: 8px;
-            cursor: pointer; transition: 0.2s; font-size: 1rem; text-transform: uppercase;
-        }
-        .btn:hover { background: #00cc6a; transform: translateY(-2px); }
-        .btn-secondary { background: #161b33; color: white; border: 1px solid var(--border); }
-        .btn-secondary:hover { background: #222a4a; }
-
-        /* Configurações */
-        .setup-section { text-align: left; margin: 20px 0; border-top: 1px solid var(--border); padding-top: 15px; }
-        .setup-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
-        .setup-group label { font-size: 0.75rem; color: #888; text-transform: uppercase; font-weight: bold; }
-        .setup-group select, .setup-group input {
-            background: #000; border: 1px solid var(--border); color: white; padding: 10px; border-radius: 6px; outline: none;
-        }
-
-        /* Modais */
-        .modal {
-            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
-            z-index: 2000; align-items: center; justify-content: center;
-        }
-        .modal-content {
-            background: var(--panel); border: 2px solid var(--border); padding: 30px;
-            border-radius: 12px; max-width: 600px; width: 90%; max-height: 85vh; overflow-y: auto;
-            position: relative;
-        }
-        .close-btn { position: absolute; top: 15px; right: 15px; cursor: pointer; font-size: 1.5rem; color: #666; }
-        .close-btn:hover { color: white; }
-
-        textarea.code-box {
-            width: 100%; height: 180px; background: #000; color: #00ff88;
-            font-family: monospace; border: 1px solid var(--border); padding: 10px;
-            border-radius: 6px; resize: none; margin-top: 10px; font-size: 0.8rem;
+            width: 50px; height: 50px;
+            border: 4px solid var(--border);
+            border-top: 4px solid var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
         }
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Container Principal */
+        .app-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            color: var(--accent);
+            letter-spacing: -1px;
+            margin-bottom: 10px;
+        }
+
+        .system-warning-card {
+            background: rgba(254, 240, 138, 0.05);
+            border: 1px solid rgba(254, 240, 138, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 0.85rem;
+            color: #fef08a;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        /* Configurações de Criação de Servidores */
+        .config-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 40px;
+        }
+
+        .config-section {
+            margin-bottom: 25px;
+        }
+
+        .config-section h3 {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+            color: var(--accent);
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .setting-row label {
+            font-size: 0.9rem;
+            color: var(--subtext);
+        }
+
+        .setting-row select, .setting-row input[type="range"] {
+            background: #000;
+            border: 1px solid var(--border);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            outline: none;
+        }
+
+        /* Active Server Panel */
+        #active-server-panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 30px;
+            display: none;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            align-self: flex-start;
+        }
+
+        .status-badge.online {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--accent);
+        }
+
+        /* Modals */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px; right: 15px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: var(--subtext);
+        }
+
+        textarea.code-copy-area {
+            width: 100%;
+            height: 180px;
+            background: #000;
+            border: 1px solid var(--border);
+            color: #10b981;
+            font-family: monospace;
+            padding: 10px;
+            box-sizing: border-box;
+            resize: none;
+            margin-top: 10px;
+        }
+
+        /* Botões */
+        .btn {
+            background: var(--accent);
+            color: black;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn:hover { background: #059669; }
+        .btn-sec { background: transparent; border: 1px solid var(--border); color: #fff; }
+        .btn-sec:hover { background: #27272a; }
+
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-danger:hover { background: #dc2626; }
     </style>
 </head>
 <body>
 
-    <!-- Bloqueio de Inicialização e Handshake -->
-    <div id="loading-overlay">
+    <!-- Loading Overlay Inicial -->
+    <div id="check-overlay">
         <div class="spinner"></div>
-        <div style="font-weight: bold; font-size: 1.1rem; color: var(--accent);">Hold up, we're connecting you to our server checking your data...</div>
+        <div style="font-weight: bold;">Hold up, we're connecting you to our server checking your data...</div>
     </div>
 
-    <!-- Tela 1: Boas-vindas & ReCAPTCHA -->
-    <div id="screen-welcome" class="screen" style="display:none;">
-        <div class="box">
+    <div class="app-container">
+        <header>
             <h1>EzBridge</h1>
-            <p style="font-size:0.9rem; color:#888; line-height:1.5;">Create and implement a server to your apps for free!</p>
-            <div style="margin: 20px 0; display: flex; justify-content: center;">
-                <!-- ReCAPTCHA Widget -->
-                <div class="g-recaptcha" data-sitekey="6Lf8VTMtAAAAAAMXrs6lk-tLBjuW0u8ZV5LevzMz" data-callback="onCaptchaVerified"></div>
-            </div>
-            <button class="btn btn-secondary" id="begin-btn" disabled onclick="goToSetup()">[CLICK HERE TO BEGIN]</button>
-            <div style="font-size:0.7rem; color:#555; margin-top:20px; line-height:1.3;">
-                "the entire server system runs on a 8gb ram phone, so if your server stops working, you already know the reason."
-            </div>
-        </div>
-    </div>
+            <p style="color: var(--subtext); margin: 0;">Create and implement a server to your apps for free!</p>
+        </header>
 
-    <!-- Tela 2: Portal de Configuração de Ajustes -->
-    <div id="screen-setup" class="screen" style="display:none;">
-        <div class="box" style="max-width: 500px;">
-            <h2>Server Adjustments</h2>
-            <p style="color:#666; font-size:0.85rem; margin-top:0;">Configure your rules before deploying.</p>
+        <div class="system-warning-card">
+            "The entire server system runs on a 8GB RAM phone, so if your server stops working, you already know the reason."
+        </div>
+
+        <!-- Passo 1: Tela de Ajustes e Criação -->
+        <div id="creation-flow" class="config-card">
+            <h2 style="margin-top: 0; margin-bottom: 20px;">Before you create your server, try setting it up with the adjustments you'd like.</h2>
             
-            <div class="setup-section">
-                <h4 style="margin:0 0 10px 0; color: var(--accent);">[PING SETTINGS]</h4>
-                <div class="setup-row" style="display:flex; gap:10px;">
-                    <div class="setup-group" style="flex:1;">
-                        <label>Client Ping (10-1000ms)</label>
-                        <input type="number" id="cfg-client-ping" value="50">
-                    </div>
-                    <div class="setup-group" style="flex:1;">
-                        <label>Server Ping (10-500ms)</label>
-                        <input type="number" id="cfg-server-ping" value="10">
-                    </div>
+            <div class="config-section">
+                <h3>[PING SETTINGS]</h3>
+                <div class="setting-row">
+                    <label>Client Target Ping (ms):</label>
+                    <input type="range" id="cfg-client-ping" min="10" max="1000" value="50">
+                    <span id="lbl-client-ping">50ms</span>
                 </div>
-                <div class="setup-group">
-                    <label>Max Requests Per Second (1-60)</label>
-                    <input type="number" id="cfg-max-reqs" value="60">
+                <div class="setting-row">
+                    <label>Your Server's Target Ping (ms):</label>
+                    <input type="range" id="cfg-server-ping" min="10" max="500" value="10">
+                    <span id="lbl-server-ping">10ms</span>
                 </div>
-            </div>
-
-            <div class="setup-section">
-                <h4 style="margin:0 0 10px 0; color: var(--accent);">[SAFETY SETTINGS]</h4>
-                <div class="setup-group">
-                    <label>Anti DDoS (Flood Protection)</label>
-                    <select id="cfg-ddos"><option value="on" selected>ON</option><option value="off">OFF</option></select>
-                </div>
-                <div class="setup-group">
-                    <label>Rate Limiting (Bandwidth Cap)</label>
-                    <select id="cfg-ratelimit"><option value="off" selected>OFF</option><option value="on">ON</option></select>
-                </div>
-                <div class="setup-group">
-                    <label>Request Validation (Interaction Check)</label>
-                    <select id="cfg-validation"><option value="on" selected>ON</option><option value="off">OFF</option></select>
-                </div>
-                <div class="setup-group">
-                    <label>Server Reading (Deep Inspection)</label>
-                    <select id="cfg-reading"><option value="on" selected>ON</option><option value="off">OFF (RISKY)</option></select>
-                </div>
-                <div class="setup-group">
-                    <label>Private Projects Allowance</label>
-                    <select id="cfg-private"><option value="off" selected>OFF</option><option value="on">ON</option></select>
+                <div class="setting-row">
+                    <label>Max Requests Per Second:</label>
+                    <input type="range" id="cfg-max-reqs" min="1" max="60" value="60">
+                    <span id="lbl-max-reqs">60</span>
                 </div>
             </div>
 
-            <button class="btn" onclick="createServer()">[CREATE SERVER]</button>
+            <div class="config-section">
+                <h3>[SAFETY SETTINGS]</h3>
+                <div class="setting-row">
+                    <label>Anti DDoS "server flood or attacks":</label>
+                    <select id="cfg-ddos">
+                        <option value="on" selected>ON</option>
+                        <option value="off">OFF</option>
+                    </select>
+                </div>
+                <div class="setting-row">
+                    <label>Ratelimiting:</label>
+                    <select id="cfg-ratelimit">
+                        <option value="off" selected>OFF</option>
+                        <option value="on">ON</option>
+                    </select>
+                </div>
+                <div class="setting-row">
+                    <label>Request Validation:</label>
+                    <select id="cfg-validation">
+                        <option value="on" selected>ON</option>
+                        <option value="off">OFF</option>
+                    </select>
+                </div>
+                <div class="setting-row">
+                    <label>Server Reading:</label>
+                    <select id="cfg-reading">
+                        <option value="on" selected>ON</option>
+                        <option value="off">OFF</option>
+                    </select>
+                </div>
+                <div class="setting-row">
+                    <label>Allow use on private projects:</label>
+                    <select id="cfg-private">
+                        <option value="off" selected>OFF</option>
+                        <option value="on">ON</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn" style="width: 100%; margin-top: 15px;" onclick="createServer()">[CREATE SERVER]</button>
         </div>
-    </div>
 
-    <!-- Tela 3: Dashboard ao Vivo -->
-    <div id="screen-dashboard" class="screen" style="display:none;">
-        <div class="box">
-            <h2>EzBridge Control</h2>
-            <div style="font-size:0.9rem; color:#888; margin-bottom:20px;">Server Key: <span id="dash-key-display" style="font-family:monospace; color:var(--accent); font-weight:bold;">----------</span></div>
+        <!-- Passo 2: Painel do Servidor Ativo -->
+        <div id="active-server-panel">
+            <h2 style="margin: 0; color: var(--accent);">Your Server</h2>
             
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                <button class="btn" id="start-stop-btn" onclick="toggleServer()">Start Server</button>
-                <button class="btn btn-secondary" onclick="openGearSettings()">⚙ Settings</button>
-            </div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                <button class="btn btn-secondary" onclick="openHowTo()">How to Use</button>
-                <button class="btn btn-secondary" id="test-conn-btn" onclick="testConnection()">Test Connection</button>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn" id="btn-toggle-server" onclick="toggleServerPower()">Start Server</button>
+                <button class="btn btn-sec" onclick="openSettingsModal()">⚙</button>
+                <button class="btn btn-sec" onclick="openHowToModal()">How to Use</button>
+                <button class="btn btn-sec" id="btn-test-conn" onclick="testConnection()">Test Connection</button>
             </div>
 
-            <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:15px; font-size:0.9rem;">
-                Status: <span id="server-status" style="font-weight:bold; color:#ff7b72;">OFFLINE</span>
+            <div style="display: flex; align-items: center; gap: 15px; margin-top: 10px;">
+                <span>Server Status:</span>
+                <div id="status-badge" class="status-badge">OFFLINE</div>
             </div>
         </div>
     </div>
 
-    <!-- Modal: Como Usar & Código do Tic-Tac-Toe -->
-    <div id="modal-howto" class="modal">
+    <!-- Modal: Configurações (Gear) -->
+    <div id="settings-modal" class="modal">
         <div class="modal-content">
-            <span class="close-btn" onclick="closeModal('modal-howto')">✕</span>
-            <h3>How to connect your server to your online projects</h3>
-            <p style="font-size:0.85rem; line-height:1.4; color:#888;">Add these values to your clients or scripts to connect safely:</p>
-            
-            <div class="setup-group">
-                <label>1 - Generated Server Key</label>
-                <div style="display:flex; gap:10px;">
-                    <input type="text" id="copy-key" readonly style="flex:1;">
-                    <button class="btn" style="width:80px; margin:0;" onclick="copyField('copy-key')">COPY</button>
-                </div>
-            </div>
+            <span class="close-btn" onclick="closeModal('settings-modal')">×</span>
+            <h2>Settings Adjustments</h2>
+            <p style="color: var(--subtext); font-size: 0.85rem;">Saves will restart the server, disconnecting users.</p>
+            <div style="margin: 20px 0;" id="settings-form-placeholder"></div>
+            <button class="btn btn-danger" onclick="saveSettingsPrompt()">Save Adjustments</button>
+        </div>
+    </div>
 
-            <div class="setup-group">
-                <label>2 - Cloudflare Link</label>
-                <div style="display:flex; gap:10px;">
-                    <input type="text" id="copy-link" readonly style="flex:1;">
-                    <button class="btn" style="width:80px; margin:0;" onclick="copyField('copy-link')">COPY</button>
-                </div>
+    <!-- Modal: How to Use -->
+    <div id="how-to-modal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <span class="close-btn" onclick="closeModal('how-to-modal')">×</span>
+            <h2>How to connect your server</h2>
+            <div style="margin: 15px 0;">
+                <p>1 - Server Key:</p>
+                <input type="text" id="copy-server-key" readonly>
+                <p>2 - Cloudflare Link:</p>
+                <input type="text" id="copy-cf-link" readonly>
             </div>
-
-            <h4 style="margin:20px 0 5px 0;">Tic-Tac-Toe Game Sample</h4>
-            <p style="font-size:0.75rem; color:#666; margin-bottom:5px;">Copy this fully responsive HTML template to play with your friends:</p>
-            <textarea class="code-box" id="code-ttt" readonly></textarea>
-            <button class="btn btn-secondary" style="margin-top:10px;" onclick="copyField('code-ttt')">COPY GAME CODE</button>
+            <h3>Embed Game Example (Tic-Tac-Toe)</h3>
+            <textarea class="code-copy-area" id="tic-tac-toe-code" readonly></textarea>
         </div>
     </div>
 
 <script>
-    // --- CONFIGURAÇÃO DO SERVIDOR DO SEU CELULAR ---
-    // ALTERE APENAS A LINHA ABAIXO APÓS GERAR UM NOVO LINK NO TERMUX
-    const TUNNEL = "https://vsnet-missed-bugs-contrary.trycloudflare.com"; 
-    const AUTH_KEY = "3mg40B4X8";
+    // --- ATUALIZAÇÃO DO LINK DO CLOUDFLARE ---
+    // Linha 284: Substitua o link abaixo pelo novo gerado no Termux
+    const CLOUDFLARE_LINK = "https://destinations-screens-film-zen.trycloudflare.com";
+    const AUTH_KEY = "UVSOmc6cc";
 
-    const socket = io(TUNNEL, { auth: { token: AUTH_KEY }, transports: ['websocket'] });
+    // Conectar ao servidor central para validação e persistência do usuário
+    const socket = io(CLOUDFLARE_LINK, { auth: { token: AUTH_KEY }, transports: ['websocket'] });
 
-    let mySessionId = "";
-    let serverIsRunning = false;
-    let statusInterval = null;
-    let serverConfiguration = null;
+    let myId = localStorage.getItem('eb_user_id') || "";
+    let serverSettings = {};
+    let isServerPowerOn = false;
+    let localKey = "";
 
-    // --- COOKIES & SESSION HANDSHAKE ---
+    // --- INITIALIZE & COOKIE SYSTEM ---
     socket.on('connect', () => {
-        document.getElementById('loading-overlay').style.display = 'none';
+        socket.emit('check_user_data', { userId: myId });
+    });
+
+    socket.on('user_data_checked', (res) => {
+        myId = res.userId;
+        localStorage.setItem('eb_user_id', myId);
         
-        // Verifica se o usuário já possui um ID salvo nos cookies
-        mySessionId = getCookie("eb_session_id");
-        if (!mySessionId) {
-            mySessionId = "session_" + Math.random().toString(36).substring(2, 12) + Math.random().toString(36).substring(2, 12);
-            setCookie("eb_session_id", mySessionId, 365);
-        }
+        // Esconde o overlay de boot
+        document.getElementById('check-overlay').style.opacity = '0';
+        setTimeout(() => document.getElementById('check-overlay').style.display = 'none', 500);
 
-        // Tenta recuperar dados anteriores baseados no ID do cookie
-        socket.emit('RemoteEvent', { type: 'sync_session', sessionId: mySessionId });
-    });
-
-    socket.on('RemoteEvent', (packet) => {
-        if (packet.type === 'session_recovered') {
-            if (packet.serverKey) {
-                // Recupera dados do servidor salvo no cookie
-                serverConfiguration = packet.config;
-                myRoom = packet.serverKey;
-                document.getElementById('screen-welcome').style.display = 'none';
-                loadDashboard(packet.serverKey);
-            } else {
-                document.getElementById('screen-welcome').style.display = 'flex';
-            }
-        }
-
-        if (packet.type === 'status_response') {
-            const btn = document.getElementById('test-conn-btn');
-            btn.innerText = "Test Connection";
-            btn.disabled = false;
-            
-            const elapsed = Date.now() - testStartTime;
-            alert(`test sucessfull!\nping: ${elapsed}ms`);
+        if (res.data.servers && res.data.servers.length > 0) {
+            localKey = res.data.servers[0];
+            loadActiveServerPanel();
         }
     });
 
-    // --- CAPTCHA & FLOW ---
-    function onCaptchaVerified() {
-        document.getElementById('begin-btn').disabled = false;
+    // --- RANGE SLIDERS DISPLAY ---
+    function setupSliders(prefix) {
+        const client = document.getElementById(prefix + 'client-ping');
+        const server = document.getElementById(prefix + 'server-ping');
+        const reqs = document.getElementById(prefix + 'max-reqs');
+
+        if (client) client.oninput = () => document.getElementById('lbl-' + prefix + 'client-ping').innerText = client.value + "ms";
+        if (server) server.oninput = () => document.getElementById('lbl-' + prefix + 'server-ping').innerText = server.value + "ms";
+        if (reqs) reqs.oninput = () => document.getElementById('lbl-' + prefix + 'max-reqs').innerText = reqs.value;
     }
 
-    function goToSetup() {
-        document.getElementById('screen-welcome').style.display = 'none';
-        document.getElementById('screen-setup').style.display = 'flex';
-    }
+    setupSliders('cfg-');
 
+    // --- CREATE SERVER FLOW ---
     function createServer() {
-        // Gerador de chave estrita de 10 letras
-        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        let generatedKey = "";
-        for(let i=0; i<10; i++) {
-            generatedKey += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-
-        const config = {
-            clientPing: parseInt(document.getElementById('cfg-client-ping').value),
-            serverPing: parseInt(document.getElementById('cfg-server-ping').value),
-            maxReqs: parseInt(document.getElementById('cfg-max-reqs').value),
-            antiDdos: document.getElementById('cfg-ddos').value,
-            ratelimiting: document.getElementById('cfg-ratelimit').value,
+        const settings = {
+            clientPing: document.getElementById('cfg-client-ping').value,
+            serverPing: document.getElementById('cfg-server-ping').value,
+            maxReqs: document.getElementById('cfg-max-reqs').value,
+            ddos: document.getElementById('cfg-ddos').value,
+            ratelimit: document.getElementById('cfg-ratelimit').value,
             validation: document.getElementById('cfg-validation').value,
-            serverReading: document.getElementById('cfg-reading').value,
-            allowPrivate: document.getElementById('cfg-private').value
+            reading: document.getElementById('cfg-reading').value,
+            private: document.getElementById('cfg-private').value
         };
 
-        serverConfiguration = config;
-        myRoom = generatedKey;
-
-        // Salva a configuração no banco do servidor associado ao Cookie ID
-        socket.emit('RemoteEvent', { 
-            type: 'register_server', 
-            sessionId: mySessionId, 
-            serverKey: generatedKey, 
-            config: config 
-        });
-
-        document.getElementById('screen-setup').style.display = 'none';
-        loadDashboard(generatedKey);
+        socket.emit('create_server', { userId: myId, settings });
     }
 
-    // --- DASHBOARD ---
-    function loadDashboard(key) {
-        document.getElementById('screen-dashboard').style.display = 'flex';
-        document.getElementById('dash-key-display').innerText = key;
-        document.getElementById('copy-key').value = key;
-        document.getElementById('copy-link').value = TUNNEL;
+    socket.on('server_created', (data) => {
+        localKey = data.serverKey;
+        serverSettings = data.settings;
+        loadActiveServerPanel();
+    });
 
-        // Gera o template do Jogo da Velha (Tic-Tac-Toe) na aba
-        document.getElementById('code-ttt').value = getTicTacToeTemplate(key);
+    function loadActiveServerPanel() {
+        document.getElementById('creation-flow').style.display = 'none';
+        document.getElementById('active-server-panel').style.display = 'flex';
+        
+        document.getElementById('copy-server-key').value = localKey;
+        document.getElementById('copy-cf-link').value = CLOUDFLARE_LINK;
+
+        // Gerar exemplo dinâmico do código do Tic-Tac-Toe
+        document.getElementById('tic-tac-toe-code').value = getTicTacToeCode(CLOUDFLARE_LINK, localKey);
     }
 
-    function toggleServer() {
-        const btn = document.getElementById('start-stop-btn');
-        const status = document.getElementById('server-status');
-        
-        serverIsRunning = !serverIsRunning;
-        
-        if (serverIsRunning) {
+    // --- ACTIVE CONTROLS ---
+    function toggleServerPower() {
+        isServerPowerOn = !isServerPowerOn;
+        const btn = document.getElementById('btn-toggle-server');
+        const badge = document.getElementById('status-badge');
+
+        if (isServerPowerOn) {
             btn.innerText = "Stop Server";
-            btn.style.background = "#ff7b72";
-            status.innerText = "ONLINE";
-            status.style.color = "var(--accent)";
-            
-            // Registra as regras dinâmicas no servidor backend
-            socket.emit('RemoteEvent', { 
-                type: 'configure_server', 
-                room: myRoom, 
-                config: serverConfiguration 
-            });
-
-            // Loop de checagem a cada 3.5 segundos
-            statusInterval = setInterval(() => {
-                socket.emit('RemoteEvent', { type: 'ebgetstatus', room: myRoom });
-            }, 3500);
-
+            btn.className = "btn btn-danger";
+            badge.innerText = "ONLINE";
+            badge.className = "status-badge online";
         } else {
             btn.innerText = "Start Server";
-            btn.style.background = "var(--accent)";
-            status.innerText = "OFFLINE";
-            status.style.color = "#ff7b72";
-            clearInterval(statusInterval);
+            btn.className = "btn";
+            badge.innerText = "OFFLINE";
+            badge.className = "status-badge";
         }
     }
 
-    let testStartTime = 0;
-    function testConnection() {
-        if (!serverIsRunning) return alert("Please, start your server first!");
-        
-        const btn = document.getElementById('test-conn-btn');
-        btn.innerText = "Testing...";
-        btn.disabled = true;
-        
-        testStartTime = Date.now();
-        socket.emit('RemoteEvent', { type: 'ebgetstatus', room: myRoom });
+    async function testConnection() {
+        const testBtn = document.getElementById('btn-test-conn');
+        testBtn.disabled = true;
+        testBtn.innerText = "Testing...";
 
-        // Timeout de 10s se o celular não responder
-        setTimeout(() => {
-            if (btn.disabled) {
-                btn.innerText = "Test Connection";
-                btn.disabled = false;
-                alert("test failed.\nServer might be offline, a error could have occured or your wifi might have glitched, try again.");
+        const start = Date.now();
+        
+        try {
+            const res = await fetch(CLOUDFLARE_LINK + "/ebgetstatus", { method: 'GET' });
+            if (res.ok) {
+                const diff = Date.now() - start;
+                alert(`test successful!\nping: ${diff}ms`);
+            } else {
+                throw new Error();
             }
-        }, 10000);
-    }
-
-    function openHowTo() { document.getElementById('modal-howto').style.display = 'flex'; }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-
-    function copyField(id) {
-        const el = document.getElementById(id);
-        el.select();
-        document.execCommand('copy');
-        alert("Copied successfully!");
-    }
-
-    // --- COOKIES HELPERS ---
-    function setCookie(name, value, days) {
-        let expires = "";
-        if (days) {
-            let date = new Date();
-            date.setTime(date.getTime() + (days*24*60*60*1000));
-            expires = "; expires=" + date.toUTCString();
+        } catch {
+            alert("test failed.\nServer might be offline, an error could have occurred, or your Wi-Fi glitched. Try again.");
         }
-        document.cookie = name + "=" + (value || "")  + expires + "; path=/";
+
+        testBtn.disabled = false;
+        testBtn.innerText = "Test Connection";
     }
 
-    function getCookie(name) {
-        let nameEQ = name + "=";
-        let ca = document.cookie.split(';');
-        for(let i=0;i < ca.length;i++) {
-            let c = ca[i];
-            while (c.charAt(0)==' ') c = c.substring(1,c.length);
-            if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+    // --- SETTINGS WINDOW ---
+    function openSettingsModal() {
+        const placeholder = document.getElementById('settings-form-placeholder');
+        placeholder.innerHTML = `
+            <div class="config-section">
+                <div class="setting-row">
+                    <label>Client Target Ping (ms):</label>
+                    <input type="range" id="edit-client-ping" min="10" max="1000" value="${serverSettings.clientPing || 50}">
+                    <span id="lbl-edit-client-ping">${serverSettings.clientPing || 50}ms</span>
+                </div>
+                <div class="setting-row">
+                    <label>Server Target Ping (ms):</label>
+                    <input type="range" id="edit-server-ping" min="10" max="500" value="${serverSettings.serverPing || 10}">
+                    <span id="lbl-edit-server-ping">${serverSettings.serverPing || 10}ms</span>
+                </div>
+            </div>
+        `;
+        document.getElementById('settings-modal').style.display = 'flex';
+        setupSliders('edit-');
+    }
+
+    function saveSettingsPrompt() {
+        if (confirm("Are you sure you want to save your settings? Because if you do, your server will restart and all clients connected will disconnect.")) {
+            serverSettings.clientPing = document.getElementById('edit-client-ping').value;
+            serverSettings.serverPing = document.getElementById('edit-server-ping').value;
+            
+            socket.emit('save_server_settings', {
+                userId: myId,
+                serverKey: localKey,
+                settings: serverSettings
+            });
+            closeModal('settings-modal');
         }
-        return null;
     }
 
-    // --- TIC-TAC-TOE CLIENT TEMPLATE GENERATOR ---
-    function getTicTacToeTemplate(key) {
+    socket.on('settings_saved', () => {
+        alert("Settings saved successfully!");
+    });
+
+    function openHowToModal() {
+        document.getElementById('how-to-modal').style.display = 'flex';
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).style.display = 'none';
+    }
+
+    // --- TIC TAC TOE TEMPLATE COMPILATION ---
+    function getTicTacToeCode(link, key) {
         return `<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>EzBridge | Multiplayer Tic-Tac-Toe</title>
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></sc` + `ript>
+    <title>EzBridge Tic-Tac-Toe</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"><\/script>
     <style>
-        body { background: #0c0f24; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .board { display: grid; grid-template-columns: repeat(3, 100px); grid-template-rows: repeat(3, 100px); gap: 10px; margin-top: 20px; }
-        .cell { background: #161b33; border: 2px solid #222a4a; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .cell:hover { background: #222a4a; }
-        .cell.x { color: #00ff88; }
-        .cell.o { color: #58a6ff; }
+        body { background: #000; color: #fff; text-align: center; font-family: sans-serif; }
+        .grid { display: grid; grid-template-columns: repeat(3, 100px); gap: 10px; margin: 20px auto; width: 320px; }
+        .cell { width: 100px; height: 100px; background: #111; border: 1px solid #333; font-size: 2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
     <h2>Multiplayer Tic-Tac-Toe</h2>
-    <div id="status">Connecting to EzBridge Server...</div>
-    <div class="board">
-        <div class="cell" data-idx="0"></div><div class="cell" data-idx="1"></div><div class="cell" data-idx="2"></div>
-        <div class="cell" data-idx="3"></div><div class="cell" data-idx="4"></div><div class="cell" data-idx="5"></div>
-        <div class="cell" data-idx="6"></div><div class="cell" data-idx="7"></div><div class="cell" data-idx="8"></div>
+    <div id="status">Connecting...</div>
+    <div class="grid" id="board">
+        <div class="cell" onclick="makeMove(0)"></div>
+        <div class="cell" onclick="makeMove(1)"></div>
+        <div class="cell" onclick="makeMove(2)"></div>
+        <div class="cell" onclick="makeMove(3)"></div>
+        <div class="cell" onclick="makeMove(4)"></div>
+        <div class="cell" onclick="makeMove(5)"></div>
+        <div class="cell" onclick="makeMove(6)"></div>
+        <div class="cell" onclick="makeMove(7)"></div>
+        <div class="cell" onclick="makeMove(8)"></div>
     </div>
-
     <script>
-        const TUNNEL = "${TUNNEL}";
-        const KEY = "${key}";
-        const socket = io(TUNNEL, { auth: { token: "default_key" }, transports: ['websocket'] });
-
-        let myId = "player_" + Math.random().toString(36).substr(2, 5);
-        let board = ["", "", "", "", "", "", "", "", ""];
-        let symbol = "";
-        let turn = "X";
-        let isFirstToConnect = false;
+        const socket = io("${link}", { auth: { token: "${AUTH_KEY}" } });
+        let mySymbol = "";
+        let turn = false;
+        let boardState = Array(9).fill("");
 
         socket.on('connect', () => {
-            document.getElementById('status').innerText = "Syncing room...";
-            socket.emit('RemoteEvent', { type: 'join_game', room: KEY, playerId: myId });
+            document.getElementById('status').innerText = "Searching for player...";
+            socket.emit('RemoteEvent', { type: 'join_lobby', key: "${key}" });
         });
 
-        socket.on('RemoteEvent', (packet) => {
-            if (packet.room !== KEY) return;
-
-            if (packet.type === 'sync_presence') {
-                if (packet.players[0] === myId) {
-                    symbol = "X";
-                    isFirstToConnect = true;
-                } else if (packet.players[1] === myId) {
-                    symbol = "O";
-                }
-                updateStatus();
+        socket.on('RemoteEvent', (p) => {
+            if (p.type === 'game_start') {
+                mySymbol = p.symbol;
+                turn = p.turn;
+                document.getElementById('status').innerText = "Game Started! You are " + mySymbol + (turn ? " (Your Turn)" : " (Waiting...)");
             }
-
-            if (packet.type === 'move') {
-                board = packet.board;
-                turn = packet.nextTurn;
+            if (p.type === 'board_update') {
+                boardState = p.board;
+                turn = p.nextTurnSymbol === mySymbol;
                 render();
-                checkState();
-            }
-        });
-
-        let activePlayers = [];
-        socket.on('RemoteEvent', (packet) => {
-            if (packet.type === 'join_game' && packet.room === KEY) {
-                if (!activePlayers.includes(packet.playerId)) {
-                    activePlayers.push(packet.playerId);
+                if (p.winner) {
+                    document.getElementById('status').innerText = p.winner === "Tie" ? "It's a Tie!" : "Winner: " + p.winner;
+                    setTimeout(() => location.reload(), 3000);
+                } else {
+                    document.getElementById('status').innerText = turn ? "Your Turn" : "Opponent's Turn...";
                 }
-                socket.emit('RemoteEvent', { type: 'sync_presence', room: KEY, players: activePlayers });
             }
         });
 
-        function updateStatus() {
-            document.getElementById('status').innerText = (turn === symbol) ? "Your turn (" + symbol + ")" : "Opponent's turn (" + symbol + ")...";
+        function makeMove(idx) {
+            if (!turn || boardState[idx] !== "") return;
+            boardState[idx] = mySymbol;
+            socket.emit('RemoteEvent', { type: 'client_move', index: idx, symbol: mySymbol });
         }
 
         function render() {
-            document.querySelectorAll('.cell').forEach((c, idx) => {
-                c.innerText = board[idx];
-                c.className = "cell " + board[idx].toLowerCase();
-            });
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach((c, i) => c.innerText = boardState[i]);
         }
-
-        document.querySelectorAll('.cell').forEach(c => {
-            c.addEventListener('click', () => {
-                if (turn !== symbol) return;
-                const idx = parseInt(c.getAttribute('data-idx'));
-                if (board[idx] !== "") return;
-
-                board[idx] = symbol;
-                const nextTurn = symbol === "X" ? "O" : "X";
-                socket.emit('RemoteEvent', { type: 'move', room: KEY, board: board, nextTurn: nextTurn });
-            });
-        });
-
-        function checkState() {
-            const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-            let winner = null;
-            for(let w of wins) {
-                if (board[w[0]] && board[w[0]] === board[w[1]] && board[w[0]] === board[w[2]]) {
-                    winner = board[w[0]];
-                    break;
-                }
-            }
-
-            if (winner) {
-                document.getElementById('status').innerText = winner === symbol ? "You Win! 🎉" : "You Lose! ❌";
-                triggerRestart();
-            } else if (!board.includes("")) {
-                document.getElementById('status').innerText = "It's a Tie! 🤝";
-                triggerRestart();
-            } else {
-                updateStatus();
-            }
-        }
-
-        function triggerRestart() {
-            turn = "";
-            setTimeout(() => {
-                board = ["", "", "", "", "", "", "", "", ""];
-                turn = "X";
-                render();
-                updateStatus();
-            }, 3000);
-        }
-    </script>
+    <\/script>
 </body>
 </html>`;
     }
