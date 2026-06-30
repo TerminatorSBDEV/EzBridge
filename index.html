@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EzBridge | Cloud Virtual Hosting</title>
+    <!-- Script do ReCaptcha V2 -->
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
@@ -65,8 +66,23 @@
         .dot { width: 8px; height: 8px; border-radius: 50%; background: red; }
         .dot.online { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
 
+        /* Barra de Progresso de Armazenamento */
+        .progress-container {
+            width: 100%; background: #000; border: 1px solid var(--border);
+            border-radius: 6px; height: 22px; overflow: hidden; margin: 15px 0;
+            position: relative;
+        }
+        .progress-bar {
+            width: 0%; height: 100%; background: var(--accent);
+            transition: width 0.1s ease;
+        }
+        .progress-text {
+            position: absolute; inset: 0; display: flex; align-items: center;
+            justify-content: center; font-size: 0.75rem; font-weight: bold; color: #fff;
+        }
+
         .how-to-use-box {
-            text-align: left; max-height: 400px; overflow-y: auto; padding: 10px;
+            text-align: left; max-height: 380px; overflow-y: auto; padding: 10px;
         }
         .code-box {
             background: #000; padding: 10px; border-radius: 6px; border: 1px solid var(--border);
@@ -76,6 +92,7 @@
 </head>
 <body>
 
+    <!-- Passo 0: Buffering Inicial -->
     <div id="overlay-sync" class="overlay">
         <div class="card" style="border-color: var(--border);">
             <h3 style="margin-bottom: 20px;">Hold up, we're connecting you to our server checking your data...</h3>
@@ -83,15 +100,20 @@
         </div>
     </div>
 
+    <!-- Passo 1: Captcha de Entrada -->
     <div id="overlay-captcha" class="overlay" style="display:none;">
         <div class="card">
             <h1>EzBridge</h1>
+            <p style="font-size:0.85rem; color:#a1a1aa; line-height:1.5;">
+                Welcome to EB. Create and implement a secure server to your apps for free!
+            </p>
             <div style="display: flex; justify-content: center; margin-bottom: 20px;">
                 <div class="g-recaptcha" data-sitekey="6Lf8VTMtAAAAAAMXrs6lk-tLBjuW0u8ZV5LevzMz" data-callback="captchaSolved"></div>
             </div>
         </div>
     </div>
 
+    <!-- Passo 2: Menu Principal -->
     <div id="overlay-start" class="overlay" style="display:none;">
         <div class="card">
             <h1>EzBridge</h1>
@@ -100,6 +122,7 @@
         </div>
     </div>
 
+    <!-- Passo 3: Configuração do Servidor Virtual -->
     <div id="overlay-setup" class="overlay" style="display:none;">
         <div class="card" style="max-width: 500px;">
             <h2 id="setup-title">Setup Your Server</h2>
@@ -159,12 +182,29 @@
         </div>
     </div>
 
+    <!-- Dashboard de Controle Real -->
     <div id="dashboard" class="card" style="display:none; width: 450px;">
-        <h2>EzBridge Control</h2>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h2 style="margin:0;">EzBridge Control</h2>
+            <button class="btn" style="width:auto; margin:0; padding:6px 12px; font-size:0.75rem;" onclick="copyUserId()">Copy My User ID</button>
+        </div>
+        
         <div class="status-indicator">
             <div id="server-dot" class="dot"></div>
             <span>Server status: <span id="server-status-text">OFFLINE</span></span>
         </div>
+
+        <!-- Estatísticas Dinâmicas do Servidor -->
+        <div style="margin: 15px 0; text-align: left; font-size: 0.85rem; color: #a1a1aa;">
+            <div>Users online on your server: <span id="online-users-count" style="color:var(--accent); font-weight:bold;">0</span></div>
+            
+            <div style="margin-top: 10px; font-weight:bold;">Storage Usage:</div>
+            <div class="progress-container">
+                <div class="progress-bar" id="storage-progress"></div>
+                <div class="progress-text" id="storage-text">0% - 0.00 MB / 3.00 GB</div>
+            </div>
+        </div>
+
         <div class="dashboard-row">
             <button class="btn" style="flex: 1;" onclick="toggleServerState()">[Start/Stop Server]</button>
             <button class="btn btn-secondary" style="width: 50px;" onclick="openEditSettings()">⚙</button>
@@ -202,7 +242,7 @@
         </div>
     </div>
 
-    <!-- Novo modal de Comandos da API -->
+    <!-- Modal de Comandos da API (Atualizado com ebuserid_get) -->
     <div id="modal-commands" class="overlay" style="display:none;">
         <div class="card" style="max-width: 650px;">
             <h3>EzBridge API Commands</h3>
@@ -210,6 +250,12 @@
                 <h4 style="color:var(--accent);">Real-Time Events</h4>
                 <p style="font-size:0.8rem; color:#888;">Envie pacotes sincronizados para os outros clientes conectados:</p>
                 <div class="code-box">socket.emit("RemoteEvent", { type: "seu_tipo", data: "sua_payload" });</div>
+
+                <h4 style="color:var(--accent); margin-top:15px;">User Identification</h4>
+                <p style="font-size:0.8rem; color:#888;">Recupere o ID único permanente do emissor da requisição:</p>
+                <div class="code-box">socket.emit("RemoteEvent", { type: "ebuserid_get" });
+// O servidor responderá apenas para você com:
+// { type: "userid_response", userId: "ID_UNICO_DO_CLIENTE" }</div>
 
                 <h4 style="color:var(--accent); margin-top:15px;">EBstorage Commands (Database)</h4>
                 <p style="font-size:0.8rem; color:#888;">Persistência física em disco direto no servidor virtual:</p>
@@ -245,13 +291,14 @@
     </div>
 
 <script>
-    // --- LINK ATUALIZADO DO SEU MASTER TÚNEL ---
-    const PUBLIC_TUNNEL_URL = "https://suffered-ira-greensboro-margin.trycloudflare.com";
+    // --- LINK ATUALIZADO DO SEU MASTER TÚNEL (PORTA 1225) ---
+    const PUBLIC_TUNNEL_URL = "https://advertising-born-increase-allowing.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let serverKey = "";
     let serverActive = false;
     let serverSettings = {};
+    let heartbeatInterval = null;
 
     let socket = io(PUBLIC_TUNNEL_URL, {
         auth: { token: "default_key" },
@@ -275,6 +322,23 @@
         } else {
             document.getElementById('overlay-captcha').style.display = 'flex';
         }
+    });
+
+    // Escuta atualizações periódicas de status do servidor virtual (Heartbeat de 5s)
+    socket.on('eb_heartbeat_response', (data) => {
+        serverActive = data.active;
+        serverSettings = data.settings;
+        document.getElementById('online-users-count').innerText = data.users;
+        
+        // Atualiza a Barra de Progresso de Armazenamento do Disco Físico (3GB Max)
+        const sizeInMb = (data.storageSize / (1024 * 1024)).toFixed(2);
+        const limitInMb = (3 * 1024).toFixed(2); // 3072.00 MB
+        const pct = Math.min(((data.storageSize / (3 * 1024 * 1024 * 1024)) * 100).toFixed(2), 100);
+
+        document.getElementById('storage-progress').style.width = `${pct}%`;
+        document.getElementById('storage-text').innerText = `${pct}% - ${sizeInMb} MB / 3.00 GB`;
+        
+        updateStatusDisplay();
     });
 
     function captchaSolved() {
@@ -331,6 +395,14 @@
     function showDashboard() {
         document.getElementById('dashboard').style.display = 'block';
         updateStatusDisplay();
+        
+        // Inicializa o Loop de Monitoramento Ativo (Heartbeat de 5s)
+        if (heartbeatInterval) clearInterval(heartbeatInterval);
+        heartbeatInterval = setInterval(() => {
+            if (serverKey) {
+                socket.emit('eb_heartbeat', { key: serverKey, ownerId });
+            }
+        }, 5000);
     }
 
     function toggleServerState() {
@@ -375,6 +447,12 @@
             btn.innerText = "[Test Connection]";
         });
         socket.emit('ebgetstatus');
+    }
+
+    function copyUserId() {
+        if (!ownerId) return alert("User ID not generated yet!");
+        navigator.clipboard.writeText(ownerId);
+        alert(`Copied My User ID: ${ownerId}`);
     }
 
     function openHowToUse() {
@@ -525,6 +603,7 @@
         alert("Copied!");
     }
 
+    // --- COOKIE HELPERS ---
     function setCookie(name, value, days) {
         const d = new Date();
         d.setTime(d.getTime() + (days*24*60*60*1000));
