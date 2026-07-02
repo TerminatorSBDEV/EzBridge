@@ -2,91 +2,112 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EzBridge | Cloud Virtual Hosting</title>
-    <!-- Script do ReCaptcha V2 -->
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>EzBridge | Cloud Virtual Hosting & Sandboxing</title>
+    <!-- GSI Library do Google Login -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
         :root {
-            --bg: #09090b;
-            --panel: #18181b;
-            --border: #27272a;
+            --bg: #030303;
+            --panel: #09090b;
+            --border: #18181b;
             --accent: #00ff88;
             --accent-dim: rgba(0, 255, 136, 0.15);
+            --blue: #00e5ff;
             --text: #f4f4f5;
+            --error: #ff4444;
         }
 
         body, html {
-            margin: 0; padding: 0; height: 100%;
+            margin: 0; padding: 0; height: 100dvh;
             background-color: var(--bg); color: var(--text);
             font-family: 'Segoe UI', system-ui, sans-serif;
             display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
         }
 
+        /* Modals & Cyber Card Design */
         .overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+            position: fixed; inset: 0; background: rgba(0,0,0,0.96);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             z-index: 2000; transition: 0.3s;
         }
 
         .card {
-            background: var(--panel); border: 1px solid var(--border); padding: 30px;
-            border-radius: 12px; width: 90%; max-width: 450px; text-align: center;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.8);
+            background: var(--panel); border: 2px solid var(--border); padding: 35px;
+            border-radius: 16px; width: 90%; max-width: 480px; text-align: center;
+            box-shadow: 0 15px 45px rgba(0,0,0,0.9);
+            position: relative;
         }
 
-        h1, h2, h3 { color: var(--accent); margin-top: 0; letter-spacing: 1px; }
+        h1, h2, h3, h4 { color: var(--blue); margin-top: 0; letter-spacing: 1px; text-shadow: 0 0 10px rgba(0, 229, 255, 0.3); }
 
         .btn {
-            width: 100%; padding: 12px; margin: 10px 0; background: var(--accent);
-            border: none; color: black; font-weight: bold; border-radius: 6px;
+            width: 100%; padding: 13px; margin: 10px 0; background: var(--accent);
+            border: none; color: black; font-weight: bold; border-radius: 8px;
             cursor: pointer; transition: 0.2s; font-size: 0.95rem;
         }
-        .btn:hover { background: #00cc6a; transform: translateY(-1px); }
-        .btn-secondary { background: #27272a; color: white; border: 1px solid var(--border); }
-        .btn-secondary:hover { background: #3f3f46; }
+        .btn:hover { background: #00cc6a; transform: translateY(-1px); box-shadow: 0 0 12px var(--accent); }
+        .btn-secondary { background: #18181b; color: white; border: 1px solid var(--border); }
+        .btn-secondary:hover { background: #27272a; border-color: var(--blue); }
 
         .settings-grid {
             text-align: left; display: flex; flex-direction: column; gap: 12px; margin: 20px 0;
+            max-height: 380px; overflow-y: auto; padding-right: 5px;
         }
         .settings-item { display: flex; flex-direction: column; gap: 4px; }
-        .settings-item label { font-size: 0.75rem; color: #a1a1aa; text-transform: uppercase; font-weight: bold; }
+        .settings-item label { font-size: 0.72rem; color: #a1a1aa; text-transform: uppercase; font-weight: bold; }
         .settings-item input, .settings-item select {
-            background: #09090b; border: 1px solid var(--border); color: white;
-            padding: 8px 12px; border-radius: 6px; outline: none;
+            background: #030303; border: 1px solid var(--border); color: white;
+            padding: 9px 12px; border-radius: 8px; outline: none;
         }
+        .settings-item input:focus, .settings-item select:focus { border-color: var(--blue); }
 
-        .dashboard-row { display: flex; gap: 10px; margin-top: 15px; }
+        /* Lista de Domínios Whitelist */
+        .domain-row { display: flex; gap: 8px; margin-top: 6px; }
+        .domain-badge {
+            background: #111; border: 1px solid var(--border); border-radius: 6px;
+            padding: 5px 10px; display: flex; justify-content: space-between;
+            align-items: center; font-size: 0.8rem; margin-top: 5px;
+        }
+        .domain-badge span { font-family: monospace; }
+        .remove-domain-btn { color: var(--error); cursor: pointer; font-weight: bold; }
+
+        /* Monitor de Status */
         .status-indicator {
-            padding: 10px; border-radius: 6px; background: #09090b;
-            border: 1px solid var(--border); font-size: 0.85rem; font-weight: bold;
+            padding: 12px; border-radius: 8px; background: #030303;
+            border: 1px solid var(--border); font-size: 0.88rem; font-weight: bold;
             display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 15px;
         }
-        .dot { width: 8px; height: 8px; border-radius: 50%; background: red; }
-        .dot.online { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--error); }
+        .dot.online { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
 
-        /* Barra de Progresso de Armazenamento */
         .progress-container {
-            width: 100%; background: #000; border: 1px solid var(--border);
-            border-radius: 6px; height: 22px; overflow: hidden; margin: 15px 0;
-            position: relative;
+            width: 100%; background: #030303; border: 1px solid var(--border);
+            border-radius: 8px; height: 26px; overflow: hidden; margin: 15px 0;
+            position: relative; display: flex; align-items: center; justify-content: center;
         }
         .progress-bar {
-            width: 0%; height: 100%; background: var(--accent);
-            transition: width 0.1s ease;
+            position: absolute; left: 0; top: 0; bottom: 0;
+            width: 0%; background: var(--accent-dim);
+            border-right: 1px solid var(--accent);
+            transition: width 0.3s ease;
         }
         .progress-text {
-            position: absolute; inset: 0; display: flex; align-items: center;
-            justify-content: center; font-size: 0.75rem; font-weight: bold; color: #fff;
+            z-index: 10; font-size: 0.78rem; font-weight: bold; color: var(--accent);
+            font-family: monospace;
         }
 
-        .how-to-use-box {
-            text-align: left; max-height: 380px; overflow-y: auto; padding: 10px;
-        }
+        .how-to-use-box { text-align: left; max-height: 380px; overflow-y: auto; padding: 10px; }
         .code-box {
             background: #000; padding: 10px; border-radius: 6px; border: 1px solid var(--border);
             font-family: monospace; font-size: 0.8rem; margin: 10px 0; overflow-x: auto; white-space: pre;
+        }
+        textarea.editor-box {
+            width: 100%; height: 280px; background: #000; color: #00ff88;
+            font-family: monospace; border: 1px solid var(--border); border-radius: 8px;
+            padding: 15px; box-sizing: border-box; resize: none; outline: none;
         }
     </style>
 </head>
@@ -94,30 +115,44 @@
 
     <!-- Passo 0: Buffering Inicial -->
     <div id="overlay-sync" class="overlay">
-        <div class="card" style="border-color: var(--border);">
-            <h3 style="margin-bottom: 20px;">Hold up, we're connecting you to our server checking your data...</h3>
-            <div style="font-size:0.8rem; color:#71717a;">Please wait, establishing secure pipeline.</div>
+        <div class="card" style="border-color: var(--blue);">
+            <div class="loader"></div>
+            <h3 style="margin-bottom: 20px;">Checking secure pipeline...</h3>
+            <div style="font-size:0.8rem; color:#71717a; font-family: monospace;">Authenticating unique UserID with EzBridge.</div>
         </div>
     </div>
 
-    <!-- Passo 1: Captcha de Entrada -->
+    <!-- Passo 1: Entrada / Google Login / Captcha -->
     <div id="overlay-captcha" class="overlay" style="display:none;">
         <div class="card">
             <h1>EzBridge</h1>
-            <p style="font-size:0.85rem; color:#a1a1aa; line-height:1.5;">
-                Welcome to EB. Create and implement a secure server to your apps for free!
+            <p style="font-size:0.85rem; color:#888; line-height:1.5; margin-bottom: 20px;">
+                Create and deploy secure server environments for free!
             </p>
+            
+            <!-- Google Login Button -->
+            <div style="margin-bottom: 25px; display:flex; justify-content:center;">
+                <div id="g_id_onload"
+                     data-client_id="596211651893-5vddbq1vee4uv9oq26vqmcu807umlaqt.apps.googleusercontent.com"
+                     data-context="signin"
+                     data-ux_mode="popup"
+                     data-callback="googleLoginCallback"
+                     data-auto_prompt="false">
+                </div>
+                <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="dark" data-text="signin_with" data-size="large"></div>
+            </div>
+
             <div style="display: flex; justify-content: center; margin-bottom: 20px;">
                 <div class="g-recaptcha" data-sitekey="6Lf8VTMtAAAAAAMXrs6lk-tLBjuW0u8ZV5LevzMz" data-callback="captchaSolved"></div>
             </div>
         </div>
     </div>
 
-    <!-- Passo 2: Menu Principal -->
+    <!-- Passo 2: Menu Principal (Começar) -->
     <div id="overlay-start" class="overlay" style="display:none;">
         <div class="card">
             <h1>EzBridge</h1>
-            <p style="color:#a1a1aa; font-size:0.9rem; margin-bottom:25px;">Create and implement a server to your apps for free!</p>
+            <p style="color:#888; font-size:0.9rem; margin-bottom:25px;">Create and implement a server to your apps for free!</p>
             <button class="btn" onclick="openSetupUI()">[CLICK HERE TO BEGIN]</button>
         </div>
     </div>
@@ -127,7 +162,7 @@
         <div class="card" style="max-width: 500px;">
             <h2 id="setup-title">Setup Your Server</h2>
             <div class="settings-grid">
-                <h4 style="margin:0; color:var(--accent);">[PING SETTINGS]</h4>
+                <h4 style="color:var(--blue);">[PING SETTINGS]</h4>
                 <div class="settings-item">
                     <label>client target ping (10 - 1000ms)</label>
                     <input type="number" id="cfg-client-ping" value="50">
@@ -140,7 +175,8 @@
                     <label>max requests per second (1 - 60)</label>
                     <input type="number" id="cfg-max-reqs" value="60">
                 </div>
-                <h4 style="margin:10px 0 0 0; color:var(--accent);">[SAFETY SETTINGS]</h4>
+
+                <h4 style="color:var(--blue); margin-top:10px;">[SAFETY SETTINGS]</h4>
                 <div class="settings-item">
                     <label>anti ddos / attack protection</label>
                     <select id="cfg-anti-ddos">
@@ -171,14 +207,45 @@
                 </div>
                 <div class="settings-item">
                     <label>allow use on private projects</label>
-                    <select id="cfg-private">
-                        <option value="false" selected>Off</option>
-                        <option value="true">On</option>
+                    <select id="cfg-private" onchange="togglePrivateDomainsUI(this.value)">
+                        <option value="false" selected>Off (Public Sites Only)</option>
+                        <option value="true">On (Allow localhost/local files)</option>
                     </select>
                 </div>
+
+                <!-- Lista de Domínios Whitelist (Exibe quando Private Projects é OFF) -->
+                <div id="domain-whitelist-box" style="display:block;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                        <label style="font-size:0.72rem; color:#888; font-weight:bold; text-transform:uppercase;">ALLOWED DOMAINS whitelist</label>
+                        <span style="color:var(--accent); font-weight:bold; cursor:pointer;" onclick="addDomainRow()">+ Add</span>
+                    </div>
+                    <div id="domains-list-container" style="display:flex; flex-direction:column; gap:5px; margin-top:5px;"></div>
+                </div>
             </div>
+            
+            <button class="btn btn-blue" onclick="openScriptEditor()">[CREATE SERVER SCRIPT (OPTIONAL)]</button>
             <button class="btn" id="setup-action-btn" onclick="createServerSubmit()">[CREATE SERVER]</button>
             <button class="btn btn-secondary" onclick="closeSetupUI()">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Modal do Editor de Script do Servidor (Serverscripts) -->
+    <div id="modal-script-editor" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 600px; width: 95%;">
+            <h3>Server-Side Script Editor</h3>
+            <p style="font-size: 0.8rem; color:#888; margin-bottom:10px;">Write custom JS logic. Max size: 20MB.</p>
+            <textarea id="script-textarea" class="editor-box" placeholder="// Write your custom Node.js vm code here..."></textarea>
+            
+            <!-- Barra de Progresso de Upload de Script -->
+            <div id="script-progress-container" class="progress-container" style="display:none;">
+                <div id="script-progress-bar" class="progress-bar"></div>
+                <div class="progress-text">Uploading Script: <span id="script-progress-val">0</span>%</div>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:10px;">
+                <button class="btn" onclick="saveServerScript()">Save Serverscript</button>
+                <button class="btn btn-secondary" id="cancel-script-btn" onclick="closeScriptEditor()">Cancel</button>
+            </div>
         </div>
     </div>
 
@@ -242,38 +309,40 @@
         </div>
     </div>
 
-    <!-- Modal de Comandos da API (Atualizado com ebuserid_get) -->
+    <!-- Modal de Comandos da API -->
     <div id="modal-commands" class="overlay" style="display:none;">
         <div class="card" style="max-width: 650px;">
             <h3>EzBridge API Commands</h3>
             <div class="how-to-use-box">
-                <h4 style="color:var(--accent);">Real-Time Events</h4>
-                <p style="font-size:0.8rem; color:#888;">Envie pacotes sincronizados para os outros clientes conectados:</p>
+                <h4 style="color:var(--accent);">Real-Time Events (Client-Side Available)</h4>
+                <p style="font-size:0.8rem; color:#888;">Envie pacotes sincronizados livremente entre clientes:</p>
                 <div class="code-box">socket.emit("RemoteEvent", { type: "seu_tipo", data: "sua_payload" });</div>
 
-                <h4 style="color:var(--accent); margin-top:15px;">User Identification</h4>
-                <p style="font-size:0.8rem; color:#888;">Recupere o ID único permanente do emissor da requisição:</p>
+                <h4 style="color:var(--accent); margin-top:15px;">User Identification (Client-Side Available)</h4>
+                <p style="font-size:0.8rem; color:#888;">Recupere a ID única do emissor da requisição:</p>
                 <div class="code-box">socket.emit("RemoteEvent", { type: "ebuserid_get" });
-// O servidor responderá apenas para você com:
-// { type: "userid_response", userId: "ID_UNICO_DO_CLIENTE" }</div>
+// Resposta retornada: { type: "userid_response", userId: "ID_DO_USER" }</div>
 
-                <h4 style="color:var(--accent); margin-top:15px;">EBstorage Commands (Database)</h4>
-                <p style="font-size:0.8rem; color:#888;">Persistência física em disco direto no servidor virtual:</p>
+                <h4 style="color:var(--accent); margin-top:15px;">EBstorage Database (Requires Server Script)</h4>
+                <p style="font-size:0.8rem; color:#888; font-weight:bold; color:var(--error);">* Bloqueado por padrão para envio direto de clientes. Deve ser executado a partir do seu código no servidor virtual (Sandbox):</p>
                 
-                <p style="font-size:0.85rem; font-weight:bold;">1. Adicionar/Atualizar Dado:</p>
-                <div class="code-box">socket.emit("RemoteEvent", { type: "ebdata_add_pasta_subpasta_chave", data: "valor_ou_base64" });</div>
+                <p style="font-size:0.85rem; font-weight:bold;">1. Adicionar Dado:</p>
+                <div class="code-box">db.add("pasta_subpasta_chave", "valor_ou_base64");</div>
                 
                 <p style="font-size:0.85rem; font-weight:bold;">2. Recuperar Dado:</p>
-                <div class="code-box">socket.emit("RemoteEvent", { type: "ebdata_fetch_pasta_subpasta" });</div>
+                <div class="code-box">db.fetch("pasta_subpasta");</div>
 
                 <p style="font-size:0.85rem; font-weight:bold;">3. Remover Dado:</p>
-                <div class="code-box">socket.emit("RemoteEvent", { type: "ebdata_remove_pasta_subpasta_chave" });</div>
+                <div class="code-box">db.remove("pasta_subpasta_chave");</div>
 
-                <p style="font-size:0.85rem; font-weight:bold;">4. Criar Pasta de Organização:</p>
-                <div class="code-box">socket.emit("RemoteEvent", { type: "ebdata_addfolder", data: { folderName: "sua_pasta" } });</div>
+                <p style="font-size:0.85rem; font-weight:bold;">4. Limpar Tudo:</p>
+                <div class="code-box">db.clear();</div>
 
-                <p style="font-size:0.85rem; font-weight:bold;">5. Limpar Tudo:</p>
-                <div class="code-box">socket.emit("RemoteEvent", { type: "ebdata_clear" });</div>
+                <h4 style="color:var(--accent); margin-top:15px;">P2P Server-to-Server Networking</h4>
+                <p style="font-size:0.8rem; color:#888;">Permite que dois servidores virtuais distintos se comuniquem:</p>
+                <div class="code-box">// Para estabelecer o link de comunicação bilateral, ambos os servidores
+// devem executar este comando passando a chave do parceiro:
+ebserver_remote_listen_serverid("CHAVE_DO_PARCEIRO");</div>
             </div>
             <button class="btn btn-secondary" onclick="closeCommandsModal()">Back</button>
         </div>
@@ -291,14 +360,19 @@
     </div>
 
 <script>
-    // --- LINK ATUALIZADO DO SEU MASTER TÚNEL (PORTA 1225) ---
-    const PUBLIC_TUNNEL_URL = "https://favour-fighting-headphones-enhancement.trycloudflare.com";
+    // --- LINK ATUALIZADO DO SEU MASTER TÚNEL ---
+    const PUBLIC_TUNNEL_URL = "https://distinguished-stress-ministry-speakerstrycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let serverKey = "";
     let serverActive = false;
     let serverSettings = {};
     let heartbeatInterval = null;
+    let whitelistDomains = [];
+
+    // Estado do script de servidor pendente
+    let pendingScriptCode = "";
+    let scriptUploadCancel = false;
 
     let socket = io(PUBLIC_TUNNEL_URL, {
         auth: { token: "default_key" },
@@ -318,43 +392,155 @@
             serverKey = data.server.key;
             serverActive = data.server.active;
             serverSettings = data.server.settings;
+            whitelistDomains = serverSettings.domains || [];
             showDashboard();
         } else {
             document.getElementById('overlay-captcha').style.display = 'flex';
         }
     });
 
-    // Escuta atualizações periódicas de status do servidor virtual (Heartbeat de 5s)
-    socket.on('eb_heartbeat_response', (data) => {
-        serverActive = data.active;
-        serverSettings = data.settings;
-        document.getElementById('online-users-count').innerText = data.users;
-        
-        // Atualiza a Barra de Progresso de Armazenamento do Disco Físico (3GB Max)
-        const sizeInMb = (data.storageSize / (1024 * 1024)).toFixed(2);
-        const limitInMb = (3 * 1024).toFixed(2); // 3072.00 MB
-        const pct = Math.min(((data.storageSize / (3 * 1024 * 1024 * 1024)) * 100).toFixed(2), 100);
-
-        document.getElementById('storage-progress').style.width = `${pct}%`;
-        document.getElementById('storage-text').innerText = `${pct}% - ${sizeInMb} MB / 3.00 GB`;
-        
-        updateStatusDisplay();
-    });
+    function googleLoginCallback(response) {
+        document.getElementById('overlay-captcha').style.display = 'none';
+        document.getElementById('overlay-sync').style.display = 'flex';
+        socket.emit('eb_google_login', { credential: response.credential });
+    }
 
     function captchaSolved() {
         document.getElementById('overlay-captcha').style.display = 'none';
         document.getElementById('overlay-start').style.display = 'flex';
     }
 
+    // --- OPERAÇÕES DA UI ---
     function openSetupUI() {
         document.getElementById('overlay-start').style.display = 'none';
         document.getElementById('overlay-setup').style.display = 'flex';
+        renderDomainsList();
     }
 
     function closeSetupUI() {
         document.getElementById('overlay-setup').style.display = 'none';
         if (serverKey) showDashboard();
         else document.getElementById('overlay-start').style.display = 'flex';
+    }
+
+    function togglePrivateDomainsUI(val) {
+        const box = document.getElementById('domain-whitelist-box');
+        box.style.display = val === 'false' ? 'block' : 'none';
+    }
+
+    function addDomainRow() {
+        if (whitelistDomains.length >= 10) return alert("Maximum limit of 10 whitelisted domains reached.");
+        const domain = prompt("Enter domain name (Max 64 chars, e.g. play.yoursite.com):");
+        if (!domain) return;
+        
+        // Regras de validação de domínio
+        const cleanDomain = domain.trim().toLowerCase();
+        if (cleanDomain.length > 64) return alert("Domain too long!");
+        if (cleanDomain.includes("terminatorsbdev.github.io")) return alert("Action blocked: Banned domain.");
+        
+        const domainRegex = /^[a-zA-Z0-9][-a-zA-Z0-9.]*$/;
+        if (!domainRegex.test(cleanDomain) || cleanDomain.startsWith('.') || cleanDomain.endsWith('.')) {
+            return alert("Invalid domain structure! No symbols allowed at start or end.");
+        }
+
+        whitelistDomains.push(cleanDomain);
+        renderDomainsList();
+    }
+
+    function removeDomain(idx) {
+        whitelistDomains.splice(idx, 1);
+        renderDomainsList();
+    }
+
+    function renderDomainsList() {
+        const container = document.getElementById('domains-list-container');
+        container.innerHTML = "";
+        whitelistDomains.forEach((domain, idx) => {
+            const div = document.createElement('div');
+            div.className = "domain-badge";
+            div.innerHTML = `
+                <span>${idx + 1}. ${domain}</span>
+                <span class="remove-domain-btn" onclick="removeDomain(${idx})">[REMOVE DOMAIN]</span>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    // --- SCRIPT EDITOR MODAL ---
+    function openScriptEditor() {
+        document.getElementById('modal-script-editor').style.display = 'flex';
+        document.getElementById('script-textarea').value = pendingScriptCode;
+    }
+
+    function closeScriptEditor() {
+        document.getElementById('modal-script-editor').style.display = 'none';
+    }
+
+    function saveServerScript() {
+        const code = document.getElementById('script-textarea').value;
+        if (BufferByteLength(code) > 20 * 1024 * 1024) {
+            return alert("Script exceeds 20MB size limit!");
+        }
+
+        pendingScriptCode = code;
+        closeScriptEditor();
+    }
+
+    // Conta bytes de uma string Javascript de forma simplificada
+    function BufferByteLength(str) {
+        return new Blob([str]).size;
+    }
+
+    function uploadScriptInChunks() {
+        if (!pendingScriptCode) {
+            socket.emit('eb_create_server', { ownerId, settings: serverSettings });
+            return;
+        }
+
+        const CHUNK_SIZE = 100 * 1024; // 100KB Chunks
+        const total = Math.ceil(pendingScriptCode.length / CHUNK_SIZE);
+        let index = 0;
+        scriptUploadCancel = false;
+
+        document.getElementById('script-progress-container').style.display = 'block';
+        document.getElementById('cancel-script-btn').disabled = true;
+
+        function nextChunk() {
+            if (scriptUploadCancel) return;
+            const start = index * CHUNK_SIZE;
+            const end = Math.min(start + CHUNK_SIZE, pendingScriptCode.length);
+            const chunk = pendingScriptCode.slice(start, end);
+
+            socket.emit('eb_script_chunk', {
+                key: serverKey,
+                ownerId,
+                index,
+                total,
+                chunk
+            });
+
+            // Atualiza barra de progresso visual
+            const pct = Math.floor((index / total) * 100);
+            document.getElementById('script-progress-bar').style.width = `${pct}%`;
+            document.getElementById('script-progress-val').innerText = pct;
+        }
+
+        socket.on('eb_script_chunk_ack', (data) => {
+            index = data.index + 1;
+            if (index < total) {
+                nextChunk();
+            }
+        });
+
+        socket.on('eb_script_upload_complete', () => {
+            document.getElementById('script-progress-container').style.display = 'none';
+            document.getElementById('cancel-script-btn').disabled = false;
+            socket.off('eb_script_chunk_ack');
+            socket.off('eb_script_upload_complete');
+            alert("Script uploaded successfully!");
+        });
+
+        nextChunk();
     }
 
     function createServerSubmit() {
@@ -366,15 +552,24 @@
             rateLimit: document.getElementById('cfg-ratelimit').value === 'true',
             validation: document.getElementById('cfg-validation').value === 'true',
             serverReading: document.getElementById('cfg-reading').value === 'true',
-            allowPrivate: document.getElementById('cfg-private').value === 'true'
+            allowPrivate: document.getElementById('cfg-private').value === 'true',
+            domains: whitelistDomains
         };
+
+        serverSettings = settings;
 
         if (serverKey) {
             if (confirm("Are you sure? Server settings override will disconnect currently active clients.")) {
                 socket.emit('eb_save_settings', { key: serverKey, ownerId, settings });
+                if (pendingScriptCode) uploadScriptInChunks();
             }
         } else {
+            // Cria servidor e depois faz upload de script se houver
             socket.emit('eb_create_server', { ownerId, settings });
+            socket.once('server_created', (data) => {
+                serverKey = data.key;
+                if (pendingScriptCode) uploadScriptInChunks();
+            });
         }
     }
 
@@ -396,7 +591,6 @@
         document.getElementById('dashboard').style.display = 'block';
         updateStatusDisplay();
         
-        // Inicializa o Loop de Monitoramento Ativo (Heartbeat de 5s)
         if (heartbeatInterval) clearInterval(heartbeatInterval);
         heartbeatInterval = setInterval(() => {
             if (serverKey) {
@@ -434,7 +628,25 @@
         document.getElementById('cfg-validation').value = String(serverSettings.validation);
         document.getElementById('cfg-reading').value = String(serverSettings.serverReading);
         document.getElementById('cfg-private').value = String(serverSettings.allowPrivate);
+        whitelistDomains = serverSettings.domains || [];
+        renderDomainsList();
     }
+
+    // Escuta atualizações periódicas de status do servidor virtual (Heartbeat de 5s)
+    socket.on('eb_heartbeat_response', (data) => {
+        serverActive = data.active;
+        serverSettings = data.settings;
+        document.getElementById('online-users-count').innerText = data.users;
+        
+        // Atualiza a Barra de Progresso de Armazenamento do Disco Físico (3GB Max)
+        const sizeInMb = (data.storageSize / (1024 * 1024)).toFixed(2);
+        const pct = Math.min(((data.storageSize / (3 * 1024 * 1024 * 1024)) * 100).toFixed(2), 100);
+
+        document.getElementById('storage-progress').style.width = `${pct}%`;
+        document.getElementById('storage-text').innerText = `${pct}% - ${sizeInMb} MB / 3.00 GB`;
+        
+        updateStatusDisplay();
+    });
 
     function testConnection() {
         const btn = document.getElementById('test-conn-btn');
@@ -503,8 +715,8 @@
     </div>
 
     <script>
-        const key = "${serverKey}";
-        const link = "${PUBLIC_TUNNEL_URL}";
+        const key = "\${serverKey}";
+        const link = "\${PUBLIC_TUNNEL_URL}";
         const socket = io(link, { auth: { token: "default_key" } });
         let board = Array(9).fill("");
         let myTurn = false;
