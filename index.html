@@ -2,145 +2,151 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>EzBridge | Cloud Virtual Hosting</title>
-    <!-- APIs do Google Sign-In & ReCaptcha V2 -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EzBridge | Cloud Virtual Hosting & Sandboxing</title>
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
         :root {
-            --bg: #111113;
-            --panel: #1e1e24;
-            --border: #2d2d34;
+            --bg: #0d0e12;
+            --panel: #16181f;
+            --border: #232733;
             --accent: #00ff88;
-            --accent-dim: rgba(0, 255, 136, 0.15);
-            --blue: #58a6ff;
-            --text: #e6edf3;
-            --gray-btn: #2d3139;
+            --accent-dim: rgba(0, 255, 136, 0.12);
+            --blue: #00f3ff;
+            --blue-dim: rgba(0, 243, 255, 0.12);
+            --text: #e2e8f0;
+            --error: #ff4a5a;
         }
 
         body, html {
             margin: 0; padding: 0; height: 100%;
             background-color: var(--bg); color: var(--text);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             display: flex; align-items: center; justify-content: center;
-            overflow: hidden;
         }
 
         .overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+            position: fixed; inset: 0; background: rgba(5, 6, 8, 0.96);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             z-index: 2000; transition: 0.3s;
         }
 
         .card {
-            background: var(--panel); border: 1px solid var(--border); padding: 30px;
-            border-radius: 12px; width: 95%; max-width: 480px; text-align: center;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.8);
-            box-sizing: border-box;
+            background: var(--panel); border: 1px solid var(--border); padding: 35px;
+            border-radius: 16px; width: 92%; max-width: 480px; text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+            position: relative;
         }
 
-        h1, h2, h3, h4 { color: var(--accent); margin-top: 0; letter-spacing: 0.5px; }
+        h1, h2, h3 { color: var(--blue); margin-top: 0; letter-spacing: 1.5px; text-shadow: 0 0 10px var(--blue-dim); }
 
         .btn {
-            width: 100%; padding: 12px; margin: 10px 0; background: var(--accent);
-            border: none; color: black; font-weight: bold; border-radius: 6px;
+            width: 100%; padding: 13px; margin: 10px 0; background: var(--accent);
+            border: none; color: black; font-weight: bold; border-radius: 8px;
             cursor: pointer; transition: 0.2s; font-size: 0.95rem;
+            box-shadow: 0 0 10px var(--accent-dim);
         }
-        .btn:hover { background: #00cc6a; transform: translateY(-1px); }
-        .btn-secondary { background: var(--gray-btn); color: white; border: 1px solid var(--border); }
-        .btn-secondary:hover { background: #3c424d; }
+        .btn:hover { background: #00e574; transform: translateY(-1px); box-shadow: 0 0 15px var(--accent); }
+        .btn-secondary { background: #1e2230; color: white; border: 1px solid var(--border); box-shadow: none; }
+        .btn-secondary:hover { background: #2b3044; }
 
         .settings-grid {
-            text-align: left; display: flex; flex-direction: column; gap: 12px; margin: 20px 0;
+            text-align: left; display: flex; flex-direction: column; gap: 12px; margin: 15px 0;
             max-height: 320px; overflow-y: auto; padding-right: 5px;
         }
         .settings-item { display: flex; flex-direction: column; gap: 4px; }
-        .settings-item label { font-size: 0.75rem; color: #8b949e; text-transform: uppercase; font-weight: bold; }
-        .settings-item input, .settings-item select {
-            background: #0d1117; border: 1px solid var(--border); color: white;
-            padding: 8px 12px; border-radius: 6px; outline: none;
+        .settings-item label { font-size: 0.72rem; color: #94a3b8; text-transform: uppercase; font-weight: bold; }
+        .settings-item input, .settings-item select, .settings-item textarea {
+            background: #090a0f; border: 1px solid var(--border); color: white;
+            padding: 10px 12px; border-radius: 8px; outline: none; font-size: 0.9rem;
         }
+        .settings-item input:focus, .settings-item select:focus { border-color: var(--blue); }
 
-        /* Domínios Whitelist */
-        .domain-row { display: flex; gap: 8px; margin-top: 4px; }
-        .domain-badge {
-            display: inline-flex; align-items: center; gap: 8px; background: #0d1117;
-            border: 1px solid var(--border); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; margin: 2px;
-        }
+        /* Domínios Permitidos */
+        .domain-list { margin-top: 8px; display: flex; flex-direction: column; gap: 5px; }
+        .domain-row { display: flex; gap: 8px; align-items: center; }
 
         .dashboard-row { display: flex; gap: 10px; margin-top: 15px; }
-        
+        .status-indicator {
+            padding: 12px; border-radius: 8px; background: #090a0f;
+            border: 1px solid var(--border); font-size: 0.88rem; font-weight: bold;
+            display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 15px;
+        }
+        .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--error); }
+        .dot.online { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+
+        /* Barra de Progresso de Armazenamento */
         .progress-container {
-            width: 100%; background: #000; border: 1px solid var(--border);
-            border-radius: 8px; height: 24px; overflow: hidden; margin: 15px 0;
-            position: relative;
+            width: 100%; background: #090a0f; border: 1px solid var(--border);
+            border-radius: 8px; height: 26px; overflow: hidden; margin-top: 12px;
+            position: relative; display: flex; align-items: center; justify-content: center;
         }
         .progress-bar {
-            width: 0%; height: 100%; background: var(--accent);
-            transition: width 0.1s ease;
+            position: absolute; left: 0; top: 0; bottom: 0;
+            width: 0%; background: var(--accent-dim);
+            border-right: 2px solid var(--accent);
+            transition: width 0.3s ease;
         }
         .progress-text {
-            position: absolute; inset: 0; display: flex; align-items: center;
-            justify-content: center; font-size: 0.75rem; font-weight: bold; color: #fff;
+            z-index: 10; font-size: 0.8rem; font-weight: bold; color: var(--accent);
+            font-family: monospace;
         }
 
-        .how-to-use-box {
-            text-align: left; max-height: 380px; overflow-y: auto; padding: 10px;
-        }
+        .how-to-use-box { text-align: left; max-height: 380px; overflow-y: auto; padding: 5px; }
         .code-box {
-            background: #000; padding: 10px; border-radius: 6px; border: 1px solid var(--border);
-            font-family: monospace; font-size: 0.8rem; margin: 10px 0; overflow-x: auto; white-space: pre;
+            background: #020204; padding: 12px; border-radius: 8px; border: 1px solid var(--border);
+            font-family: 'Courier New', Courier, monospace; font-size: 0.8rem; margin: 10px 0; overflow-x: auto; white-space: pre; color: #a5f3fc;
         }
     </style>
 </head>
 <body>
 
-    <!-- Passo 0: Buffering Inicial -->
+    <!-- Passo 0: Buffering Sincronização -->
     <div id="overlay-sync" class="overlay">
-        <div class="card" style="border-color: var(--border);">
-            <div class="loader" style="border: 4px solid #f3f3f3; border-top: 4px solid var(--accent); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto;"></div>
-            <h3 style="margin-bottom: 20px;">Checking your secure metadata pipeline...</h3>
-            <div style="font-size:0.8rem; color:#8b949e; font-family: monospace;">Authenticating session with Master Node.</div>
+        <div class="card" style="border-color: var(--blue);">
+            <h3 style="margin-bottom: 20px;">Establishing secure handshake pipeline...</h3>
+            <div style="font-size:0.8rem; color:#64748b; font-family: monospace;">Processing local cookie signatures.</div>
         </div>
     </div>
-    <script>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</script>
 
-    <!-- Passo 1: Captcha & Google Login -->
+    <!-- Passo 1: Captcha & Login Google -->
     <div id="overlay-captcha" class="overlay" style="display:none;">
         <div class="card">
-            <h1>EzBridge</h1>
-            <p style="font-size:0.85rem; color:#8b949e; line-height:1.5; margin-bottom: 20px;">
-                Log in to link your generated virtual servers to your permanent Google account.
+            <h1>EzBridge Core</h1>
+            <p style="font-size:0.85rem; color:#94a3b8; line-height:1.6; margin-bottom:20px;">
+                Virtual Server Sandbox Pipeline. Authorize or complete challenge to start.
             </p>
-            
             <!-- Google One Tap / Button Container -->
-            <div style="display: flex; justify-content: center; margin-bottom: 20px;">
-                <div id="google-btn"></div>
+            <div style="display:flex; justify-content:center; margin-bottom: 20px;">
+                <div id="g_id_onload"
+                     data-client_id="596211651893-5vddbq1vee4uv9oq26vqmcu807umlaqt.apps.googleusercontent.com"
+                     data-callback="handleCredentialResponse">
+                </div>
+                <div class="g_id_signin" data-type="standard"></div>
             </div>
-
-            <div style="display: flex; justify-content: center; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: center; margin-bottom: 10px;">
                 <div class="g-recaptcha" data-sitekey="6Lf8VTMtAAAAAAMXrs6lk-tLBjuW0u8ZV5LevzMz" data-callback="captchaSolved"></div>
             </div>
         </div>
     </div>
 
-    <!-- Passo 2: Menu Principal (Começar) -->
+    <!-- Passo 2: Menu Início -->
     <div id="overlay-start" class="overlay" style="display:none;">
         <div class="card">
             <h1>EzBridge</h1>
-            <p style="color:#8b949e; font-size:0.9rem; margin-bottom:25px;">Create and implement a server to your apps for free!</p>
+            <p style="color:#94a3b8; font-size:0.92rem; margin-bottom:25px;">Instantiate real-time virtual servers with sandboxing.</p>
             <button class="btn" onclick="openSetupUI()">[CLICK HERE TO BEGIN]</button>
         </div>
     </div>
 
-    <!-- Passo 3: Configuração do Servidor Virtual -->
+    <!-- Passo 3: Configuração e Criação do Servidor -->
     <div id="overlay-setup" class="overlay" style="display:none;">
         <div class="card" style="max-width: 500px;">
-            <h2 id="setup-title">Setup Your Server</h2>
+            <h2 id="setup-title">Setup Your Pipeline</h2>
             <div class="settings-grid">
-                <h4 style="margin:0; color:var(--accent);">[PING SETTINGS]</h4>
+                <h4 style="margin:0; color:var(--blue);">[PING PARAMETERS]</h4>
                 <div class="settings-item">
                     <label>client target ping (10 - 1000ms)</label>
                     <input type="number" id="cfg-client-ping" value="50">
@@ -153,80 +159,76 @@
                     <label>max requests per second (1 - 60)</label>
                     <input type="number" id="cfg-max-reqs" value="60">
                 </div>
-
-                <h4 style="margin:10px 0 0 0; color:var(--accent);">[SAFETY SETTINGS]</h4>
+                <h4 style="margin:10px 0 0 0; color:var(--blue);">[PIPELINE SECURITY]</h4>
                 <div class="settings-item">
-                    <label>anti ddos / attack protection</label>
+                    <label>anti ddos / crash protection</label>
                     <select id="cfg-anti-ddos">
-                        <option value="true" selected>On</option>
+                        <option value="true" selected>Active (On)</option>
                         <option value="false">Off</option>
                     </select>
                 </div>
                 <div class="settings-item">
-                    <label>ratelimiting (bandwidth controller)</label>
+                    <label>ratelimiting (traffic throttle)</label>
                     <select id="cfg-ratelimit">
                         <option value="false" selected>Off</option>
                         <option value="true">On</option>
                     </select>
                 </div>
                 <div class="settings-item">
-                    <label>server reading (payload checking)</label>
+                    <label>server reading (sandbox validation)</label>
                     <select id="cfg-reading">
-                        <option value="true" selected>On</option>
-                        <option value="false">Off</option>
+                        <option value="true" selected>On (Highly Safe)</option>
+                        <option value="false">Off (Bypass reading - Risky)</option>
                     </select>
                 </div>
                 <div class="settings-item">
                     <label>allow use on private projects</label>
-                    <select id="cfg-private" onchange="togglePrivateDomainsDisplay(this.value)">
-                        <option value="false" selected>Off (Public Sites Only)</option>
-                        <option value="true">On (Allow localhost/local files)</option>
+                    <select id="cfg-private" onchange="togglePrivateDomains()">
+                        <option value="false" selected>Off (Public Domains Only)</option>
+                        <option value="true">On (Allow private localhost)</option>
                     </select>
                 </div>
-
-                <!-- Lista de Domínios (Visível se Private for OFF) -->
-                <div class="settings-item" id="whitelist-domain-container">
-                    <label>Whitelisted Domains (+ 0/10)</label>
-                    <div class="domain-row">
-                        <input type="text" id="cfg-new-domain" placeholder="https://exemplo.github.io/app" style="flex-grow:1;">
-                        <button class="btn" style="width:auto; margin:0;" type="button" onclick="addDomainToList()">+</button>
+                <!-- Nova Seção: Whitelist de Domínios -->
+                <div class="settings-item" id="domains-setup-group">
+                    <label>Authorized Domains whitelist (+ 0/10)</label>
+                    <div class="domain-list" id="domain-list-container">
+                        <!-- Linhas adicionadas dinamicamente -->
                     </div>
-                    <div id="whitelist-badges" style="margin-top: 8px;"></div>
+                    <button class="btn btn-secondary" type="button" style="margin-top:5px; padding:6px; font-size:0.8rem;" onclick="addNewDomainRow()">+ Add Domain</button>
                 </div>
+                
+                <!-- Nova Seção: Script de Servidor -->
+                <h4 style="margin:10px 0 0 0; color:var(--blue);">[SERVER-SIDE SCRIPT]</h4>
+                <button class="btn btn-secondary" type="button" onclick="openScriptEditor()">Create Server Script (Optional)</button>
             </div>
-            
-            <div style="display:flex; gap:10px;">
-                <button class="btn btn-secondary" onclick="openScriptEditorModal()">Script (Optional)</button>
-                <button class="btn" id="setup-action-btn" onclick="createServerSubmit()">[CREATE SERVER]</button>
-            </div>
-            <button class="btn btn-secondary" onclick="closeSetupUI()" style="margin-top:5px;">Cancel</button>
+            <button class="btn" id="setup-action-btn" onclick="createServerSubmit()">[CREATE SERVER]</button>
+            <button class="btn btn-secondary" onclick="closeSetupUI()">Cancel</button>
         </div>
     </div>
 
-    <!-- Modal de Edição de Script de Servidor (Opcional - Upload de Chunks de 100KB) -->
+    <!-- Script Editor Popup -->
     <div id="modal-script-editor" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 650px; width:95%;">
-            <h3>Server Script Editor</h3>
-            <p style="font-size:0.8rem; color:#8b949e;">Write logic that runs directly on the Node.js core process sandbox.</p>
-            <textarea id="script-code" class="code-box" rows="12" style="width:100%; border:none; height:250px; resize:none;" placeholder="// Write your javascript sandbox logic here..."></textarea>
-            
-            <div id="script-upload-container" class="progress-container" style="display:none;">
-                <div id="script-progress-bar" class="progress-bar"></div>
-                <div class="progress-text">Uploading Script: <span id="script-progress-val">0.0</span>MB / <span id="script-progress-total">0.0</span>MB</div>
+        <div class="card" style="max-width: 750px; width: 95%;">
+            <h3>Server Sandbox Script Editor</h3>
+            <div class="settings-item" style="margin:15px 0;">
+                <textarea id="server-script-area" style="font-family:'Courier New', monospace; height:320px; width:100%; background:#090a0f; border:1px solid var(--border); color:#00ff88; padding:12px; font-size:0.85rem; resize:none;" placeholder="// Write your custom, protected-call server script here..."></textarea>
             </div>
-
-            <div style="display:flex; gap:10px; margin-top:10px;">
-                <button class="btn" id="save-script-btn" onclick="saveServerScriptSubmit()">Save Script</button>
-                <button class="btn btn-secondary" id="cancel-script-btn" onclick="closeScriptEditorModal()">Close</button>
+            <div id="script-progress-container" class="progress-container" style="display:none; margin-bottom:15px;">
+                <div class="progress-bar" id="script-progress-bar"></div>
+                <div class="progress-text" id="script-progress-text">Uploading script... 0.0 MB / 0.0 MB</div>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <button class="btn" id="save-script-btn" onclick="saveServerScript()">Save Server Script</button>
+                <button class="btn btn-secondary" id="cancel-script-btn" onclick="closeScriptEditor()">Close</button>
             </div>
         </div>
     </div>
 
-    <!-- Dashboard de Controle Real -->
+    <!-- Dashboard -->
     <div id="dashboard" class="card" style="display:none; width: 450px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h2 style="margin:0;">EzBridge Control</h2>
-            <button class="btn" style="width:auto; margin:0; padding:6px 12px; font-size:0.75rem;" onclick="copyUserId()">Copy My ID</button>
+            <h3 style="margin:0; color:var(--blue);">EzBridge Control</h3>
+            <button class="btn" style="width:auto; margin:0; padding:6px 12px; font-size:0.75rem;" onclick="copyUserId()">Copy My User ID</button>
         </div>
         
         <div class="status-indicator">
@@ -234,14 +236,12 @@
             <span>Server status: <span id="server-status-text">OFFLINE</span></span>
         </div>
 
-        <!-- Estatísticas Dinâmicas do Servidor -->
-        <div style="margin: 15px 0; text-align: left; font-size: 0.85rem; color: #8b949e;">
-            <div>Users online on your server: <span id="online-users-count" style="color:var(--accent); font-weight:bold;">0</span></div>
-            
-            <div style="margin-top: 10px; font-weight:bold;">Storage Usage (3GB limit):</div>
+        <div style="margin: 15px 0; text-align: left; font-size: 0.85rem; color: #94a3b8; display:flex; flex-direction:column; gap:8px;">
+            <div>Users active: <span id="online-users-count" style="color:var(--accent); font-weight:bold;">0</span></div>
+            <div style="font-weight:bold; margin-top:5px;">Storage Usage:</div>
             <div class="progress-container">
                 <div class="progress-bar" id="storage-progress"></div>
-                <div class="progress-text" id="storage-text">0% - 0.00 MB / 3072.00 MB</div>
+                <div class="progress-text" id="storage-text">0% - 0.00 MB / 3.00 GB</div>
             </div>
         </div>
 
@@ -255,7 +255,6 @@
         </div>
     </div>
 
-    <!-- Popups / Modais de Informações -->
     <div id="modal-howto" class="overlay" style="display:none;">
         <div class="card" style="max-width: 600px;">
             <h3 style="margin-bottom:15px;">How to Connect Your Server</h3>
@@ -276,118 +275,80 @@
                 </div>
                 <div style="display:flex; gap:10px; margin-top:15px;">
                     <button class="btn btn-blue" onclick="openCommandsModal()">[API Commands]</button>
-                    <button class="btn" onclick="openTicTacToeCode()">[View Tic-Tac-Toe Code]</button>
+                    <button class="btn" onclick="openTicTacToeCode()">[View TTT App & Script]</button>
                 </div>
             </div>
             <button class="btn btn-secondary" onclick="closeHowToUse()">Close</button>
         </div>
     </div>
 
-    <!-- Modal de Comandos da API (Atualizado) -->
     <div id="modal-commands" class="overlay" style="display:none;">
         <div class="card" style="max-width: 650px;">
-            <h3>EzBridge API Commands</h3>
+            <h3>EzBridge API Reference</h3>
             <div class="how-to-use-box">
-                <h4 style="color:var(--accent);">Real-Time Events (Client-Side Allowed)</h4>
-                <p style="font-size:0.8rem; color:#888;">Envie pacotes sincronizados de até 250KB:</p>
-                <div class="code-box">socket.emit("RemoteEvent", { type: "seu_tipo", data: "sua_payload" });</div>
+                <h4 style="color:var(--accent);">Client-Safe APIs (No Script Permission Required)</h4>
+                <p style="font-size:0.8rem; color:#888;">Qualquer soquete conectado de forma anônima pode disparar estes eventos:</p>
+                <div class="code-box">// Envia pacotes brutos sincronizados para outros usuários:
+socket.emit("RemoteEvent", { type: "seu_evento", data: "dados" });
 
-                <h4 style="color:var(--accent); margin-top:15px;">User Identification (Client-Side Allowed)</h4>
-                <p style="font-size:0.8rem; color:#888;">Recupere o ID único permanente do emissor da requisição:</p>
-                <div class="code-box">socket.emit("RemoteEvent", { type: "ebuserid_get" });
-// O servidor responderá apenas para você com:
-// { type: "userid_response", userId: "ID_UNICO_DO_CLIENTE" }</div>
+// Recupera o ID único permanente do remetente:
+socket.emit("RemoteEvent", { type: "ebuserid_get" });
+// Retorna: { type: "userid_response", userId: "ID_UNICO" }</div>
 
-                <h4 style="color:var(--accent); margin-top:15px;">EBstorage Commands (Database - Server Script Restricted)</h4>
-                <p style="font-size:0.8rem; color:#888;">Os comandos do banco abaixo exigem execução / aprovação do Server Script:</p>
-                
-                <p style="font-size:0.85rem; font-weight:bold;">1. Adicionar/Atualizar Dado:</p>
-                <div class="code-box">socket.emit("RemoteEvent", { type: "ebdata_add_pasta_subpasta_chave", data: "valor_ou_base64" });</div>
-                
-                <p style="font-size:0.85rem; font-weight:bold;">2. Recuperar Dado:</p>
-                <div class="code-box">socket.emit("RemoteEvent", { type: "ebdata_fetch_pasta_subpasta" });</div>
+                <h4 style="color:var(--error); margin-top:15px;">Server-Only APIs (Protected Sandbox Required)</h4>
+                <p style="font-size:0.8rem; color:#ff7b72;">Estes comandos são bloqueados para clientes! Só podem ser chamados de dentro do seu script de servidor:</p>
+                <div class="code-box">// Modifica a base física EBstorage.js (3GB limite):
+db.add("pasta_chave", "valor"); 
+db.remove("pasta_chave");
+db.clear(); // Limpa banco
 
-                <p style="font-size:0.85rem; font-weight:bold;">3. Remover Dado:</p>
-                <div class="code-box">socket.emit("RemoteEvent", { type: "ebdata_remove_pasta_subpasta_chave" });</div>
+// Recupera dado de persistência física:
+let dado = db.fetch("pasta_chave");
 
-                <p style="font-size:0.85rem; font-weight:bold;">4. Criar Pasta de Organização:</p>
-                <div class="code-box">socket.emit("RemoteEvent", { type: "ebdata_addfolder", data: { folderName: "sua_pasta" } });</div>
-
-                <p style="font-size:0.85rem; font-weight:bold;">5. Limpar Tudo:</p>
-                <div class="code-box">socket.emit("RemoteEvent", { type: "ebdata_clear" });</div>
+// Escuta eventos dos clientes de forma sincronizada:
+onEvent("tipo_evento", (clientId, data) => {
+    console.log("Recebido do cliente:", clientId, data);
+    // Envia resposta para a sala virtual inteira:
+    io.emit("resposta_servidor", "dados");
+});</div>
             </div>
             <button class="btn btn-secondary" onclick="closeCommandsModal()">Back</button>
         </div>
     </div>
 
-    <!-- Modal de Código de Exemplo -->
     <div id="modal-code" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 700px;">
-            <h3>Tic-Tac-Toe Multi-Script Example</h3>
-            <textarea id="example-code" class="code-box" readonly rows="12" style="width:100%; border:none; height:350px; resize:none;"></textarea>
+        <div class="card" style="max-width: 720px; width: 95%;">
+            <h3>Integrated Tic-Tac-Toe Code</h3>
+            <p style="font-size:0.8rem; color:#888; margin-bottom:10px;">Com o novo ecossistema, o jogo roda de forma segura: o HTML lida apenas com cliques e o Script de Servidor roda a validação da tabela no sandbox.</p>
+            
+            <label style="font-size: 0.7rem; color: var(--accent); font-weight: bold; display: block; text-align: left;">1. CLIENT-SIDE APP (HTML)</label>
+            <textarea id="example-html-code" class="code-box" readonly rows="8" style="width:100%; border:none; resize:none;"></textarea>
+            
+            <label style="font-size: 0.7rem; color: var(--accent); font-weight: bold; display: block; text-align: left; margin-top:10px;">2. SERVER-SIDE SCRIPT (SANDBOX JS)</label>
+            <textarea id="example-server-code" class="code-box" readonly rows="8" style="width:100%; border:none; resize:none;"></textarea>
+            
             <div style="display:flex; gap:10px; margin-top:10px;">
-                <button class="btn" onclick="copyText('example-code')">Copy Code</button>
                 <button class="btn btn-secondary" onclick="closeTicTacToeCode()">Back</button>
             </div>
         </div>
     </div>
 
 <script>
-    // --- DIRETRIZ DO TÚNEL MASTER DO CLOUDFLARE ---
-    const PUBLIC_TUNNEL_URL = "https://tend-courses-reviewing-blogs.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://favour-fighting-headphones-enhancement.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let serverKey = "";
     let serverActive = false;
-    let serverSettings = { whitelistedDomains: [] };
+    let serverSettings = {};
+    let serverScript = "";
+    let whitelistDomains = [];
     let heartbeatInterval = null;
-    let pendingScript = "";
-
-    // Chunking parameters para upload do script de 20MB
-    const CHUNK_SIZE = 100 * 1024; // 100KB chunks
-    let isUploadingScript = false;
-    let scriptUploadQueue = [];
-    let currentUploadId = "";
 
     let socket = io(PUBLIC_TUNNEL_URL, {
         auth: { token: "default_key" },
         transports: ['websocket']
     });
 
-    // --- GOOGLE SIGN-IN FLOW ---
-    window.onload = function () {
-        google.accounts.id.initialize({
-            client_id: "596211651893-5vddbq1vee4uv9oq26vqmcu807umlaqt.apps.googleusercontent.com",
-            callback: handleGoogleLoginResponse
-        });
-        google.accounts.id.renderButton(
-            document.getElementById("google-btn"),
-            { theme: "outline", size: "large" }
-        );
-    }
-
-    function handleGoogleLoginResponse(response) {
-        document.getElementById('overlay-captcha').style.display = 'none';
-        document.getElementById('overlay-sync').style.display = 'flex';
-        
-        // Decodifica JWT localmente de forma segura
-        const payload = decodeJwt(response.credential);
-        socket.emit('eb_google_login', { googleId: payload.sub });
-    }
-
-    function decodeJwt(token) {
-        const base64Url = token.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        return JSON.parse(window.atob(base64));
-    }
-
-    socket.on('google_login_verified', (data) => {
-        ownerId = data.ownerId;
-        setCookie("eb_owner_id", ownerId, 365);
-        socket.emit('eb_sync_session', { ownerId });
-    });
-
-    // --- SESSION SYNC ---
     socket.on('connect', () => {
         socket.emit('eb_sync_session', { ownerId });
     });
@@ -401,23 +362,53 @@
             serverKey = data.server.key;
             serverActive = data.server.active;
             serverSettings = data.server.settings;
-            if (!serverSettings.whitelistedDomains) serverSettings.whitelistedDomains = [];
+            serverScript = data.server.serverScript || "";
+            whitelistDomains = serverSettings.domains || [];
             showDashboard();
         } else {
             document.getElementById('overlay-captcha').style.display = 'flex';
         }
     });
 
+    // Função de tratamento do Google Login JWT
+    function handleCredentialResponse(response) {
+        document.getElementById('overlay-captcha').style.display = 'none';
+        document.getElementById('overlay-sync').style.display = 'flex';
+        
+        // Decodifica o JWT de forma limpa no cliente
+        const base64Url = response.credential.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+
+        const payload = JSON.parse(jsonPayload);
+        socket.emit('eb_google_login', { sub: payload.sub });
+    }
+
     function captchaSolved() {
         document.getElementById('overlay-captcha').style.display = 'none';
         document.getElementById('overlay-start').style.display = 'flex';
     }
 
-    // --- OPERAÇÕES DO PAINEL ---
+    socket.on('eb_heartbeat_response', (data) => {
+        serverActive = data.active;
+        serverSettings = data.settings;
+        document.getElementById('online-users-count').innerText = data.users;
+        
+        const sizeInMb = (data.storageSize / (1024 * 1024)).toFixed(2);
+        const pct = Math.min(((data.storageSize / (3 * 1024 * 1024 * 1024)) * 100).toFixed(2), 100);
+
+        document.getElementById('storage-progress').style.width = `${pct}%`;
+        document.getElementById('storage-text').innerText = `${pct}% - ${sizeInMb} MB / 3.00 GB`;
+        updateStatusDisplay();
+    });
+
     function openSetupUI() {
         document.getElementById('overlay-start').style.display = 'none';
         document.getElementById('overlay-setup').style.display = 'flex';
-        togglePrivateDomainsDisplay(String(serverSettings.allowPrivate || false));
+        togglePrivateDomains();
+        renderDomainList();
     }
 
     function closeSetupUI() {
@@ -426,50 +417,128 @@
         else document.getElementById('overlay-start').style.display = 'flex';
     }
 
-    function togglePrivateDomainsDisplay(val) {
-        const el = document.getElementById('whitelist-domain-container');
-        if (val === 'false') el.style.display = 'flex';
-        else el.style.display = 'none';
-        renderDomainBadges();
+    function togglePrivateDomains() {
+        const val = document.getElementById('cfg-private').value;
+        const group = document.getElementById('domains-setup-group');
+        group.style.display = val === 'false' ? 'block' : 'none';
     }
 
-    function addDomainToList() {
-        const input = document.getElementById('cfg-new-domain');
-        const val = input.value.trim().toLowerCase();
+    // --- DOMAIN WHITELIST CONTROL ---
+    function renderDomainList() {
+        const container = document.getElementById('domain-list-container');
+        container.innerHTML = "";
         
-        // Validação Estrita: Máx 64 chars, sem símbolos no início/fim, não permite EzBridge admin
-        const domainRegex = /^[a-z0-9][a-z0-9-.\/:]*[a-z0-9]$/;
-        if (!val || val.length > 64 || !domainRegex.test(val)) {
-            return alert("Invalid domain structure!");
-        }
-        if (val.startsWith("https://terminatorsbdev.github.io/ezbridge")) {
-            return alert("The EzBridge host domain cannot be restricted!");
-        }
-        if (serverSettings.whitelistedDomains.length >= 10) {
-            return alert("Maximum 10 whitelisted domains allowed!");
-        }
+        document.getElementById('domains-setup-group').querySelector('label').innerText = `Authorized Domains whitelist (+ ${whitelistDomains.length}/10)`;
 
-        if (!serverSettings.whitelistedDomains.includes(val)) {
-            serverSettings.whitelistedDomains.push(val);
-            renderDomainBadges();
-        }
-        input.value = "";
-    }
-
-    function removeDomainFromList(val) {
-        serverSettings.whitelistedDomains = serverSettings.whitelistedDomains.filter(d => d !== val);
-        renderDomainBadges();
-    }
-
-    function renderDomainBadges() {
-        const el = document.getElementById('whitelist-badges');
-        el.innerHTML = "";
-        serverSettings.whitelistedDomains.forEach(domain => {
-            const badge = document.createElement('div');
-            badge.className = 'domain-badge';
-            badge.innerHTML = `<span>${domain}</span><span style="color:var(--error); cursor:pointer;" onclick="removeDomainFromList('${domain}')">✖</span>`;
-            el.appendChild(badge);
+        whitelistDomains.forEach((domain, idx) => {
+            const row = document.createElement('div');
+            row.className = "domain-row";
+            row.innerHTML = `
+                <input type="text" value="${domain}" style="flex-grow:1;" onchange="updateDomain(${idx}, this.value)">
+                <button class="btn btn-secondary" style="width:auto; margin:0; padding:10px;" onclick="removeDomainRow(${idx})">Remove</button>
+            `;
+            container.appendChild(row);
         });
+    }
+
+    function addNewDomainRow() {
+        if (whitelistDomains.length >= 10) return alert("Maximum limit of 10 whitelisted domains reached.");
+        whitelistDomains.push("https://example.com");
+        renderDomainList();
+    }
+
+    function updateDomain(idx, val) {
+        const clean = val.trim();
+        if (clean.length > 64) return alert("Domain name cannot exceed 64 characters.");
+        
+        // Bloqueio explícito do próprio painel do EzBridge
+        if (clean.includes("terminatorsbdev.github.io/EzBridge")) {
+            alert("The main EzBridge domain is whitelisted implicitly. You cannot add it here.");
+            whitelistDomains[idx] = "https://example.com";
+            renderDomainList();
+            return;
+        }
+
+        whitelistDomains[idx] = clean;
+    }
+
+    function removeDomainRow(idx) {
+        whitelistDomains.splice(idx, 1);
+        renderDomainList();
+    }
+
+    // --- SCRIPT EDITOR PIPELINE & UPLOAD (100KB CHUNKS) ---
+    function openScriptEditor() {
+        document.getElementById('server-script-area').value = serverScript;
+        document.getElementById('modal-script-editor').style.display = 'flex';
+    }
+
+    function closeScriptEditor() {
+        document.getElementById('modal-script-editor').style.display = 'none';
+    }
+
+    function saveServerScript() {
+        const scriptText = document.getElementById('server-script-area').value;
+        if (scriptText.length > 20 * 1024 * 1024) {
+            return alert("Server Script size cannot exceed 20 MB.");
+        }
+
+        // Bloqueia botões do modal para upload síncrono
+        document.getElementById('save-script-btn').disabled = true;
+        document.getElementById('cancel-script-btn').disabled = true;
+        document.getElementById('script-progress-container').style.display = 'block';
+
+        const CHUNK_SIZE = 100 * 1024; // 100 KB fatias
+        const totalChunks = Math.ceil(scriptText.length / CHUNK_SIZE);
+        let index = 0;
+
+        function uploadNextChunk() {
+            if (index < totalChunks) {
+                const start = index * CHUNK_SIZE;
+                const end = Math.min(start + CHUNK_SIZE, scriptText.length);
+                const chunk = scriptText.slice(start, end);
+
+                socket.emit('eb_upload_script_chunk', {
+                    key: serverKey || "temp_key", // Vincula à chave se existir
+                    ownerId,
+                    chunk,
+                    index,
+                    total: totalChunks
+                });
+
+                // Atualiza a barra de progresso do upload
+                const uploadedMb = ((index * CHUNK_SIZE) / (1024 * 1024)).toFixed(2);
+                const totalMb = (scriptText.length / (1024 * 1024)).toFixed(2);
+                const pct = Math.floor((index / totalChunks) * 100);
+                
+                document.getElementById('script-progress-bar').style.width = `${pct}%`;
+                document.getElementById('script-progress-text').innerText = `Uploading script... ${pct}% (${uploadedMb} MB / ${totalMb} MB)`;
+                
+                index++;
+            }
+        }
+
+        // Ouvinte de resposta ACK do nó Termux
+        socket.on('eb_script_chunk_ack', (data) => {
+            if (data.index === index - 1) {
+                uploadNextChunk();
+            }
+        });
+
+        socket.on('eb_script_upload_complete', () => {
+            socket.off('eb_script_chunk_ack');
+            socket.off('eb_script_upload_complete');
+            
+            serverScript = scriptText;
+            document.getElementById('script-progress-container').style.display = 'none';
+            document.getElementById('save-script-btn').disabled = false;
+            document.getElementById('cancel-script-btn').disabled = false;
+            closeScriptEditor();
+            alert("Server script uploaded and processed successfully inside the Sandbox!");
+        });
+
+        // Inicia a primeira fatia de upload
+        uploadNextChunk();
     }
 
     function createServerSubmit() {
@@ -479,17 +548,18 @@
             maxReqs: parseInt(document.getElementById('cfg-max-reqs').value) || 60,
             antiDdos: document.getElementById('cfg-anti-ddos').value === 'true',
             rateLimit: document.getElementById('cfg-ratelimit').value === 'true',
+            validation: document.getElementById('cfg-validation').value === 'true',
             serverReading: document.getElementById('cfg-reading').value === 'true',
             allowPrivate: document.getElementById('cfg-private').value === 'true',
-            whitelistedDomains: serverSettings.whitelistedDomains
+            domains: whitelistDomains
         };
 
         if (serverKey) {
-            if (confirm("WARNING:\nAre you sure you want save your settings? Because if you do, your server will restart and all clients connected to it will disconnect, but don't worry, stored data is still safe.")) {
+            if (confirm("Are you sure? Server settings override will restart the pipeline.")) {
                 socket.emit('eb_save_settings', { key: serverKey, ownerId, settings });
             }
         } else {
-            socket.emit('eb_create_server', { ownerId, settings });
+            socket.emit('eb_create_server', { ownerId, settings, serverScript });
         }
     }
 
@@ -545,110 +615,15 @@
         document.getElementById('cfg-max-reqs').value = serverSettings.maxReqs;
         document.getElementById('cfg-anti-ddos').value = String(serverSettings.antiDdos);
         document.getElementById('cfg-ratelimit').value = String(serverSettings.rateLimit);
+        document.getElementById('cfg-validation').value = String(serverSettings.validation);
         document.getElementById('cfg-reading').value = String(serverSettings.serverReading);
         document.getElementById('cfg-private').value = String(serverSettings.allowPrivate);
-        togglePrivateDomainsDisplay(String(serverSettings.allowPrivate));
-    }
-
-    // --- UPLOAD DO SCRIPT EM CHUNKS (MÁX 20MB) ---
-    function openScriptEditorModal() {
-        document.getElementById('modal-script-editor').style.display = 'flex';
-        socket.emit('eb_get_script', { key: serverKey, ownerId });
-    }
-
-    socket.on('eb_script_data', (data) => {
-        document.getElementById('script-code').value = data.script;
-    });
-
-    function closeScriptEditorModal() {
-        if (isUploadingScript) {
-            if (confirm("Cancel current script upload?")) {
-                cancelScriptUpload();
-            } else return;
-        }
-        document.getElementById('modal-script-editor').style.display = 'none';
-    }
-
-    function cancelScriptUpload() {
-        isUploadingScript = false;
-        scriptUploadQueue = [];
-        currentUploadId = "";
-        document.getElementById('script-upload-container').style.display = 'none';
-        document.getElementById('save-script-btn').disabled = false;
-        document.getElementById('cancel-script-btn').innerText = "Close";
-    }
-
-    function saveServerScriptSubmit() {
-        const code = document.getElementById('script-code').value;
-        const totalSize = Buffer.byteLength(code);
-
-        // Bloqueio de 20MB de limite físico
-        if (totalSize > 20 * 1024 * 1024) {
-            return alert("Scripts cannot exceed 20MB limit!");
-        }
-
-        isUploadingScript = true;
-        document.getElementById('save-script-btn').disabled = true;
-        document.getElementById('cancel-script-btn').innerText = "Cancel";
         
-        const totalChunks = Math.ceil(code.length / CHUNK_SIZE);
-        currentUploadId = "script_" + Date.now();
-        scriptUploadQueue = [];
-
-        for (let i = 0; i < totalChunks; i++) {
-            scriptUploadQueue.push(code.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE));
-        }
-
-        document.getElementById('script-upload-container').style.display = 'block';
-        document.getElementById('script-progress-total').innerText = (totalSize / (1024 * 1024)).toFixed(2);
-        
-        sendNextScriptChunk(0);
+        whitelistDomains = serverSettings.domains || [];
+        togglePrivateDomains();
+        renderDomainList();
     }
 
-    function sendNextScriptChunk(index) {
-        if (!isUploadingScript) return;
-
-        const chunk = scriptUploadQueue[index];
-        socket.emit('eb_script_chunk', {
-            fileId: currentUploadId,
-            index: index,
-            total: scriptUploadQueue.length,
-            data: chunk,
-            serverKey: serverKey,
-            ownerId: ownerId
-        });
-
-        // Atualiza progresso físico
-        const loadedSize = ((index + 1) * CHUNK_SIZE);
-        const limitSize = (scriptUploadQueue.length * CHUNK_SIZE);
-        const pct = Math.min(((loadedSize / limitSize) * 100), 100).toFixed(1);
-        
-        document.getElementById('script-progress-bar').style.width = `${pct}%`;
-        document.getElementById('script-progress-val').innerText = (Math.min(loadedSize, limitSize) / (1024 * 1024)).toFixed(2);
-    }
-
-    socket.on('eb_script_chunk_ack', (data) => {
-        if (!isUploadingScript || data.fileId !== currentUploadId) return;
-        const nextIdx = data.index + 1;
-        if (nextIdx < scriptUploadQueue.length) {
-            sendNextScriptChunk(nextIdx);
-        }
-    });
-
-    socket.on('eb_script_saved', () => {
-        isUploadingScript = false;
-        document.getElementById('script-upload-container').style.display = 'none';
-        document.getElementById('save-script-btn').disabled = false;
-        document.getElementById('cancel-script-btn').innerText = "Close";
-        alert("Server script saved successfully!");
-    });
-
-    // Helper de tamanho de string (bytes)
-    const Buffer = {
-        byteLength: (str) => new Blob([str]).size
-    };
-
-    // --- TESTE DE CONEXÃO E AUXILIARES ---
     function testConnection() {
         const btn = document.getElementById('test-conn-btn');
         btn.disabled = true;
@@ -660,6 +635,12 @@
             btn.innerText = "[Test Connection]";
         });
         socket.emit('ebgetstatus');
+    }
+
+    function copyUserId() {
+        if (!ownerId) return alert("User ID not generated yet!");
+        navigator.clipboard.writeText(ownerId);
+        alert(`Copied My User ID: ${ownerId}`);
     }
 
     function openHowToUse() {
@@ -680,32 +661,25 @@
         document.getElementById('modal-commands').style.display = 'none';
     }
 
-    function copyUserId() {
-        if (!ownerId) return alert("User ID not synced yet!");
-        navigator.clipboard.writeText(ownerId);
-        alert(`Your Unique ID copied: ${ownerId}`);
-    }
-
     function openTicTacToeCode() {
-        const code = `<!-- 1. FRONTEND: client.html -->
-<!DOCTYPE html>
+        const htmlCode = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Tic-Tac-Toe Client</title>
+    <title>Smarter Tic-Tac-Toe</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"><\/script>
     <style>
-        body { background: #111113; color: #fff; font-family: sans-serif; text-align: center; }
+        body { background: #0c0c0e; color: #fff; font-family: sans-serif; text-align: center; }
         .grid { display: grid; grid-template-columns: repeat(3, 100px); gap: 8px; justify-content: center; margin-top: 20px; }
-        .cell { width: 100px; height: 100px; background: #1e1e24; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; cursor: pointer; border-radius: 8px; border: 1px solid #2d2d34; }
+        .cell { width: 100px; height: 100px; background: #1e1e24; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; cursor: pointer; border-radius: 8px; }
         #status { font-weight: bold; margin-top: 20px; color: #00ff88; }
     </style>
 </head>
 <body>
-    <h2>Tic-Tac-Toe</h2>
+    <h2>Multiplayer Tic-Tac-Toe</h2>
     <div id="status">Connecting...</div>
     <div class="grid" id="grid">
-        <div class="cell" onclick="makeMove(0)"></div>
+        <div class="cell" onclick="sendMove(0)"></div>
         <div class="cell" onclick="makeMove(1)"></div>
         <div class="cell" onclick="makeMove(2)"></div>
         <div class="cell" onclick="makeMove(3)"></div>
@@ -720,119 +694,91 @@
         const key = "${serverKey}";
         const link = "${PUBLIC_TUNNEL_URL}";
         const socket = io(link, { auth: { token: "default_key" } });
-        let board = Array(9).fill("");
-        let myTurn = false;
         let symbol = "";
 
         socket.on("connect", () => {
-            document.getElementById("status").innerText = "Connected! Joining room...";
+            document.getElementById("status").innerText = "Connected! Finding Match...";
             socket.emit("join_virtual_server", { key });
-        });
-
-        socket.on("joined_successfully", () => {
-            // Avisa o Server Script que um jogador se conectou
-            socket.emit("RemoteEvent", { type: "player_join" });
         });
 
         socket.on("RemoteEvent", (packet) => {
             if (packet.type === "init") {
                 symbol = packet.symbol;
-                myTurn = packet.turn;
-                updateStatus();
+                document.getElementById("status").innerText = "Game Started! " + (packet.turn ? "Your Turn" : "Opponent Turn") + " (" + symbol + ")";
             }
-            if (packet.type === "move_update") {
-                board = packet.board;
-                myTurn = packet.nextTurnSymbol === symbol;
-                updateBoard();
-                updateStatus();
-            }
-            if (packet.type === "game_over") {
-                board = packet.board;
-                updateBoard();
-                document.getElementById("status").innerText = packet.winner === "T" ? "Tie!" : (packet.winner === symbol ? "You Won! 🎉" : "You Lost!");
-                myTurn = false;
+            if (packet.type === "update") {
+                const cells = document.querySelectorAll(".cell");
+                packet.board.forEach((val, idx) => {
+                    cells[idx].innerText = val || "";
+                });
+                
+                if (packet.winner) {
+                    document.getElementById("status").innerText = packet.winner === "T" ? "Tie Game!" : packet.winner === symbol ? "You Won! 🎉" : "You Lost!";
+                } else {
+                    document.getElementById("status").innerText = packet.turn ? "Your Turn (" + symbol + ")" : "Opponent Turn...";
+                }
             }
         });
 
-        function makeMove(idx) {
-            if (!myTurn || board[idx] !== "") return;
-            // Envia movimento para o Server Script processar
-            socket.emit("RemoteEvent", { type: "client_move", idx, symbol });
-        }
-
-        function updateBoard() {
-            const cells = document.querySelectorAll(".cell");
-            cells.forEach((c, i) => c.innerText = board[i]);
-        }
-
-        function updateStatus() {
-            document.getElementById("status").innerText = myTurn ? "Your Turn (" + symbol + ")" : "Opponent's Turn...";
+        function sendMove(idx) {
+            socket.emit("RemoteEvent", { type: "player_move", index: idx });
         }
     <\/script>
 </body>
-</html>
+</html>`;
 
---------------------------------------------------
+        const serverCode = `// --- SERVER SCRIPT (Runs safely inside the Sandbox) ---
+let board = Array(9).fill(null);
+let players = []; // Stores client IDs [X, O]
+let turn = 0;
 
-<!-- 2. BACKEND: server_script.js (Salvar no editor de script de servidor) -->
-// State variables kept in memory sandbox
-let players = [];
-let board = Array(9).fill("");
-let turn = "X";
-
-onClientEvent("player_join", (data, userId) => {
-    if (players.length >= 2) return;
-    if (!players.includes(userId)) {
-        players.push(userId);
-    }
-    
-    // Inicia quando o segundo player entra
-    if (players.length === 2) {
-        broadcast("init", { symbol: "X", turn: players[0] === userId, targetPlayer: players[0] });
-        broadcast("init", { symbol: "O", turn: players[1] === userId, targetPlayer: players[1] });
+onEvent("ttt_join", (clientId, data) => {
+    if (players.length < 2) {
+        players.push(clientId);
+        if (players.length === 2) {
+            // Inicializa as conexões
+            io.to(players[0]).emit("init", { symbol: "X", turn: true });
+            io.to(players[1]).emit("init", { symbol: "O", turn: false });
+        }
     }
 });
 
-onClientEvent("client_move", (data, userId) => {
-    const idx = data.idx;
-    const symbol = data.symbol;
-    
-    // Validação estrita feita diretamente no servidor
-    const expectedPlayer = (turn === "X") ? players[0] : players[1];
-    if (userId !== expectedPlayer) return; 
-    if (board[idx] !== "") return;
+onEvent("player_move", (clientId, data) => {
+    const pIndex = players.indexOf(clientId);
+    if (pIndex === -1 || pIndex !== turn) return; // Fora de turno
+    if (board[data.index] !== null) return; // Célula já ocupada
 
-    board[idx] = symbol;
-    
-    // Verifica vitória ou empate no sandbox do servidor
-    const winner = checkWinner();
+    board[data.index] = pIndex === 0 ? "X" : "O";
+
+    // Valida vitória
+    const winner = checkWinner(board);
     if (winner) {
-        broadcast("game_over", { board, winner });
-        // Reinicializa estado após o fim
-        board = Array(9).fill("");
-        turn = "X";
-        players = [];
+        io.emit("update", { board, turn: false, winner });
+        // Reinicia tabela após 3s
+        setTimeout(() => {
+            board = Array(9).fill(null);
+            turn = 0;
+            io.to(players[0]).emit("init", { symbol: "X", turn: true });
+            io.to(players[1]).emit("init", { symbol: "O", turn: false });
+        }, 3000);
     } else {
-        turn = (turn === "X") ? "O" : "X";
-        broadcast("move_update", { board, nextTurnSymbol: turn });
+        turn = turn === 0 ? 1 : 0;
+        io.to(players[0]).emit("update", { board, turn: turn === 0 });
+        io.to(players[1]).emit("update", { board, turn: turn === 1 });
     }
 });
 
-onClientEvent("disconnect", (userId) => {
-    players = players.filter(p => p !== userId);
-    board = Array(9).fill("");
-    turn = "X";
-});
-
-function checkWinner() {
+function checkWinner(b) {
     const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-    for (let [a,b,c] of wins) {
-        if (board[a] && board[a] === board[b] && board[a] === board[c]) return board[a];
+    for (let w of wins) {
+        if (b[w[0]] && b[w[0]] === b[w[1]] && b[w[0]] === b[w[2]]) return b[w[0]];
     }
-    if (board.every(c => c !== "")) return "T";
+    if (b.every(c => c !== null)) return "T"; // Empate
     return null;
 }`;
-        document.getElementById('example-code').value = code;
+
+        document.getElementById('example-html-code').value = htmlCode;
+        document.getElementById('example-server-code').value = serverCode;
         document.getElementById('modal-code').style.display = 'flex';
     }
 
