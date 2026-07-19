@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>EzBridge | Cloud Virtual Hosting</title>
     <!-- Google OAuth V2 Library -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -19,10 +19,15 @@
         }
 
         body, html {
-            margin: 0; padding: 0; height: 100%;
+            margin: 0; padding: 0;
+            width: 100vw;
+            height: 100dvh; /* Altura de viewport dinâmica para evitar cortes em celulares */
             background-color: var(--bg); color: var(--text);
             font-family: 'Segoe UI', system-ui, sans-serif;
-            display: flex; align-items: center; justify-content: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
         }
 
         .overlay {
@@ -57,6 +62,45 @@
         .settings-item input, .settings-item select, .settings-item textarea {
             background: var(--dark-black); border: 1px solid var(--border); color: white;
             padding: 10px 12px; border-radius: 6px; outline: none; font-family: monospace;
+        }
+
+        .chat-layout {
+            display: flex;
+            flex-direction: column;
+            width: 100vw;
+            height: 100dvh; /* Acompanha o teclado virtual no celular */
+            max-width: 800px; /* Mais largo e elegante no computador */
+            border-right: 1px solid var(--border);
+            border-left: 1px solid var(--border);
+            background: var(--panel);
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        /* Ajustes responsivos para telas menores (celulares) */
+        @media (max-width: 768px) {
+            .chat-layout {
+                max-width: 100vw;
+                border-right: none;
+                border-left: none;
+            }
+        }
+
+        .chat-header {
+            padding: 15px;
+            padding-top: calc(15px + env(safe-area-inset-top)); /* Evita o "notch" de celulares modernos */
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #09090b;
+        }
+
+        .status-dot {
+            width: 8px; height: 8px; border-radius: 50%; background: var(--error);
+        }
+        .status-dot.online {
+            background: var(--accent); box-shadow: 0 0 8px var(--accent);
         }
 
         .dashboard-row { display: flex; gap: 10px; margin-top: 15px; }
@@ -134,6 +178,7 @@
     <div id="overlay-start" class="overlay" style="display:none;">
         <div class="card">
             <h1>EzBridge</h1>
+            <p style="color:#a1a1aa; font-size:0.9rem; margin-bottom:25px;">Create and implement a server to your apps for free!</p>
             <button class="btn" onclick="openSetupUI()">[CLICK HERE TO BEGIN]</button>
         </div>
     </div>
@@ -285,36 +330,18 @@
         </div>
     </div>
 
-    <!-- Modal de Comandos da API -->
+    <!-- Modal de Comandos da API (Dinamicamente Atualizado) -->
     <div id="modal-commands" class="overlay" style="display:none;">
         <div class="card" style="max-width: 650px;">
             <h3>EzBridge API Commands</h3>
-            <div class="how-to-use-box">
-                <h4 style="color:var(--accent);">Real-Time Events (Client-Side)</h4>
-                <div class="code-box">socket.emit("RemoteEvent", { type: "seu_tipo", data: "sua_payload" });</div>
-
-                <h4 style="color:var(--accent); margin-top:15px;">User Identification (Client-Side)</h4>
-                <div class="code-box">socket.emit("RemoteEvent", { type: "ebuserid_get" });</div>
-
-                <h4 style="color:var(--accent); margin-top:15px;">EBstorage Commands (RESTRICTED: Server-Script Only!)</h4>
-                <p style="font-size:0.8rem; color:#888;">Por segurança, requisições de banco de dados não podem mais ser emitidas pelo cliente, apenas através do seu script do servidor rodando no sandbox:</p>
-                
-                <p style="font-size:0.85rem; font-weight:bold;">1. Adicionar/Atualizar Dado:</p>
-                <div class="code-box">storage.set("pasta.subpasta.chave", "valor_ou_base64");</div>
-                
-                <p style="font-size:0.85rem; font-weight:bold;">2. Recuperar Dado:</p>
-                <div class="code-box">const valor = storage.get("pasta.subpasta");</div>
-
-                <p style="font-size:0.85rem; font-weight:bold;">3. Remover Dado:</p>
-                <div class="code-box">storage.delete("pasta.subpasta.chave");</div>
-
-                <p style="font-size:0.85rem; font-weight:bold;">4. Limpar Banco:</p>
-                <div class="code-box">storage.clear();</div>
+            <div class="how-to-use-box" id="modal-commands-body">
+                <!-- Conteúdo dinâmico será gerado via JS baseado no tipo de servidor -->
             </div>
             <button class="btn btn-secondary" onclick="closeCommandsModal()">Back</button>
         </div>
     </div>
 
+    <!-- Modal do Jogo da Velha (Código de Exemplo) -->
     <div id="modal-code" class="overlay" style="display:none;">
         <div class="card" style="max-width: 700px;">
             <h3>Tic-Tac-Toe Scripts Example</h3>
@@ -323,7 +350,7 @@
                 <p style="font-size:0.8rem; color:#888;">Envia solicitações de clique para a IA do servidor validar:</p>
                 <textarea id="example-code-html" class="code-box" readonly rows="8" style="width:100%; height:180px; resize:none;"></textarea>
 
-                <p style="font-weight:bold; color:var(--accent); margin-top:15px;">Parte 2: Server Script (Sandboxed VM)</p>
+                <p style="font-weight:bold; color:var(--accent);">Parte 2: Server Script (Sandboxed VM)</p>
                 <p style="font-size:0.8rem; color:#888;">Valida a vez, a vitória, e gerencia o tabuleiro de forma segura no lado do servidor:</p>
                 <textarea id="example-code-server" class="code-box" readonly rows="8" style="width:100%; height:180px; resize:none;"></textarea>
             </div>
@@ -334,7 +361,8 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://sperm-longest-von-argued.trycloudflare.com";
+    // --- CREDENCIAIS ATUALIZADAS ---
+    const PUBLIC_TUNNEL_URL = "https://input-fonts-factory-reform.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let serverKey = "";
@@ -382,13 +410,11 @@
 
     // Google Sign-In Callback
     function handleCredentialResponse(response) {
-        // Envia o token JWT do Google para sincronização de sessão
         document.getElementById('overlay-auth').style.display = 'none';
         document.getElementById('overlay-start').style.display = 'flex';
         addLog("Google account linked successfully!");
     }
 
-    // --- LOGS ---
     function addLog(msg) { console.log(`[EzBridge] ${msg}`); }
 
     function openSetupUI() {
@@ -414,7 +440,6 @@
         const domain = prompt("Enter domain (max 64 chars, e.g. https://mygame.github.io):");
         if (!domain) return;
         
-        // Regex de validação estrita de domínio / sem símbolos no início/fim
         const regex = /^(https?:\/\/)[a-zA-Z0-9][a-zA-Z0-9-_\.]*[a-zA-Z0-9](\/.*)?$/;
         if (domain.length > 64 || !regex.test(domain) || domain.includes("terminatorsbdev.github.io/EzBridge")) {
             return alert("Invalid Domain Format! (Ensure it doesn't end with a symbol or contain the main EzBridge site).");
@@ -512,16 +537,15 @@
             maxReqs: parseInt(document.getElementById('cfg-max-reqs').value) || 60,
             antiDdos: document.getElementById('cfg-anti-ddos').value === 'true',
             rateLimit: document.getElementById('cfg-ratelimit').value === 'true',
-            validation: false, // Removida opção por solicitação
             serverReading: document.getElementById('cfg-reading').value === 'true',
             allowPrivate: document.getElementById('cfg-private').value === 'true',
             serverType: document.getElementById('cfg-server-type').value,
             whitelistedDomains: whitelistedDomains,
-            serverScriptCode: serverSettings.serverScriptCode || "" // Mantém o script atual
+            serverScriptCode: serverSettings.serverScriptCode || "" 
         };
 
         if (serverKey) {
-            if (confirm("WARNING:\nAre you sure you want save your settings? Because if you do, your server will restart and all clients connected to it will disconnect, but don't worry, stored data is still safe.")) {
+            if (confirm("Are you sure? Server settings override will disconnect currently active clients.")) {
                 socket.emit('eb_save_settings', { key: serverKey, ownerId, settings });
             }
         } else {
@@ -588,22 +612,6 @@
         renderDomainsList();
     }
 
-    // --- COORDENADORES DO SISTEMA ---
-    socket.on('eb_heartbeat_response', (data) => {
-        serverActive = data.active;
-        serverSettings = data.settings;
-        document.getElementById('online-users-count').innerText = data.users;
-        
-        // Atualiza a Barra de Progresso de Armazenamento do Disco Físico (3GB Max)
-        const sizeInMb = (data.storageSize / (1024 * 1024)).toFixed(2);
-        const pct = Math.min(((data.storageSize / (3 * 1024 * 1024 * 1024)) * 100).toFixed(2), 100);
-
-        document.getElementById('storage-progress').style.width = `${pct}%`;
-        document.getElementById('storage-text').innerText = `${pct}% - ${sizeInMb} MB / 3072.00 MB`;
-        
-        updateStatusDisplay();
-    });
-
     function testConnection() {
         const btn = document.getElementById('test-conn-btn');
         btn.disabled = true;
@@ -633,7 +641,61 @@
         document.getElementById('modal-howto').style.display = 'none';
     }
 
+    // --- COORDENADORES DO SISTEMA ---
+    socket.on('eb_heartbeat_response', (data) => {
+        serverActive = data.active;
+        serverSettings = data.settings;
+        document.getElementById('online-users-count').innerText = data.users;
+        
+        // Atualiza a Barra de Progresso de Armazenamento do Disco Físico (3GB Max)
+        const sizeInMb = (data.storageSize / (1024 * 1024)).toFixed(2);
+        const pct = Math.min(((data.storageSize / (3 * 1024 * 1024 * 1024)) * 100).toFixed(2), 100);
+
+        document.getElementById('storage-progress').style.width = `${pct}%`;
+        document.getElementById('storage-text').innerText = `${pct}% - ${sizeInMb} MB / 3072.00 MB`;
+        
+        updateStatusDisplay();
+    });
+
+    // --- RENDERIZADORES DE DOCUMENTAÇÃO DINÂMICA ---
     function openCommandsModal() {
+        const isHttp = (serverSettings.serverType === 'http');
+        const body = document.getElementById('modal-commands-body');
+        
+        if (isHttp) {
+            body.innerHTML = `
+                <h4 style="color:var(--accent);">HTTP Polling Events (Client-Side)</h4>
+                <p style="font-size:0.8rem; color:#888;">Como o seu servidor está configurado em modo HTTP, use estes endpoints REST:</p>
+                <p style="font-size:0.85rem; font-weight:bold;">A. Enviar Evento (HTTP POST):</p>
+                <div class="code-box">Url: \${PUBLIC_TUNNEL_URL}/httppost
+Headers: { "server-key": "\${serverKey}", "client-id": "SUA_ID_UNICA" }
+Body (JSON): { "type": "seu_evento", "data": "sua_payload" }</div>
+                <p style="font-size:0.85rem; font-weight:bold;">B. Coletar Eventos (HTTP POST):</p>
+                <div class="code-box">Url: \${PUBLIC_TUNNEL_URL}/httppoll
+Headers: { "server-key": "\${serverKey}", "client-id": "SUA_ID_UNICA" }
+Response (JSON): { "events": [ ... ] }</div>
+
+                <h4 style="color:var(--accent); margin-top:15px;">EBstorage Commands (RESTRICTED: Server-Script Only!)</h4>
+                <p style="font-size:0.85rem; font-weight:bold;">A. Adicionar Dado:</p>
+                <div class="code-box">storage.set("pasta.chave", "valor");</div>
+                <p style="font-size:0.85rem; font-weight:bold;">B. Recuperar Dado:</p>
+                <div class="code-box">const dado = storage.get("pasta");</div>
+            `;
+        } else {
+            body.innerHTML = `
+                <h4 style="color:var(--accent);">Real-Time Events (WebSockets Client-Side)</h4>
+                <p style="font-size:0.8rem; color:#888;">Seu servidor está em modo WebSocket ativo. Use a conexao em tempo real:</p>
+                <div class="code-box">socket.emit("RemoteEvent", { type: "seu_tipo", data: "sua_payload" });</div>
+
+                <h4 style="color:var(--accent); margin-top:15px;">User Identification (WebSockets Client-Side)</h4>
+                <div class="code-box">socket.emit("RemoteEvent", { type: "ebuserid_get" });
+// O servidor responderá apenas para o emissor com:
+// { type: "userid_response", userId: "ID_UNICO_DO_CLIENTE" }</div>
+
+                <h4 style="color:var(--accent); margin-top:15px;">EBstorage Commands (RESTRICTED: Server-Script Only!)</h4>
+                <div class="code-box">storage.set("pasta.chave", "valor");</div>
+            `;
+        }
         document.getElementById('modal-commands').style.display = 'flex';
     }
 
@@ -642,12 +704,109 @@
     }
 
     function openTicTacToeCode() {
-        // Exemplo Completo e Sincronizado do Jogo da Velha (Tic-Tac-Toe) divido em Cliente e Servidor
-        const htmlCode = `<!DOCTYPE html>
+        const isHttp = (serverSettings.serverType === 'http');
+        
+        let clientCode = "";
+        if (isHttp) {
+            // Código do Jogo da Velha Cliente em HTTP Polling
+            clientCode = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Tic-Tac-Toe Client</title>
+    <title>Tic-Tac-Toe Client (HTTP)</title>
+    <style>
+        body { background: #121214; color: #fff; font-family: sans-serif; text-align: center; }
+        .grid { display: grid; grid-template-columns: repeat(3, 100px); gap: 8px; justify-content: center; margin-top: 20px; }
+        .cell { width: 100px; height: 100px; background: #1e1e24; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; cursor: pointer; border-radius: 8px; }
+        #status { font-weight: bold; margin-top: 20px; color: #00ff88; }
+    </style>
+</head>
+<body>
+    <h2>Tic-Tac-Toe (HTTP Polling)</h2>
+    <div id="status">Connecting...</div>
+    <div class="grid" id="grid">
+        <div class="cell" onclick="sendMove(0)"></div>
+        <div class="cell" onclick="sendMove(1)"></div>
+        <div class="cell" onclick="sendMove(2)"></div>
+        <div class="cell" onclick="sendMove(3)"></div>
+        <div class="cell" onclick="sendMove(4)"></div>
+        <div class="cell" onclick="sendMove(5)"></div>
+        <div class="cell" onclick="sendMove(6)"></div>
+        <div class="cell" onclick="sendMove(7)"></div>
+        <div class="cell" onclick="sendMove(8)"></div>
+    </div>
+
+    <script>
+        const key = "\${serverKey}";
+        const link = "\${PUBLIC_TUNNEL_URL}";
+        const clientId = "cli_" + Math.random().toString(36).substr(2, 6);
+        let board = Array(9).fill("");
+        let mySymbol = "X";
+        let isMyTurn = false;
+
+        document.getElementById("status").innerText = "Finding opponent via HTTP Polling...";
+
+        function sendMove(idx) {
+            if (!isMyTurn || board[idx] !== "") return;
+            fetch(link + "/httppost", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "server-key": key,
+                    "client-id": clientId
+                },
+                body: JSON.stringify({ type: "client_move_request", idx: idx })
+            });
+        }
+
+        // Loop de Polling constante a cada 500ms
+        setInterval(() => {
+            fetch(link + "/httppoll", {
+                method: "POST",
+                headers: {
+                    "server-key": key,
+                    "client-id": clientId
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.events) {
+                    data.events.forEach(packet => {
+                        if (packet.type === "game_init") {
+                            mySymbol = packet.symbol;
+                            isMyTurn = packet.turn;
+                            document.getElementById("status").innerText = isMyTurn ? "Your Turn ("+mySymbol+")" : "Opponent Turn...";
+                        }
+                        if (packet.type === "board_update") {
+                            board = packet.board;
+                            isMyTurn = packet.turn;
+                            updateBoard();
+                            if (packet.winner) {
+                                document.getElementById("status").innerText = packet.winner === "T" ? "Tie!" : "Winner: " + packet.winner;
+                                isMyTurn = false;
+                            } else {
+                                document.getElementById("status").innerText = isMyTurn ? "Your Turn ("+mySymbol+")" : "Opponent Turn...";
+                            }
+                        }
+                    });
+                }
+            });
+        }, 500);
+
+        function updateBoard() {
+            const cells = document.querySelectorAll(".cell");
+            cells.forEach((c, i) => c.innerText = board[i]);
+        }
+    <\/script>
+</body>
+</html>`;
+        } else {
+            // Código do Jogo da Velha Cliente em WebSockets
+            clientCode = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tic-Tac-Toe Client (WS)</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"><\/script>
     <style>
         body { background: #121214; color: #fff; font-family: sans-serif; text-align: center; }
@@ -659,21 +818,21 @@
 <body>
     <h2>Tic-Tac-Toe</h2>
     <div id="status">Connecting...</div>
-    <div class="grid">
+    <div class="grid" id="grid">
         <div class="cell" onclick="sendMove(0)"></div>
         <div class="cell" onclick="sendMove(1)"></div>
         <div class="cell" onclick="sendMove(2)"></div>
         <div class="cell" onclick="sendMove(3)"></div>
         <div class="cell" onclick="sendMove(4)"></div>
-        <div class="cell" onclick="makeMove(5)"></div>
+        <div class="cell" onclick="sendMove(5)"></div>
         <div class="cell" onclick="sendMove(6)"></div>
         <div class="cell" onclick="sendMove(7)"></div>
         <div class="cell" onclick="sendMove(8)"></div>
     </div>
 
     <script>
-        const key = "${serverKey}";
-        const link = "${PUBLIC_TUNNEL_URL}";
+        const key = "\${serverKey}";
+        const link = "\${PUBLIC_TUNNEL_URL}";
         const socket = io(link, { auth: { token: "default_key" } });
         let board = Array(9).fill("");
         let mySymbol = "X";
@@ -681,6 +840,10 @@
 
         socket.on("connect", () => {
             socket.emit("join_virtual_server", { key });
+        });
+
+        socket.on("joined_successfully", () => {
+            socket.emit("RemoteEvent", { type: "ttt_ping" });
         });
 
         socket.on("RemoteEvent", (packet) => {
@@ -693,7 +856,6 @@
                 board = packet.board;
                 isMyTurn = packet.turn;
                 updateBoard();
-                
                 if (packet.winner) {
                     document.getElementById("status").innerText = packet.winner === "T" ? "Tie!" : "Winner: " + packet.winner;
                     isMyTurn = false;
@@ -715,6 +877,7 @@
     <\/script>
 </body>
 </html>`;
+        }
 
         const serverCode = `// --- EzBridge Server-Script: Tic-Tac-Toe Logic ---
 const players = [];
@@ -740,7 +903,7 @@ events.on("client_move_request", (socketId, packet) => {
     broadcast({
         type: "board_update",
         board: board,
-        turn: false, // Configurado individualmente na função de envio
+        turn: false, 
         winner: winner
     });
 
@@ -765,7 +928,8 @@ function checkWinner() {
     return null;
 }
 `;
-        document.getElementById('example-code-html').value = htmlCode;
+
+        document.getElementById('example-code-html').value = clientCode;
         document.getElementById('example-code-server').value = serverCode;
         document.getElementById('modal-code').style.display = 'flex';
     }
