@@ -50,6 +50,8 @@
         .btn:hover { background: #22d3ee; transform: translateY(-1px); }
         .btn-secondary { background: #1e293b; color: white; border: 1px solid var(--border); }
         .btn-secondary:hover { background: #334155; }
+        .btn-purple { background: #8b5cf6; color: white; }
+        .btn-purple:hover { background: #a78bfa; }
         .btn-danger { background: var(--error); color: white; }
 
         .settings-grid {
@@ -112,7 +114,6 @@
         <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                 <h1 style="margin:0;">EzBridge</h1>
-                <!-- Google Sign-In Container -->
                 <div id="g_id_onload"
                      data-client_id="596211651893-5vddbq1vee4uv9oq26vqmcu807umlaqt.apps.googleusercontent.com"
                      data-callback="handleGoogleLogin">
@@ -177,7 +178,6 @@
                     </select>
                 </div>
 
-                <!-- Painel de Whitelist de Domínios -->
                 <div id="domain-whitelist-panel" style="display:block; background:#020617; padding:10px; border-radius:8px; border:1px solid var(--border);">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <label style="font-size:0.75rem; color:var(--muted); font-weight:bold;">WHITELISTED DOMAINS (<span id="domain-count">0</span>/10)</label>
@@ -246,6 +246,7 @@
         <div class="card" style="max-width: 600px;">
             <h3 style="margin-bottom:15px;">How to Connect Your Server</h3>
             <div style="text-align:left;">
+                <button class="btn btn-purple" style="margin-bottom:15px;" onclick="copyAIPrompt()">[Copy AI Prompt]</button>
                 <div class="settings-item">
                     <label>1. Server Auth Key</label>
                     <div style="display:flex; gap:10px;">
@@ -260,9 +261,21 @@
                         <button class="btn" style="width:auto; margin:0;" onclick="copyText('copy-link')">Copy</button>
                     </div>
                 </div>
-                <button class="btn" style="margin-top:15px;" onclick="openTicTacToeCode()">[View Tic-Tac-Toe Code Example]</button>
+                <div style="display:flex; gap:10px; margin-top:15px;">
+                    <button class="btn btn-secondary" style="flex:1;" onclick="openCommandsModal()">[API Commands]</button>
+                    <button class="btn" style="flex:1;" onclick="openTicTacToeCode()">[View Tic-Tac-Toe Example]</button>
+                </div>
             </div>
-            <button class="btn btn-secondary" style="margin-top:10px;" onclick="closeHowToUse()">Close</button>
+            <button class="btn btn-secondary" style="margin-top:15px;" onclick="closeHowToUse()">Close</button>
+        </div>
+    </div>
+
+    <!-- Modal de Comandos da API -->
+    <div id="modal-commands" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 650px;">
+            <h3>EzBridge API Commands</h3>
+            <div id="api-commands-box" class="code-box" style="height:300px; max-height:300px;"></div>
+            <button class="btn btn-secondary" onclick="closeCommandsModal()">Back</button>
         </div>
     </div>
 
@@ -287,7 +300,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://boc-psi-displays-expensive.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://chest-manhattan-oval-affecting.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
@@ -298,8 +311,7 @@
     let currentServerScript = "";
     let whitelistedDomains = [];
 
-    // Chunked Upload State
-    const SCRIPT_CHUNK_SIZE = 100 * 1024; // 100KB per chunk
+    const SCRIPT_CHUNK_SIZE = 100 * 1024;
     let isUploadingScript = false;
 
     let socket = io(PUBLIC_TUNNEL_URL, {
@@ -330,7 +342,6 @@
     });
 
     function handleGoogleLogin(response) {
-        // Parse Google JWT Token
         const base64Url = response.credential.split('.')[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
         const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
@@ -397,7 +408,6 @@
         });
     }
 
-    // --- CHUNKED SERVERSCRIPT UPLOAD (100KB per Chunk) ---
     function openScriptEditorModal() {
         document.getElementById('script-editor').value = currentServerScript;
         document.getElementById('modal-script').style.display = 'flex';
@@ -459,7 +469,6 @@
         closeScriptEditorModal();
     });
 
-    // --- CREATE / UPDATE SERVER ---
     function openSetupUI() {
         document.getElementById('overlay-start').style.display = 'none';
         document.getElementById('overlay-setup').style.display = 'flex';
@@ -498,6 +507,7 @@
     socket.on('server_created', (data) => {
         serverKey = data.key;
         serverSettings = data.server.settings;
+        serverType = data.server.serverType;
         serverActive = false;
         hideLoadingScreen();
         document.getElementById('overlay-setup').style.display = 'none';
@@ -606,7 +616,76 @@
     }
 
     function closeHowToUse() { document.getElementById('modal-howto').style.display = 'none'; }
-    function openCommandsModal() { document.getElementById('modal-commands').style.display = 'flex'; }
+
+    // --- PROMPT DE IA GERADO PARA COPIAR ---
+    function copyAIPrompt() {
+        const promptText = `*How to implement EzBridge's universal server on your online project*
+EzBridge server is a universal server that is also free and can be used to make multiplayer and online apps, if you want to implement it on your project, please follow these steps:
+
+1 - Connecting
+To connect to our servers, you need to add this into your script:
+1 - Tunnel Link: ${PUBLIC_TUNNEL_URL}
+2 - Server Auth Key: ${serverKey}
+This will make the client or whatever be able to connect and start sending requests to EzBridge.
+
+2 - Sending Remotes
+Depending on your server type (${serverType.toUpperCase()}):
+${serverType === 'websocket' ? 
+`- Use Socket.io client to connect to the Tunnel Link.
+- Emit 'join_virtual_server' with payload { key: "${serverKey}" }.
+- Broadcast events using socket.emit('RemoteEvent', { type: 'your_event', data: payload }).` :
+`- Send HTTP POST requests to ${PUBLIC_TUNNEL_URL}/remote
+- Include Header 'auth-token: ${serverKey}'
+- Send JSON body { type: 'your_event', data: payload }`}
+
+3 - APIs You Can Use
+- 'ebuserid_get': Send RemoteEvent type 'ebuserid_get' to get the client's permanent unique User ID (10-20 chars).
+- ServerScript API: Write sandboxed backend JS code (Server.on('event', fn), Server.broadcast('event', data)) to handle server-side game logic securely.
+
+4 - Learn More About EzBridge
+- Max Packet Size: 250KB per packet (large files automatically chunked).
+- Request Limit: 100 requests/sec.
+- Server RAM Limit: Configured at ${serverSettings.ramLimitMB || 500}MB.
+- Real-Time Storage: Disk-persisted state engine (EBstorage.js).
+
+that's all you needed to know, now, you can start.`;
+
+        navigator.clipboard.writeText(promptText);
+        alert("AI Prompt copied to clipboard! Paste it into your AI chat.");
+    }
+
+    function openCommandsModal() {
+        const isHttp = serverType === 'http';
+        const box = document.getElementById('api-commands-box');
+
+        if (isHttp) {
+            box.innerText = `// --- EZBRIDGE HTTP REST API ---
+1. GET STATUS:
+GET ${PUBLIC_TUNNEL_URL}/getstatus
+
+2. SEND REMOTE EVENT:
+POST ${PUBLIC_TUNNEL_URL}/remote
+Header: "auth-token": "${serverKey}"
+Body: { "type": "player_move", "data": { "x": 100, "y": 200 } }`;
+        } else {
+            box.innerText = `// --- EZBRIDGE WEBSOCKET API ---
+1. CONNECT & JOIN ROOM:
+const socket = io("${PUBLIC_TUNNEL_URL}", { auth: { token: "default_key" } });
+socket.emit("join_virtual_server", { key: "${serverKey}" });
+
+2. SEND REMOTE EVENT:
+socket.emit("RemoteEvent", { type: "player_move", data: { x: 100, y: 200 } });
+
+3. GET CLIENT USER ID:
+socket.emit("RemoteEvent", { type: "ebuserid_get" });
+socket.on("RemoteEvent", (pkt) => {
+    if (pkt.type === "userid_response") console.log("My User ID:", pkt.userId);
+});`;
+        }
+
+        document.getElementById('modal-commands').style.display = 'flex';
+    }
+
     function closeCommandsModal() { document.getElementById('modal-commands').style.display = 'none'; }
 
     function openTicTacToeCode() {
@@ -615,41 +694,136 @@
 
         const clientCode = isHttp ? 
 `<!-- HTTP Tic-Tac-Toe Client -->
-<script>
-    const key = "${serverKey}";
-    const link = "${PUBLIC_TUNNEL_URL}/remote";
-    const clientId = "guest_" + Math.floor(Math.random()*100000);
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HTTP Tic-Tac-Toe</title>
+    <style>
+        body { background:#09090b; color:#fff; font-family:sans-serif; text-align:center; }
+        .grid { display:grid; grid-template-columns:repeat(3,90px); gap:8px; justify-content:center; margin-top:20px; }
+        .cell { width:90px; height:90px; background:#1e293b; display:flex; align-items:center; justify-content:center; font-size:2rem; cursor:pointer; border-radius:8px; font-weight:bold; }
+    </style>
+</head>
+<body>
+    <h2>HTTP Tic-Tac-Toe</h2>
+    <div id="status">Your Turn</div>
+    <div class="grid">
+        <div class="cell" onclick="play(0)"></div><div class="cell" onclick="play(1)"></div><div class="cell" onclick="play(2)"></div>
+        <div class="cell" onclick="play(3)"></div><div class="cell" onclick="play(4)"></div><div class="cell" onclick="play(5)"></div>
+        <div class="cell" onclick="play(6)"></div><div class="cell" onclick="play(7)"></div><div class="cell" onclick="play(8)"></div>
+    </div>
+    <script>
+        const key = "${serverKey}";
+        const link = "${PUBLIC_TUNNEL_URL}/remote";
+        // Temp identifier for client tracking
+        const clientId = "usr_" + Math.floor(Math.random()*10000);
 
-    async function sendMove(index) {
-        await fetch(link, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "auth-token": key },
-            body: JSON.stringify({ type: "move", data: { index, clientId } })
+        async function play(idx) {
+            await fetch(link, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "auth-token": key },
+                body: JSON.stringify({ type: "make_move", data: { idx, clientId } })
+            });
+        }
+    <\/script>
+</body>
+</html>` :
+`<!-- WebSocket Tic-Tac-Toe Client -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Tic-Tac-Toe</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"><\/script>
+    <style>
+        body { background:#09090b; color:#fff; font-family:sans-serif; text-align:center; }
+        .grid { display:grid; grid-template-columns:repeat(3,90px); gap:8px; justify-content:center; margin-top:20px; }
+        .cell { width:90px; height:90px; background:#1e293b; display:flex; align-items:center; justify-content:center; font-size:2rem; cursor:pointer; border-radius:8px; font-weight:bold; }
+    </style>
+</head>
+<body>
+    <h2>WebSocket Tic-Tac-Toe</h2>
+    <div id="status">Connecting...</div>
+    <div class="grid">
+        <div class="cell" onclick="play(0)"></div><div class="cell" onclick="play(1)"></div><div class="cell" onclick="play(2)"></div>
+        <div class="cell" onclick="play(3)"></div><div class="cell" onclick="play(4)"></div><div class="cell" onclick="play(5)"></div>
+        <div class="cell" onclick="play(6)"></div><div class="cell" onclick="play(7)"></div><div class="cell" onclick="play(8)"></div>
+    </div>
+    <script>
+        const key = "${serverKey}";
+        const link = "${PUBLIC_TUNNEL_URL}";
+        const socket = io(link, { auth: { token: "default_key" } });
+        let mySymbol = "";
+
+        socket.on("connect", () => {
+            socket.emit("join_virtual_server", { key });
         });
-    }
-<\/script>` :
-`<!-- Websocket Tic-Tac-Toe Client -->
-<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"><\/script>
-<script>
-    const key = "${serverKey}";
-    const link = "${PUBLIC_TUNNEL_URL}";
-    const socket = io(link, { auth: { token: "default_key" } });
 
-    socket.on("connect", () => {
-        socket.emit("join_virtual_server", { key });
-    });
+        socket.on("joined_successfully", () => {
+            document.getElementById("status").innerText = "Waiting for game start...";
+            socket.emit("RemoteEvent", { type: "join_game" });
+        });
 
-    function makeMove(idx) {
-        socket.emit("RemoteEvent", { type: "move", data: { idx } });
-    }
-<\/script>`;
+        socket.on("RemoteEvent", (pkt) => {
+            if (pkt.type === "board_update") {
+                const cells = document.querySelectorAll(".cell");
+                pkt.data.board.forEach((val, i) => cells[i].innerText = val || "");
+                if (pkt.data.winner) {
+                    document.getElementById("status").innerText = "Winner: " + pkt.data.winner;
+                } else {
+                    document.getElementById("status").innerText = "Turn: " + pkt.data.currentTurn;
+                }
+            }
+        });
+
+        function play(idx) {
+            socket.emit("RemoteEvent", { type: "make_move", data: { idx } });
+        }
+    <\/script>
+</body>
+</html>`;
 
         const serverCode = 
-`// ServerScript Validator (Runs on EzBridge Server)
-Server.on('move', (evt) => {
-    // Validate move logic on backend
-    if (evt.data && evt.data.idx !== undefined) {
-        Server.broadcast('board_update', { idx: evt.data.idx, sender: evt.senderId });
+`// --- ServerScript Backend Game Logic (Paste in ServerScript Editor) ---
+let board = Array(9).fill(null);
+let currentTurn = 'X';
+let players = {}; // senderId -> 'X' or 'O'
+
+function checkWin(b) {
+    const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+    for (let w of wins) {
+        if (b[w[0]] && b[w[0]] === b[w[1]] && b[w[0]] === b[w[2]]) return b[w[0]];
+    }
+    if (b.every(c => c !== null)) return 'TIE';
+    return null;
+}
+
+Server.on('join_game', (evt) => {
+    const id = evt.senderId;
+    if (!players.X) players.X = id;
+    else if (!players.O && id !== players.X) players.O = id;
+
+    Server.broadcast('board_update', { board, currentTurn, winner: null });
+});
+
+Server.on('make_move', (evt) => {
+    const idx = evt.data.idx;
+    const symbol = players.X === evt.senderId ? 'X' : (players.O === evt.senderId ? 'O' : null);
+
+    if (!symbol || symbol !== currentTurn) return;
+    if (board[idx] !== null) return;
+
+    board[idx] = symbol;
+    currentTurn = currentTurn === 'X' ? 'O' : 'X';
+
+    const winner = checkWin(board);
+    Server.broadcast('board_update', { board, currentTurn, winner });
+
+    if (winner) {
+        setTimeout(() => {
+            board = Array(9).fill(null);
+            currentTurn = 'X';
+            Server.broadcast('board_update', { board, currentTurn, winner: null });
+        }, 3000);
     }
 });`;
 
