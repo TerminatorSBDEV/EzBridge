@@ -3,19 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EzBridge | Cybernetic Hosting Dashboard</title>
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <title>EzBridge | Next-Gen Cloud Platform</title>
+    <!-- Script do Google OAuth2 e ReCaptcha V2 -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
         :root {
-            --bg: #050508;
-            --panel: #0d0d12;
-            --border: #1e1e28;
+            --bg: #06070a;
+            --panel: #0d0e15;
+            --panel-border: #1a1c28;
             --accent: #00ff88;
-            --accent-glow: rgba(0, 255, 136, 0.3);
+            --accent-glow: rgba(0, 255, 136, 0.25);
             --blue: #00f0ff;
+            --purple: #7000ff;
             --text: #f4f4f5;
+            --error: #ff4655;
         }
 
         body, html {
@@ -23,290 +26,315 @@
             background-color: var(--bg); color: var(--text);
             font-family: 'Segoe UI', system-ui, sans-serif;
             display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Ambient Glow Background */
+        .bg-glow {
+            position: fixed; width: 600px; height: 600px;
+            background: radial-gradient(circle, var(--accent-glow) 0%, rgba(0,0,0,0) 70%);
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            z-index: 0; pointer-events: none; opacity: 0.6;
         }
 
         .overlay {
-            position: fixed; inset: 0; background: rgba(3, 3, 5, 0.95);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 2000; backdrop-filter: blur(8px);
+            position: fixed; inset: 0; background: rgba(3, 4, 7, 0.96);
+            backdrop-filter: blur(12px); display: flex; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 2000;
         }
 
         .card {
-            background: var(--panel); border: 1px solid var(--border); padding: 30px;
-            border-radius: 14px; width: 90%; max-width: 480px; text-align: center;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.9), 0 0 15px var(--accent-glow);
+            background: var(--panel); border: 1px solid var(--panel-border); padding: 35px;
+            border-radius: 16px; width: 90%; max-width: 480px; text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.9); z-index: 10; position: relative;
         }
 
-        h1, h2, h3 { color: var(--blue); margin-top: 0; letter-spacing: 1px; text-shadow: 0 0 10px rgba(0,240,255,0.3); }
+        h1, h2, h3 { color: var(--blue); margin-top: 0; text-shadow: 0 0 12px rgba(0, 240, 255, 0.3); }
+
+        .top-bar {
+            position: fixed; top: 15px; right: 20px; z-index: 2500;
+            display: flex; gap: 10px; align-items: center;
+        }
 
         .btn {
-            width: 100%; padding: 12px; margin: 8px 0; background: var(--accent);
-            border: none; color: black; font-weight: bold; border-radius: 6px;
-            cursor: pointer; transition: 0.2s; font-size: 0.95rem;
-            text-shadow: 0 0 2px rgba(0,0,0,0.5);
+            width: 100%; padding: 12px; margin: 10px 0; background: var(--accent);
+            border: none; color: black; font-weight: bold; border-radius: 8px;
+            cursor: pointer; transition: 0.2s; font-size: 0.95rem; box-shadow: 0 0 10px var(--accent-glow);
         }
         .btn:hover { background: #00cc6a; transform: translateY(-1px); }
-        .btn-blue { background: var(--blue); color: black; }
-        .btn-secondary { background: #1a1a22; color: white; border: 1px solid var(--border); }
-        .btn-secondary:hover { background: #262632; }
+        .btn-blue { background: var(--blue); }
+        .btn-secondary { background: #181924; color: white; border: 1px solid var(--panel-border); }
+        .btn-secondary:hover { background: #222436; }
 
         .settings-grid {
-            text-align: left; display: flex; flex-direction: column; gap: 12px; margin: 15px 0;
+            text-align: left; display: flex; flex-direction: column; gap: 12px; margin: 20px 0;
             max-height: 380px; overflow-y: auto; padding-right: 5px;
         }
         .settings-item { display: flex; flex-direction: column; gap: 4px; }
-        .settings-item label { font-size: 0.72rem; color: #a1a1aa; text-transform: uppercase; font-weight: bold; }
-        .settings-item input, .settings-item select {
-            background: #050508; border: 1px solid var(--border); color: white;
-            padding: 8px 12px; border-radius: 6px; outline: none;
+        .settings-item label { font-size: 0.75rem; color: #888; text-transform: uppercase; font-weight: bold; }
+        .settings-item input, .settings-item select, .settings-item textarea {
+            background: #06070a; border: 1px solid var(--panel-border); color: white;
+            padding: 10px; border-radius: 8px; outline: none; font-family: monospace;
         }
 
-        .dashboard-row { display: flex; gap: 10px; margin-top: 10px; }
-        .status-indicator {
-            padding: 10px; border-radius: 6px; background: #050508;
-            border: 1px solid var(--border); font-size: 0.85rem; font-weight: bold;
-            display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px;
-        }
-        .dot { width: 8px; height: 8px; border-radius: 50%; background: #ff4444; }
-        .dot.online { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+        /* Dominio Tag Row */
+        .domain-row { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
 
+        /* Barra de Progresso */
+        .progress-container {
+            width: 100%; background: #000; border: 1px solid var(--panel-border);
+            border-radius: 8px; height: 22px; overflow: hidden; margin: 12px 0;
+            position: relative; display: none;
+        }
+        .progress-bar { width: 0%; height: 100%; background: var(--blue); transition: width 0.1s; }
+        .progress-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; }
+
+        /* Console Codebox */
         .code-box {
-            background: #000; padding: 10px; border-radius: 6px; border: 1px solid var(--border);
-            font-family: monospace; font-size: 0.8rem; margin: 10px 0; overflow-x: auto; white-space: pre;
-            color: var(--accent);
+            background: #030406; padding: 12px; border-radius: 8px; border: 1px solid var(--panel-border);
+            font-family: monospace; font-size: 0.8rem; margin: 10px 0; overflow-x: auto; white-space: pre; color: var(--accent);
         }
 
-        /* Lista de Domínios */
-        .domain-list { display: flex; flex-direction: column; gap: 6px; margin-top: 5px; }
-        .domain-row { display: flex; gap: 6px; align-items: center; }
-        .domain-row input { flex-grow: 1; }
-
-        /* Barra de Progresso de Upload de Script */
-        .progress-bar-bg { width: 100%; background: #000; border: 1px solid var(--border); border-radius: 6px; height: 20px; overflow: hidden; margin: 10px 0; position: relative; }
-        .progress-bar-fill { width: 0%; height: 100%; background: var(--accent); transition: width 0.1s; }
-        .progress-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; color: #fff; }
+        .disclaimer-box {
+            background: rgba(255, 70, 85, 0.1); border: 1px solid var(--error);
+            color: var(--error); padding: 10px; border-radius: 8px; font-size: 0.75rem;
+            margin-bottom: 15px; text-align: left;
+        }
     </style>
 </head>
 <body>
 
+    <div class="bg-glow"></div>
+
+    <!-- Botões Superiores do Topo -->
+    <div class="top-bar">
+        <button class="btn btn-secondary" style="width:auto; margin:0;" onclick="copyUserId()">Copy Client ID</button>
+        <div id="google-btn-top"></div>
+    </div>
+
     <!-- Passo 0: Buffering Inicial -->
     <div id="overlay-sync" class="overlay">
         <div class="card">
-            <h3>Hold up, connecting to EzBridge Master Core...</h3>
-            <div style="font-size:0.8rem; color:#71717a;">Checking UserID & Google Session Sync.</div>
+            <h3>Connecting to EzBridge Pipeline...</h3>
+            <p style="font-size:0.8rem; color:#666;">Synchronizing session data and permissions.</p>
         </div>
     </div>
 
-    <!-- Tela do ReCaptcha V2 com Botão do Google Header -->
+    <!-- Passo 1: Captcha de Entrada -->
     <div id="overlay-captcha" class="overlay" style="display:none;">
         <div class="card">
-            <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
-                <div id="g_id_onload"
-                    data-client_id="596211651893-5vddbq1vee4uv9oq26vqmcu807umlaqt.apps.googleusercontent.com"
-                    data-callback="handleGoogleLogin">
-                </div>
-                <div class="g_id_signin" data-type="icon" data-shape="circle"></div>
-            </div>
             <h1>EzBridge</h1>
-            <p style="font-size:0.85rem; color:#a1a1aa; margin-bottom:15px;">Solve the challenge to proceed:</p>
+            <p style="font-size:0.85rem; color:#888; margin-bottom:20px;">
+                Create and manage high-performance cloud servers.
+            </p>
             <div style="display: flex; justify-content: center; margin-bottom: 20px;">
                 <div class="g-recaptcha" data-sitekey="6Lf8VTMtAAAAAAMXrs6lk-tLBjuW0u8ZV5LevzMz" data-callback="captchaSolved"></div>
             </div>
         </div>
     </div>
 
-    <!-- Menu Principal -->
+    <!-- Passo 2: Menu Principal -->
     <div id="overlay-start" class="overlay" style="display:none;">
         <div class="card">
             <h1>EzBridge</h1>
-            <p style="color:#a1a1aa; font-size:0.9rem; margin-bottom:20px;">Create and implement a server to your apps for free!</p>
+            <p style="color:#888; font-size:0.9rem; margin-bottom:25px;">Build and deploy universal backends for free!</p>
             <button class="btn" onclick="openSetupUI()">[CLICK HERE TO BEGIN]</button>
         </div>
     </div>
 
-    <!-- Tela de Carregamento ao Criar/Atualizar Servidor -->
-    <div id="overlay-processing" class="overlay" style="display:none;">
-        <div class="card">
-            <h3>creating/updating your server..</h3>
-            <p style="font-size:0.8rem; color:#888;">wait while your client does its job.</p>
-        </div>
-    </div>
-
-    <!-- Form de Configuração do Servidor Virtual -->
+    <!-- Passo 3: Configuração / Edição de Servidor Virtual -->
     <div id="overlay-setup" class="overlay" style="display:none;">
         <div class="card" style="max-width: 520px;">
             <h2 id="setup-title">Setup Your Server</h2>
+            
             <div class="settings-grid">
-                <h4 style="margin:0; color:var(--accent);">[PING & RESOURCES]</h4>
+                <h4 style="margin:0; color:var(--accent);">[SYSTEM MODE]</h4>
                 <div class="settings-item">
-                    <label>client target ping (10 - 1000ms)</label>
-                    <input type="number" id="cfg-client-ping" value="50">
+                    <label>Server Type</label>
+                    <select id="cfg-server-type" onchange="handleServerTypeChange()">
+                        <option value="websocket" selected>Websocket (Real-time)</option>
+                        <option value="http">HTTP (REST API)</option>
+                    </select>
                 </div>
-                <div class="settings-item">
-                    <label>your server's target ping (10 - 500ms)</label>
-                    <input type="number" id="cfg-server-ping" value="10">
-                </div>
+
+                <h4 style="margin:10px 0 0 0; color:var(--accent);">[RESOURCE & PING]</h4>
                 <div class="settings-item">
                     <label>Server RAM Limit</label>
-                    <div style="display:flex; gap:10px;">
-                        <input type="number" id="cfg-ram-val" value="500" style="flex:1;">
+                    <div style="display:flex; gap:8px;">
+                        <input type="number" id="cfg-ram-limit" value="500" min="50" style="flex:1;">
                         <select id="cfg-ram-unit" style="width:80px;">
                             <option value="MB" selected>MB</option>
                             <option value="KB">KB</option>
                         </select>
                     </div>
                 </div>
-                <div class="settings-item">
-                    <label>Server Type</label>
-                    <select id="cfg-server-type" onchange="toggleServerTypeUI()">
-                        <option value="websocket" selected>Websocket (Real-time)</option>
-                        <option value="http">HTTP (REST API / Executors)</option>
-                    </select>
-                </div>
-                <div class="settings-item" id="box-max-users">
+
+                <div class="settings-item" id="max-users-box">
                     <label>Max Users per Server (1 - 100)</label>
                     <input type="number" id="cfg-max-users" value="20" min="1" max="100">
                 </div>
 
-                <h4 style="margin:10px 0 0 0; color:var(--accent);">[PRIVATE DOMAINS]</h4>
                 <div class="settings-item">
-                    <label>allow use on private projects</label>
-                    <select id="cfg-private" onchange="togglePrivateDomainsUI()">
-                        <option value="false" selected>Off (Whitelisted Domains Only)</option>
-                        <option value="true">On (Allow all origins)</option>
+                    <label>Client Target Ping (10 - 1000ms)</label>
+                    <input type="number" id="cfg-client-ping" value="50">
+                </div>
+
+                <h4 style="margin:10px 0 0 0; color:var(--accent);">[SECURITY SETTINGS]</h4>
+                <div class="settings-item">
+                    <label>Allow Private Projects (Allow Localhost/Files)</label>
+                    <select id="cfg-private" onchange="togglePrivateDomainsDisplay()">
+                        <option value="false" selected>Off (Public Domains Only)</option>
+                        <option value="true">On (Allow All)</option>
                     </select>
                 </div>
 
-                <div id="box-domains" style="display:none; text-align:left;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <label style="font-size:0.7rem; color:#888;">WHITELISTED DOMAINS (<span id="domain-count">0</span>/10)</label>
-                        <button class="btn btn-blue" style="width:auto; padding:2px 8px; font-size:0.8rem;" onclick="addDomainRow()">+</button>
+                <!-- Lista de Domínios Permitidos -->
+                <div id="domain-list-container" style="display:block; margin-top:5px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                        <label style="font-size:0.75rem; color:#888; font-weight:bold;">ALLOWED DOMAINS (<span id="domain-count">0</span>/10)</label>
+                        <button class="btn btn-blue" style="width:auto; padding:2px 8px; margin:0;" onclick="addDomainField()">+</button>
                     </div>
-                    <div id="domain-list" class="domain-list"></div>
+                    <div id="domain-inputs-box"></div>
                 </div>
 
-                <button class="btn btn-secondary" style="margin-top:10px;" onclick="openScriptEditor()">[CREATE SERVER SCRIPT (OPTIONAL)]</button>
+                <button class="btn btn-secondary" style="margin-top:10px;" onclick="openScriptEditor()">Create ServerScript (OPTIONAL)</button>
             </div>
+
             <button class="btn" id="setup-action-btn" onclick="createServerSubmit()">[CREATE SERVER]</button>
             <button class="btn btn-secondary" onclick="closeSetupUI()">Cancel</button>
         </div>
     </div>
 
-    <!-- Modal do Editor de Server Script -->
-    <div id="modal-script" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 650px; width:95%;">
-            <h3>Server Script Editor</h3>
-            <p style="font-size:0.75rem; color:#888;">Write custom Node.js logic to run on the server side (Max 20MB).</p>
-            <textarea id="script-editor-input" rows="12" style="width:100%; background:#000; color:#00ff88; border:1px solid var(--border); font-family:monospace; padding:10px; box-sizing:border-box; border-radius:6px; resize:none;"></textarea>
+    <!-- Modal Editor de ServerScript com Upload Fragmentado -->
+    <div id="modal-script-editor" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 650px;">
+            <h3>ServerScript Editor</h3>
+            <p style="font-size:0.75rem; color:#888;">Runs safely on Node.js VM. Executes only when active users are present.</p>
             
-            <div id="script-upload-progress" class="progress-bar-bg" style="display:none;">
-                <div class="progress-bar-fill" id="script-progress-fill"></div>
-                <div class="progress-text" id="script-progress-val">0.0MB / 0.0MB (0%)</div>
+            <textarea id="serverscript-input" rows="12" style="width:100%; background:#000; color:#00ff88; border:1px solid var(--panel-border); font-family:monospace; padding:10px; box-sizing:border-box;" placeholder="// Type your Node.js ServerScript here..."></textarea>
+            
+            <div id="script-progress-container" class="progress-container">
+                <div id="script-progress-bar" class="progress-bar"></div>
+                <div class="progress-text">Uploading script... <span id="script-progress-val">0.0</span>MB / <span id="script-progress-total">0.0</span>MB</div>
             </div>
 
-            <div style="display:flex; gap:10px; margin-top:10px;">
+            <div style="display:flex; gap:10px; margin-top:15px;">
                 <button class="btn btn-blue" id="save-script-btn" onclick="saveServerScript()">Save ServerScript</button>
-                <button class="btn btn-secondary" onclick="closeScriptEditor()">Close</button>
+                <button class="btn btn-secondary" id="cancel-script-btn" onclick="closeScriptEditor()">Close</button>
             </div>
         </div>
     </div>
 
-    <!-- Dashboard Principal -->
+    <!-- Dashboard de Controle Administrativo -->
     <div id="dashboard" class="card" style="display:none; width: 480px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-            <h2 style="margin:0;">EzBridge Control</h2>
-            <button class="btn" style="width:auto; margin:0; padding:6px 12px; font-size:0.75rem;" onclick="copyUserId()">Copy Client ID</button>
-        </div>
+        <h2>EzBridge Control</h2>
         
-        <div class="status-indicator">
-            <div id="server-dot" class="dot"></div>
-            <span>Server status: <span id="server-status-text">OFFLINE</span></span>
+        <div style="background:#06070a; border:1px solid var(--panel-border); border-radius:8px; padding:15px; margin:15px 0; text-align:left;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <span style="font-weight:bold;">Status: <span id="server-status-text" style="color:var(--error);">OFFLINE</span></span>
+                <span style="font-size:0.8rem; color:#888;">Type: <span id="dash-server-type" style="color:var(--blue);">WEBSOCKET</span></span>
+            </div>
+            
+            <div style="font-size:0.8rem; color:#aaa; display:flex; flex-direction:column; gap:6px;">
+                <div>Active serverscripts: <span id="dash-active-scripts" style="color:white; font-weight:bold;">0</span></div>
+                <div>RAM usage: <span id="dash-ram-usage" style="color:var(--accent); font-weight:bold;">0,0 KB</span></div>
+                <div>Users online: <span id="dash-users-count" style="color:var(--blue); font-weight:bold;">0</span></div>
+            </div>
         </div>
 
-        <div style="margin: 15px 0; text-align: left; font-size: 0.85rem; color: #a1a1aa; display:flex; flex-direction:column; gap:6px;">
-            <div>Active serverscripts: <span id="dash-scripts" style="color:var(--accent); font-weight:bold;">0</span></div>
-            <div>RAM usage: <span id="dash-ram" style="color:var(--blue); font-weight:bold;">0.0 KB</span></div>
+        <div class="dashboard-row" style="display:flex; gap:10px;">
+            <button class="btn" style="flex:1;" onclick="toggleServerState()">[Start/Stop Server]</button>
+            <button class="btn btn-secondary" style="width:50px;" onclick="openEditSettings()">⚙</button>
         </div>
-
-        <div class="dashboard-row">
-            <button class="btn" style="flex: 1;" onclick="toggleServerState()">[Start/Stop Server]</button>
-            <button class="btn btn-secondary" style="width: 50px;" onclick="openEditSettings()">⚙</button>
-        </div>
-        <div class="dashboard-row">
-            <button class="btn btn-secondary" style="flex: 1;" onclick="openHowToUse()">[How to Use]</button>
-            <button class="btn btn-secondary" style="flex: 1;" id="test-conn-btn" onclick="testConnection()">[Test Connection]</button>
+        <div class="dashboard-row" style="display:flex; gap:10px; margin-top:10px;">
+            <button class="btn btn-secondary" style="flex:1;" onclick="openHowToUse()">[How to Use]</button>
+            <button class="btn btn-secondary" style="flex:1;" id="test-conn-btn" onclick="testConnection()">[Test Connection]</button>
         </div>
     </div>
 
-    <!-- Popups / Modais -->
+    <!-- Modal How to Use -->
     <div id="modal-howto" class="overlay" style="display:none;">
         <div class="card" style="max-width: 600px;">
             <h3>How to Connect Your Server</h3>
-            <div class="how-to-use-box" style="text-align:left;">
-                <div class="setup-group">
-                    <label style="font-size:0.75rem; color:#888;">1. Server Auth Key</label>
-                    <div style="display:flex; gap:10px;">
-                        <input type="text" id="copy-key" readonly style="flex-grow:1; background:#000; border:1px solid var(--border); color:#fff; padding:5px;">
-                        <button class="btn" style="width:auto; margin:0;" onclick="copyText('copy-key')">Copy</button>
-                    </div>
+            <div style="text-align:left;">
+                <div class="settings-item">
+                    <label>1. Server Auth Key</label>
+                    <input type="text" id="copy-key" readonly>
                 </div>
-                <div class="setup-group" style="margin-top:10px;">
-                    <label style="font-size:0.75rem; color:#888;">2. Current Cloudflare Link</label>
-                    <div style="display:flex; gap:10px;">
-                        <input type="text" id="copy-link" readonly style="flex-grow:1; background:#000; border:1px solid var(--border); color:#fff; padding:5px;">
-                        <button class="btn" style="width:auto; margin:0;" onclick="copyText('copy-link')">Copy</button>
-                    </div>
+                <div class="settings-item" style="margin-top:10px;">
+                    <label>2. Cloudflare Link</label>
+                    <input type="text" id="copy-link" readonly>
                 </div>
                 <div style="display:flex; gap:10px; margin-top:15px;">
-                    <button class="btn" onclick="openTicTacToeCode()">[View Tic-Tac-Toe Code]</button>
+                    <button class="btn btn-blue" onclick="openTicTacToeCode()">[View Tic-Tac-Toe Examples]</button>
                 </div>
             </div>
-            <button class="btn btn-secondary" onclick="closeHowToUse()">Close</button>
+            <button class="btn btn-secondary" style="margin-top:15px;" onclick="closeHowToUse()">Close</button>
         </div>
     </div>
 
+    <!-- Modal do Exemplo do Jogo da Velha (Tic-Tac-Toe) -->
     <div id="modal-code" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 700px;">
-            <h3>Tic-Tac-Toe Example Scripts</h3>
-            <p id="http-disclaimer" style="display:none; font-size:0.75rem; color:#ff7b72; margin-bottom:8px;">
-                DISCLAMER: it's recommended that the client should have a temporary identifier so your scripts and projects know who's sending them, its optional.
-            </p>
+        <div class="card" style="max-width: 750px;">
+            <h3>Tic-Tac-Toe Full Example</h3>
             
-            <div style="display:flex; gap:10px; margin-bottom:10px;">
-                <button class="btn btn-blue" id="tab-btn-client" onclick="switchCodeTab('client')">Client Script (HTML)</button>
-                <button class="btn btn-secondary" id="tab-btn-server" onclick="switchCodeTab('server')">Server Script (Node)</button>
+            <div id="http-disclaimer" class="disclaimer-box" style="display:none;">
+                DISCLAIMER: it's recommended that the client should have a temporary identifier so your scripts and projects know who's sending them, its optional.
             </div>
 
-            <textarea id="example-code" class="code-box" readonly rows="12" style="width:100%; height:260px; resize:none;"></textarea>
+            <div style="display:flex; gap:10px; margin-bottom:10px;">
+                <button class="btn btn-secondary" style="margin:0;" onclick="switchCodeTab('client')">HTML Client Code</button>
+                <button class="btn btn-secondary" style="margin:0;" onclick="switchCodeTab('server')">ServerScript Code</button>
+            </div>
+
+            <textarea id="example-code" class="code-box" readonly rows="12" style="width:100%; height:280px; resize:none; box-sizing:border-box;"></textarea>
             
             <div style="display:flex; gap:10px; margin-top:10px;">
-                <button class="btn" onclick="copyText('example-code')">Copy Code</button>
+                <button class="btn" onclick="copyCodeText()">Copy Active Code</button>
                 <button class="btn btn-secondary" onclick="closeTicTacToeCode()">Back</button>
             </div>
         </div>
     </div>
 
 <script>
-    // --- LINK DO SEU TÚNEL ---
-    const PUBLIC_TUNNEL_URL = "https://traveling-burton-older-titanium.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://rico-completion-famous-december.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleId = getCookie("eb_google_id") || "";
     let serverKey = "";
     let serverActive = false;
+    let serverType = "websocket";
     let serverSettings = {};
     let currentServerScript = "";
-    let whitelistedDomains = [];
-
-    // Chunk Upload State
-    const SCRIPT_CHUNK_SIZE = 100 * 1024; // 100KB per chunk
-    let currentUploadCancel = false;
+    
+    let domainList = [];
+    let activeCodeTab = "client";
 
     let socket = io(PUBLIC_TUNNEL_URL, {
         auth: { token: "default_key" },
         transports: ['websocket']
     });
 
+    // --- GOOGLE OAUTH2 INITIALIZATION ---
+    window.onload = function () {
+        google.accounts.id.initialize({
+            client_id: "596211651893-5vddbq1vee4uv9oq26vqmcu807umlaqt.apps.googleusercontent.com",
+            callback: handleGoogleResponse
+        });
+        google.accounts.id.renderButton(
+            document.getElementById("google-btn-top"),
+            { theme: "outline", size: "small" }
+        );
+    };
+
+    function handleGoogleResponse(response) {
+        const payload = JSON.parse(atob(response.credential.split('.')[1]));
+        googleId = payload.sub;
+        setCookie("eb_google_id", googleId, 365);
+        socket.emit('eb_google_login', { googleId, ownerId, email: payload.email, name: payload.name });
+    }
+
+    // --- CONEXÃO SOCKET ---
     socket.on('connect', () => {
         socket.emit('eb_sync_session', { ownerId });
     });
@@ -319,28 +347,22 @@
         if (data.hasServer) {
             serverKey = data.server.key;
             serverActive = data.server.active;
+            serverType = data.server.serverType || "websocket";
             serverSettings = data.server.settings;
+            currentServerScript = data.server.serverScript || "";
             showDashboard();
         } else {
             document.getElementById('overlay-captcha').style.display = 'flex';
         }
     });
 
-    function handleGoogleLogin(response) {
-        const payload = parseJwt(response.credential);
-        googleId = payload.sub;
-        setCookie("eb_google_id", googleId, 365);
-        socket.emit('google_login', { googleId });
-    }
-
-    function parseJwt (token) {
-        var base64Url = token.split('.')[1];
-        var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
-            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(''));
-        return JSON.parse(jsonPayload);
-    }
+    socket.on('eb_heartbeat_response', (data) => {
+        serverActive = data.active;
+        document.getElementById('dash-active-scripts').innerText = data.activeScripts;
+        document.getElementById('dash-ram-usage').innerText = data.ramUsageFormatted;
+        document.getElementById('dash-users-count').innerText = data.users;
+        updateStatusDisplay();
+    });
 
     function captchaSolved() {
         document.getElementById('overlay-captcha').style.display = 'none';
@@ -358,170 +380,111 @@
         else document.getElementById('overlay-start').style.display = 'flex';
     }
 
-    // Domínios Privados (Whitelist)
-    function togglePrivateDomainsUI() {
-        const isPrivate = document.getElementById('cfg-private').value === 'true';
-        document.getElementById('box-domains').style.display = isPrivate ? 'none' : 'block';
-    }
-
-    function toggleServerTypeUI() {
-        const isHttp = document.getElementById('cfg-server-type').value === 'http';
+    function handleServerTypeChange() {
+        const type = document.getElementById('cfg-server-type').value;
         const maxUsersInput = document.getElementById('cfg-max-users');
-        if (isHttp) {
-            maxUsersInput.disabled = true;
+        if (type === 'http') {
             maxUsersInput.value = "100";
+            maxUsersInput.disabled = true;
         } else {
             maxUsersInput.disabled = false;
         }
     }
 
-    function addDomainRow(val = "") {
-        if (whitelistedDomains.length >= 10) return alert("Maximum 10 domains allowed.");
-        whitelistedDomains.push(val);
-        renderDomainRows();
+    function togglePrivateDomainsDisplay() {
+        const val = document.getElementById('cfg-private').value;
+        document.getElementById('domain-list-container').style.display = (val === 'false') ? 'block' : 'none';
     }
 
-    function removeDomainRow(idx) {
-        whitelistedDomains.splice(idx, 1);
-        renderDomainRows();
+    function addDomainField() {
+        if (domainList.length >= 10) return alert("Maximum 10 allowed domains reached.");
+        domainList.push("");
+        renderDomainInputs();
     }
 
-    function renderDomainRows() {
-        const container = document.getElementById('domain-list');
-        container.innerHTML = "";
-        document.getElementById('domain-count').innerText = whitelistedDomains.length;
+    function renderDomainInputs() {
+        const box = document.getElementById('domain-inputs-box');
+        box.innerHTML = "";
+        document.getElementById('domain-count').innerText = domainList.length;
 
-        whitelistedDomains.forEach((domain, idx) => {
+        domainList.forEach((dom, idx) => {
             const row = document.createElement('div');
             row.className = 'domain-row';
             row.innerHTML = `
-                <input type="text" value="${domain}" placeholder="https://example.com" maxlength="64" onchange="whitelistedDomains[${idx}]=this.value">
-                <button class="btn btn-secondary" style="width:auto; margin:0;" onclick="removeDomainRow(${idx})">X</button>
+                <input type="text" value="${dom}" placeholder="https://example.com" maxlength="64" onchange="domainList[${idx}]=this.value.trim()">
+                <button class="btn btn-secondary" style="width:auto; margin:0;" onclick="removeDomainField(${idx})">X</button>
             `;
-            container.appendChild(row);
+            box.appendChild(row);
         });
     }
 
-    // Script Editor & Chunked Upload
+    function removeDomainField(idx) {
+        domainList.splice(idx, 1);
+        renderDomainInputs();
+    }
+
+    // --- SERVERSCRIPT CHUNK UPLOAD ---
     function openScriptEditor() {
-        document.getElementById('modal-script').style.display = 'flex';
-        document.getElementById('script-editor-input').value = currentServerScript;
+        document.getElementById('serverscript-input').value = currentServerScript;
+        document.getElementById('modal-script-editor').style.display = 'flex';
     }
 
     function closeScriptEditor() {
-        document.getElementById('modal-script').style.display = 'none';
+        document.getElementById('modal-script-editor').style.display = 'none';
     }
 
     function saveServerScript() {
-        currentServerScript = document.getElementById('script-editor-input').value;
-        if (!serverKey) {
-            closeScriptEditor();
-            return;
+        const code = document.getElementById('serverscript-input').value;
+        if (Buffer.byteLength(code) > 20 * 1024 * 1024) {
+            return alert("ServerScript size exceeds 20MB limit!");
         }
 
-        // Upload do Script em Chunks de 100KB
-        const base64Data = currentServerScript;
-        const totalChunks = Math.ceil(base64Data.length / SCRIPT_CHUNK_SIZE);
-        const fileId = "script_" + Date.now();
-        
-        document.getElementById('script-upload-progress').style.display = 'block';
-        currentUploadCancel = false;
-
-        let index = 0;
-        function sendNextChunk() {
-            if (currentUploadCancel) return;
-            if (index < totalChunks) {
-                const start = index * SCRIPT_CHUNK_SIZE;
-                const end = Math.min(start + SCRIPT_CHUNK_SIZE, base64Data.length);
-                const chunk = base64Data.slice(start, end);
-
-                socket.emit('eb_upload_script_chunk', {
-                    key: serverKey,
-                    fileId: fileId,
-                    index: index,
-                    total: totalChunks,
-                    chunk: chunk
-                });
-
-                const pct = Math.floor((index / totalChunks) * 100);
-                const mbSent = (start / (1024*1024)).toFixed(1);
-                const mbTotal = (base64Data.length / (1024*1024)).toFixed(1);
-                document.getElementById('script-progress-fill').style.width = `${pct}%`;
-                document.getElementById('script-progress-val').innerText = `${mbSent}MB / ${mbTotal}MB (${pct}%)`;
-
-                index++;
-            }
-        }
-
-        socket.on('eb_script_chunk_ack', (data) => {
-            if (data.fileId === fileId) sendNextChunk();
-        });
-
-        socket.once('eb_script_upload_complete', () => {
-            document.getElementById('script-upload-progress').style.display = 'none';
-            closeScriptEditor();
-            alert("ServerScript Uploaded!");
-        });
-
-        sendNextChunk();
+        currentServerScript = code;
+        closeScriptEditor();
+        alert("ServerScript staged. Click 'Save Settings' or 'Create Server' to deploy.");
     }
 
     function createServerSubmit() {
-        document.getElementById('overlay-setup').style.display = 'none';
-        document.getElementById('overlay-processing').style.display = 'flex';
-
-        const ramVal = parseInt(document.getElementById('cfg-ram-val').value) || 500;
-        const ramUnit = document.getElementById('cfg-ram-unit').value;
-        const ramInMb = ramUnit === 'KB' ? ramVal / 1024 : ramVal;
-
         const settings = {
             clientPing: parseInt(document.getElementById('cfg-client-ping').value) || 50,
-            serverPing: parseInt(document.getElementById('cfg-server-ping').value) || 10,
-            serverRamMB: Math.min(Math.max(0.05, ramInMb), 500),
+            ramLimit: parseInt(document.getElementById('cfg-ram-limit').value) || 500,
+            ramUnit: document.getElementById('cfg-ram-unit').value,
             maxUsers: parseInt(document.getElementById('cfg-max-users').value) || 20,
-            serverType: document.getElementById('cfg-server-type').value,
             allowPrivate: document.getElementById('cfg-private').value === 'true',
-            whitelistedDomains: whitelistedDomains
+            allowedDomains: domainList.filter(d => d !== "")
         };
 
+        const type = document.getElementById('cfg-server-type').value;
+
         if (serverKey) {
-            socket.emit('eb_save_settings', { key: serverKey, ownerId, settings });
+            socket.emit('eb_save_settings', { key: serverKey, ownerId, settings, serverType: type, serverScript: currentServerScript });
         } else {
-            socket.emit('eb_create_server', { ownerId, settings, serverScript: currentServerScript });
+            socket.emit('eb_create_server', { ownerId, googleId, settings, serverType: type, serverScript: currentServerScript });
         }
     }
 
     socket.on('server_created', (data) => {
         serverKey = data.key;
         serverSettings = data.settings;
-        serverActive = false;
-        document.getElementById('overlay-processing').style.display = 'none';
+        serverType = data.serverType;
+        document.getElementById('overlay-setup').style.display = 'none';
         showDashboard();
     });
 
     socket.on('settings_saved', () => {
-        serverActive = false;
-        document.getElementById('overlay-processing').style.display = 'none';
+        document.getElementById('overlay-setup').style.display = 'none';
         showDashboard();
     });
 
     function showDashboard() {
         document.getElementById('dashboard').style.display = 'block';
+        document.getElementById('dash-server-type').innerText = serverType.toUpperCase();
         updateStatusDisplay();
-        
+
         setInterval(() => {
-            if (serverKey) {
-                socket.emit('eb_heartbeat', { key: serverKey, ownerId });
-            }
+            if (serverKey) socket.emit('eb_heartbeat', { key: serverKey, ownerId });
         }, 5000);
     }
-
-    socket.on('eb_heartbeat_response', (data) => {
-        serverActive = data.active;
-        document.getElementById('dash-scripts').innerText = data.activeScripts;
-        document.getElementById('dash-ram').innerText = `${data.ramUsageKb} KB`;
-        updateStatusDisplay();
-    });
 
     function toggleServerState() {
         serverActive = !serverActive;
@@ -530,52 +493,14 @@
     }
 
     function updateStatusDisplay() {
-        const dot = document.getElementById('server-dot');
         const text = document.getElementById('server-status-text');
-        if (serverActive) {
-            dot.classList.add('online');
-            text.innerText = "ONLINE";
-        } else {
-            dot.classList.remove('online');
-            text.innerText = "OFFLINE";
-        }
-    }
-
-    function openEditSettings() {
-        document.getElementById('dashboard').style.display = 'none';
-        document.getElementById('overlay-setup').style.display = 'flex';
-        document.getElementById('setup-title').innerText = "Update Server Settings";
-        document.getElementById('setup-action-btn').innerText = "[UPDATE SERVER]";
-
-        document.getElementById('cfg-client-ping').value = serverSettings.clientPing;
-        document.getElementById('cfg-server-ping').value = serverSettings.serverPing;
-        document.getElementById('cfg-server-type').value = serverSettings.serverType || 'websocket';
-        document.getElementById('cfg-max-users').value = serverSettings.maxUsers || 20;
-        document.getElementById('cfg-private').value = String(serverSettings.allowPrivate);
-        
-        whitelistedDomains = serverSettings.whitelistedDomains || [];
-        renderDomainRows();
-        togglePrivateDomainsUI();
-        toggleServerTypeUI();
-    }
-
-    function testConnection() {
-        const btn = document.getElementById('test-conn-btn');
-        btn.disabled = true;
-        btn.innerText = "Testing...";
-        const startTime = Date.now();
-        socket.once('ebgetstatus_response', (data) => {
-            alert(`${data.status}\nping: ${Date.now() - startTime}ms`);
-            btn.disabled = false;
-            btn.innerText = "[Test Connection]";
-        });
-        socket.emit('ebgetstatus');
+        text.innerText = serverActive ? "ONLINE" : "OFFLINE";
+        text.style.color = serverActive ? "var(--accent)" : "var(--error)";
     }
 
     function copyUserId() {
-        if (!ownerId) return alert("Client ID not generated yet!");
         navigator.clipboard.writeText(ownerId);
-        alert(`Copied Client ID: ${ownerId}`);
+        alert(`Copied ID: ${ownerId}`);
     }
 
     function openHowToUse() {
@@ -583,109 +508,48 @@
         document.getElementById('copy-link').value = PUBLIC_TUNNEL_URL;
         document.getElementById('modal-howto').style.display = 'flex';
     }
-
     function closeHowToUse() { document.getElementById('modal-howto').style.display = 'none'; }
+
     function openTicTacToeCode() {
-        document.getElementById('http-disclaimer').style.display = (serverSettings.serverType === 'http') ? 'block' : 'none';
+        document.getElementById('http-disclaimer').style.display = (serverType === 'http') ? 'block' : 'none';
         switchCodeTab('client');
         document.getElementById('modal-code').style.display = 'flex';
     }
     function closeTicTacToeCode() { document.getElementById('modal-code').style.display = 'none'; }
 
     function switchCodeTab(tab) {
-        const isHttp = serverSettings.serverType === 'http';
-        const clientBtn = document.getElementById('tab-btn-client');
-        const serverBtn = document.getElementById('tab-btn-server');
-        
+        activeCodeTab = tab;
+        const box = document.getElementById('example-code');
         if (tab === 'client') {
-            clientBtn.className = "btn btn-blue";
-            serverBtn.className = "btn btn-secondary";
-            document.getElementById('example-code').value = isHttp ? getHttpClientCode() : getWsClientCode();
+            box.value = `<-- Tic-Tac-Toe Client (${serverType.toUpperCase()}) -->\n` + getClientCodeExample();
         } else {
-            clientBtn.className = "btn btn-secondary";
-            serverBtn.className = "btn btn-blue";
-            document.getElementById('example-code').value = getServerScriptCode();
+            box.value = `<-- Tic-Tac-Toe ServerScript -->\n` + getServerScriptExample();
         }
     }
 
-    function getWsClientCode() {
-        return `<!DOCTYPE html>
-<html>
-<head>
-    <title>Tic-Tac-Toe WS</title>
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"><\/script>
-    <style>body { background:#0a0a0c; color:#fff; text-align:center; font-family:sans-serif; }</style>
-</head>
-<body>
-    <h2>Tic-Tac-Toe (WebSocket)</h2>
-    <div id="status">Connecting...</div>
-    <script>
-        const socket = io("${PUBLIC_TUNNEL_URL}", { auth: { token: "default_key" } });
-        socket.on("connect", () => {
-            socket.emit("join_virtual_server", { key: "${serverKey}" });
-        });
-        socket.on("joined_successfully", () => {
-            document.getElementById("status").innerText = "Joined Server!";
-        });
-    <\/script>
-</body>
-</html>`;
+    function getClientCodeExample() {
+        return `const key = "${serverKey}";\nconst socket = io("${PUBLIC_TUNNEL_URL}");\nsocket.emit("join_virtual_server", { key });`;
     }
 
-    function getHttpClientCode() {
-        return `<!DOCTYPE html>
-<html>
-<head>
-    <title>Tic-Tac-Toe HTTP</title>
-</head>
-<body style="background:#0c0c0e; color:#fff; text-align:center; font-family:sans-serif;">
-    <h2>Tic-Tac-Toe (HTTP Mode)</h2>
-    <div id="status">Ready</div>
-    <script>
-        const clientId = "guest_" + Math.random().toString(36).substr(2, 5);
-        async function sendMove(index) {
-            const res = await fetch("${PUBLIC_TUNNEL_URL}/http_remote", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "auth-token": "${serverKey}" },
-                body: JSON.stringify({ clientId, type: "move", index })
-            });
-            const data = await res.json();
-            console.log("Response:", data);
-        }
-    <\/script>
-</body>
-</html>`;
+    function getServerScriptExample() {
+        return `// ServerScript Example\nlet board = Array(9).fill("");\nconsole.log("Tic-Tac-Toe Logic Engine Active");`;
     }
 
-    function getServerScriptCode() {
-        return `// EzBridge ServerScript (Runs inside isolated VM Sandbox)
-onEvent("move", (packet) => {
-    // Validate move
-    if (packet.index >= 0 && packet.index <= 8) {
-        broadcast("board_update", { index: packet.index, by: clientId });
-    }
-});`;
-    }
-
-    function copyText(id) {
-        const el = document.getElementById(id);
+    function copyCodeText() {
+        const el = document.getElementById('example-code');
         el.select();
         document.execCommand('copy');
-        alert("Copied!");
+        alert("Code copied to clipboard!");
     }
 
     function setCookie(name, value, days) {
-        const d = new Date();
-        d.setTime(d.getTime() + (days*24*60*60*1000));
+        const d = new Date(); d.setTime(d.getTime() + (days*24*60*60*1000));
         document.cookie = name + "=" + value + ";expires="+ d.toUTCString() + ";path=/";
     }
-
     function getCookie(name) {
-        let nameEQ = name + "=";
-        let ca = document.cookie.split(';');
+        let nameEQ = name + "="; let ca = document.cookie.split(';');
         for(let i=0;i < ca.length;i++) {
-            let c = ca[i];
-            while (c.charAt(0)==' ') c = c.substring(1,c.length);
+            let c = ca[i]; while (c.charAt(0)==' ') c = c.substring(1,c.length);
             if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
         }
         return null;
