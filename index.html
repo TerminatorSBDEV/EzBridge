@@ -93,7 +93,6 @@
 </head>
 <body>
 
-    <!-- Passo 0: Buffering Inicial -->
     <div id="overlay-sync" class="overlay">
         <div class="card">
             <h3>Connecting to EzBridge...</h3>
@@ -101,7 +100,6 @@
         </div>
     </div>
 
-    <!-- Loading Screen -->
     <div id="overlay-loading" class="overlay" style="display:none;">
         <div class="card">
             <h3 id="loading-msg">Processing request...</h3>
@@ -109,7 +107,6 @@
         </div>
     </div>
 
-    <!-- Passo 1: Captcha & Login Inicial -->
     <div id="overlay-captcha" class="overlay" style="display:none;">
         <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
@@ -129,7 +126,6 @@
         </div>
     </div>
 
-    <!-- Passo 2: Menu Principal -->
     <div id="overlay-start" class="overlay" style="display:none;">
         <div class="card">
             <h1>EzBridge</h1>
@@ -138,7 +134,6 @@
         </div>
     </div>
 
-    <!-- Passo 3: Configuração do Servidor Virtual -->
     <div id="overlay-setup" class="overlay" style="display:none;">
         <div class="card" style="max-width: 520px;">
             <h2 id="setup-title">Setup Your Server</h2>
@@ -197,7 +192,6 @@
         </div>
     </div>
 
-    <!-- Modal IDE para ServerScript -->
     <div id="modal-script" class="overlay" style="display:none;">
         <div class="card" style="max-width: 650px;">
             <h3>ServerScript Editor (REQUIRED)</h3>
@@ -216,13 +210,11 @@
         </div>
     </div>
 
-    <!-- Dashboard Principal -->
     <div id="dashboard" class="card" style="display:none; width: 480px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
             <h2 style="margin:0;">EzBridge Control</h2>
             <div style="display:flex; gap:6px; align-items:center;">
                 <button class="btn" style="width:auto; margin:0; padding:6px 10px; font-size:0.75rem;" onclick="copyUserId()">Copy Client ID</button>
-                <!-- Botão do Google exibido APENAS se o usuário ainda não tiver conta vinculada -->
                 <div id="dashboard-google-container" style="display:none;">
                     <div class="g_id_signin" data-type="icon" data-shape="circle"></div>
                 </div>
@@ -251,7 +243,6 @@
         </div>
     </div>
 
-    <!-- Modal How To Use -->
     <div id="modal-howto" class="overlay" style="display:none;">
         <div class="card" style="max-width: 600px;">
             <h3 style="margin-bottom:15px;">How to Connect Your Server</h3>
@@ -280,7 +271,6 @@
         </div>
     </div>
 
-    <!-- Modal de Comandos da API -->
     <div id="modal-commands" class="overlay" style="display:none;">
         <div class="card" style="max-width: 650px;">
             <h3>EzBridge API Commands</h3>
@@ -289,7 +279,6 @@
         </div>
     </div>
 
-    <!-- Modal Tic-Tac-Toe Exemplo -->
     <div id="modal-code" class="overlay" style="display:none;">
         <div class="card" style="max-width: 700px;">
             <h3>Tic-Tac-Toe Code Example</h3>
@@ -310,7 +299,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://generation-supporting-ross-durham.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://year-shall-bluetooth-dictionary.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
@@ -443,6 +432,8 @@
             socket.emit('eb_cancel_script_upload', { key: serverKey });
             isUploadingScript = false;
         }
+        // CORREÇÃO: Atualiza a variável com o texto editado na caixa de texto
+        currentServerScript = document.getElementById('script-editor').value;
         document.getElementById('modal-script').style.display = 'none';
     }
 
@@ -509,14 +500,19 @@
         else document.getElementById('overlay-start').style.display = 'flex';
     }
 
-    // SUBMIT DO SERVIDOR (CRIAR EXIGE GOOGLE / ATUALIZAR NÃO EXIGE)
+    // CORREÇÃO: Envio de atualização com sincronização garantida de Script e Google Sub
     function createServerSubmit() {
+        // Sincroniza o texto do editor caso o usuário tenha digitado sem clicar em "Save Script"
+        const editorText = document.getElementById('script-editor').value;
+        if (editorText && editorText.trim().length > 0) {
+            currentServerScript = editorText;
+        }
+
         const scriptVal = currentServerScript.trim();
         if (!scriptVal || scriptVal.length === 0) {
             return alert("TO CREATE/UPDATE A SERVER, NOW IT REQUIRES AT LEAST 1 CHAR INSIDE SERVERSCRIPT!");
         }
 
-        // REGRA DE SEGURANÇA: Criar servidor exige conta do Google atrelada!
         if (!serverKey && !googleSub) {
             return alert("GOOGLE SIGN-IN IS REQUIRED TO CREATE A NEW SERVER! Please sign in with Google first.");
         }
@@ -538,10 +534,9 @@
         showLoadingScreen("Creating/Updating your server.. wait while your client does its job.");
 
         if (serverKey) {
-            // Atualizar servidor (FUNCIONA SEM CONTA GOOGLE)
-            socket.emit('eb_save_settings', { key: serverKey, ownerId, settings, serverType: type, serverScript: currentServerScript });
+            // Passa ownerId e googleSub para validar a propriedade no servidor central
+            socket.emit('eb_save_settings', { key: serverKey, ownerId, googleSub, settings, serverType: type, serverScript: currentServerScript });
         } else {
-            // Criar servidor (EXIGE CONTA GOOGLE)
             socket.emit('eb_create_server', { ownerId, googleSub, email: googleEmail, settings, serverType: type, serverScript: currentServerScript });
         }
     }
@@ -581,13 +576,13 @@
         const emailText = document.getElementById('user-email-text');
 
         if (googleSub || googleEmail) {
-            container.style.display = 'none'; // Esconde botão se já estiver logado
+            container.style.display = 'none';
             if (googleEmail) {
                 emailText.innerText = googleEmail;
                 emailBox.style.display = 'block';
             }
         } else {
-            container.style.display = 'block'; // Mostra botão de login se não estiver logado
+            container.style.display = 'block';
             emailBox.style.display = 'none';
         }
     }
@@ -610,7 +605,7 @@
 
     function toggleServerState() {
         serverActive = !serverActive;
-        socket.emit('eb_toggle_server', { key: serverKey, ownerId, state: serverActive });
+        socket.emit('eb_toggle_server', { key: serverKey, ownerId, googleSub, state: serverActive });
         updateStatusDisplay();
     }
 
@@ -640,6 +635,7 @@
             document.getElementById('cfg-max-users').value = serverSettings.maxUsers || 20;
             document.getElementById('cfg-script-lifecycle').value = serverSettings.scriptLifecycle || 'permanent';
             document.getElementById('cfg-private').value = String(serverSettings.allowPrivate);
+            document.getElementById('script-editor').value = currentServerScript;
 
             toggleServerTypeUI();
             toggleDomainWhitelistUI();
