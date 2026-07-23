@@ -93,6 +93,7 @@
 </head>
 <body>
 
+    <!-- Passo 0: Buffering Inicial -->
     <div id="overlay-sync" class="overlay">
         <div class="card">
             <h3>Connecting to EzBridge...</h3>
@@ -100,6 +101,7 @@
         </div>
     </div>
 
+    <!-- Loading Screen -->
     <div id="overlay-loading" class="overlay" style="display:none;">
         <div class="card">
             <h3 id="loading-msg">Processing request...</h3>
@@ -107,6 +109,7 @@
         </div>
     </div>
 
+    <!-- Passo 1: Captcha & Login Inicial -->
     <div id="overlay-captcha" class="overlay" style="display:none;">
         <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
@@ -126,6 +129,7 @@
         </div>
     </div>
 
+    <!-- Passo 2: Menu Principal -->
     <div id="overlay-start" class="overlay" style="display:none;">
         <div class="card">
             <h1>EzBridge</h1>
@@ -134,6 +138,7 @@
         </div>
     </div>
 
+    <!-- Passo 3: Configuração do Servidor Virtual -->
     <div id="overlay-setup" class="overlay" style="display:none;">
         <div class="card" style="max-width: 520px;">
             <h2 id="setup-title">Setup Your Server</h2>
@@ -192,11 +197,12 @@
         </div>
     </div>
 
+    <!-- Modal IDE para ServerScript -->
     <div id="modal-script" class="overlay" style="display:none;">
         <div class="card" style="max-width: 650px;">
             <h3>ServerScript Editor (REQUIRED)</h3>
             <p style="font-size:0.8rem; color:var(--muted);">At least 1 character is strictly required for the server to operate.</p>
-            <textarea id="script-editor" class="code-box" rows="12" style="width:100%; height:250px; resize:none;" placeholder="// ServerScript is mandatory!&#10;Server.on('make_move', (evt) => {&#10;    Server.broadcast('board_update', evt.data);&#10;});"></textarea>
+            <textarea id="script-editor" class="code-box" rows="12" style="width:100%; height:250px; resize:none;" placeholder="// ServerScript is mandatory!&#10;Server.on('player_update', (evt) => {&#10;    Server.broadcast('state_update', evt.data);&#10;});"></textarea>
             
             <div id="script-upload-progress" class="progress-container" style="display:none;">
                 <div id="script-progress-bar" class="progress-bar"></div>
@@ -210,6 +216,7 @@
         </div>
     </div>
 
+    <!-- Dashboard Principal -->
     <div id="dashboard" class="card" style="display:none; width: 480px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
             <h2 style="margin:0;">EzBridge Control</h2>
@@ -243,6 +250,7 @@
         </div>
     </div>
 
+    <!-- Modal How To Use -->
     <div id="modal-howto" class="overlay" style="display:none;">
         <div class="card" style="max-width: 600px;">
             <h3 style="margin-bottom:15px;">How to Connect Your Server</h3>
@@ -264,13 +272,14 @@
                 </div>
                 <div style="display:flex; gap:10px; margin-top:15px;">
                     <button class="btn btn-secondary" style="flex:1;" onclick="openCommandsModal()">[API Commands]</button>
-                    <button class="btn" style="flex:1;" onclick="openTicTacToeCode()">[View Tic-Tac-Toe Example]</button>
+                    <button class="btn" style="flex:1;" onclick="openGameCode()">[View Game Example]</button>
                 </div>
             </div>
             <button class="btn btn-secondary" style="margin-top:15px;" onclick="closeHowToUse()">Close</button>
         </div>
     </div>
 
+    <!-- Modal de Comandos da API -->
     <div id="modal-commands" class="overlay" style="display:none;">
         <div class="card" style="max-width: 650px;">
             <h3>EzBridge API Commands</h3>
@@ -279,21 +288,22 @@
         </div>
     </div>
 
+    <!-- Modal Test Your Guns Exemplo -->
     <div id="modal-code" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 700px;">
-            <h3>Tic-Tac-Toe Code Example</h3>
+        <div class="card" style="max-width: 750px;">
+            <h3>Test Your Guns Code Example</h3>
             <div id="http-disclaimer" class="disclaimer" style="display:none;">
                 DISCLAIMER: it's recommended that the client should have a temporary identifier so your scripts and projects know who's sending them, its optional.
             </div>
             <div style="text-align:left; font-size:0.8rem; font-weight:bold; color:var(--accent);">HTML Client Script:</div>
-            <textarea id="example-code-client" class="code-box" readonly rows="8" style="width:100%; border:none; resize:none;"></textarea>
+            <textarea id="example-code-client" class="code-box" readonly rows="8" style="width:100%; height:180px; border:none; resize:none;"></textarea>
             
-            <div style="text-align:left; font-size:0.8rem; font-weight:bold; color:var(--accent); margin-top:10px;">ServerScript (Backend Validator):</div>
-            <textarea id="example-code-server" class="code-box" readonly rows="6" style="width:100%; border:none; resize:none;"></textarea>
+            <div style="text-align:left; font-size:0.8rem; font-weight:bold; color:var(--accent); margin-top:10px;">ServerScript (Backend Game Engine):</div>
+            <textarea id="example-code-server" class="code-box" readonly rows="8" style="width:100%; height:180px; border:none; resize:none;"></textarea>
 
             <div style="display:flex; gap:10px; margin-top:10px;">
                 <button class="btn" onclick="copyText('example-code-client')">Copy Client HTML</button>
-                <button class="btn btn-secondary" onclick="closeTicTacToeCode()">Back</button>
+                <button class="btn btn-secondary" onclick="closeGameCode()">Back</button>
             </div>
         </div>
     </div>
@@ -432,7 +442,6 @@
             socket.emit('eb_cancel_script_upload', { key: serverKey });
             isUploadingScript = false;
         }
-        // CORREÇÃO: Atualiza a variável com o texto editado na caixa de texto
         currentServerScript = document.getElementById('script-editor').value;
         document.getElementById('modal-script').style.display = 'none';
     }
@@ -500,9 +509,7 @@
         else document.getElementById('overlay-start').style.display = 'flex';
     }
 
-    // CORREÇÃO: Envio de atualização com sincronização garantida de Script e Google Sub
     function createServerSubmit() {
-        // Sincroniza o texto do editor caso o usuário tenha digitado sem clicar em "Save Script"
         const editorText = document.getElementById('script-editor').value;
         if (editorText && editorText.trim().length > 0) {
             currentServerScript = editorText;
@@ -534,7 +541,6 @@
         showLoadingScreen("Creating/Updating your server.. wait while your client does its job.");
 
         if (serverKey) {
-            // Passa ownerId e googleSub para validar a propriedade no servidor central
             socket.emit('eb_save_settings', { key: serverKey, ownerId, googleSub, settings, serverType: type, serverScript: currentServerScript });
         } else {
             socket.emit('eb_create_server', { ownerId, googleSub, email: googleEmail, settings, serverType: type, serverScript: currentServerScript });
@@ -679,7 +685,385 @@
 
     function closeHowToUse() { document.getElementById('modal-howto').style.display = 'none'; }
 
+    // --- GERADOR DINÂMICO DE CÓDIGOS DE EXEMPLO (TEST YOUR GUNS) ---
+    function getGameExamples() {
+        const isHttp = serverType === 'http';
+
+        const clientCode = isHttp ? 
+`<!-- Test Your Guns - HTTP Client Script -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Your Guns (HTTP)</title>
+    <style>
+        body { background: #0f172a; color: #fff; font-family: sans-serif; text-align: center; }
+    </style>
+</head>
+<body>
+    <h2>Test Your Guns (HTTP Mode)</h2>
+    <div id="status">Ready</div>
+    <script>
+        const link = "${PUBLIC_TUNNEL_URL}/remote";
+        const key = "${serverKey}";
+        const tempId = "usr_" + Math.floor(Math.random()*100000);
+
+        async function sendUpdate(x, y, angle) {
+            await fetch(link, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "auth-token": key },
+                body: JSON.stringify({ type: "player_update", data: { id: tempId, x, y, angle } })
+            });
+        }
+    <\/script>
+</body>
+</html>` : 
+`<!-- Test Your Guns - Client Script -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Your Guns</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"><\/script>
+    <style>
+        body { margin: 0; background: #0f172a; color: #fff; font-family: sans-serif; overflow: hidden; user-select: none; }
+        canvas { display: block; background: #1e293b; }
+        #ui { position: absolute; top: 10px; left: 10px; pointer-events: none; font-weight: bold; font-size: 1.2rem; text-shadow: 1px 1px 2px #000; }
+        #joystick { position: absolute; bottom: 40px; left: 40px; width: 120px; height: 120px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; display: none; touch-action: none; }
+        #stick { position: absolute; top: 35px; left: 35px; width: 50px; height: 50px; background: rgba(255,255,255,0.4); border-radius: 50%; pointer-events: none; }
+    </style>
+</head>
+<body>
+    <div id="ui">Health: <span id="hp">100</span> | Status: <span id="status">Connecting...</span></div>
+    <div id="joystick"><div id="stick"></div></div>
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener("resize", resize);
+        resize();
+
+        const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        if (isMobile) {
+            document.getElementById("joystick").style.display = "block";
+        }
+
+        const link = "${PUBLIC_TUNNEL_URL}";
+        const key = "${serverKey}";
+        const socket = io(link, { auth: { token: "default_key" } });
+
+        let myId = Math.random().toString(36).substring(2, 7);
+        let myColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+        let myPos = { x: Math.random() * 1500, y: Math.random() * 1500 };
+        let myHp = 100;
+        let isDead = false;
+        let lastShot = 0;
+        let aimAngle = 0;
+
+        const keys = { w: false, a: false, s: false, d: false };
+        let players = {};
+        let bullets = [];
+
+        let joyActive = false;
+        let joyVector = { x: 0, y: 0 };
+
+        socket.on("connect", () => {
+            socket.emit("join_virtual_server", { key });
+        });
+
+        socket.on("joined_successfully", () => {
+            document.getElementById("status").innerText = "Connected";
+            socket.emit("RemoteEvent", { type: "player_join", data: { id: myId, color: myColor, x: myPos.x, y: myPos.y } });
+        });
+
+        socket.on("RemoteEvent", (pkt) => {
+            if (pkt.type === "state_update") {
+                const serverPlayers = pkt.data.players;
+                for (let id in serverPlayers) {
+                    if (id === myId) {
+                        myHp = serverPlayers[id].hp;
+                        document.getElementById("hp").innerText = myHp;
+                        if (myHp <= 0 && !isDead) {
+                            isDead = true;
+                            setTimeout(() => {
+                                isDead = false;
+                                myPos = { x: Math.random() * 1500, y: Math.random() * 1500 };
+                                socket.emit("RemoteEvent", { type: "respawn", data: { id: myId, x: myPos.x, y: myPos.y } });
+                            }, 3000);
+                        }
+                    } else {
+                        players[id] = serverPlayers[id];
+                    }
+                }
+            } else if (pkt.type === "spawn_bullet") {
+                if (pkt.data.shooterId !== myId) {
+                    bullets.push(pkt.data);
+                }
+            }
+        });
+
+        window.addEventListener("keydown", (e) => {
+            if (e.key.toLowerCase() === 'w') keys.w = true;
+            if (e.key.toLowerCase() === 'a') keys.a = true;
+            if (e.key.toLowerCase() === 's') keys.s = true;
+            if (e.key.toLowerCase() === 'd') keys.d = true;
+        });
+
+        window.addEventListener("keyup", (e) => {
+            if (e.key.toLowerCase() === 'w') keys.w = false;
+            if (e.key.toLowerCase() === 'a') keys.a = false;
+            if (e.key.toLowerCase() === 's') keys.s = false;
+            if (e.key.toLowerCase() === 'd') keys.d = false;
+        });
+
+        let mousePos = { x: canvas.width / 2, y: canvas.height / 2 };
+        window.addEventListener("mousemove", (e) => {
+            mousePos.x = e.clientX;
+            mousePos.y = e.clientY;
+        });
+
+        window.addEventListener("mousedown", (e) => {
+            if (e.button === 2 && !isDead) {
+                shoot();
+            }
+        });
+        window.addEventListener("contextmenu", (e) => e.preventDefault());
+
+        const joystickEl = document.getElementById("joystick");
+        const stickEl = document.getElementById("stick");
+        let joyCenter = { x: 0, y: 0 };
+
+        joystickEl.addEventListener("touchstart", (e) => {
+            joyActive = true;
+            const rect = joystickEl.getBoundingClientRect();
+            joyCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+        });
+
+        window.addEventListener("touchmove", (e) => {
+            if (!joyActive) return;
+            const touch = e.touches[0];
+            const dx = touch.clientX - joyCenter.x;
+            const dy = touch.clientY - joyCenter.y;
+            const dist = Math.min(50, Math.hypot(dx, dy));
+            const angle = Math.atan2(dy, dx);
+
+            joyVector.x = Math.cos(angle) * (dist / 50);
+            joyVector.y = Math.sin(angle) * (dist / 50);
+
+            stickEl.style.transform = \`translate(\${Math.cos(angle)*dist}px, \${Math.sin(angle)*dist}px)\`;
+        });
+
+        window.addEventListener("touchend", (e) => {
+            if (joyActive) {
+                joyActive = false;
+                joyVector = { x: 0, y: 0 };
+                stickEl.style.transform = \`translate(0px, 0px)\`;
+            }
+        });
+
+        window.addEventListener("touchstart", (e) => {
+            if (isDead) return;
+            const touch = e.touches[0];
+            if (touch.clientX > 180 || touch.clientY < canvas.height - 180) {
+                mousePos.x = touch.clientX;
+                mousePos.y = touch.clientY;
+                shoot();
+            }
+        });
+
+        function shoot() {
+            const now = Date.now();
+            if (now - lastShot < 200) return;
+            lastShot = now;
+
+            const bullet = {
+                x: myPos.x,
+                y: myPos.y,
+                vx: Math.cos(aimAngle) * 12,
+                vy: Math.sin(aimAngle) * 12,
+                damage: 13,
+                shooterId: myId
+            };
+
+            bullets.push(bullet);
+            socket.emit("RemoteEvent", { type: "fire_bullet", data: bullet });
+        }
+
+        function update() {
+            if (!isDead) {
+                let speed = 4;
+                if (isMobile) {
+                    myPos.x += joyVector.x * speed;
+                    myPos.y += joyVector.y * speed;
+                } else {
+                    if (keys.w) myPos.y -= speed;
+                    if (keys.s) myPos.y += speed;
+                    if (keys.a) myPos.x -= speed;
+                    if (keys.d) myPos.x += speed;
+                }
+
+                myPos.x = Math.max(0, Math.min(3000, myPos.x));
+                myPos.y = Math.max(0, Math.min(3000, myPos.y));
+
+                const screenCenterX = canvas.width / 2;
+                const screenCenterY = canvas.height / 2;
+                aimAngle = Math.atan2(mousePos.y - screenCenterY, mousePos.x - screenCenterX);
+
+                socket.emit("RemoteEvent", { type: "player_update", data: { id: myId, x: myPos.x, y: myPos.y, angle: aimAngle, color: myColor } });
+            }
+
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                let b = bullets[i];
+                b.x += b.vx;
+                b.y += b.vy;
+
+                if (b.x < 0 || b.x > 3000 || b.y < 0 || b.y > 3000) {
+                    bullets.splice(i, 1);
+                    continue;
+                }
+
+                if (b.shooterId === myId) {
+                    for (let id in players) {
+                        let p = players[id];
+                        if (p.hp > 0 && Math.abs(p.x - b.x) < 25 && Math.abs(p.y - b.y) < 25) {
+                            socket.emit("RemoteEvent", { type: "apply_damage", data: { targetId: id, damage: b.damage } });
+                            bullets.splice(i, 1);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.save();
+            if (!isDead) {
+                ctx.translate(canvas.width / 2 - myPos.x, canvas.height / 2 - myPos.y);
+            }
+
+            ctx.strokeStyle = "#475569";
+            ctx.lineWidth = 4;
+            ctx.strokeRect(0, 0, 3000, 3000);
+
+            if (!isDead) {
+                ctx.save();
+                ctx.translate(myPos.x, myPos.y);
+                ctx.fillStyle = myColor;
+                ctx.fillRect(-20, -20, 40, 40);
+
+                ctx.fillStyle = "#ef4444";
+                ctx.fillRect(-20, -32, 40, 6);
+                ctx.fillStyle = "#22c55e";
+                ctx.fillRect(-20, -32, 40 * (myHp / 100), 6);
+
+                ctx.rotate(aimAngle);
+                ctx.fillStyle = "#94a3b8";
+                ctx.fillRect(0, -6, 30, 12);
+                ctx.restore();
+            }
+
+            for (let id in players) {
+                let p = players[id];
+                if (p.hp <= 0) continue;
+
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.fillStyle = p.color || '#fff';
+                ctx.fillRect(-20, -20, 40, 40);
+
+                ctx.fillStyle = "#ef4444";
+                ctx.fillRect(-20, -32, 40, 6);
+                ctx.fillStyle = "#22c55e";
+                ctx.fillRect(-20, -32, 40 * (p.hp / 100), 6);
+
+                ctx.rotate(p.angle);
+                ctx.fillStyle = "#94a3b8";
+                ctx.fillRect(0, -6, 30, 12);
+                ctx.restore();
+            }
+
+            ctx.fillStyle = "#facc15";
+            bullets.forEach(b => {
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            ctx.restore();
+        }
+
+        function loop() {
+            update();
+            draw();
+            requestAnimationFrame(loop);
+        }
+        loop();
+    <\/script>
+</body>
+</html>`;
+
+        const serverCode = 
+`// --- ServerScript Backend Game Engine (Mandatory ServerScript) ---
+let players = {};
+
+Server.on('player_join', (evt) => {
+    const id = evt.data.id;
+    players[id] = {
+        id: id,
+        x: evt.data.x || 1500,
+        y: evt.data.y || 1500,
+        color: evt.data.color || '#ffffff',
+        angle: 0,
+        hp: 100
+    };
+});
+
+Server.on('player_update', (evt) => {
+    const data = evt.data;
+    if (players[data.id]) {
+        players[data.id].x = data.x;
+        players[data.id].y = data.y;
+        players[data.id].angle = data.angle;
+        players[data.id].color = data.color;
+    }
+});
+
+Server.on('fire_bullet', (evt) => {
+    Server.broadcast('spawn_bullet', evt.data);
+});
+
+Server.on('apply_damage', (evt) => {
+    const { targetId, damage } = evt.data;
+    if (players[targetId]) {
+        players[targetId].hp = Math.max(0, players[targetId].hp - damage);
+    }
+});
+
+Server.on('respawn', (evt) => {
+    const id = evt.data.id;
+    if (players[id]) {
+        players[id].hp = 100;
+        players[id].x = evt.data.x;
+        players[id].y = evt.data.y;
+    }
+});
+
+setInterval(() => {
+    Server.broadcast('state_update', { players });
+}, 1000 / 30);`;
+
+        return { clientCode, serverCode };
+    }
+
+    // --- PROMPT DE IA ATUALIZADO (INCLUI CÓDIGOS E EXPLICATIVOS) ---
     function copyAIPrompt() {
+        const { clientCode, serverCode } = getGameExamples();
         const promptText = `*How to implement EzBridge's universal server on your online project*
 EzBridge server is a universal server that is also free and can be used to make multiplayer and online apps, if you want to implement it on your project, please follow these steps:
 
@@ -709,7 +1093,17 @@ ${serverType === 'websocket' ?
 - Server Memory: Configured at ${serverSettings.ramLimitMB || 500}MB (+50MB hidden VRAM protection).
 - Instance Scaling: Automatic room instancing per ${serverSettings.maxUsers || 20} max users.
 
-that's all you needed to know, now, you can start.`;
+that's all you needed to know, now, you can start.
+
+here are some examples so you understand more about making online apps:
+1 - html script
+${clientCode}
+
+2 - serverscript
+${serverCode}
+
+as you can see, the client calculates its movement, gun and actions, then these actions and etc are sent to the server, the server sees who sent it (because the client has a temporary id on its ram, so the server knows who sent it) and broadcasts this remote to everyone.
+like, let's just say the player jumped, the server sees it "let me see who just jumped.." and tells everyone "Hey everyone! the player just jumped!". and because this is client-sided, exploiters can teleport their character, get superspeed and invisibility, you can solve this by instead, making the server calculate the actions from everyone OR a anticheat that detects if a player is moving faster than expected, then teleport the player back to where he was. But only add anticheats unless the user said "moving and actions are client-sided".`;
 
         navigator.clipboard.writeText(promptText);
         alert("AI Prompt copied to clipboard! Paste it into your AI chat.");
@@ -727,7 +1121,7 @@ GET ${PUBLIC_TUNNEL_URL}/getstatus
 2. SEND REMOTE EVENT:
 POST ${PUBLIC_TUNNEL_URL}/remote
 Header: "auth-token": "${serverKey}"
-Body: { "type": "make_move", "data": { "idx": 0 } }`;
+Body: { "type": "player_join", "data": { "id": "usr_123" } }`;
         } else {
             box.innerText = `// --- EZBRIDGE WEBSOCKET API ---
 1. CONNECT & JOIN ROOM:
@@ -735,7 +1129,7 @@ const socket = io("${PUBLIC_TUNNEL_URL}", { auth: { token: "default_key" } });
 socket.emit("join_virtual_server", { key: "${serverKey}" });
 
 2. SEND REMOTE EVENT:
-socket.emit("RemoteEvent", { type: "make_move", data: { idx: 0 } });
+socket.emit("RemoteEvent", { type: "player_join", data: { id: "usr_123" } });
 
 3. GET CLIENT USER ID:
 socket.emit("RemoteEvent", { type: "ebuserid_get" });
@@ -749,150 +1143,18 @@ socket.on("RemoteEvent", (pkt) => {
 
     function closeCommandsModal() { document.getElementById('modal-commands').style.display = 'none'; }
 
-    function openTicTacToeCode() {
+    function openGameCode() {
         const isHttp = serverType === 'http';
         document.getElementById('http-disclaimer').style.display = isHttp ? 'block' : 'none';
 
-        const clientCode = isHttp ? 
-`<!-- HTTP Tic-Tac-Toe Client -->
-<!DOCTYPE html>
-<html>
-<head>
-    <title>HTTP Tic-Tac-Toe</title>
-    <style>
-        body { background:#030712; color:#fff; font-family:sans-serif; text-align:center; }
-        .grid { display:grid; grid-template-columns:repeat(3,90px); gap:8px; justify-content:center; margin-top:20px; }
-        .cell { width:90px; height:90px; background:#0f172a; border:1px solid #1e293b; display:flex; align-items:center; justify-content:center; font-size:2rem; cursor:pointer; border-radius:8px; font-weight:bold; }
-    </style>
-</head>
-<body>
-    <h2>HTTP Tic-Tac-Toe</h2>
-    <div id="status">Ready</div>
-    <div class="grid">
-        <div class="cell" onclick="play(0)"></div><div class="cell" onclick="play(1)"></div><div class="cell" onclick="play(2)"></div>
-        <div class="cell" onclick="play(3)"></div><div class="cell" onclick="play(4)"></div><div class="cell" onclick="play(5)"></div>
-        <div class="cell" onclick="play(6)"></div><div class="cell" onclick="play(7)"></div><div class="cell" onclick="play(8)"></div>
-    </div>
-    <script>
-        const key = "${serverKey}";
-        const link = "${PUBLIC_TUNNEL_URL}/remote";
-        const tempClientId = "usr_" + Math.floor(Math.random()*10000);
-
-        async function play(idx) {
-            await fetch(link, {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "auth-token": key },
-                body: JSON.stringify({ type: "make_move", data: { idx, clientId: tempClientId } })
-            });
-        }
-    <\/script>
-</body>
-</html>` :
-`<!-- WebSocket Tic-Tac-Toe Client -->
-<!DOCTYPE html>
-<html>
-<head>
-    <title>WebSocket Tic-Tac-Toe</title>
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"><\/script>
-    <style>
-        body { background:#030712; color:#fff; font-family:sans-serif; text-align:center; }
-        .grid { display:grid; grid-template-columns:repeat(3,90px); gap:8px; justify-content:center; margin-top:20px; }
-        .cell { width:90px; height:90px; background:#0f172a; border:1px solid #1e293b; display:flex; align-items:center; justify-content:center; font-size:2rem; cursor:pointer; border-radius:8px; font-weight:bold; }
-        #status { font-weight: bold; margin-top: 20px; color: #06b6d4; }
-    </style>
-</head>
-<body>
-    <h2>WebSocket Tic-Tac-Toe</h2>
-    <div id="status">Connecting...</div>
-    <div class="grid">
-        <div class="cell" onclick="play(0)"></div><div class="cell" onclick="play(1)"></div><div class="cell" onclick="play(2)"></div>
-        <div class="cell" onclick="play(3)"></div><div class="cell" onclick="play(4)"></div><div class="cell" onclick="play(5)"></div>
-        <div class="cell" onclick="play(6)"></div><div class="cell" onclick="play(7)"></div><div class="cell" onclick="play(8)"></div>
-    </div>
-    <script>
-        const key = "${serverKey}";
-        const link = "${PUBLIC_TUNNEL_URL}";
-        const socket = io(link, { auth: { token: "default_key" } });
-
-        socket.on("connect", () => {
-            socket.emit("join_virtual_server", { key });
-        });
-
-        socket.on("joined_successfully", () => {
-            document.getElementById("status").innerText = "Game Active!";
-            socket.emit("RemoteEvent", { type: "join_game" });
-        });
-
-        socket.on("RemoteEvent", (pkt) => {
-            if (pkt.type === "board_update") {
-                const cells = document.querySelectorAll(".cell");
-                pkt.data.board.forEach((val, i) => cells[i].innerText = val || "");
-                if (pkt.data.winner) {
-                    document.getElementById("status").innerText = "Result: " + pkt.data.winner;
-                } else {
-                    document.getElementById("status").innerText = "Turn: " + pkt.data.currentTurn;
-                }
-            }
-        });
-
-        function play(idx) {
-            socket.emit("RemoteEvent", { type: "make_move", data: { idx } });
-        }
-    <\/script>
-</body>
-</html>`;
-
-        const serverCode = 
-`// --- ServerScript Backend Game Engine (Mandatory ServerScript) ---
-let board = Array(9).fill(null);
-let currentTurn = 'X';
-let players = {}; // senderId -> 'X' or 'O'
-
-function checkWin(b) {
-    const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-    for (let w of wins) {
-        if (b[w[0]] && b[w[0]] === b[w[1]] && b[w[0]] === b[w[2]]) return b[w[0]];
-    }
-    if (b.every(c => c !== null)) return 'TIE';
-    return null;
-}
-
-Server.on('join_game', (evt) => {
-    const id = evt.senderId;
-    if (!players.X) players.X = id;
-    else if (!players.O && id !== players.X) players.O = id;
-
-    Server.broadcast('board_update', { board, currentTurn, winner: null });
-});
-
-Server.on('make_move', (evt) => {
-    const idx = evt.data.idx;
-    const symbol = players.X === evt.senderId ? 'X' : (players.O === evt.senderId ? 'O' : null);
-
-    if (!symbol || symbol !== currentTurn) return;
-    if (board[idx] !== null) return;
-
-    board[idx] = symbol;
-    currentTurn = currentTurn === 'X' ? 'O' : 'X';
-
-    const winner = checkWin(board);
-    Server.broadcast('board_update', { board, currentTurn, winner });
-
-    if (winner) {
-        setTimeout(() => {
-            board = Array(9).fill(null);
-            currentTurn = 'X';
-            Server.broadcast('board_update', { board, currentTurn, winner: null });
-        }, 3000); // 3s Auto Reset
-    }
-});`;
+        const { clientCode, serverCode } = getGameExamples();
 
         document.getElementById('example-code-client').value = clientCode;
         document.getElementById('example-code-server').value = serverCode;
         document.getElementById('modal-code').style.display = 'flex';
     }
 
-    function closeTicTacToeCode() { document.getElementById('modal-code').style.display = 'none'; }
+    function closeGameCode() { document.getElementById('modal-code').style.display = 'none'; }
 
     function copyText(id) {
         const el = document.getElementById(id);
