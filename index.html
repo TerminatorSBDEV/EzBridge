@@ -121,7 +121,7 @@
                 <div class="g_id_signin" data-type="icon" data-shape="circle"></div>
             </div>
             <p style="font-size:0.85rem; color:var(--muted); line-height:1.5;">
-                Welcome to EB. Create and deploy high-performance virtual servers for free!
+                Welcome to EB. Sign in with Google to protect and secure your virtual server instance. Complete the captcha to proceed.
             </p>
             <div style="display: flex; justify-content: center; margin: 20px 0;">
                 <div class="g-recaptcha" data-sitekey="6Lf8VTMtAAAAAAMXrs6lk-tLBjuW0u8ZV5LevzMz" data-callback="captchaSolved"></div>
@@ -135,6 +135,9 @@
             <h1>EzBridge</h1>
             <p style="color:var(--muted); font-size:0.9rem; margin-bottom:25px;">Create and implement a server to your apps for free!</p>
             <button class="btn" onclick="openSetupUI()">[CLICK HERE TO BEGIN]</button>
+            <div style="font-size:0.7rem; color:var(--muted); margin-top:20px; line-height:1.4;">
+                "the entire server system runs on a 8gb ram phone, so if your server stops working, you already know the reason."
+            </div>
         </div>
     </div>
 
@@ -306,7 +309,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://beijing-accessories-grounds-field.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://madonna-sit-margin-advantage.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
@@ -317,7 +320,7 @@
     let currentServerScript = "";
     let whitelistedDomains = [];
 
-    const SCRIPT_CHUNK_SIZE = 100 * 1024;
+    const SCRIPT_CHUNK_SIZE = 192 * 1024; // Updated to 192KB chunk limit
     let isUploadingScript = false;
 
     let socket = io(PUBLIC_TUNNEL_URL, {
@@ -484,6 +487,10 @@
     });
 
     function openSetupUI() {
+        if (!googleSub) {
+            alert("TO CREATE A SERVER, YOU MUST LOG IN WITH GOOGLE!");
+            return;
+        }
         document.getElementById('overlay-start').style.display = 'none';
         document.getElementById('overlay-setup').style.display = 'flex';
         renderDomains();
@@ -496,6 +503,10 @@
     }
 
     function createServerSubmit() {
+        if (!googleSub) {
+            return alert("TO CREATE/UPDATE A SERVER, YOU MUST LOG IN WITH GOOGLE!");
+        }
+
         const scriptVal = currentServerScript.trim();
         if (!scriptVal || scriptVal.length === 0) {
             return alert("TO CREATE/UPDATE A SERVER, NOW IT REQUIRES AT LEAST 1 CHAR INSIDE SERVERSCRIPT!");
@@ -518,7 +529,7 @@
         showLoadingScreen("Creating/Updating your server.. wait while your client does its job.");
 
         if (serverKey) {
-            socket.emit('eb_save_settings', { key: serverKey, ownerId, settings, serverType: type, serverScript: currentServerScript });
+            socket.emit('eb_save_settings', { key: serverKey, ownerId, googleSub, settings, serverType: type, serverScript: currentServerScript });
         } else {
             socket.emit('eb_create_server', { ownerId, googleSub, settings, serverType: type, serverScript: currentServerScript });
         }
@@ -582,6 +593,11 @@
     }
 
     function openEditSettings() {
+        if (!googleSub) {
+            alert("TO UPDATE A SERVER, YOU MUST LOG IN WITH GOOGLE!");
+            return;
+        }
+
         showLoadingScreen("Wait, we are gathering your previous server changes and synchronizing them here.");
         setTimeout(() => {
             hideLoadingScreen();
@@ -611,7 +627,6 @@
         document.getElementById('overlay-loading').style.display = 'none';
     }
 
-    // CORREÇÃO: Test Connection Funcionando
     function testConnection() {
         const btn = document.getElementById('test-conn-btn');
         btn.disabled = true;
@@ -664,7 +679,7 @@ ${serverType === 'websocket' ?
 - ServerScript API: Write sandboxed backend JS code (Server.on('event', fn), Server.broadcast('event', data)) to handle server-side game logic securely.
 
 4 - Learn More About EzBridge
-- Max Packet Size: 250KB per packet (350KB chunk stream processing).
+- Max Packet Size: 192KB per packet (192KB chunk stream processing).
 - Request Limit: Up to 100 requests/sec (250 reqs/s triggers 5-min IP Ban).
 - Server Memory: Configured at ${serverSettings.ramLimitMB || 500}MB (+50MB hidden VRAM protection).
 - Instance Scaling: Automatic room instancing per ${serverSettings.maxUsers || 20} max users.
@@ -843,7 +858,7 @@ Server.on('make_move', (evt) => {
             board = Array(9).fill(null);
             currentTurn = 'X';
             Server.broadcast('board_update', { board, currentTurn, winner: null });
-        }, 3000); // 3s Auto Reset
+        }, 3000);
     }
 });`;
 
