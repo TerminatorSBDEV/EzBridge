@@ -88,7 +88,10 @@
             background: #020617; padding: 12px; border-radius: 6px; border: 1px solid var(--border);
             font-family: monospace; font-size: 0.8rem; margin: 10px 0; overflow-x: auto; white-space: pre; text-align: left;
         }
-        .disclaimer { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--error); color: #fca5a5; padding: 10px; border-radius: 6px; font-size: 0.75rem; text-align: left; margin-bottom: 10px; }
+        .user-tag {
+            font-size: 0.75rem; color: var(--accent); background: rgba(6, 182, 212, 0.1);
+            padding: 4px 8px; border-radius: 4px; border: 1px solid var(--accent-glow); margin-bottom: 10px; display: inline-block;
+        }
     </style>
 </head>
 <body>
@@ -101,7 +104,7 @@
         </div>
     </div>
 
-    <!-- Loading Screen -->
+    <!-- Loading Screen for Server Updates -->
     <div id="overlay-loading" class="overlay" style="display:none;">
         <div class="card">
             <h3 id="loading-msg">Processing request...</h3>
@@ -109,11 +112,12 @@
         </div>
     </div>
 
-    <!-- Passo 1: Captcha & Google Login Mandatory -->
+    <!-- Passo 1: Captcha & Login -->
     <div id="overlay-captcha" class="overlay" style="display:none;">
         <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                 <h1 style="margin:0;">EzBridge</h1>
+                <!-- Google Sign-In Container -->
                 <div id="g_id_onload"
                      data-client_id="596211651893-5vddbq1vee4uv9oq26vqmcu807umlaqt.apps.googleusercontent.com"
                      data-callback="handleGoogleLogin">
@@ -121,7 +125,7 @@
                 <div class="g_id_signin" data-type="icon" data-shape="circle"></div>
             </div>
             <p style="font-size:0.85rem; color:var(--muted); line-height:1.5;">
-                Welcome to EB. Please solve the captcha and sign in with Google to create a server.
+                Welcome to EB. Create and deploy high-performance virtual servers for free!
             </p>
             <div style="display: flex; justify-content: center; margin: 20px 0;">
                 <div class="g-recaptcha" data-sitekey="6Lf8VTMtAAAAAAMXrs6lk-tLBjuW0u8ZV5LevzMz" data-callback="captchaSolved"></div>
@@ -133,12 +137,8 @@
     <div id="overlay-start" class="overlay" style="display:none;">
         <div class="card">
             <h1>EzBridge</h1>
+            <div id="google-status-tag" class="user-tag" style="display:none;">Logged in via Google</div>
             <p style="color:var(--muted); font-size:0.9rem; margin-bottom:25px;">Create and implement a server to your apps for free!</p>
-            
-            <div id="google-login-notice" style="margin-bottom:15px; font-size:0.8rem; color:#fca5a5; display:block;">
-                ⚠️ Google Sign-In is required to create a server!
-            </div>
-
             <button class="btn" onclick="openSetupUI()">[CLICK HERE TO BEGIN]</button>
         </div>
     </div>
@@ -206,7 +206,7 @@
     <div id="modal-script" class="overlay" style="display:none;">
         <div class="card" style="max-width: 650px;">
             <h3>ServerScript Editor (REQUIRED)</h3>
-            <p style="font-size:0.8rem; color:var(--muted);">At least 1 character is strictly required for the server to operate.</p>
+            <p style="font-size:0.8rem; color:var(--muted);">At least 1 character is strictly required. ServerScript handles all application logic.</p>
             <textarea id="script-editor" class="code-box" rows="12" style="width:100%; height:250px; resize:none;" placeholder="// ServerScript is mandatory!&#10;Server.on('make_move', (evt) => {&#10;    Server.broadcast('board_update', evt.data);&#10;});"></textarea>
             
             <div id="script-upload-progress" class="progress-container" style="display:none;">
@@ -225,12 +225,17 @@
     <div id="dashboard" class="card" style="display:none; width: 480px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
             <h2 style="margin:0;">EzBridge Control</h2>
-            <div style="display:flex; gap:6px;">
+            <div style="display:flex; gap:6px; align-items:center;">
                 <button class="btn" style="width:auto; margin:0; padding:6px 10px; font-size:0.75rem;" onclick="copyUserId()">Copy Client ID</button>
-                <div id="dashboard-google-btn"></div>
+                <!-- Log in with Google button only appears if not signed in yet -->
+                <div id="dash-google-btn-wrapper">
+                    <div class="g_id_signin" data-type="icon" data-shape="circle"></div>
+                </div>
             </div>
         </div>
         
+        <div id="dash-email-tag" class="user-tag" style="display:none;"></div>
+
         <div class="status-indicator">
             <div id="server-dot" class="dot"></div>
             <span>Server status: <span id="server-status-text">OFFLINE</span></span>
@@ -281,7 +286,6 @@
         </div>
     </div>
 
-    <!-- Modal de Comandos da API -->
     <div id="modal-commands" class="overlay" style="display:none;">
         <div class="card" style="max-width: 650px;">
             <h3>EzBridge API Commands</h3>
@@ -290,13 +294,9 @@
         </div>
     </div>
 
-    <!-- Modal Tic-Tac-Toe Exemplo -->
     <div id="modal-code" class="overlay" style="display:none;">
         <div class="card" style="max-width: 700px;">
             <h3>Tic-Tac-Toe Code Example</h3>
-            <div id="http-disclaimer" class="disclaimer" style="display:none;">
-                DISCLAIMER: it's recommended that the client should have a temporary identifier so your scripts and projects know who's sending them, its optional.
-            </div>
             <div style="text-align:left; font-size:0.8rem; font-weight:bold; color:var(--accent);">HTML Client Script:</div>
             <textarea id="example-code-client" class="code-box" readonly rows="8" style="width:100%; border:none; resize:none;"></textarea>
             
@@ -311,10 +311,11 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://john-colon-magnetic-sensitive.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://barn-robots-boat-book.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
+    let googleEmail = null;
     let serverKey = "";
     let serverActive = false;
     let serverType = "websocket";
@@ -345,6 +346,7 @@
             serverType = data.server.serverType || "websocket";
             serverSettings = data.server.settings;
             currentServerScript = data.server.serverScript || "";
+            googleEmail = data.server.email || null;
             whitelistedDomains = serverSettings.whitelistedDomains || [];
             showDashboard();
         } else {
@@ -364,10 +366,15 @@
         const payload = JSON.parse(jsonPayload);
 
         googleSub = payload.sub;
-        socket.emit('eb_google_login', { googleSub, email: payload.email, ownerId });
+        googleEmail = payload.email;
+
+        socket.emit('eb_google_login', { googleSub, email: googleEmail, ownerId });
     }
 
     socket.on('google_login_verified', (data) => {
+        googleEmail = data.email || googleEmail;
+        updateGoogleUI();
+
         if (data.hasServer) {
             serverKey = data.server.key;
             serverActive = data.server.active;
@@ -377,11 +384,21 @@
             whitelistedDomains = serverSettings.whitelistedDomains || [];
             showDashboard();
             alert("Google account linked & server synced across devices!");
-        } else {
-            alert("Google account linked! Now click [CLICK HERE TO BEGIN] to create your server.");
-            document.getElementById('google-login-notice').style.display = 'none';
         }
     });
+
+    function updateGoogleUI() {
+        if (googleEmail) {
+            document.getElementById('dash-google-btn-wrapper').style.display = 'none';
+            const tag = document.getElementById('dash-email-tag');
+            tag.innerText = `Google: ${googleEmail}`;
+            tag.style.display = 'inline-block';
+
+            const startTag = document.getElementById('google-status-tag');
+            startTag.innerText = `Logged in: ${googleEmail}`;
+            startTag.style.display = 'inline-block';
+        }
+    }
 
     function captchaSolved() {
         document.getElementById('overlay-captcha').style.display = 'none';
@@ -492,10 +509,6 @@
     });
 
     function openSetupUI() {
-        // REGRA ESTRITA: Exige login com Google para criar servidor novo
-        if (!serverKey && !googleSub) {
-            return alert("TO CREATE A SERVER, YOU MUST SIGN IN OR LOG IN WITH GOOGLE FIRST!");
-        }
         document.getElementById('overlay-start').style.display = 'none';
         document.getElementById('overlay-setup').style.display = 'flex';
         renderDomains();
@@ -507,10 +520,11 @@
         else document.getElementById('overlay-start').style.display = 'flex';
     }
 
+    // CREATE SERVER LOGIC (STRICTLY REQUIRES GOOGLE LOGIN ONLY FOR INITIAL CREATION)
     function createServerSubmit() {
-        // Validação estrita de Google Login para criação
-        if (!serverKey && !googleSub) {
-            return alert("TO CREATE A SERVER, YOU MUST SIGN IN OR LOG IN WITH GOOGLE FIRST!");
+        // If creating a brand new server, force Google Sign-In
+        if (!serverKey && (!googleSub || !googleEmail)) {
+            return alert("GOOGLE SIGN-IN IS REQUIRED TO CREATE A NEW SERVER!\nPlease sign in using the Google button first.");
         }
 
         const scriptVal = currentServerScript.trim();
@@ -535,9 +549,10 @@
         showLoadingScreen("Creating/Updating your server.. wait while your client does its job.");
 
         if (serverKey) {
+            // Updating existing server DOES NOT force a new Google Sign-In
             socket.emit('eb_save_settings', { key: serverKey, ownerId, settings, serverType: type, serverScript: currentServerScript });
         } else {
-            socket.emit('eb_create_server', { ownerId, googleSub, settings, serverType: type, serverScript: currentServerScript });
+            socket.emit('eb_create_server', { ownerId, googleSub, email: googleEmail, settings, serverType: type, serverScript: currentServerScript });
         }
     }
 
@@ -560,6 +575,7 @@
 
     function showDashboard() {
         document.getElementById('dashboard').style.display = 'block';
+        updateGoogleUI();
         updateStatusDisplay();
 
         setInterval(() => {
@@ -680,8 +696,8 @@ ${serverType === 'websocket' ?
 - ServerScript API: Write sandboxed backend JS code (Server.on('event', fn), Server.broadcast('event', data)) to handle server-side game logic securely.
 
 4 - Learn More About EzBridge
-- Max Packet Size: 192KB per packet (chunked streams for larger data).
-- Request Limit: Up to 100 requests/sec (250 reqs/s triggers 5-min IP Ban).
+- Max Packet Size: 192KB per packet (chunked streams supported).
+- Request Limit: Up to 60 requests/sec per client (250 reqs/s triggers 5-min IP Ban).
 - Server Memory: Configured at ${serverSettings.ramLimitMB || 500}MB (+50MB hidden VRAM protection).
 - Instance Scaling: Automatic room instancing per ${serverSettings.maxUsers || 20} max users.
 
@@ -727,7 +743,6 @@ socket.on("RemoteEvent", (pkt) => {
 
     function openTicTacToeCode() {
         const isHttp = serverType === 'http';
-        document.getElementById('http-disclaimer').style.display = isHttp ? 'block' : 'none';
 
         const clientCode = isHttp ? 
 `<!-- HTTP Tic-Tac-Toe Client -->
@@ -819,7 +834,7 @@ socket.on("RemoteEvent", (pkt) => {
 </html>`;
 
         const serverCode = 
-`// --- ServerScript Backend Game Engine (Mandatory ServerScript) ---
+`// --- ServerScript Backend Game Engine (Mandatory) ---
 let board = Array(9).fill(null);
 let currentTurn = 'X';
 let players = {}; // senderId -> 'X' or 'O'
@@ -859,7 +874,7 @@ Server.on('make_move', (evt) => {
             board = Array(9).fill(null);
             currentTurn = 'X';
             Server.broadcast('board_update', { board, currentTurn, winner: null });
-        }, 3000); // 3s Auto Reset
+        }, 3000);
     }
 });`;
 
