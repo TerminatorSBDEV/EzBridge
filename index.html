@@ -152,11 +152,6 @@
                 </div>
 
                 <div class="settings-item">
-                    <label>Ping Target (Server & Client)</label>
-                    <input type="number" id="cfg-ping" value="55" min="10" max="1000">
-                </div>
-
-                <div class="settings-item">
                     <label>Server RAM Limit</label>
                     <div style="display:flex; gap:8px;">
                         <input type="number" id="cfg-ram-val" value="500" min="50" max="500" style="flex:1;">
@@ -206,7 +201,7 @@
     <div id="modal-script" class="overlay" style="display:none;">
         <div class="card" style="max-width: 650px;">
             <h3>ServerScript Editor (REQUIRED)</h3>
-            <p style="font-size:0.8rem; color:var(--muted);">ServerScripts execute safely in an isolated VM context on the server. At least 1 character required.</p>
+            <p style="font-size:0.8rem; color:var(--muted);">At least 1 character is strictly required for the server to operate.</p>
             <textarea id="script-editor" class="code-box" rows="12" style="width:100%; height:250px; resize:none;" placeholder="// ServerScript is mandatory!&#10;Server.on('make_move', (evt) => {&#10;    Server.broadcast('board_update', evt.data);&#10;});"></textarea>
             
             <div id="script-upload-progress" class="progress-container" style="display:none;">
@@ -226,9 +221,8 @@
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
             <h2 style="margin:0;">EzBridge Control</h2>
             <div style="display:flex; gap:6px;">
-                <div id="g_id_onload" data-client_id="596211651893-5vddbq1vee4uv9oq26vqmcu807umlaqt.apps.googleusercontent.com" data-callback="handleGoogleLogin"></div>
-                <div class="g_id_signin" data-type="icon" data-shape="circle"></div>
-                <button class="btn" style="width:auto; margin:0; padding:6px 12px; font-size:0.75rem;" onclick="copyUserId()">Copy Client ID</button>
+                <button class="btn" style="width:auto; margin:0; padding:6px 10px; font-size:0.75rem;" onclick="copyUserId()">Copy Client ID</button>
+                <div id="dashboard-google-btn"></div>
             </div>
         </div>
         
@@ -312,7 +306,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://powder-gratuit-tunes-bread.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://beijing-accessories-grounds-field.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
@@ -368,12 +362,8 @@
         socket.emit('eb_google_login', { googleSub, email: payload.email, ownerId });
     }
 
-    // LOGIN GOOGLE MULTIDISPOSITIVO ATUALIZADO
     socket.on('google_login_verified', (data) => {
         if (data.hasServer) {
-            ownerId = data.ownerId; // Sincroniza o ID original do criador do servidor
-            setCookie("eb_owner_id", ownerId, 365);
-
             serverKey = data.server.key;
             serverActive = data.server.active;
             serverType = data.server.serverType || "websocket";
@@ -516,7 +506,6 @@
         const ramMB = ramUnit === 'KB' ? Math.max(1, Math.floor(ramVal / 1024)) : Math.min(500, ramVal);
 
         const settings = {
-            pingTarget: parseInt(document.getElementById('cfg-ping').value) || 55,
             ramLimitMB: ramMB,
             maxUsers: parseInt(document.getElementById('cfg-max-users').value) || 20,
             scriptLifecycle: document.getElementById('cfg-script-lifecycle').value,
@@ -602,7 +591,6 @@
             document.getElementById('setup-action-btn').innerText = "[UPDATE SERVER]";
 
             document.getElementById('cfg-server-type').value = serverType;
-            document.getElementById('cfg-ping').value = serverSettings.pingTarget || 55;
             document.getElementById('cfg-ram-val').value = serverSettings.ramLimitMB || 500;
             document.getElementById('cfg-max-users').value = serverSettings.maxUsers || 20;
             document.getElementById('cfg-script-lifecycle').value = serverSettings.scriptLifecycle || 'permanent';
@@ -623,7 +611,7 @@
         document.getElementById('overlay-loading').style.display = 'none';
     }
 
-    // TESTE DE CONEXÃO RESTAURADO E FUNCIONAL
+    // CORREÇÃO: Test Connection Funcionando
     function testConnection() {
         const btn = document.getElementById('test-conn-btn');
         btn.disabled = true;
@@ -673,11 +661,11 @@ ${serverType === 'websocket' ?
 
 3 - APIs You Can Use
 - 'ebuserid_get': Send RemoteEvent type 'ebuserid_get' to get the client's permanent unique User ID (10-20 chars).
-- ServerScript API: Mandatory backend JS code (Server.on('event', fn), Server.broadcast('event', data)) to handle server-side game logic securely.
+- ServerScript API: Write sandboxed backend JS code (Server.on('event', fn), Server.broadcast('event', data)) to handle server-side game logic securely.
 
 4 - Learn More About EzBridge
 - Max Packet Size: 250KB per packet (350KB chunk stream processing).
-- Request Limit: Up to 60 requests/sec (250 reqs/s triggers 5-min IP Ban).
+- Request Limit: Up to 100 requests/sec (250 reqs/s triggers 5-min IP Ban).
 - Server Memory: Configured at ${serverSettings.ramLimitMB || 500}MB (+50MB hidden VRAM protection).
 - Instance Scaling: Automatic room instancing per ${serverSettings.maxUsers || 20} max users.
 
@@ -748,7 +736,7 @@ socket.on("RemoteEvent", (pkt) => {
     <script>
         const key = "${serverKey}";
         const link = "${PUBLIC_TUNNEL_URL}/remote";
-        const tempClientId = "guest_" + Math.floor(Math.random()*10000);
+        const tempClientId = "usr_" + Math.floor(Math.random()*10000);
 
         async function play(idx) {
             await fetch(link, {
@@ -818,7 +806,7 @@ socket.on("RemoteEvent", (pkt) => {
 `// --- ServerScript Backend Game Engine (Mandatory ServerScript) ---
 let board = Array(9).fill(null);
 let currentTurn = 'X';
-let players = {}; 
+let players = {}; // senderId -> 'X' or 'O'
 
 function checkWin(b) {
     const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
@@ -855,7 +843,7 @@ Server.on('make_move', (evt) => {
             board = Array(9).fill(null);
             currentTurn = 'X';
             Server.broadcast('board_update', { board, currentTurn, winner: null });
-        }, 3000); 
+        }, 3000); // 3s Auto Reset
     }
 });`;
 
