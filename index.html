@@ -135,9 +135,6 @@
             <h1>EzBridge</h1>
             <p style="color:var(--muted); font-size:0.9rem; margin-bottom:25px;">Create and implement a server to your apps for free!</p>
             <button class="btn" onclick="openSetupUI()">[CLICK HERE TO BEGIN]</button>
-            <div style="font-size:0.7rem; color:var(--muted); margin-top:20px; line-height:1.4;">
-                "the entire server system runs on a 8gb ram phone, so if your server stops working, you already know the reason."
-            </div>
         </div>
     </div>
 
@@ -166,7 +163,7 @@
                 </div>
 
                 <div class="settings-item" id="max-users-group">
-                    <label>Max Users Per Server (1 - 100)</label>
+                    <label>Max Users Per Instance (1 - 100)</label>
                     <input type="number" id="cfg-max-users" value="20" min="1" max="100">
                 </div>
 
@@ -186,7 +183,14 @@
                     <div id="domain-list" class="domain-list"></div>
                 </div>
 
-                <button class="btn btn-secondary" type="button" onclick="openScriptEditorModal()">[Create ServerScript (OPTIONAL)]</button>
+                <!-- Botão de ServerScript com Toggle de Ciclo de Vida -->
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <button class="btn btn-secondary" style="flex:1;" type="button" onclick="openScriptEditorModal()">[Create ServerScript (REQUIRED)]</button>
+                    <select id="cfg-script-lifecycle" style="width:120px; background:#020617; color:#fff; border:1px solid var(--border); padding:10px; border-radius:8px;">
+                        <option value="permanent" selected>Permanent</option>
+                        <option value="temporary">Temporary</option>
+                    </select>
+                </div>
             </div>
 
             <button class="btn" id="setup-action-btn" onclick="createServerSubmit()">[CREATE SERVER]</button>
@@ -197,9 +201,9 @@
     <!-- Modal IDE para ServerScript -->
     <div id="modal-script" class="overlay" style="display:none;">
         <div class="card" style="max-width: 650px;">
-            <h3>ServerScript Editor</h3>
-            <p style="font-size:0.8rem; color:var(--muted);">ServerScripts execute safely in an isolated VM context when 1 or more users connect.</p>
-            <textarea id="script-editor" class="code-box" rows="12" style="width:100%; height:250px; resize:none;" placeholder="// Enter Node.js / ServerScript code here...&#10;Server.on('move', (evt) => {&#10;    Server.broadcast('update', evt.data);&#10;});"></textarea>
+            <h3>ServerScript Editor (REQUIRED)</h3>
+            <p style="font-size:0.8rem; color:var(--muted);">ServerScripts execute safely in an isolated VM context on the server. At least 1 character required.</p>
+            <textarea id="script-editor" class="code-box" rows="12" style="width:100%; height:250px; resize:none;" placeholder="// ServerScript is mandatory!&#10;Server.on('make_move', (evt) => {&#10;    Server.broadcast('board_update', evt.data);&#10;});"></textarea>
             
             <div id="script-upload-progress" class="progress-container" style="display:none;">
                 <div id="script-progress-bar" class="progress-bar"></div>
@@ -300,7 +304,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://treaty-invitations-uses-elvis.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://vegetarian-aim-ability-almost.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
@@ -339,6 +343,11 @@
         } else {
             document.getElementById('overlay-captcha').style.display = 'flex';
         }
+    });
+
+    socket.on('server_error', (data) => {
+        hideLoadingScreen();
+        alert(data.error);
     });
 
     function handleGoogleLogin(response) {
@@ -423,8 +432,11 @@
 
     function startScriptChunkUpload() {
         const text = document.getElementById('script-editor').value;
-        const totalSize = new Blob([text]).size;
+        if (!text || text.trim().length === 0) {
+            return alert("TO CREATE/UPDATE A SERVER, NOW IT REQUIRES AT LEAST 1 CHAR INSIDE SERVERSCRIPT!");
+        }
 
+        const totalSize = new Blob([text]).size;
         if (totalSize > 20 * 1024 * 1024) {
             return alert("ServerScript size exceeds 20MB limit!");
         }
@@ -482,6 +494,11 @@
     }
 
     function createServerSubmit() {
+        const scriptVal = currentServerScript.trim();
+        if (!scriptVal || scriptVal.length === 0) {
+            return alert("TO CREATE/UPDATE A SERVER, NOW IT REQUIRES AT LEAST 1 CHAR INSIDE SERVERSCRIPT!");
+        }
+
         const ramVal = parseInt(document.getElementById('cfg-ram-val').value) || 500;
         const ramUnit = document.getElementById('cfg-ram-unit').value;
         const ramMB = ramUnit === 'KB' ? Math.max(1, Math.floor(ramVal / 1024)) : Math.min(500, ramVal);
@@ -489,6 +506,7 @@
         const settings = {
             ramLimitMB: ramMB,
             maxUsers: parseInt(document.getElementById('cfg-max-users').value) || 20,
+            scriptLifecycle: document.getElementById('cfg-script-lifecycle').value,
             allowPrivate: document.getElementById('cfg-private').value === 'true',
             whitelistedDomains: whitelistedDomains
         };
@@ -573,6 +591,7 @@
             document.getElementById('cfg-server-type').value = serverType;
             document.getElementById('cfg-ram-val').value = serverSettings.ramLimitMB || 500;
             document.getElementById('cfg-max-users').value = serverSettings.maxUsers || 20;
+            document.getElementById('cfg-script-lifecycle').value = serverSettings.scriptLifecycle || 'permanent';
             document.getElementById('cfg-private').value = String(serverSettings.allowPrivate);
 
             toggleServerTypeUI();
@@ -617,7 +636,6 @@
 
     function closeHowToUse() { document.getElementById('modal-howto').style.display = 'none'; }
 
-    // --- PROMPT DE IA GERADO PARA COPIAR ---
     function copyAIPrompt() {
         const promptText = `*How to implement EzBridge's universal server on your online project*
 EzBridge server is a universal server that is also free and can be used to make multiplayer and online apps, if you want to implement it on your project, please follow these steps:
@@ -633,7 +651,7 @@ Depending on your server type (${serverType.toUpperCase()}):
 ${serverType === 'websocket' ? 
 `- Use Socket.io client to connect to the Tunnel Link.
 - Emit 'join_virtual_server' with payload { key: "${serverKey}" }.
-- Broadcast events using socket.emit('RemoteEvent', { type: 'your_event', data: payload }).` :
+- Send data using socket.emit('RemoteEvent', { type: 'your_event', data: payload }).` :
 `- Send HTTP POST requests to ${PUBLIC_TUNNEL_URL}/remote
 - Include Header 'auth-token: ${serverKey}'
 - Send JSON body { type: 'your_event', data: payload }`}
@@ -643,10 +661,10 @@ ${serverType === 'websocket' ?
 - ServerScript API: Write sandboxed backend JS code (Server.on('event', fn), Server.broadcast('event', data)) to handle server-side game logic securely.
 
 4 - Learn More About EzBridge
-- Max Packet Size: 250KB per packet (large files automatically chunked).
-- Request Limit: 100 requests/sec.
-- Server RAM Limit: Configured at ${serverSettings.ramLimitMB || 500}MB.
-- Real-Time Storage: Disk-persisted state engine (EBstorage.js).
+- Max Packet Size: 250KB per packet (350KB chunk stream processing).
+- Request Limit: Up to 100 requests/sec (250 reqs/s triggers 5-min IP Ban).
+- Server Memory: Configured at ${serverSettings.ramLimitMB || 500}MB (+50MB hidden VRAM protection).
+- Instance Scaling: Automatic room instancing per ${serverSettings.maxUsers || 20} max users.
 
 that's all you needed to know, now, you can start.`;
 
@@ -666,7 +684,7 @@ GET ${PUBLIC_TUNNEL_URL}/getstatus
 2. SEND REMOTE EVENT:
 POST ${PUBLIC_TUNNEL_URL}/remote
 Header: "auth-token": "${serverKey}"
-Body: { "type": "player_move", "data": { "x": 100, "y": 200 } }`;
+Body: { "type": "make_move", "data": { "idx": 0 } }`;
         } else {
             box.innerText = `// --- EZBRIDGE WEBSOCKET API ---
 1. CONNECT & JOIN ROOM:
@@ -674,7 +692,7 @@ const socket = io("${PUBLIC_TUNNEL_URL}", { auth: { token: "default_key" } });
 socket.emit("join_virtual_server", { key: "${serverKey}" });
 
 2. SEND REMOTE EVENT:
-socket.emit("RemoteEvent", { type: "player_move", data: { x: 100, y: 200 } });
+socket.emit("RemoteEvent", { type: "make_move", data: { idx: 0 } });
 
 3. GET CLIENT USER ID:
 socket.emit("RemoteEvent", { type: "ebuserid_get" });
@@ -699,14 +717,14 @@ socket.on("RemoteEvent", (pkt) => {
 <head>
     <title>HTTP Tic-Tac-Toe</title>
     <style>
-        body { background:#09090b; color:#fff; font-family:sans-serif; text-align:center; }
+        body { background:#030712; color:#fff; font-family:sans-serif; text-align:center; }
         .grid { display:grid; grid-template-columns:repeat(3,90px); gap:8px; justify-content:center; margin-top:20px; }
-        .cell { width:90px; height:90px; background:#1e293b; display:flex; align-items:center; justify-content:center; font-size:2rem; cursor:pointer; border-radius:8px; font-weight:bold; }
+        .cell { width:90px; height:90px; background:#0f172a; border:1px solid #1e293b; display:flex; align-items:center; justify-content:center; font-size:2rem; cursor:pointer; border-radius:8px; font-weight:bold; }
     </style>
 </head>
 <body>
     <h2>HTTP Tic-Tac-Toe</h2>
-    <div id="status">Your Turn</div>
+    <div id="status">Ready</div>
     <div class="grid">
         <div class="cell" onclick="play(0)"></div><div class="cell" onclick="play(1)"></div><div class="cell" onclick="play(2)"></div>
         <div class="cell" onclick="play(3)"></div><div class="cell" onclick="play(4)"></div><div class="cell" onclick="play(5)"></div>
@@ -715,14 +733,13 @@ socket.on("RemoteEvent", (pkt) => {
     <script>
         const key = "${serverKey}";
         const link = "${PUBLIC_TUNNEL_URL}/remote";
-        // Temp identifier for client tracking
-        const clientId = "usr_" + Math.floor(Math.random()*10000);
+        const tempClientId = "guest_" + Math.floor(Math.random()*10000);
 
         async function play(idx) {
             await fetch(link, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", "auth-token": key },
-                body: JSON.stringify({ type: "make_move", data: { idx, clientId } })
+                body: JSON.stringify({ type: "make_move", data: { idx, clientId: tempClientId } })
             });
         }
     <\/script>
@@ -735,9 +752,10 @@ socket.on("RemoteEvent", (pkt) => {
     <title>WebSocket Tic-Tac-Toe</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"><\/script>
     <style>
-        body { background:#09090b; color:#fff; font-family:sans-serif; text-align:center; }
+        body { background:#030712; color:#fff; font-family:sans-serif; text-align:center; }
         .grid { display:grid; grid-template-columns:repeat(3,90px); gap:8px; justify-content:center; margin-top:20px; }
-        .cell { width:90px; height:90px; background:#1e293b; display:flex; align-items:center; justify-content:center; font-size:2rem; cursor:pointer; border-radius:8px; font-weight:bold; }
+        .cell { width:90px; height:90px; background:#0f172a; border:1px solid #1e293b; display:flex; align-items:center; justify-content:center; font-size:2rem; cursor:pointer; border-radius:8px; font-weight:bold; }
+        #status { font-weight: bold; margin-top: 20px; color: #06b6d4; }
     </style>
 </head>
 <body>
@@ -752,14 +770,13 @@ socket.on("RemoteEvent", (pkt) => {
         const key = "${serverKey}";
         const link = "${PUBLIC_TUNNEL_URL}";
         const socket = io(link, { auth: { token: "default_key" } });
-        let mySymbol = "";
 
         socket.on("connect", () => {
             socket.emit("join_virtual_server", { key });
         });
 
         socket.on("joined_successfully", () => {
-            document.getElementById("status").innerText = "Waiting for game start...";
+            document.getElementById("status").innerText = "Game Active!";
             socket.emit("RemoteEvent", { type: "join_game" });
         });
 
@@ -768,7 +785,7 @@ socket.on("RemoteEvent", (pkt) => {
                 const cells = document.querySelectorAll(".cell");
                 pkt.data.board.forEach((val, i) => cells[i].innerText = val || "");
                 if (pkt.data.winner) {
-                    document.getElementById("status").innerText = "Winner: " + pkt.data.winner;
+                    document.getElementById("status").innerText = "Result: " + pkt.data.winner;
                 } else {
                     document.getElementById("status").innerText = "Turn: " + pkt.data.currentTurn;
                 }
@@ -783,7 +800,7 @@ socket.on("RemoteEvent", (pkt) => {
 </html>`;
 
         const serverCode = 
-`// --- ServerScript Backend Game Logic (Paste in ServerScript Editor) ---
+`// --- ServerScript Backend Game Engine (Mandatory ServerScript) ---
 let board = Array(9).fill(null);
 let currentTurn = 'X';
 let players = {}; // senderId -> 'X' or 'O'
@@ -823,7 +840,7 @@ Server.on('make_move', (evt) => {
             board = Array(9).fill(null);
             currentTurn = 'X';
             Server.broadcast('board_update', { board, currentTurn, winner: null });
-        }, 3000);
+        }, 3000); // 3s Auto Reset
     }
 });`;
 
