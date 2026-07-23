@@ -88,10 +88,7 @@
             background: #020617; padding: 12px; border-radius: 6px; border: 1px solid var(--border);
             font-family: monospace; font-size: 0.8rem; margin: 10px 0; overflow-x: auto; white-space: pre; text-align: left;
         }
-        .user-tag {
-            font-size: 0.75rem; color: var(--accent); background: rgba(6, 182, 212, 0.1);
-            padding: 4px 8px; border-radius: 4px; border: 1px solid var(--accent-glow); margin-bottom: 10px; display: inline-block;
-        }
+        .disclaimer { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--error); color: #fca5a5; padding: 10px; border-radius: 6px; font-size: 0.75rem; text-align: left; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -104,7 +101,7 @@
         </div>
     </div>
 
-    <!-- Loading Screen for Server Updates -->
+    <!-- Loading Screen -->
     <div id="overlay-loading" class="overlay" style="display:none;">
         <div class="card">
             <h3 id="loading-msg">Processing request...</h3>
@@ -112,12 +109,11 @@
         </div>
     </div>
 
-    <!-- Passo 1: Captcha & Login -->
+    <!-- Passo 1: Captcha & Login Inicial -->
     <div id="overlay-captcha" class="overlay" style="display:none;">
         <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                 <h1 style="margin:0;">EzBridge</h1>
-                <!-- Google Sign-In Container -->
                 <div id="g_id_onload"
                      data-client_id="596211651893-5vddbq1vee4uv9oq26vqmcu807umlaqt.apps.googleusercontent.com"
                      data-callback="handleGoogleLogin">
@@ -137,7 +133,6 @@
     <div id="overlay-start" class="overlay" style="display:none;">
         <div class="card">
             <h1>EzBridge</h1>
-            <div id="google-status-tag" class="user-tag" style="display:none;">Logged in via Google</div>
             <p style="color:var(--muted); font-size:0.9rem; margin-bottom:25px;">Create and implement a server to your apps for free!</p>
             <button class="btn" onclick="openSetupUI()">[CLICK HERE TO BEGIN]</button>
         </div>
@@ -206,7 +201,7 @@
     <div id="modal-script" class="overlay" style="display:none;">
         <div class="card" style="max-width: 650px;">
             <h3>ServerScript Editor (REQUIRED)</h3>
-            <p style="font-size:0.8rem; color:var(--muted);">At least 1 character is strictly required. ServerScript handles all application logic.</p>
+            <p style="font-size:0.8rem; color:var(--muted);">At least 1 character is strictly required for the server to operate.</p>
             <textarea id="script-editor" class="code-box" rows="12" style="width:100%; height:250px; resize:none;" placeholder="// ServerScript is mandatory!&#10;Server.on('make_move', (evt) => {&#10;    Server.broadcast('board_update', evt.data);&#10;});"></textarea>
             
             <div id="script-upload-progress" class="progress-container" style="display:none;">
@@ -227,21 +222,20 @@
             <h2 style="margin:0;">EzBridge Control</h2>
             <div style="display:flex; gap:6px; align-items:center;">
                 <button class="btn" style="width:auto; margin:0; padding:6px 10px; font-size:0.75rem;" onclick="copyUserId()">Copy Client ID</button>
-                <!-- Log in with Google button only appears if not signed in yet -->
-                <div id="dash-google-btn-wrapper">
+                <!-- Botão do Google exibido APENAS se o usuário ainda não tiver conta vinculada -->
+                <div id="dashboard-google-container" style="display:none;">
                     <div class="g_id_signin" data-type="icon" data-shape="circle"></div>
                 </div>
             </div>
         </div>
         
-        <div id="dash-email-tag" class="user-tag" style="display:none;"></div>
-
         <div class="status-indicator">
             <div id="server-dot" class="dot"></div>
             <span>Server status: <span id="server-status-text">OFFLINE</span></span>
         </div>
 
         <div style="margin: 15px 0; text-align: left; font-size: 0.85rem; color: var(--muted); display:flex; flex-direction:column; gap:6px;">
+            <div id="account-email-display" style="color:var(--accent); font-size:0.75rem; font-weight:bold; display:none;">Linked Account: <span id="user-email-text">-</span></div>
             <div>Users online on your server: <span id="online-users-count" style="color:var(--accent); font-weight:bold;">0</span></div>
             <div>Active ServerScripts: <span id="active-scripts-count" style="color:var(--accent); font-weight:bold;">0</span></div>
             <div>RAM usage: <span id="ram-usage-text" style="color:var(--accent); font-weight:bold;">0.0 KB</span></div>
@@ -286,6 +280,7 @@
         </div>
     </div>
 
+    <!-- Modal de Comandos da API -->
     <div id="modal-commands" class="overlay" style="display:none;">
         <div class="card" style="max-width: 650px;">
             <h3>EzBridge API Commands</h3>
@@ -294,9 +289,13 @@
         </div>
     </div>
 
+    <!-- Modal Tic-Tac-Toe Exemplo -->
     <div id="modal-code" class="overlay" style="display:none;">
         <div class="card" style="max-width: 700px;">
             <h3>Tic-Tac-Toe Code Example</h3>
+            <div id="http-disclaimer" class="disclaimer" style="display:none;">
+                DISCLAIMER: it's recommended that the client should have a temporary identifier so your scripts and projects know who's sending them, its optional.
+            </div>
             <div style="text-align:left; font-size:0.8rem; font-weight:bold; color:var(--accent);">HTML Client Script:</div>
             <textarea id="example-code-client" class="code-box" readonly rows="8" style="width:100%; border:none; resize:none;"></textarea>
             
@@ -311,7 +310,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://barn-robots-boat-book.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://generation-supporting-ross-durham.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
@@ -346,6 +345,7 @@
             serverType = data.server.serverType || "websocket";
             serverSettings = data.server.settings;
             currentServerScript = data.server.serverScript || "";
+            googleSub = data.server.googleSub || null;
             googleEmail = data.server.email || null;
             whitelistedDomains = serverSettings.whitelistedDomains || [];
             showDashboard();
@@ -372,33 +372,22 @@
     }
 
     socket.on('google_login_verified', (data) => {
-        googleEmail = data.email || googleEmail;
-        updateGoogleUI();
-
         if (data.hasServer) {
             serverKey = data.server.key;
             serverActive = data.server.active;
             serverType = data.server.serverType || "websocket";
             serverSettings = data.server.settings;
             currentServerScript = data.server.serverScript || "";
+            googleSub = data.server.googleSub || googleSub;
+            googleEmail = data.server.email || googleEmail;
             whitelistedDomains = serverSettings.whitelistedDomains || [];
             showDashboard();
-            alert("Google account linked & server synced across devices!");
+            alert("Google account linked & server synced!");
+        } else {
+            updateDashboardGoogleBtn();
+            alert("Google Account authenticated!");
         }
     });
-
-    function updateGoogleUI() {
-        if (googleEmail) {
-            document.getElementById('dash-google-btn-wrapper').style.display = 'none';
-            const tag = document.getElementById('dash-email-tag');
-            tag.innerText = `Google: ${googleEmail}`;
-            tag.style.display = 'inline-block';
-
-            const startTag = document.getElementById('google-status-tag');
-            startTag.innerText = `Logged in: ${googleEmail}`;
-            startTag.style.display = 'inline-block';
-        }
-    }
 
     function captchaSolved() {
         document.getElementById('overlay-captcha').style.display = 'none';
@@ -520,16 +509,16 @@
         else document.getElementById('overlay-start').style.display = 'flex';
     }
 
-    // CREATE SERVER LOGIC (STRICTLY REQUIRES GOOGLE LOGIN ONLY FOR INITIAL CREATION)
+    // SUBMIT DO SERVIDOR (CRIAR EXIGE GOOGLE / ATUALIZAR NÃO EXIGE)
     function createServerSubmit() {
-        // If creating a brand new server, force Google Sign-In
-        if (!serverKey && (!googleSub || !googleEmail)) {
-            return alert("GOOGLE SIGN-IN IS REQUIRED TO CREATE A NEW SERVER!\nPlease sign in using the Google button first.");
-        }
-
         const scriptVal = currentServerScript.trim();
         if (!scriptVal || scriptVal.length === 0) {
             return alert("TO CREATE/UPDATE A SERVER, NOW IT REQUIRES AT LEAST 1 CHAR INSIDE SERVERSCRIPT!");
+        }
+
+        // REGRA DE SEGURANÇA: Criar servidor exige conta do Google atrelada!
+        if (!serverKey && !googleSub) {
+            return alert("GOOGLE SIGN-IN IS REQUIRED TO CREATE A NEW SERVER! Please sign in with Google first.");
         }
 
         const ramVal = parseInt(document.getElementById('cfg-ram-val').value) || 500;
@@ -549,9 +538,10 @@
         showLoadingScreen("Creating/Updating your server.. wait while your client does its job.");
 
         if (serverKey) {
-            // Updating existing server DOES NOT force a new Google Sign-In
+            // Atualizar servidor (FUNCIONA SEM CONTA GOOGLE)
             socket.emit('eb_save_settings', { key: serverKey, ownerId, settings, serverType: type, serverScript: currentServerScript });
         } else {
+            // Criar servidor (EXIGE CONTA GOOGLE)
             socket.emit('eb_create_server', { ownerId, googleSub, email: googleEmail, settings, serverType: type, serverScript: currentServerScript });
         }
     }
@@ -575,7 +565,7 @@
 
     function showDashboard() {
         document.getElementById('dashboard').style.display = 'block';
-        updateGoogleUI();
+        updateDashboardGoogleBtn();
         updateStatusDisplay();
 
         setInterval(() => {
@@ -585,6 +575,23 @@
         }, 5000);
     }
 
+    function updateDashboardGoogleBtn() {
+        const container = document.getElementById('dashboard-google-container');
+        const emailBox = document.getElementById('account-email-display');
+        const emailText = document.getElementById('user-email-text');
+
+        if (googleSub || googleEmail) {
+            container.style.display = 'none'; // Esconde botão se já estiver logado
+            if (googleEmail) {
+                emailText.innerText = googleEmail;
+                emailBox.style.display = 'block';
+            }
+        } else {
+            container.style.display = 'block'; // Mostra botão de login se não estiver logado
+            emailBox.style.display = 'none';
+        }
+    }
+
     socket.on('eb_heartbeat_response', (data) => {
         serverActive = data.active;
         document.getElementById('online-users-count').innerText = data.users;
@@ -592,6 +599,11 @@
 
         const kb = (data.ramUsageBytes / 1024).toFixed(1);
         document.getElementById('ram-usage-text').innerText = `${kb} KB`;
+
+        if (data.email) {
+            googleEmail = data.email;
+            updateDashboardGoogleBtn();
+        }
 
         updateStatusDisplay();
     });
@@ -696,8 +708,8 @@ ${serverType === 'websocket' ?
 - ServerScript API: Write sandboxed backend JS code (Server.on('event', fn), Server.broadcast('event', data)) to handle server-side game logic securely.
 
 4 - Learn More About EzBridge
-- Max Packet Size: 192KB per packet (chunked streams supported).
-- Request Limit: Up to 60 requests/sec per client (250 reqs/s triggers 5-min IP Ban).
+- Max Packet Size: 192KB per packet (350KB chunk stream processing).
+- Request Limit: Up to 100 requests/sec (250 reqs/s triggers 5-min IP Ban).
 - Server Memory: Configured at ${serverSettings.ramLimitMB || 500}MB (+50MB hidden VRAM protection).
 - Instance Scaling: Automatic room instancing per ${serverSettings.maxUsers || 20} max users.
 
@@ -743,6 +755,7 @@ socket.on("RemoteEvent", (pkt) => {
 
     function openTicTacToeCode() {
         const isHttp = serverType === 'http';
+        document.getElementById('http-disclaimer').style.display = isHttp ? 'block' : 'none';
 
         const clientCode = isHttp ? 
 `<!-- HTTP Tic-Tac-Toe Client -->
@@ -834,7 +847,7 @@ socket.on("RemoteEvent", (pkt) => {
 </html>`;
 
         const serverCode = 
-`// --- ServerScript Backend Game Engine (Mandatory) ---
+`// --- ServerScript Backend Game Engine (Mandatory ServerScript) ---
 let board = Array(9).fill(null);
 let currentTurn = 'X';
 let players = {}; // senderId -> 'X' or 'O'
@@ -874,7 +887,7 @@ Server.on('make_move', (evt) => {
             board = Array(9).fill(null);
             currentTurn = 'X';
             Server.broadcast('board_update', { board, currentTurn, winner: null });
-        }, 3000);
+        }, 3000); // 3s Auto Reset
     }
 });`;
 
