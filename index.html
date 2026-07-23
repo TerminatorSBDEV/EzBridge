@@ -152,6 +152,11 @@
                 </div>
 
                 <div class="settings-item">
+                    <label>Ping Target (Server & Client)</label>
+                    <input type="number" id="cfg-ping" value="55" min="10" max="1000">
+                </div>
+
+                <div class="settings-item">
                     <label>Server RAM Limit</label>
                     <div style="display:flex; gap:8px;">
                         <input type="number" id="cfg-ram-val" value="500" min="50" max="500" style="flex:1;">
@@ -183,7 +188,6 @@
                     <div id="domain-list" class="domain-list"></div>
                 </div>
 
-                <!-- Botão de ServerScript com Toggle de Ciclo de Vida -->
                 <div style="display:flex; gap:8px; align-items:center;">
                     <button class="btn btn-secondary" style="flex:1;" type="button" onclick="openScriptEditorModal()">[Create ServerScript (REQUIRED)]</button>
                     <select id="cfg-script-lifecycle" style="width:120px; background:#020617; color:#fff; border:1px solid var(--border); padding:10px; border-radius:8px;">
@@ -221,7 +225,11 @@
     <div id="dashboard" class="card" style="display:none; width: 480px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
             <h2 style="margin:0;">EzBridge Control</h2>
-            <button class="btn" style="width:auto; margin:0; padding:6px 12px; font-size:0.75rem;" onclick="copyUserId()">Copy Client ID</button>
+            <div style="display:flex; gap:6px;">
+                <div id="g_id_onload" data-client_id="596211651893-5vddbq1vee4uv9oq26vqmcu807umlaqt.apps.googleusercontent.com" data-callback="handleGoogleLogin"></div>
+                <div class="g_id_signin" data-type="icon" data-shape="circle"></div>
+                <button class="btn" style="width:auto; margin:0; padding:6px 12px; font-size:0.75rem;" onclick="copyUserId()">Copy Client ID</button>
+            </div>
         </div>
         
         <div class="status-indicator">
@@ -304,7 +312,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://vegetarian-aim-ability-almost.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://powder-gratuit-tunes-bread.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
@@ -360,8 +368,12 @@
         socket.emit('eb_google_login', { googleSub, email: payload.email, ownerId });
     }
 
+    // LOGIN GOOGLE MULTIDISPOSITIVO ATUALIZADO
     socket.on('google_login_verified', (data) => {
         if (data.hasServer) {
+            ownerId = data.ownerId; // Sincroniza o ID original do criador do servidor
+            setCookie("eb_owner_id", ownerId, 365);
+
             serverKey = data.server.key;
             serverActive = data.server.active;
             serverType = data.server.serverType || "websocket";
@@ -369,7 +381,7 @@
             currentServerScript = data.server.serverScript || "";
             whitelistedDomains = serverSettings.whitelistedDomains || [];
             showDashboard();
-            alert("Google account linked & server synced!");
+            alert("Google account linked & server synced across devices!");
         }
     });
 
@@ -504,6 +516,7 @@
         const ramMB = ramUnit === 'KB' ? Math.max(1, Math.floor(ramVal / 1024)) : Math.min(500, ramVal);
 
         const settings = {
+            pingTarget: parseInt(document.getElementById('cfg-ping').value) || 55,
             ramLimitMB: ramMB,
             maxUsers: parseInt(document.getElementById('cfg-max-users').value) || 20,
             scriptLifecycle: document.getElementById('cfg-script-lifecycle').value,
@@ -589,6 +602,7 @@
             document.getElementById('setup-action-btn').innerText = "[UPDATE SERVER]";
 
             document.getElementById('cfg-server-type').value = serverType;
+            document.getElementById('cfg-ping').value = serverSettings.pingTarget || 55;
             document.getElementById('cfg-ram-val').value = serverSettings.ramLimitMB || 500;
             document.getElementById('cfg-max-users').value = serverSettings.maxUsers || 20;
             document.getElementById('cfg-script-lifecycle').value = serverSettings.scriptLifecycle || 'permanent';
@@ -609,6 +623,7 @@
         document.getElementById('overlay-loading').style.display = 'none';
     }
 
+    // TESTE DE CONEXÃO RESTAURADO E FUNCIONAL
     function testConnection() {
         const btn = document.getElementById('test-conn-btn');
         btn.disabled = true;
@@ -658,11 +673,11 @@ ${serverType === 'websocket' ?
 
 3 - APIs You Can Use
 - 'ebuserid_get': Send RemoteEvent type 'ebuserid_get' to get the client's permanent unique User ID (10-20 chars).
-- ServerScript API: Write sandboxed backend JS code (Server.on('event', fn), Server.broadcast('event', data)) to handle server-side game logic securely.
+- ServerScript API: Mandatory backend JS code (Server.on('event', fn), Server.broadcast('event', data)) to handle server-side game logic securely.
 
 4 - Learn More About EzBridge
 - Max Packet Size: 250KB per packet (350KB chunk stream processing).
-- Request Limit: Up to 100 requests/sec (250 reqs/s triggers 5-min IP Ban).
+- Request Limit: Up to 60 requests/sec (250 reqs/s triggers 5-min IP Ban).
 - Server Memory: Configured at ${serverSettings.ramLimitMB || 500}MB (+50MB hidden VRAM protection).
 - Instance Scaling: Automatic room instancing per ${serverSettings.maxUsers || 20} max users.
 
@@ -803,7 +818,7 @@ socket.on("RemoteEvent", (pkt) => {
 `// --- ServerScript Backend Game Engine (Mandatory ServerScript) ---
 let board = Array(9).fill(null);
 let currentTurn = 'X';
-let players = {}; // senderId -> 'X' or 'O'
+let players = {}; 
 
 function checkWin(b) {
     const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
@@ -840,7 +855,7 @@ Server.on('make_move', (evt) => {
             board = Array(9).fill(null);
             currentTurn = 'X';
             Server.broadcast('board_update', { board, currentTurn, winner: null });
-        }, 3000); // 3s Auto Reset
+        }, 3000); 
     }
 });`;
 
