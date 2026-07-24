@@ -93,7 +93,6 @@
 </head>
 <body>
 
-    <!-- Passo 0: Buffering Inicial -->
     <div id="overlay-sync" class="overlay">
         <div class="card">
             <h3>Connecting to EzBridge...</h3>
@@ -101,7 +100,6 @@
         </div>
     </div>
 
-    <!-- Loading Screen -->
     <div id="overlay-loading" class="overlay" style="display:none;">
         <div class="card">
             <h3 id="loading-msg">Processing request...</h3>
@@ -109,7 +107,6 @@
         </div>
     </div>
 
-    <!-- Passo 1: Captcha & Login Inicial -->
     <div id="overlay-captcha" class="overlay" style="display:none;">
         <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
@@ -129,7 +126,6 @@
         </div>
     </div>
 
-    <!-- Passo 2: Menu Principal -->
     <div id="overlay-start" class="overlay" style="display:none;">
         <div class="card">
             <h1>EzBridge</h1>
@@ -138,7 +134,6 @@
         </div>
     </div>
 
-    <!-- Passo 3: Configuração do Servidor Virtual -->
     <div id="overlay-setup" class="overlay" style="display:none;">
         <div class="card" style="max-width: 520px;">
             <h2 id="setup-title">Setup Your Server</h2>
@@ -197,7 +192,6 @@
         </div>
     </div>
 
-    <!-- Modal IDE para ServerScript -->
     <div id="modal-script" class="overlay" style="display:none;">
         <div class="card" style="max-width: 650px;">
             <h3>ServerScript Editor (REQUIRED)</h3>
@@ -216,7 +210,6 @@
         </div>
     </div>
 
-    <!-- Dashboard Principal -->
     <div id="dashboard" class="card" style="display:none; width: 480px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
             <h2 style="margin:0;">EzBridge Control</h2>
@@ -250,7 +243,6 @@
         </div>
     </div>
 
-    <!-- Modal How To Use -->
     <div id="modal-howto" class="overlay" style="display:none;">
         <div class="card" style="max-width: 600px;">
             <h3 style="margin-bottom:15px;">How to Connect Your Server</h3>
@@ -279,7 +271,6 @@
         </div>
     </div>
 
-    <!-- Modal de Comandos da API -->
     <div id="modal-commands" class="overlay" style="display:none;">
         <div class="card" style="max-width: 650px;">
             <h3>EzBridge API Commands</h3>
@@ -288,7 +279,6 @@
         </div>
     </div>
 
-    <!-- Modal Test Your Guns Exemplo -->
     <div id="modal-code" class="overlay" style="display:none;">
         <div class="card" style="max-width: 750px;">
             <h3>Test Your Guns Code Example</h3>
@@ -309,7 +299,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://posted-hewlett-consisting-formed.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://arnold-civilization-string-luck.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
@@ -685,7 +675,6 @@
 
     function closeHowToUse() { document.getElementById('modal-howto').style.display = 'none'; }
 
-    // --- GERADOR DINÂMICO DE CÓDIGOS DE EXEMPLO (TEST YOUR GUNS) ---
     function getGameExamples() {
         const isHttp = serverType === 'http';
 
@@ -697,22 +686,28 @@
     <title>Test Your Guns (HTTP)</title>
     <style>
         body { background: #0f172a; color: #fff; font-family: sans-serif; text-align: center; }
+        .grid { display:flex; flex-direction:column; gap:10px; align-items:center; margin-top:20px; }
     </style>
 </head>
 <body>
     <h2>Test Your Guns (HTTP Mode)</h2>
     <div id="status">Ready</div>
+    <div class="grid">
+        <button onclick="sendUpdate(100, 200, 0)">Send Action</button>
+    </div>
     <script>
         const link = "${PUBLIC_TUNNEL_URL}/remote";
         const key = "${serverKey}";
         const tempId = "usr_" + Math.floor(Math.random()*100000);
 
         async function sendUpdate(x, y, angle) {
-            await fetch(link, {
+            const response = await fetch(link, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", "auth-token": key },
                 body: JSON.stringify({ type: "player_update", data: { id: tempId, x, y, angle } })
             });
+            const resData = await response.json();
+            console.log("Server State:", resData.state);
         }
     <\/script>
 </body>
@@ -1061,7 +1056,6 @@ setInterval(() => {
         return { clientCode, serverCode };
     }
 
-    // --- PROMPT DE IA ATUALIZADO (INCLUI CÓDIGOS E EXPLICATIVOS) ---
     function copyAIPrompt() {
         const { clientCode, serverCode } = getGameExamples();
         const promptText = `*How to implement EzBridge's universal server on your online project*
@@ -1118,10 +1112,10 @@ like, let's just say the player jumped, the server sees it "let me see who just 
 1. GET STATUS:
 GET ${PUBLIC_TUNNEL_URL}/getstatus
 
-2. SEND REMOTE EVENT:
+2. SEND REMOTE EVENT (Expects status, reply, broadcasts, state):
 POST ${PUBLIC_TUNNEL_URL}/remote
 Header: "auth-token": "${serverKey}"
-Body: { "type": "player_join", "data": { "id": "usr_123" } }`;
+Body: { "type": "player_update", "data": { "id": "usr_123" } }`;
         } else {
             box.innerText = `// --- EZBRIDGE WEBSOCKET API ---
 1. CONNECT & JOIN ROOM:
@@ -1129,7 +1123,7 @@ const socket = io("${PUBLIC_TUNNEL_URL}", { auth: { token: "default_key" } });
 socket.emit("join_virtual_server", { key: "${serverKey}" });
 
 2. SEND REMOTE EVENT:
-socket.emit("RemoteEvent", { type: "player_join", data: { id: "usr_123" } });
+socket.emit("RemoteEvent", { type: "player_update", data: { id: "usr_123" } });
 
 3. GET CLIENT USER ID:
 socket.emit("RemoteEvent", { type: "ebuserid_get" });
