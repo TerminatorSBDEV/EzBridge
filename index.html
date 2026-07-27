@@ -309,7 +309,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://spare-maryland-screens-diary.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://kit-lat-requesting-nav.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
@@ -340,7 +340,7 @@
     });
 
     socket.on('session_verified', (data) => {
-        clearTimeout(initTimeout); // Cancela o timer de erro caso o servidor responda
+        clearTimeout(initTimeout);
         ownerId = data.ownerId;
         setCookie("eb_owner_id", ownerId, 365);
         document.getElementById('overlay-sync').style.display = 'none';
@@ -635,43 +635,64 @@
         }
     }
 
-    // BUSCA DE ALTERAÇÕES REAIS NO SERVIDOR
+    // BUSCA DE ALTERAÇÕES REAIS NO SERVIDOR COM FALLBACK RETRY (SOLUÇÃO DE TRAVAMENTO)
     function openEditSettings() {
         showLoadingScreen("Wait, we are gathering your previous server changes and synchronizing them here.");
         
-        socket.once('eb_server_changes_response', (data) => {
-            hideLoadingScreen();
-            document.getElementById('dashboard').style.display = 'none';
-            document.getElementById('overlay-setup').style.display = 'flex';
-            document.getElementById('setup-title').innerText = "Update Server";
-            document.getElementById('setup-action-btn').innerText = "[UPDATE SERVER]";
-
-            serverType = data.serverType;
-            serverSettings = data.settings;
-            currentServerScript = data.serverScript;
-
-            document.getElementById('cfg-server-type').value = serverType;
-            
-            // CORREÇÃO: Respeita as unidades salvas (KB ou MB)
-            if (serverSettings.ramUnit === 'KB') {
-                document.getElementById('cfg-ram-val').value = serverSettings.ramLimitKB || 512000;
-                document.getElementById('cfg-ram-unit').value = 'KB';
-            } else {
-                document.getElementById('cfg-ram-val').value = serverSettings.ramLimitMB || 500;
-                document.getElementById('cfg-ram-unit').value = 'MB';
+        let responded = false;
+        const fallbackTimeout = setTimeout(() => {
+            if (!responded) {
+                hideLoadingScreen();
+                populateSettingsForm(serverType, serverSettings, currentServerScript);
+                document.getElementById('dashboard').style.display = 'none';
+                document.getElementById('overlay-setup').style.display = 'flex';
+                document.getElementById('setup-title').innerText = "Update Server";
+                document.getElementById('setup-action-btn').innerText = "[UPDATE SERVER]";
             }
+        }, 3000);
 
-            document.getElementById('cfg-max-users').value = serverSettings.maxUsers || 20;
-            document.getElementById('cfg-script-lifecycle').value = serverSettings.scriptLifecycle || 'permanent';
-            document.getElementById('cfg-private').value = String(serverSettings.allowPrivate);
-            document.getElementById('script-editor').value = currentServerScript;
+        socket.once('eb_server_changes_response', (data) => {
+            responded = true;
+            clearTimeout(fallbackTimeout);
+            hideLoadingScreen();
 
-            toggleServerTypeUI();
-            toggleDomainWhitelistUI();
-            renderDomains();
+            if (data.success) {
+                serverType = data.serverType;
+                serverSettings = data.settings;
+                currentServerScript = data.serverScript;
+                populateSettingsForm(serverType, serverSettings, currentServerScript);
+
+                document.getElementById('dashboard').style.display = 'none';
+                document.getElementById('overlay-setup').style.display = 'flex';
+                document.getElementById('setup-title').innerText = "Update Server";
+                document.getElementById('setup-action-btn').innerText = "[UPDATE SERVER]";
+            } else {
+                alert(data.error || "Failed to sync settings from server.");
+            }
         });
 
         socket.emit('eb_get_server_changes', { key: serverKey, ownerId, googleSub });
+    }
+
+    function populateSettingsForm(type, settings, script) {
+        document.getElementById('cfg-server-type').value = type;
+        
+        if (settings.ramUnit === 'KB') {
+            document.getElementById('cfg-ram-val').value = settings.ramLimitKB || 512000;
+            document.getElementById('cfg-ram-unit').value = 'KB';
+        } else {
+            document.getElementById('cfg-ram-val').value = settings.ramLimitMB || 500;
+            document.getElementById('cfg-ram-unit').value = 'MB';
+        }
+
+        document.getElementById('cfg-max-users').value = settings.maxUsers || 20;
+        document.getElementById('cfg-script-lifecycle').value = settings.scriptLifecycle || 'permanent';
+        document.getElementById('cfg-private').value = String(settings.allowPrivate);
+        document.getElementById('script-editor').value = script;
+
+        toggleServerTypeUI();
+        toggleDomainWhitelistUI();
+        renderDomains();
     }
 
     function showLoadingScreen(msg) {
