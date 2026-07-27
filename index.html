@@ -100,6 +100,16 @@
         </div>
     </div>
 
+    <div id="overlay-timeout-error" class="overlay" style="display:none;">
+        <div class="card" style="border-color: var(--error);">
+            <h2 style="color: var(--error);">ERROR!</h2>
+            <p style="font-size:0.85rem; color:var(--muted); line-height:1.5;">
+                No response from server, the server might be temporarily down or an error occured, try refreshing your page or checking your internet connection.
+            </p>
+            <button class="btn btn-secondary" onclick="location.reload()">Refresh Page</button>
+        </div>
+    </div>
+
     <div id="overlay-loading" class="overlay" style="display:none;">
         <div class="card">
             <h3 id="loading-msg">Processing request...</h3>
@@ -149,7 +159,7 @@
                 <div class="settings-item">
                     <label>Server RAM Limit</label>
                     <div style="display:flex; gap:8px;">
-                        <input type="number" id="cfg-ram-val" value="500" min="50" max="500" style="flex:1;">
+                        <input type="number" id="cfg-ram-val" value="500" style="flex:1;">
                         <select id="cfg-ram-unit" style="width:80px;">
                             <option value="MB" selected>MB</option>
                             <option value="KB">KB</option>
@@ -299,7 +309,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://legislative-worldcat-stamps-precise.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://licensing-accomplish-jul-distributors.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
@@ -314,6 +324,12 @@
     const SCRIPT_CHUNK_SIZE = 100 * 1024;
     let isUploadingScript = false;
 
+    // Timeout de 5 segundos para erro de resposta do servidor
+    const initTimeout = setTimeout(() => {
+        document.getElementById('overlay-sync').style.display = 'none';
+        document.getElementById('overlay-timeout-error').style.display = 'flex';
+    }, 5000);
+
     let socket = io(PUBLIC_TUNNEL_URL, {
         auth: { token: "default_key" },
         transports: ['websocket']
@@ -324,6 +340,7 @@
     });
 
     socket.on('session_verified', (data) => {
+        clearTimeout(initTimeout); // Cancela o timer de erro caso o servidor responda
         ownerId = data.ownerId;
         setCookie("eb_owner_id", ownerId, 365);
         document.getElementById('overlay-sync').style.display = 'none';
@@ -516,10 +533,11 @@
 
         const ramVal = parseInt(document.getElementById('cfg-ram-val').value) || 500;
         const ramUnit = document.getElementById('cfg-ram-unit').value;
-        const ramMB = ramUnit === 'KB' ? Math.max(1, Math.floor(ramVal / 1024)) : Math.min(500, ramVal);
 
         const settings = {
-            ramLimitMB: ramMB,
+            ramLimitMB: ramUnit === 'MB' ? ramVal : Math.max(1, Math.floor(ramVal / 1024)),
+            ramLimitKB: ramUnit === 'KB' ? ramVal : ramVal * 1024,
+            ramUnit: ramUnit,
             maxUsers: parseInt(document.getElementById('cfg-max-users').value) || 20,
             scriptLifecycle: document.getElementById('cfg-script-lifecycle').value,
             allowPrivate: document.getElementById('cfg-private').value === 'true',
@@ -617,17 +635,32 @@
         }
     }
 
+    // BUSCA DE ALTERAÇÕES REAIS NO SERVIDOR
     function openEditSettings() {
         showLoadingScreen("Wait, we are gathering your previous server changes and synchronizing them here.");
-        setTimeout(() => {
+        
+        socket.once('eb_server_changes_response', (data) => {
             hideLoadingScreen();
             document.getElementById('dashboard').style.display = 'none';
             document.getElementById('overlay-setup').style.display = 'flex';
             document.getElementById('setup-title').innerText = "Update Server";
             document.getElementById('setup-action-btn').innerText = "[UPDATE SERVER]";
 
+            serverType = data.serverType;
+            serverSettings = data.settings;
+            currentServerScript = data.serverScript;
+
             document.getElementById('cfg-server-type').value = serverType;
-            document.getElementById('cfg-ram-val').value = serverSettings.ramLimitMB || 500;
+            
+            // CORREÇÃO: Respeita as unidades salvas (KB ou MB)
+            if (serverSettings.ramUnit === 'KB') {
+                document.getElementById('cfg-ram-val').value = serverSettings.ramLimitKB || 512000;
+                document.getElementById('cfg-ram-unit').value = 'KB';
+            } else {
+                document.getElementById('cfg-ram-val').value = serverSettings.ramLimitMB || 500;
+                document.getElementById('cfg-ram-unit').value = 'MB';
+            }
+
             document.getElementById('cfg-max-users').value = serverSettings.maxUsers || 20;
             document.getElementById('cfg-script-lifecycle').value = serverSettings.scriptLifecycle || 'permanent';
             document.getElementById('cfg-private').value = String(serverSettings.allowPrivate);
@@ -636,7 +669,9 @@
             toggleServerTypeUI();
             toggleDomainWhitelistUI();
             renderDomains();
-        }, 800);
+        });
+
+        socket.emit('eb_get_server_changes', { key: serverKey, ownerId, googleSub });
     }
 
     function showLoadingScreen(msg) {
@@ -675,7 +710,6 @@
 
     function closeHowToUse() { document.getElementById('modal-howto').style.display = 'none'; }
 
-    // --- GERADOR DINÂMICO DE CÓDIGOS DE EXEMPLO (TEST YOUR GUNS COMPLETO PARA HTTP E WEBSOCKET) ---
     function getGameExamples() {
         const isHttp = serverType === 'http';
 
@@ -732,7 +766,6 @@
         let joyActive = false;
         let joyVector = { x: 0, y: 0 };
 
-        // HTTP Sync Loop: Envias ações por POST e recebe os eventos de resposta do ServerScript
         let isHttpBusy = false;
         async function syncHttp(eventType, customData) {
             if (isHttpBusy && !customData) return;
@@ -785,10 +818,8 @@
             }
         }
 
-        // Registro inicial via HTTP
         syncHttp("player_join", { id: myId, color: myColor, x: myPos.x, y: myPos.y });
 
-        // Polling contínuo HTTP a cada 60ms
         setInterval(() => {
             if (!isDead) syncHttp();
         }, 60);
@@ -1336,7 +1367,6 @@ setInterval(() => {
         return { clientCode, serverCode };
     }
 
-    // --- PROMPT DE IA ATUALIZADO (INCLUI CÓDIGOS E EXPLICATIVOS) ---
     function copyAIPrompt() {
         const { clientCode, serverCode } = getGameExamples();
         const promptText = `*How to implement EzBridge's universal server on your online project*
