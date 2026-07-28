@@ -309,7 +309,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://examining-imaging-pads-drain.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://legislative-worldcat-stamps-precise.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
@@ -324,7 +324,6 @@
     const SCRIPT_CHUNK_SIZE = 100 * 1024;
     let isUploadingScript = false;
 
-    // Timeout de 5 segundos para erro de resposta do servidor
     const initTimeout = setTimeout(() => {
         document.getElementById('overlay-sync').style.display = 'none';
         document.getElementById('overlay-timeout-error').style.display = 'flex';
@@ -635,7 +634,7 @@
         }
     }
 
-    // BUSCA DE ALTERAÇÕES REAIS NO SERVIDOR COM FALLBACK RETRY (SOLUÇÃO DE TRAVAMENTO)
+    // BUSCA DE ALTERAÇÕES REAIS NO SERVIDOR COM FALLBACK RETRY
     function openEditSettings() {
         showLoadingScreen("Wait, we are gathering your previous server changes and synchronizing them here.");
         
@@ -677,6 +676,7 @@
     function populateSettingsForm(type, settings, script) {
         document.getElementById('cfg-server-type').value = type;
         
+        // CORREÇÃO: Respeita a unidade selecionada (KB vs MB) sem reverter para MB
         if (settings.ramUnit === 'KB') {
             document.getElementById('cfg-ram-val').value = settings.ramLimitKB || 512000;
             document.getElementById('cfg-ram-unit').value = 'KB';
