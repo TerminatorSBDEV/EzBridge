@@ -309,7 +309,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://answer-begun-inexpensive-pregnancy.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://invisible-amend-halo-wherever.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
@@ -1411,7 +1411,7 @@ ${serverType === 'websocket' ?
 3 - APIs You Can Use
 - 'ebuserid_get': Send RemoteEvent type 'ebuserid_get' to get the client's permanent unique User ID (10-20 chars).
 - ServerScript API: Write sandboxed backend JS code (Server.on('event', fn), Server.broadcast('event', data)) to handle server-side game logic securely.
-- Server.callAI: Call local AI generation (Ollama smollm:135m) inside ServerScript with custom Temp, Mtokens, Instruction, Prompt, and Streaming boolean.
+- Server.callAI: Call local AI generation (Ollama smollm:135m) inside ServerScript with custom temp, maxTokens, instruction, prompt, and streaming boolean.
 
 4 - Learn More About EzBridge
 - Max Packet Size: 192KB per packet (350KB chunk stream processing).
@@ -1464,11 +1464,11 @@ async function sendHttpEvent(type, data) {
 // Callable inside ServerScript on the backend:
 Server.callAI({
     model: "smollm:135m",
-    Temp: 0,                                // Range: 0 to 2.0
-    Mtokens: 28,                            // Range: 1 to 512
-    Instruction: "You are a helpful assistant.", // Min 2, max 1000 chars
-    Prompt: "what's the capital of France?",// Min 1, max 2000 chars
-    Streaming: false                        // false (full response) or true (updates every 0.1s)
+    temp: 0,           // Range: 0 to 2.0
+    maxTokens: 28,      // Range: 1 to 512
+    instruction: "You are a helpful assistant.", // Min 2, max 1000 chars
+    prompt: "what's 2+2?",                      // Min 1, max 2000 chars
+    streaming: false   // false (full response) or true (updates every 0.1s)
 }, (res) => {
     if (res.error) console.log("AI Error:", res.error);
     else console.log("AI Answer:", res.text, "ID:", res.id);
@@ -1497,11 +1497,11 @@ socket.on("RemoteEvent", (pkt) => {
 // Callable inside ServerScript on the backend:
 Server.callAI({
     model: "smollm:135m",
-    Temp: 0,                                // Range: 0 to 2.0
-    Mtokens: 28,                            // Range: 1 to 512
-    Instruction: "You are a helpful assistant.", // Min 2, max 1000 chars
-    Prompt: "what's the capital of France?",// Min 1, max 2000 chars
-    Streaming: false                        // false (full response) or true (updates every 0.1s)
+    temp: 0,           // Range: 0 to 2.0
+    maxTokens: 28,      // Range: 1 to 512
+    instruction: "You are a helpful assistant.", // Min 2, max 1000 chars
+    prompt: "what's 2+2?",                      // Min 1, max 2000 chars
+    streaming: false   // false (full response) or true (updates every 0.1s)
 }, (res) => {
     if (res.error) console.log("AI Error:", res.error);
     else console.log("AI Answer:", res.text, "ID:", res.id);
@@ -1546,7 +1546,7 @@ Server.stopAIId("4c1a");  // Stops specific 4-char ID task`;
 
     function getCookie(name) {
         let nameEQ = name + "=";
-        let ca = document.split(';');
+        let ca = document.cookie.split(';');
         for(let i=0;i < ca.length;i++) {
             let c = ca[i];
             while (c.charAt(0)==' ') c = c.substring(1,c.length);
