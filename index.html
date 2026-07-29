@@ -309,7 +309,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://reached-stand-immigrants-worthy.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://municipality-comparison-elliott-teenage.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
@@ -1393,7 +1393,7 @@ EzBridge server is a universal server that is also free and can be used to make 
 
 1 - Connecting
 To connect to our servers, you need to add this into your script:
-1 - Tunnel Link: ${PUBLIC_TUNNEL_URL}${serverType === 'http' ? '/remote' : ''}
+1 - Tunnel Link: ${PUBLIC_TUNNEL_URL}
 2 - Server Auth Key: ${serverKey}
 This will make the client or whatever be able to connect and start sending requests to EzBridge.
 
@@ -1405,8 +1405,7 @@ ${serverType === 'websocket' ?
 - Send data using socket.emit('RemoteEvent', { type: 'your_event', data: payload }).` :
 `- Send HTTP POST requests to ${PUBLIC_TUNNEL_URL}/remote
 - Include Header 'auth-token: ${serverKey}'
-- Send JSON body { type: 'your_event', data: payload }
-- Receive returned events array in the JSON response: { status: "success", events: [ ... ] }`}
+- Send JSON body { type: 'your_event', data: payload }`}
 
 3 - APIs You Can Use
 - 'ebuserid_get': Send RemoteEvent type 'ebuserid_get' to get the client's permanent unique User ID (10-20 chars).
