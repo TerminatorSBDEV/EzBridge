@@ -309,7 +309,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://municipality-comparison-elliott-teenage.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://levels-pendant-adoption-guided.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
@@ -1405,11 +1405,13 @@ ${serverType === 'websocket' ?
 - Send data using socket.emit('RemoteEvent', { type: 'your_event', data: payload }).` :
 `- Send HTTP POST requests to ${PUBLIC_TUNNEL_URL}/remote
 - Include Header 'auth-token: ${serverKey}'
-- Send JSON body { type: 'your_event', data: payload }`}
+- Send JSON body { type: 'your_event', data: payload }
+- Receive returned events array in the JSON response: { status: "success", events: [ ... ] }`}
 
 3 - APIs You Can Use
 - 'ebuserid_get': Send RemoteEvent type 'ebuserid_get' to get the client's permanent unique User ID (10-20 chars).
 - ServerScript API: Write sandboxed backend JS code (Server.on('event', fn), Server.broadcast('event', data)) to handle server-side game logic securely.
+- Server.callAI: Call local AI generation (Ollama smollm:135m) inside ServerScript with custom temp, maxTokens, instruction, prompt, and streaming boolean.
 
 4 - Learn More About EzBridge
 - Max Packet Size: 192KB per packet (350KB chunk stream processing).
@@ -1456,7 +1458,26 @@ async function sendHttpEvent(type, data) {
     if (json.events) {
         json.events.forEach(evt => handleServerEvent(evt));
     }
-}`;
+}
+
+// --- SERVERSCRIPT LOCAL AI API (Ollama smollm:135m) ---
+// Callable inside ServerScript on the backend:
+Server.callAI({
+    model: "smollm:135m",
+    temp: 0,           // Range: 0 to 2.0
+    maxTokens: 28,      // Range: 1 to 512
+    instruction: "You are a helpful assistant.", // Min 2, max 1000 chars
+    prompt: "what's 2+2?",                      // Min 1, max 2000 chars
+    streaming: false   // false (full response) or true (updates every 0.1s)
+}, (res) => {
+    if (res.error) console.log("AI Error:", res.error);
+    else console.log("AI Answer:", res.text, "ID:", res.id);
+});
+
+// Stop AI Generation Commands (ServerScript API):
+Server.stopAILatest();    // Stops latest active/queued AI task
+Server.stopAIAll();       // Stops all active/queued AI tasks
+Server.stopAIId("4c1a");  // Stops specific 4-char ID task`;
         } else {
             box.innerText = `// --- EZBRIDGE WEBSOCKET API ---
 1. CONNECT & JOIN ROOM:
@@ -1470,7 +1491,26 @@ socket.emit("RemoteEvent", { type: "player_join", data: { id: "usr_123" } });
 socket.emit("RemoteEvent", { type: "ebuserid_get" });
 socket.on("RemoteEvent", (pkt) => {
     if (pkt.type === "userid_response") console.log("My User ID:", pkt.userId);
-});`;
+});
+
+// --- SERVERSCRIPT LOCAL AI API (Ollama smollm:135m) ---
+// Callable inside ServerScript on the backend:
+Server.callAI({
+    model: "smollm:135m",
+    temp: 0,           // Range: 0 to 2.0
+    maxTokens: 28,      // Range: 1 to 512
+    instruction: "You are a helpful assistant.", // Min 2, max 1000 chars
+    prompt: "what's 2+2?",                      // Min 1, max 2000 chars
+    streaming: false   // false (full response) or true (updates every 0.1s)
+}, (res) => {
+    if (res.error) console.log("AI Error:", res.error);
+    else console.log("AI Answer:", res.text, "ID:", res.id);
+});
+
+// Stop AI Generation Commands (ServerScript API):
+Server.stopAILatest();    // Stops latest active/queued AI task
+Server.stopAIAll();       // Stops all active/queued AI tasks
+Server.stopAIId("4c1a");  // Stops specific 4-char ID task`;
         }
 
         document.getElementById('modal-commands').style.display = 'flex';
