@@ -309,7 +309,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://phases-recall-hourly-sage.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://pts-request-jamie-supplement.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
@@ -324,7 +324,6 @@
     const SCRIPT_CHUNK_SIZE = 100 * 1024;
     let isUploadingScript = false;
 
-    // Timeout de 5 segundos para erro de resposta do servidor
     const initTimeout = setTimeout(() => {
         document.getElementById('overlay-sync').style.display = 'none';
         document.getElementById('overlay-timeout-error').style.display = 'flex';
@@ -635,7 +634,6 @@
         }
     }
 
-    // BUSCA DE ALTERAÇÕES REAIS NO SERVIDOR COM FALLBACK RETRY
     function openEditSettings() {
         showLoadingScreen("Wait, we are gathering your previous server changes and synchronizing them here.");
         
@@ -677,7 +675,6 @@
     function populateSettingsForm(type, settings, script) {
         document.getElementById('cfg-server-type').value = type;
         
-        // CORREÇÃO: Mantém valor e unidade em KB de forma consistente
         if (settings.ramUnit === 'KB') {
             document.getElementById('cfg-ram-val').value = settings.ramLimitKB || 512000;
             document.getElementById('cfg-ram-unit').value = 'KB';
@@ -1445,10 +1442,21 @@ like, let's just say the player jumped, the server sees it "let me see who just 
 1. GET STATUS:
 GET ${PUBLIC_TUNNEL_URL}/getstatus
 
-2. SEND REMOTE EVENT:
-POST ${PUBLIC_TUNNEL_URL}/remote
-Header: "auth-token": "${serverKey}"
-Body: { "type": "player_join", "data": { "id": "usr_123" } }`;
+2. SEND REMOTE EVENT & LISTEN TO RESPONSES:
+async function sendHttpEvent(type, data) {
+    const res = await fetch("${PUBLIC_TUNNEL_URL}/remote", {
+        method: "POST",
+        headers: { 
+            "Content-Type": "application/json", 
+            "auth-token": "${serverKey}" 
+        },
+        body: JSON.stringify({ type: type, data: data })
+    });
+    const json = await res.json();
+    if (json.events) {
+        json.events.forEach(evt => handleServerEvent(evt));
+    }
+}`;
         } else {
             box.innerText = `// --- EZBRIDGE WEBSOCKET API ---
 1. CONNECT & JOIN ROOM:
