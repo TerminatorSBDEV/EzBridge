@@ -284,7 +284,7 @@
     <div id="modal-commands" class="overlay" style="display:none;">
         <div class="card" style="max-width: 650px;">
             <h3>EzBridge API Commands</h3>
-            <div id="api-commands-box" class="code-box" style="height:300px; max-height:300px;"></div>
+            <div id="api-commands-box" class="code-box" style="height:320px; max-height:320px;"></div>
             <button class="btn btn-secondary" onclick="closeCommandsModal()">Back</button>
         </div>
     </div>
@@ -1411,7 +1411,7 @@ ${serverType === 'websocket' ?
 3 - APIs You Can Use
 - 'ebuserid_get': Send RemoteEvent type 'ebuserid_get' to get the client's permanent unique User ID (10-20 chars).
 - ServerScript API: Write sandboxed backend JS code (Server.on('event', fn), Server.broadcast('event', data)) to handle server-side game logic securely.
-- Server.callAI: Call local AI generation (Ollama smollm:135m) inside ServerScript with custom temp, maxTokens, instruction, prompt, and streaming boolean.
+- Server.callAI: Call local AI generation (Ollama smollm:135m) inside ServerScript with parameters: { Temp: 0, Mtokens: 28, Instruction: "...", Prompt: "...", Streaming: false }. Callback receives { id: "4-char-id", text: "generated AI message text", chunk: "newest chunk", done: boolean, error: string }. NOTE: Always display 'res.text' as the AI's generated response in the chat/UI, NOT 'res.id'!
 
 4 - Learn More About EzBridge
 - Max Packet Size: 192KB per packet (350KB chunk stream processing).
@@ -1464,14 +1464,21 @@ async function sendHttpEvent(type, data) {
 // Callable inside ServerScript on the backend:
 Server.callAI({
     model: "smollm:135m",
-    temp: 0,           // Range: 0 to 2.0
-    maxTokens: 28,      // Range: 1 to 512
-    instruction: "You are a helpful assistant.", // Min 2, max 1000 chars
-    prompt: "what's 2+2?",                      // Min 1, max 2000 chars
-    streaming: false   // false (full response) or true (updates every 0.1s)
+    Temp: 0,                           // Temperature (0 to 2.0)
+    Mtokens: 28,                       // Max Tokens (1 to 512)
+    Instruction: "You are a helpful assistant.", // Instruction (2 to 1000 chars)
+    Prompt: "what's the capital of France?",      // Prompt (1 to 2000 chars)
+    Streaming: false                  // false (returns full text) or true (0.1s updates)
 }, (res) => {
+    // CALLBACK OBJECT PARAMETERS:
+    // res.text  => The generated AI response text (RENDER THIS ON YOUR CHAT UI!)
+    // res.id    => 4-char internal tracking ID (DO NOT DISPLAY AS CHAT BODY!)
+    // res.chunk => Latest text snippet (if Streaming is true)
+    // res.done  => Boolean (true when generation finishes)
+    // res.error => Error string if failed
+
     if (res.error) console.log("AI Error:", res.error);
-    else console.log("AI Answer:", res.text, "ID:", res.id);
+    else console.log("AI Answer Text:", res.text, "Tracking ID:", res.id);
 });
 
 // Stop AI Generation Commands (ServerScript API):
@@ -1497,14 +1504,21 @@ socket.on("RemoteEvent", (pkt) => {
 // Callable inside ServerScript on the backend:
 Server.callAI({
     model: "smollm:135m",
-    temp: 0,           // Range: 0 to 2.0
-    maxTokens: 28,      // Range: 1 to 512
-    instruction: "You are a helpful assistant.", // Min 2, max 1000 chars
-    prompt: "what's 2+2?",                      // Min 1, max 2000 chars
-    streaming: false   // false (full response) or true (updates every 0.1s)
+    Temp: 0,                           // Temperature (0 to 2.0)
+    Mtokens: 28,                       // Max Tokens (1 to 512)
+    Instruction: "You are a helpful assistant.", // Instruction (2 to 1000 chars)
+    Prompt: "what's the capital of France?",      // Prompt (1 to 2000 chars)
+    Streaming: false                  // false (returns full text) or true (0.1s updates)
 }, (res) => {
+    // CALLBACK OBJECT PARAMETERS:
+    // res.text  => The generated AI response text (RENDER THIS ON YOUR CHAT UI!)
+    // res.id    => 4-char internal tracking ID (DO NOT DISPLAY AS CHAT BODY!)
+    // res.chunk => Latest text snippet (if Streaming is true)
+    // res.done  => Boolean (true when generation finishes)
+    // res.error => Error string if failed
+
     if (res.error) console.log("AI Error:", res.error);
-    else console.log("AI Answer:", res.text, "ID:", res.id);
+    else console.log("AI Answer Text:", res.text, "Tracking ID:", res.id);
 });
 
 // Stop AI Generation Commands (ServerScript API):
