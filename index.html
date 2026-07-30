@@ -1412,12 +1412,12 @@ ${serverType === 'websocket' ?
 - 'ebuserid_get': Send RemoteEvent type 'ebuserid_get' to get the client's permanent unique User ID (10-20 chars).
 - ServerScript API: Write sandboxed backend JS code (Server.on('event', fn), Server.broadcast('event', data)) to handle server-side game logic securely.
 - Server.callAI: Call local AI generation (Ollama smollm:135m) inside ServerScript with parameters: { Temp: 0, Mtokens: 28, Instruction: "...", Prompt: "...", Streaming: false }. Callback receives { id: "4-char-id", text: "generated AI message text", chunk: "newest chunk", done: boolean, error: string }. NOTE: Always display 'res.text' as the AI's generated response in the chat/UI, NOT 'res.id'!
-- Server.moderate: Call AI moderation on text prompts with sensitivity "low", "medium", or "high". Triggers 'eb_moderate_flag' or 'eb_moderate_pass'.
+- Server.moderate: Call AI content moderation inside ServerScript with parameters: { prompt: "text", sensitivity: "low" | "medium" | "high" }, passing onPass and onFlag callbacks. (Temp = 0).
 
 4 - Learn More About EzBridge
 - Max Packet Size: 192KB per packet (350KB chunk stream processing).
 - Request Limit: Up to 60 requests/sec (more than 60 reqs/s or 200kbps triggers 5-min IP and client ratelimit).
-- Server Memory: Configured at ${serverSettings.ramLimitMB || 500}MB.
+- Server Memory: Configured at ${serverSettings.ramLimitMB || 500}MB (+50MB hidden VRAM protection).
 - Instance Scaling: Automatic room instancing per ${serverSettings.maxUsers || 20} max users.
 
 that's all you needed to know, now, you can start.
@@ -1461,33 +1461,38 @@ async function sendHttpEvent(type, data) {
     }
 }
 
-// --- SERVERSCRIPT LOCAL AI API (Ollama smollm:135m) ---
+// --- SERVERSCRIPT LOCAL AI GENERATION (Ollama smollm:135m) ---
 Server.callAI({
     model: "smollm:135m",
     Temp: 0,                           // Temperature (0 to 2.0)
     Mtokens: 28,                       // Max Tokens (1 to 512)
-    Instruction: "You are a helpful assistant.",
-    Prompt: "what's the capital of France?",
-    Streaming: false
+    Instruction: "You are a helpful assistant.", // Instruction (2 to 1000 chars)
+    Prompt: "what's the capital of France?",      // Prompt (1 to 2000 chars)
+    Streaming: false                  // false (returns full text) or true (0.1s updates)
 }, (res) => {
-    // res.text  => Generated AI response text (RENDER THIS ON YOUR CHAT UI!)
+    // res.text  => The generated AI response text (RENDER THIS ON YOUR CHAT UI!)
     // res.id    => 4-char internal tracking ID (DO NOT DISPLAY AS CHAT BODY!)
-    // res.done  => Boolean
+    // res.chunk => Latest text snippet (if Streaming is true)
+    // res.done  => Boolean (true when generation finishes)
+    // res.error => Error string if failed
     if (res.error) console.log("AI Error:", res.error);
-    else console.log("AI Answer Text:", res.text);
+    else console.log("AI Answer Text:", res.text, "Tracking ID:", res.id);
 });
 
-// --- AI MODERATION API ---
+// --- SERVERSCRIPT AI CONTENT MODERATION API ---
 Server.moderate({
-    prompt: "text to check",  // 1 to 10,000 chars
-    sensitivity: "medium"    // "low", "medium", or "high"
-}, (res) => {
-    if (res.flagged) {
-        console.log("eb_moderate_flag: Prompt was flagged!");
-    } else {
-        console.log("eb_moderate_pass: Prompt passed moderation.");
-    }
-});`;
+    prompt: "Text to check for inappropriate content",
+    sensitivity: "medium" // Options: "low", "medium", "high"
+}, () => {
+    console.log("Prompt PASSED moderation.");
+}, () => {
+    console.log("Prompt FLAGGED by moderation!");
+});
+
+// AI Stop Commands:
+Server.stopAILatest();    // Stops latest active/queued AI task
+Server.stopAIAll();       // Stops all active/queued AI tasks
+Server.stopAIId("4c1a");  // Stops specific 4-char ID task`;
         } else {
             box.innerText = `// --- EZBRIDGE WEBSOCKET API ---
 1. CONNECT & JOIN ROOM:
@@ -1503,33 +1508,38 @@ socket.on("RemoteEvent", (pkt) => {
     if (pkt.type === "userid_response") console.log("My User ID:", pkt.userId);
 });
 
-// --- SERVERSCRIPT LOCAL AI API (Ollama smollm:135m) ---
+// --- SERVERSCRIPT LOCAL AI GENERATION (Ollama smollm:135m) ---
 Server.callAI({
     model: "smollm:135m",
     Temp: 0,                           // Temperature (0 to 2.0)
     Mtokens: 28,                       // Max Tokens (1 to 512)
-    Instruction: "You are a helpful assistant.",
-    Prompt: "what's the capital of France?",
-    Streaming: false
+    Instruction: "You are a helpful assistant.", // Instruction (2 to 1000 chars)
+    Prompt: "what's the capital of France?",      // Prompt (1 to 2000 chars)
+    Streaming: false                  // false (returns full text) or true (0.1s updates)
 }, (res) => {
-    // res.text  => Generated AI response text (RENDER THIS ON YOUR CHAT UI!)
+    // res.text  => The generated AI response text (RENDER THIS ON YOUR CHAT UI!)
     // res.id    => 4-char internal tracking ID (DO NOT DISPLAY AS CHAT BODY!)
-    // res.done  => Boolean
+    // res.chunk => Latest text snippet (if Streaming is true)
+    // res.done  => Boolean (true when generation finishes)
+    // res.error => Error string if failed
     if (res.error) console.log("AI Error:", res.error);
-    else console.log("AI Answer Text:", res.text);
+    else console.log("AI Answer Text:", res.text, "Tracking ID:", res.id);
 });
 
-// --- AI MODERATION API ---
+// --- SERVERSCRIPT AI CONTENT MODERATION API ---
 Server.moderate({
-    prompt: "text to check",  // 1 to 10,000 chars
-    sensitivity: "medium"    // "low", "medium", or "high"
-}, (res) => {
-    if (res.flagged) {
-        console.log("eb_moderate_flag: Prompt was flagged!");
-    } else {
-        console.log("eb_moderate_pass: Prompt passed moderation.");
-    }
-});`;
+    prompt: "Text to check for inappropriate content",
+    sensitivity: "medium" // Options: "low", "medium", "high"
+}, () => {
+    console.log("Prompt PASSED moderation.");
+}, () => {
+    console.log("Prompt FLAGGED by moderation!");
+});
+
+// AI Stop Commands:
+Server.stopAILatest();    // Stops latest active/queued AI task
+Server.stopAIAll();       // Stops all active/queued AI tasks
+Server.stopAIId("4c1a");  // Stops specific 4-char ID task`;
         }
 
         document.getElementById('modal-commands').style.display = 'flex';
