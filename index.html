@@ -15,6 +15,7 @@
             --accent: #06b6d4;
             --accent-glow: rgba(6, 182, 212, 0.3);
             --green: #10b981;
+            --yellow: #eab308;
             --text: #f8fafc;
             --muted: #64748b;
             --error: #ef4444;
@@ -88,6 +89,19 @@
             background: #020617; padding: 12px; border-radius: 6px; border: 1px solid var(--border);
             font-family: monospace; font-size: 0.8rem; margin: 10px 0; overflow-x: auto; white-space: pre; text-align: left;
         }
+
+        /* Console Floating GUI Style */
+        .console-box {
+            background: #000000; padding: 12px; border-radius: 8px; border: 1px solid #334155;
+            font-family: 'Courier New', Courier, monospace; font-size: 0.8rem; margin: 15px 0;
+            height: 260px; max-height: 260px; overflow-y: auto; text-align: left;
+            display: flex; flex-direction: column; gap: 4px;
+        }
+        .log-green { color: var(--green); }
+        .log-yellow { color: var(--yellow); }
+        .log-red { color: var(--error); }
+        .log-white { color: var(--text); }
+
         .disclaimer { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--error); color: #fca5a5; padding: 10px; border-radius: 6px; font-size: 0.75rem; text-align: left; margin-bottom: 10px; }
     </style>
 </head>
@@ -220,6 +234,18 @@
         </div>
     </div>
 
+    <!-- Modal Console Floating GUI -->
+    <div id="modal-console" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 600px;">
+            <h3>Server Console Logs</h3>
+            <div id="console-logs-display" class="console-box"></div>
+            <div style="display:flex; gap:10px;">
+                <button class="btn" onclick="copyConsoleLogs()">[Copy Logs]</button>
+                <button class="btn btn-secondary" onclick="closeConsoleModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
     <div id="dashboard" class="card" style="display:none; width: 480px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
             <h2 style="margin:0;">EzBridge Control</h2>
@@ -245,6 +271,7 @@
 
         <div class="dashboard-row">
             <button class="btn" style="flex: 1;" onclick="toggleServerState()">[Start/Stop Server]</button>
+            <button class="btn btn-purple" style="width: 90px;" onclick="openConsoleModal()">Console</button>
             <button class="btn btn-secondary" style="width: 50px;" onclick="openEditSettings()">⚙</button>
         </div>
         <div class="dashboard-row">
@@ -309,7 +336,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://invisible-amend-halo-wherever.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://creation-obviously-mesa-expenditure.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
@@ -320,6 +347,7 @@
     let serverSettings = {};
     let currentServerScript = "";
     let whitelistedDomains = [];
+    let consoleLogsCache = [];
 
     const SCRIPT_CHUNK_SIZE = 100 * 1024;
     let isUploadingScript = false;
@@ -362,6 +390,13 @@
     socket.on('server_error', (data) => {
         hideLoadingScreen();
         alert(data.error);
+    });
+
+    socket.on('eb_console_update', (data) => {
+        if (data.logs) {
+            consoleLogsCache = data.logs;
+            renderConsoleLogs();
+        }
     });
 
     function handleGoogleLogin(response) {
@@ -632,6 +667,33 @@
             dot.classList.remove('online');
             text.innerText = "OFFLINE";
         }
+    }
+
+    function openConsoleModal() {
+        document.getElementById('modal-console').style.display = 'flex';
+        socket.emit('eb_get_console_logs', { key: serverKey, ownerId, googleSub });
+    }
+
+    function closeConsoleModal() {
+        document.getElementById('modal-console').style.display = 'none';
+    }
+
+    function renderConsoleLogs() {
+        const box = document.getElementById('console-logs-display');
+        box.innerHTML = "";
+        consoleLogsCache.forEach(log => {
+            const div = document.createElement('div');
+            div.className = `log-${log.color || 'white'}`;
+            div.innerText = log.text;
+            box.appendChild(div);
+        });
+        box.scrollTop = box.scrollHeight;
+    }
+
+    function copyConsoleLogs() {
+        const text = consoleLogsCache.map(l => l.text).join('\n');
+        navigator.clipboard.writeText(text);
+        alert("Console logs copied to clipboard!");
     }
 
     function openEditSettings() {
@@ -1409,15 +1471,14 @@ ${serverType === 'websocket' ?
 - Receive returned events array in the JSON response: { status: "success", events: [ ... ] }`}
 
 3 - APIs You Can Use
-- 'ebuserid_get': Send RemoteEvent type 'ebuserid_get' to get the client's permanent unique User ID (10-20 chars).
+- 'ebuserid_get' / 'eb_id_get': Send RemoteEvent type 'ebuserid_get' to get the client's permanent unique User ID (15-30 chars). Returns "This user does not have an ID." if user is not a server owner.
 - ServerScript API: Write sandboxed backend JS code (Server.on('event', fn), Server.broadcast('event', data)) to handle server-side game logic securely.
-- Server.callAI: Call local AI generation (Ollama smollm:135m) inside ServerScript with parameters: { Temp: 0, Mtokens: 28, Instruction: "...", Prompt: "...", Streaming: false }. Callback receives { id: "4-char-id", text: "generated AI message text", chunk: "newest chunk", done: boolean, error: string }. NOTE: Always display 'res.text' as the AI's generated response in the chat/UI, NOT 'res.id'!
-- Server.moderate: Call AI moderation inside ServerScript: Server.moderate({ prompt: "text", sensitivity: "low" | "medium" | "high" }, callback). Triggers 'eb_moderate_flag' or 'eb_moderate_pass' events.
+- Server.callAI: Call local AI generation (Ollama smollm:135m or qwen2.5:0.5b) inside ServerScript with parameters: { model: "smollm:135m", Temp: 0, Mtokens: 28, Instruction: "...", Prompt: "...", Streaming: false }. Callback receives { id: "4-char-id", text: "generated AI message text", chunk: "newest chunk", done: boolean, error: string }. NOTE: Always display 'res.text' as the AI's generated response in the chat/UI, NOT 'res.id'!
 
 4 - Learn More About EzBridge
 - Max Packet Size: 192KB per packet (350KB chunk stream processing).
 - Request Limit: Up to 60 requests/sec (more than 60 reqs/s or 200kbps triggers 5-min IP and client ratelimit).
-- Server Memory: Configured at ${serverSettings.ramLimitMB || 500}MB (+50MB hidden VRAM protection).
+- Server Memory: Configured at ${serverSettings.ramLimitMB || 500}MB.
 - Instance Scaling: Automatic room instancing per ${serverSettings.maxUsers || 20} max users.
 
 that's all you needed to know, now, you can start.
@@ -1461,40 +1522,28 @@ async function sendHttpEvent(type, data) {
     }
 }
 
-// --- SERVERSCRIPT LOCAL AI GENERATION API (smollm:135m) ---
+// --- SERVERSCRIPT LOCAL AI API (Ollama smollm:135m / qwen2.5:0.5b) ---
+// Callable inside ServerScript on the backend:
 Server.callAI({
-    model: "smollm:135m",
-    Temp: 0,                           // 0 to 2.0
-    Mtokens: 28,                       // 1 to 512
-    Instruction: "You are a helpful assistant.", // 2 to 1000 chars
-    Prompt: "what's the capital of France?",      // 1 to 2000 chars
-    Streaming: false                  // false (full text) or true (0.1s updates)
+    model: "smollm:135m",             // "smollm:135m" or "qwen2.5:0.5b"
+    Temp: 0,                           // Temperature (0 to 2.0)
+    Mtokens: 28,                       // Max Tokens (1 to 1520)
+    Instruction: "You are a helpful assistant.", // Instruction (2 to 1000 chars)
+    Prompt: "what's the capital of France?",      // Prompt (1 to 5000 chars)
+    Streaming: false                  // false (returns full text) or true (0.1s updates)
 }, (res) => {
-    // res.text  => Generated AI Message Text (DISPLAY THIS ON CHAT UI!)
-    // res.id    => 4-char tracking ID (DO NOT DISPLAY AS CHAT MESSAGE!)
+    // CALLBACK OBJECT PARAMETERS:
+    // res.text  => The generated AI response text (RENDER THIS ON YOUR CHAT UI!)
+    // res.id    => 4-char internal tracking ID (DO NOT DISPLAY AS CHAT BODY!)
+    // res.chunk => Latest text snippet (if Streaming is true)
+    // res.done  => Boolean (true when generation finishes)
+    // res.error => Error string if failed
+
     if (res.error) console.log("AI Error:", res.error);
-    else console.log("AI Answer:", res.text, "ID:", res.id);
+    else console.log("AI Answer Text:", res.text, "Tracking ID:", res.id);
 });
 
-// --- SERVERSCRIPT AI MODERATION API (smollm:135m) ---
-Server.moderate({
-    prompt: "text to moderate",
-    sensitivity: "medium" // "low", "medium", or "high"
-}, (res) => {
-    if (res.flagged) {
-        console.log("Prompt Flagged! Sensitivity:", res.sensitivity);
-    } else {
-        console.log("Prompt Passed Moderation!");
-    }
-});
-// Events emitted by moderation: "eb_moderate_flag" or "eb_moderate_pass"
-
-// SENSITIVITY LEVELS & EXAMPLES:
-// 1. "low": Only flags extreme slurs (n-word), extreme sexual assault/rape, or ultra-toxic hate speech.
-// 2. "medium": Flags cursing (fuck, ass, stink), rape, threats, or doxxing.
-// 3. "high": Strict filtering. Disallows bullying, toxicity, profanity, insults, or fake/real doxxing.
-
-// AI Stop Commands:
+// Stop AI Generation Commands (ServerScript API):
 Server.stopAILatest();    // Stops latest active/queued AI task
 Server.stopAIAll();       // Stops all active/queued AI tasks
 Server.stopAIId("4c1a");  // Stops specific 4-char ID task`;
@@ -1508,45 +1557,33 @@ socket.emit("join_virtual_server", { key: "${serverKey}" });
 socket.emit("RemoteEvent", { type: "player_join", data: { id: "usr_123" } });
 
 3. GET CLIENT USER ID:
-socket.emit("RemoteEvent", { type: "ebuserid_get" });
+socket.emit("RemoteEvent", { type: "ebuserid_get" }); // Or "eb_id_get"
 socket.on("RemoteEvent", (pkt) => {
-    if (pkt.type === "userid_response") console.log("My User ID:", pkt.userId);
+    if (pkt.type === "userid_response") console.log("User ID:", pkt.userId || pkt.message);
 });
 
-// --- SERVERSCRIPT LOCAL AI GENERATION API (smollm:135m) ---
+// --- SERVERSCRIPT LOCAL AI API (Ollama smollm:135m / qwen2.5:0.5b) ---
+// Callable inside ServerScript on the backend:
 Server.callAI({
-    model: "smollm:135m",
-    Temp: 0,                           // 0 to 2.0
-    Mtokens: 28,                       // 1 to 512
-    Instruction: "You are a helpful assistant.", // 2 to 1000 chars
-    Prompt: "what's the capital of France?",      // 1 to 2000 chars
-    Streaming: false                  // false (full text) or true (0.1s updates)
+    model: "smollm:135m",             // "smollm:135m" or "qwen2.5:0.5b"
+    Temp: 0,                           // Temperature (0 to 2.0)
+    Mtokens: 28,                       // Max Tokens (1 to 1520)
+    Instruction: "You are a helpful assistant.", // Instruction (2 to 1000 chars)
+    Prompt: "what's the capital of France?",      // Prompt (1 to 5000 chars)
+    Streaming: false                  // false (returns full text) or true (0.1s updates)
 }, (res) => {
-    // res.text  => Generated AI Message Text (DISPLAY THIS ON CHAT UI!)
-    // res.id    => 4-char tracking ID (DO NOT DISPLAY AS CHAT MESSAGE!)
+    // CALLBACK OBJECT PARAMETERS:
+    // res.text  => The generated AI response text (RENDER THIS ON YOUR CHAT UI!)
+    // res.id    => 4-char internal tracking ID (DO NOT DISPLAY AS CHAT BODY!)
+    // res.chunk => Latest text snippet (if Streaming is true)
+    // res.done  => Boolean (true when generation finishes)
+    // res.error => Error string if failed
+
     if (res.error) console.log("AI Error:", res.error);
-    else console.log("AI Answer:", res.text, "ID:", res.id);
+    else console.log("AI Answer Text:", res.text, "Tracking ID:", res.id);
 });
 
-// --- SERVERSCRIPT AI MODERATION API (smollm:135m) ---
-Server.moderate({
-    prompt: "text to moderate",
-    sensitivity: "medium" // "low", "medium", or "high"
-}, (res) => {
-    if (res.flagged) {
-        console.log("Prompt Flagged! Sensitivity:", res.sensitivity);
-    } else {
-        console.log("Prompt Passed Moderation!");
-    }
-});
-// Events emitted by moderation: "eb_moderate_flag" or "eb_moderate_pass"
-
-// SENSITIVITY LEVELS & EXAMPLES:
-// 1. "low": Only flags extreme slurs (n-word), extreme sexual assault/rape, or ultra-toxic hate speech.
-// 2. "medium": Flags cursing (fuck, ass, stink), rape, threats, or doxxing.
-// 3. "high": Strict filtering. Disallows bullying, toxicity, profanity, insults, or fake/real doxxing.
-
-// AI Stop Commands:
+// Stop AI Generation Commands (ServerScript API):
 Server.stopAILatest();    // Stops latest active/queued AI task
 Server.stopAIAll();       // Stops all active/queued AI tasks
 Server.stopAIId("4c1a");  // Stops specific 4-char ID task`;
