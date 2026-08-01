@@ -234,7 +234,6 @@
         </div>
     </div>
 
-    <!-- Modal Console Floating GUI -->
     <div id="modal-console" class="overlay" style="display:none;">
         <div class="card" style="max-width: 600px;">
             <h3>Server Console Logs</h3>
@@ -318,15 +317,24 @@
 
     <div id="modal-code" class="overlay" style="display:none;">
         <div class="card" style="max-width: 750px;">
-            <h3>Test Your Guns Code Example</h3>
+            <h3>Code Examples</h3>
             <div id="http-disclaimer" class="disclaimer" style="display:none;">
                 DISCLAIMER: it's recommended that the client should have a temporary identifier so your scripts and projects know who's sending them, its optional.
             </div>
-            <div style="text-align:left; font-size:0.8rem; font-weight:bold; color:var(--accent);">HTML Client Script:</div>
-            <textarea id="example-code-client" class="code-box" readonly rows="8" style="width:100%; height:180px; border:none; resize:none;"></textarea>
+            <div style="text-align:left; font-size:0.8rem; font-weight:bold; color:var(--accent);">Test Your Guns - Client Script:</div>
+            <textarea id="example-code-client" class="code-box" readonly rows="6" style="width:100%; height:120px; border:none; resize:none;"></textarea>
             
-            <div style="text-align:left; font-size:0.8rem; font-weight:bold; color:var(--accent); margin-top:10px;">ServerScript (Backend Game Engine):</div>
-            <textarea id="example-code-server" class="code-box" readonly rows="8" style="width:100%; height:180px; border:none; resize:none;"></textarea>
+            <div style="text-align:left; font-size:0.8rem; font-weight:bold; color:var(--accent); margin-top:6px;">ServerScript (Backend Game Engine):</div>
+            <textarea id="example-code-server" class="code-box" readonly rows="6" style="width:100%; height:120px; border:none; resize:none;"></textarea>
+
+            <!-- EXTRA EXAMPLE SECTION FOR HTTP MODE ONLY -->
+            <div id="http-extra-example-container" style="display:none; margin-top:12px; border-top:1px solid var(--border); padding-top:10px;">
+                <div style="text-align:left; font-size:0.8rem; font-weight:bold; color:var(--accent);">HTTP State-Based Global Chat - Client Script:</div>
+                <textarea id="example-http-chat-client" class="code-box" readonly rows="6" style="width:100%; height:120px; border:none; resize:none;"></textarea>
+
+                <div style="text-align:left; font-size:0.8rem; font-weight:bold; color:var(--accent); margin-top:6px;">HTTP State-Based Global Chat - ServerScript:</div>
+                <textarea id="example-http-chat-server" class="code-box" readonly rows="6" style="width:100%; height:120px; border:none; resize:none;"></textarea>
+            </div>
 
             <div style="display:flex; gap:10px; margin-top:10px;">
                 <button class="btn" onclick="copyText('example-code-client')">Copy Client HTML</button>
@@ -1445,7 +1453,107 @@ setInterval(() => {
     Server.broadcast('state_update', { players });
 }, 1000 / 30);`;
 
-        return { clientCode, serverCode };
+        // Extra HTTP State-Based Chat Example
+        const httpChatClientCode = 
+`<!-- EzBridge HTTP Global Chat Client -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HTTP Global Chat</title>
+    <style>
+        body { background: #0f172a; color: #fff; font-family: sans-serif; padding: 20px; }
+        #chat { height: 200px; overflow-y: auto; background: #1e293b; padding: 10px; border-radius: 8px; }
+        input { width: 70%; padding: 8px; }
+        button { padding: 8px 16px; background: #06b6d4; border: none; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h2>HTTP Global Chat</h2>
+    <div id="chat"></div>
+    <br>
+    <input type="text" id="msgInput" placeholder="Type a message...">
+    <button onclick="sendMsg()">Send</button>
+
+    <script>
+        const link = "${PUBLIC_TUNNEL_URL}/remote";
+        const key = "${serverKey}";
+        const mySender = "Guest_" + Math.floor(Math.random() * 8999 + 1000);
+        let pendingText = null;
+        let isSyncing = false;
+
+        async function httpSync() {
+            if (isSyncing) return;
+            isSyncing = true;
+            try {
+                const payload = pendingText ? 
+                    { type: "send_message", data: { sender: mySender, text: pendingText } } :
+                    { type: "get_messages", data: {} };
+                pendingText = null;
+
+                const res = await fetch(link, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "auth-token": key },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    const json = await res.json();
+                    if (json.events && Array.isArray(json.events)) {
+                        json.events.forEach(evt => {
+                            if (evt.type === 'send_message_reply' || evt.type === 'get_messages_reply') {
+                                renderChat(evt.data.messages);
+                            }
+                        });
+                    }
+                }
+            } catch(e) {}
+            isSyncing = false;
+        }
+
+        function sendMsg() {
+            const input = document.getElementById('msgInput');
+            if (input.value.trim()) {
+                pendingText = input.value.trim();
+                input.value = "";
+                httpSync();
+            }
+        }
+
+        function renderChat(messages) {
+            const box = document.getElementById('chat');
+            box.innerHTML = messages.map(m => \`<div><b>\${m.sender}:</b> \${m.text}</div>\`).join('');
+            box.scrollTop = box.scrollHeight;
+        }
+
+        setInterval(httpSync, 60);
+    <\/script>
+</body>
+</html>`;
+
+        const httpChatServerCode = 
+`// --- EzBridge HTTP State-Based Chat ServerScript ---
+if (!Server.state.messages) {
+    Server.state.messages = [];
+}
+
+Server.on('send_message', (evt) => {
+    if (evt.data && evt.data.text) {
+        Server.state.messages.push({
+            sender: evt.data.sender || 'Guest',
+            text: evt.data.text
+        });
+        if (Server.state.messages.length > 50) {
+            Server.state.messages.shift();
+        }
+    }
+    evt.reply({ messages: Server.state.messages });
+});
+
+Server.on('get_messages', (evt) => {
+    evt.reply({ messages: Server.state.messages });
+});`;
+
+        return { clientCode, serverCode, httpChatClientCode, httpChatServerCode };
     }
 
     function copyAIPrompt() {
@@ -1478,7 +1586,7 @@ ${serverType === 'websocket' ?
 4 - Learn More About EzBridge
 - Max Packet Size: 192KB per packet (350KB chunk stream processing).
 - Request Limit: Up to 60 requests/sec (more than 60 reqs/s or 200kbps triggers 5-min IP and client ratelimit).
-- Server Memory: Configured at ${serverSettings.ramLimitMB || 500}MB.
+- Server Memory: Configured at ${serverSettings.ramLimitMB || 500}MB (+50MB hidden VRAM protection).
 - Instance Scaling: Automatic room instancing per ${serverSettings.maxUsers || 20} max users.
 
 that's all you needed to know, now, you can start.
@@ -1597,11 +1705,18 @@ Server.stopAIId("4c1a");  // Stops specific 4-char ID task`;
     function openGameCode() {
         const isHttp = serverType === 'http';
         document.getElementById('http-disclaimer').style.display = isHttp ? 'block' : 'none';
+        document.getElementById('http-extra-example-container').style.display = isHttp ? 'block' : 'none';
 
-        const { clientCode, serverCode } = getGameExamples();
+        const { clientCode, serverCode, httpChatClientCode, httpChatServerCode } = getGameExamples();
 
         document.getElementById('example-code-client').value = clientCode;
         document.getElementById('example-code-server').value = serverCode;
+
+        if (isHttp) {
+            document.getElementById('example-http-chat-client').value = httpChatClientCode;
+            document.getElementById('example-http-chat-server').value = httpChatServerCode;
+        }
+
         document.getElementById('modal-code').style.display = 'flex';
     }
 
