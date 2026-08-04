@@ -57,11 +57,24 @@
         .btn-icon { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 1rem; }
         .btn-icon:hover { border-color: var(--accent); color: var(--accent); }
 
-        /* ROLE BADGES */
-        .role-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
-        .role-owner { background: linear-gradient(135deg, #ef4444 0%, #ffffff 100%); color: #000; box-shadow: 0 0 10px rgba(239,68,68,0.5); }
-        .role-dev { background: #f59e0b; color: #000; box-shadow: 0 0 10px rgba(245,158,11,0.5); }
-        .role-admin { background: #10b981; color: #000; box-shadow: 0 0 10px rgba(16,185,129,0.5); }
+        .role-badge {
+            display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; margin-bottom: 8px;
+        }
+        .role-admin { background: #052e16; color: var(--green); border: 1px solid var(--green); }
+        .role-dev { background: #2a1b02; color: #f59e0b; border: 1px solid #f59e0b; }
+        .role-owner { background: linear-gradient(135deg, #ef4444 0%, #ffffff 100%); color: #000; font-weight: 900; }
+
+        .chat-floating-btn {
+            position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; border-radius: 50%;
+            background: var(--accent); color: #000; border: none; font-size: 1.5rem; display: flex;
+            align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 15px var(--accent-glow); z-index: 1000;
+        }
+
+        .terminal-btn {
+            position: fixed; bottom: 80px; right: 20px; width: 50px; height: 50px; border-radius: 50%;
+            background: #000; color: var(--green); border: 1px solid var(--green); font-size: 1.2rem; font-family: monospace; display: flex;
+            align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); z-index: 1000;
+        }
 
         .settings-grid {
             text-align: left; display: flex; flex-direction: column; gap: 12px; margin: 20px 0;
@@ -83,16 +96,6 @@
         .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--error); }
         .dot.online { background: var(--green); box-shadow: 0 0 10px var(--green); }
 
-        .progress-container {
-            width: 100%; background: #020617; border: 1px solid var(--border);
-            border-radius: 6px; height: 22px; overflow: hidden; margin: 10px 0; position: relative;
-        }
-        .progress-bar { width: 0%; height: 100%; background: var(--accent); transition: width 0.1s ease; }
-        .progress-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; }
-
-        .domain-list { display: flex; flex-direction: column; gap: 6px; margin-top: 5px; }
-        .domain-item { display: flex; justify-content: space-between; align-items: center; background: #020617; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; border: 1px solid var(--border); }
-
         .code-box, textarea, .settings-item textarea {
             background: #020617 !important;
             color: #f8fafc !important;
@@ -111,23 +114,6 @@
         .log-red { color: var(--error); }
         .log-white { color: #f8fafc !important; }
 
-        /* Floating Corner Chat Icon */
-        .chat-floating-btn {
-            position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px;
-            border-radius: 50%; background: var(--accent); color: #000; border: none;
-            font-size: 1.5rem; cursor: pointer; box-shadow: 0 0 15px var(--accent-glow);
-            z-index: 1000; display: flex; align-items: center; justify-content: center;
-        }
-
-        /* Session Chat Room UI */
-        .chat-room-box {
-            height: 280px; overflow-y: auto; background: #020617; border: 1px solid var(--border);
-            border-radius: 8px; padding: 10px; text-align: left; font-size: 0.85rem;
-            display: flex; flex-direction: column; gap: 8px; margin: 10px 0;
-        }
-        .chat-bubble { background: #0f172a; border: 1px solid var(--border); padding: 8px 12px; border-radius: 8px; }
-        .chat-sender { font-size: 0.7rem; font-weight: bold; color: var(--accent); margin-bottom: 2px; }
-
         .disclaimer { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--error); color: #fca5a5; padding: 10px; border-radius: 6px; font-size: 0.75rem; text-align: left; margin-bottom: 10px; }
     </style>
 </head>
@@ -140,11 +126,14 @@
         </div>
     </div>
 
-    <!-- FULL BANNED OVERLAY -->
-    <div id="overlay-banned-full" class="overlay" style="display:none;">
+    <!-- BAN SCREEN -->
+    <div id="overlay-banned-app" class="overlay" style="display:none;">
         <div class="card" style="border-color: var(--error);">
-            <h2 style="color: var(--error);">You are banned from EzBridge.</h2>
-            <p style="font-size: 0.9rem; margin: 15px 0;">Days remaining: <span id="ban-days-val" style="font-weight:bold; color:var(--accent);">0</span></p>
+            <h1 style="color: var(--error);">BANNED FROM EZBRIDGE</h1>
+            <p style="font-size:0.9rem; color:var(--muted); margin: 20px 0;">
+                You are banned from EzBridge.<br>
+                Days remaining: <span id="ban-days-display" style="color:#fff; font-weight:bold;">0</span>
+            </p>
             <button class="btn btn-secondary" onclick="copyUserId()">[Copy UserID]</button>
         </div>
     </div>
@@ -169,7 +158,9 @@
     <div id="overlay-captcha" class="overlay" style="display:none;">
         <div class="card">
             <h1>EzBridge</h1>
-            <p style="font-size:0.85rem; color:var(--muted); line-height:1.5;">Please solve the puzzle below to continue.</p>
+            <p style="font-size:0.85rem; color:var(--muted); line-height:1.5;">
+                Please solve the puzzle below to continue.
+            </p>
             <div style="display: flex; justify-content: center; margin: 20px 0;">
                 <div class="g-recaptcha" data-sitekey="6Lf8VTMtAAAAAAMXrs6lk-tLBjuW0u8ZV5LevzMz" data-callback="captchaSolved"></div>
             </div>
@@ -258,101 +249,17 @@
         </div>
     </div>
 
-    <!-- MODALS PARA MODERAÇÃO & ROLES -->
-    <div id="modal-ban-user" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 420px;">
-            <h3>BAN User Panel</h3>
-            <div class="settings-item" style="margin: 15px 0;">
-                <label>Paste User ID Here:</label>
-                <input type="text" id="ban-target-input" placeholder="User ID">
-                <label style="margin-top:10px;">How Many Days: (Leave blank for perm, 0 to unban)</label>
-                <input type="text" id="ban-days-input" placeholder="e.g. 7, 0 or leave blank">
-            </div>
-            <button class="btn btn-danger" onclick="submitBanUser()">BAN User</button>
-            <button class="btn btn-secondary" onclick="closeBanUserModal()">Cancel</button>
-        </div>
-    </div>
-
-    <div id="modal-role-manager" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 420px;">
-            <h3>Role Manager</h3>
-            <div class="settings-item" style="margin: 15px 0;">
-                <label>UserId: Paste Here</label>
-                <input type="text" id="role-target-input" placeholder="User ID">
-                <label style="margin-top:10px;">Role:</label>
-                <select id="role-select-input">
-                    <option value="None">None</option>
-                    <option value="Admin">Admin</option>
-                    <option value="Dev">Dev</option>
-                </select>
-            </div>
-            <button class="btn" onclick="submitUpdateRole()">Update Role</button>
-            <button class="btn btn-secondary" onclick="closeRoleManagerModal()">Cancel</button>
-        </div>
-    </div>
-
-    <div id="modal-server-management" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 650px; max-height:85vh; display:flex; flex-direction:column;">
-            <h3>Server Management</h3>
-            <div id="admin-servers-list" class="settings-grid" style="flex:1; max-height:60vh;"></div>
-            <button class="btn btn-secondary" style="margin-top:10px;" onclick="closeServerManagementModal()">Close</button>
-        </div>
-    </div>
-
-    <!-- TERMINAL INTERATIVO PARA DEVS & OWNER -->
-    <div id="modal-terminal" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 700px; max-height: 85vh; background:#000;">
-            <h3 style="color:var(--accent); text-align:left; font-family:monospace; margin-bottom:10px;">>_ Termux Master Terminal</h3>
-            <div id="terminal-window" class="console-box" style="height:320px; max-height:320px;" tabindex="0" onpaste="handleTerminalPaste(event)"></div>
-            <div style="display:flex; gap:8px;">
-                <input type="text" id="terminal-cmd-input" placeholder="Type terminal command here..." style="font-family:monospace;">
-                <button class="btn" style="width:auto; margin:0;" onclick="sendTerminalCommand()">Send</button>
-            </div>
-            <button class="btn btn-secondary" style="margin-top:10px;" onclick="closeTerminalModal()">Close Terminal</button>
-        </div>
-    </div>
-
-    <!-- CHAT SESSIONS SELECTION & CHAT ROOM -->
-    <div id="modal-chat-sessions" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 420px;">
-            <h3>Choose a Session</h3>
-            <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:10px; margin:15px 0;">
-                <button class="btn btn-secondary" onclick="enterChatSession(1)">S. 1</button>
-                <button class="btn btn-secondary" onclick="enterChatSession(2)">S. 2</button>
-                <button class="btn btn-secondary" onclick="enterChatSession(3)">S. 3</button>
-                <button class="btn btn-secondary" onclick="enterChatSession(4)">S. 4</button>
-                <button class="btn btn-secondary" onclick="enterChatSession(5)">S. 5</button>
-                <button class="btn btn-secondary" onclick="enterChatSession(6)">S. 6</button>
-                <button class="btn btn-secondary" onclick="enterChatSession(7)">S. 7</button>
-                <button class="btn btn-secondary" onclick="enterChatSession(8)">S. 8</button>
-                <button class="btn btn-secondary" onclick="enterChatSession(9)">S. 9</button>
-                <button class="btn btn-secondary" onclick="enterChatSession(10)">S. 10</button>
-            </div>
-            <button class="btn btn-secondary" onclick="closeChatSessionsModal()">Close</button>
-        </div>
-    </div>
-
-    <div id="modal-chat-room" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 520px; max-height:85vh; display:flex; flex-direction:column;">
-            <h3 id="chat-room-title">Chat Session S. 1</h3>
-            <div id="chat-messages-box" class="chat-room-box" style="flex:1;"></div>
-            <div id="chat-typing-status" style="font-size:0.75rem; color:var(--accent); text-align:left; min-height:16px;"></div>
-            <div style="display:flex; gap:8px;">
-                <input type="text" id="session-chat-input" placeholder="Max 250 chars..." maxlength="250" oninput="limitChatInput(this)">
-                <button class="btn" style="width:auto; margin:0;" id="session-send-btn" onclick="submitSessionMsg()">Send</button>
-            </div>
-            <button class="btn btn-secondary" style="margin-top:10px;" onclick="closeChatRoomModal()">Back to Sessions</button>
-        </div>
-    </div>
-
     <div id="modal-script" class="overlay" style="display:none;">
         <div class="card" style="max-width: 650px;">
             <h3>ServerScript Editor (REQUIRED)</h3>
-            <textarea id="script-editor" class="code-box" rows="12" style="width:100%; height:250px; resize:none;"></textarea>
+            <p style="font-size:0.8rem; color:var(--muted);">At least 1 character is strictly required for the server to operate.</p>
+            <textarea id="script-editor" class="code-box" rows="12" style="width:100%; height:250px; resize:none;" placeholder="// ServerScript is mandatory!"></textarea>
+            
             <div id="script-upload-progress" class="progress-container" style="display:none;">
                 <div id="script-progress-bar" class="progress-bar"></div>
                 <div class="progress-text">Uploading Script: <span id="script-progress-val">0</span>%</div>
             </div>
+
             <div style="display:flex; gap:10px; margin-top:10px;">
                 <button class="btn" id="save-script-btn" onclick="startScriptChunkUpload()">Save ServerScript</button>
                 <button class="btn btn-secondary" onclick="closeScriptEditorModal()">Close</button>
@@ -377,51 +284,123 @@
             <div style="display:flex; flex-direction:column; gap:10px; margin:20px 0;">
                 <button class="btn btn-secondary" onclick="accountLogout()">[Logout]</button>
                 <button class="btn btn-secondary" onclick="accountRegenUserId()">[Regenerate User ID]</button>
-                <div id="role-restricted-options" style="display:flex; flex-direction:column; gap:10px;">
-                    <button class="btn btn-secondary" id="btn-admin-ban" style="display:none;" onclick="openBanUserModal()">Ban User</button>
-                    <button class="btn btn-secondary" id="btn-dev-roles" style="display:none;" onclick="openRoleManagerModal()">Role Manager</button>
-                    <button class="btn btn-secondary" id="btn-dev-servers" style="display:none;" onclick="openServerManagementModal()">Server Management</button>
-                </div>
+                <button class="btn btn-secondary" id="btn-admin-ban" style="display:none;" onclick="openBanUserModal()">[Ban User]</button>
+                <button class="btn btn-secondary" id="btn-admin-roles" style="display:none;" onclick="openRoleManagerModal()">[Role Manager]</button>
+                <button class="btn btn-secondary" id="btn-admin-servers" style="display:none;" onclick="openServerManagementModal()">[Server Management]</button>
                 <button class="btn btn-danger" onclick="openDeleteAccountConfirmModal()">[DELETE ACCOUNT AND DATA]</button>
             </div>
             <button class="btn btn-secondary" onclick="closeAccountSettingsModal()">Close</button>
         </div>
     </div>
 
-    <div id="modal-delete-confirm" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 420px; border-color: var(--error);">
-            <h3 style="color: var(--error);">Confirm Account Deletion</h3>
-            <p style="font-size:0.8rem; color:var(--muted); line-height:1.5;">
-                THIS ACTION IS PERMANENT. To validate, paste your User ID below:
-            </p>
-            <input type="text" id="delete-confirm-input" placeholder="Paste your User ID here">
-            <button class="btn btn-danger" style="margin-top:15px;" onclick="submitDeleteAccount()">Validate and Delete</button>
-            <button class="btn btn-secondary" onclick="closeDeleteAccountConfirmModal()">Cancel</button>
-        </div>
-    </div>
-
-    <div id="modal-new-userid" class="overlay" style="display:none;">
+    <!-- MODAL BAN USER (ADMIN/DEV/OWNER) -->
+    <div id="modal-ban-user" class="overlay" style="display:none;">
         <div class="card" style="max-width: 420px;">
-            <h3>User ID Regenerated</h3>
-            <p style="font-size:0.8rem; color:var(--muted);">Your new unique User ID is:</p>
-            <input type="text" id="new-userid-display" readonly style="font-size:1rem; font-weight:bold; color:var(--accent);">
-            <div style="display:flex; gap:10px; margin-top:15px;">
-                <button class="btn" onclick="copyText('new-userid-display')">Copy</button>
-                <button class="btn btn-secondary" onclick="closeNewUserIdModal()">Dismiss</button>
+            <h3>BAN User Panel</h3>
+            <div class="settings-grid">
+                <div class="settings-item">
+                    <label>Paste User ID or Email</label>
+                    <input type="text" id="ban-target-input">
+                </div>
+                <div class="settings-item">
+                    <label>Days (Blank = Permanent, 0 = Unban)</label>
+                    <input type="number" id="ban-days-input" placeholder="Permanent">
+                </div>
             </div>
+            <button class="btn btn-danger" onclick="submitBanUser()">BAN User</button>
+            <button class="btn btn-secondary" onclick="closeBanUserModal()">Close</button>
         </div>
     </div>
 
-    <!-- DASHBOARD PRINCIPAL -->
-    <div id="dashboard" class="card" style="display:none; width: 480px;">
-        <!-- ROLE TAG AT TOP OF PANEL -->
-        <div id="user-role-badge-container" style="margin-bottom:8px;"></div>
+    <!-- MODAL ROLE MANAGER (DEV/OWNER) -->
+    <div id="modal-role-manager" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 420px;">
+            <h3>Role Manager</h3>
+            <div class="settings-grid">
+                <div class="settings-item">
+                    <label>User ID</label>
+                    <input type="text" id="role-target-input">
+                </div>
+                <div class="settings-item">
+                    <label>Role</label>
+                    <select id="role-select">
+                        <option value="None">None</option>
+                        <option value="Admin">Admin</option>
+                        <option value="Dev">Dev</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn" onclick="submitUpdateRole()">Update Role</button>
+            <button class="btn btn-secondary" onclick="closeRoleManagerModal()">Close</button>
+        </div>
+    </div>
 
+    <!-- MODAL SERVER MANAGEMENT -->
+    <div id="modal-server-management" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 650px; max-height:85vh; display:flex; flex-direction:column;">
+            <h3>Server Management</h3>
+            <div id="server-management-list" class="settings-grid" style="flex:1;"></div>
+            <button class="btn btn-secondary" onclick="closeServerManagementModal()">Close</button>
+        </div>
+    </div>
+
+    <!-- MODAL TERMINAL LIVE ACCESS (DEV/OWNER) -->
+    <div id="modal-terminal" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 700px; background:#000;">
+            <h3 style="color:var(--green); font-family:monospace;">>_ Termux Terminal Live</h3>
+            <div id="terminal-screen" class="console-box" style="height:300px; color:var(--green);" tabindex="0">
+                <div>[EzBridge Terminal Synchronized]</div>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="terminal-cli-input" placeholder="Type terminal command..." style="flex:1;">
+                <button class="btn" style="width:auto;" onclick="sendTerminalCommand()">Send</button>
+            </div>
+            <button class="btn btn-secondary" style="margin-top:10px;" onclick="closeTerminalModal()">Close</button>
+        </div>
+    </div>
+
+    <!-- MODAL CHAT SESSIONS S.1 TO S.10 -->
+    <div id="modal-chat-sessions" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 400px;">
+            <h3>Choose a Session</h3>
+            <div class="settings-grid" style="grid-template-columns: repeat(2, 1fr); display:grid; gap:8px;">
+                <button class="btn btn-secondary" onclick="enterChatSession('S.1')">S. 1</button>
+                <button class="btn btn-secondary" onclick="enterChatSession('S.2')">S. 2</button>
+                <button class="btn btn-secondary" onclick="enterChatSession('S.3')">S. 3</button>
+                <button class="btn btn-secondary" onclick="enterChatSession('S.4')">S. 4</button>
+                <button class="btn btn-secondary" onclick="enterChatSession('S.5')">S. 5</button>
+                <button class="btn btn-secondary" onclick="enterChatSession('S.6')">S. 6</button>
+                <button class="btn btn-secondary" onclick="enterChatSession('S.7')">S. 7</button>
+                <button class="btn btn-secondary" onclick="enterChatSession('S.8')">S. 8</button>
+                <button class="btn btn-secondary" onclick="enterChatSession('S.9')">S. 9</button>
+                <button class="btn btn-secondary" onclick="enterChatSession('S.10')">S. 10</button>
+            </div>
+            <button class="btn btn-secondary" onclick="closeChatSessionsModal()">Close</button>
+        </div>
+    </div>
+
+    <!-- MODAL GLOBAL CHAT ROOM -->
+    <div id="modal-chat-room" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 500px; height:80vh; display:flex; flex-direction:column;">
+            <h3 id="chat-room-title">Session S.1</h3>
+            <div id="chat-messages-box" class="console-box" style="flex:1;"></div>
+            <div id="chat-typing-status" style="font-size:0.75rem; color:var(--accent); font-style:italic; margin-bottom:5px;"></div>
+            <div style="display:flex; gap:8px;">
+                <input type="text" id="chat-session-input" maxlength="250" placeholder="Type message (max 250 chars)..." oninput="limitChatInput(this)">
+                <button class="btn" style="width:auto;" onclick="sendChatMessage()">Send</button>
+            </div>
+            <button class="btn btn-secondary" style="margin-top:10px;" onclick="closeChatRoomModal()">Back</button>
+        </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="dashboard" class="card" style="display:none; width: 480px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h2 style="margin:0;">EzBridge Control</h2>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <h2 style="margin:0;">EzBridge Control</h2>
+                <div id="role-tag-container"></div>
+            </div>
             <div style="display:flex; gap:6px; align-items:center;">
-                <!-- TERMINAL ICON BUTTON FOR DEVS & OWNER -->
-                <button class="btn-icon" id="terminal-access-btn" style="display:none; font-family:monospace; font-weight:bold;" onclick="openTerminalModal()">>_</button>
                 <button class="btn" style="width:auto; margin:0; padding:6px 10px; font-size:0.75rem;" onclick="copyUserId()">Copy Client ID</button>
                 <div id="dashboard-google-container" style="display:none;">
                     <div class="g_id_signin" data-type="icon" data-shape="circle"></div>
@@ -455,9 +434,38 @@
         </div>
     </div>
 
+    <!-- FLOATING ICONS FOR CHAT & TERMINAL -->
+    <button class="chat-floating-btn" onclick="openChatSessionsModal()">💬</button>
+    <button id="terminal-floating-btn" class="terminal-btn" style="display:none;" onclick="openTerminalModal()">>_</button>
+
+    <div id="modal-delete-confirm" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 420px; border-color: var(--error);">
+            <h3 style="color: var(--error);">Confirm Account Deletion</h3>
+            <p style="font-size:0.8rem; color:var(--muted); line-height:1.5;">
+                THIS ACTION IS PERMANENT. Your account, server, and all database files will be wiped.
+                To validate, paste your User ID below:
+            </p>
+            <input type="text" id="delete-confirm-input" placeholder="Paste your User ID here">
+            <button class="btn btn-danger" style="margin-top:15px;" onclick="submitDeleteAccount()">Validate and Delete</button>
+            <button class="btn btn-secondary" onclick="closeDeleteAccountConfirmModal()">Cancel</button>
+        </div>
+    </div>
+
+    <div id="modal-new-userid" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 420px;">
+            <h3>User ID Regenerated</h3>
+            <p style="font-size:0.8rem; color:var(--muted);">Your new unique User ID is:</p>
+            <input type="text" id="new-userid-display" readonly style="font-size:1rem; font-weight:bold; color:var(--accent);">
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <button class="btn" onclick="copyText('new-userid-display')">Copy</button>
+                <button class="btn btn-secondary" onclick="closeNewUserIdModal()">Dismiss</button>
+            </div>
+        </div>
+    </div>
+
     <div id="modal-howto" class="overlay" style="display:none;">
         <div class="card" style="max-width: 600px;">
-            <h3>How to Connect Your Server</h3>
+            <h3 style="margin-bottom:15px;">How to Connect Your Server</h3>
             <div style="text-align:left;">
                 <button class="btn btn-purple" style="margin-bottom:15px;" onclick="copyAIPrompt()">[Copy AI Prompt]</button>
                 <div class="settings-item">
@@ -518,9 +526,6 @@
         </div>
     </div>
 
-    <!-- FLOATING CORNER CHAT BUTTON -->
-    <button class="chat-floating-btn" onclick="openChatSessionsModal()">💬</button>
-
 <script>
     const PUBLIC_TUNNEL_URL = "https://babies-arizona-durable-spencer.trycloudflare.com";
 
@@ -536,13 +541,7 @@
     let currentServerScript = "";
     let whitelistedDomains = [];
     let consoleLogsCache = [];
-
-    // Chat Sessions State
-    let activeSessionNum = 1;
-    let chatCooldownTimer = null;
-    let canSendChat = true;
-    let isTypingLocal = false;
-    let typingTimeout = null;
+    let currentChatSession = "S.1";
 
     const SCRIPT_CHUNK_SIZE = 100 * 1024;
     let isUploadingScript = false;
@@ -561,9 +560,17 @@
         socket.emit('eb_sync_session', { ownerId });
     });
 
+    socket.on('session_banned', (data) => {
+        clearTimeout(initTimeout);
+        document.getElementById('overlay-sync').style.display = 'none';
+        document.getElementById('ban-days-display').innerText = data.daysRemaining;
+        document.getElementById('overlay-banned-app').style.display = 'flex';
+    });
+
     socket.on('session_verified', (data) => {
         clearTimeout(initTimeout);
         ownerId = data.ownerId;
+        userRole = data.role || "None";
         setCookie("eb_owner_id", ownerId, 365);
         document.getElementById('overlay-sync').style.display = 'none';
 
@@ -576,7 +583,6 @@
             googleSub = data.server.googleSub || null;
             googleEmail = data.server.email || null;
             activeUserId = data.server.userId || ownerId;
-            userRole = data.role || "None";
             whitelistedDomains = serverSettings.whitelistedDomains || [];
             showDashboard();
         } else {
@@ -584,72 +590,9 @@
         }
     });
 
-    socket.on('eb_user_banned_screen', (data) => {
-        document.getElementById('overlay-sync').style.display = 'none';
-        document.getElementById('ban-days-val').innerText = data.daysRemaining;
-        document.getElementById('overlay-banned-full').style.display = 'flex';
-    });
-
     socket.on('server_error', (data) => {
         hideLoadingScreen();
         alert(data.error);
-    });
-
-    socket.on('admin_action_success', (data) => {
-        alert(data.msg);
-    });
-
-    socket.on('eb_console_update', (data) => {
-        if (data.logs) {
-            consoleLogsCache = data.logs;
-            renderConsoleLogs();
-        }
-    });
-
-    socket.on('eb_user_id_regenerated', (data) => {
-        activeUserId = data.newUserId;
-        document.getElementById('new-userid-display').value = activeUserId;
-        document.getElementById('modal-new-userid').style.display = 'flex';
-    });
-
-    socket.on('eb_account_deleted', () => {
-        alert("Account and data deleted permanently.");
-        accountLogout();
-    });
-
-    // CHAT SESSIONS LISTENERS
-    socket.on('eb_chat_history', (data) => {
-        renderSessionChatHistory(data.messages);
-    });
-
-    socket.on('eb_chat_new_msg', (data) => {
-        if (data.session === activeSessionNum) {
-            appendSessionMsgUI(data.msg);
-        }
-    });
-
-    socket.on('eb_chat_typing_count', (data) => {
-        if (data.session === activeSessionNum) {
-            const statusBox = document.getElementById('chat-typing-status');
-            if (data.count > 0) {
-                statusBox.innerText = `${data.count} users are typing . . .`;
-            } else {
-                statusBox.innerText = "";
-            }
-        }
-    });
-
-    // TERMINAL LISTENERS
-    socket.on('eb_terminal_history', (data) => {
-        const box = document.getElementById('terminal-window');
-        box.innerText = data.logs ? data.logs.join('') : '';
-        box.scrollTop = box.scrollHeight;
-    });
-
-    socket.on('eb_terminal_stream', (data) => {
-        const box = document.getElementById('terminal-window');
-        box.innerText += data.log;
-        box.scrollTop = box.scrollHeight;
     });
 
     function handleGoogleLogin(response) {
@@ -665,6 +608,7 @@
     }
 
     socket.on('google_login_verified', (data) => {
+        userRole = data.role || userRole;
         if (data.hasServer) {
             serverKey = data.server.key;
             serverActive = data.server.active;
@@ -674,7 +618,6 @@
             googleSub = data.server.googleSub || googleSub;
             googleEmail = data.server.email || googleEmail;
             activeUserId = data.server.userId || ownerId;
-            userRole = data.role || "None";
             whitelistedDomains = serverSettings.whitelistedDomains || [];
             showDashboard();
         } else {
@@ -693,221 +636,30 @@
         }
     }
 
-    // ROLE & PERMISSION MANAGEMENT VISUALS ("can't access? can't see.")
-    function applyRolePermissionsUI() {
-        const roleContainer = document.getElementById('user-role-badge-container');
-        const adminBanBtn = document.getElementById('btn-admin-ban');
-        const devRolesBtn = document.getElementById('btn-dev-roles');
-        const devServersBtn = document.getElementById('btn-dev-servers');
-        const terminalBtn = document.getElementById('terminal-access-btn');
+    // ROLE BADGES & PERMISSIONS CONTROL
+    function renderRoleBadge() {
+        const container = document.getElementById('role-tag-container');
+        container.innerHTML = "";
 
-        roleContainer.innerHTML = "";
-        adminBanBtn.style.display = "none";
-        devRolesBtn.style.display = "none";
-        devServersBtn.style.display = "none";
-        terminalBtn.style.display = "none";
-
-        if (userRole === 'Owner') {
-            roleContainer.innerHTML = `<span class="role-badge role-owner">OWNER</span>`;
-            adminBanBtn.style.display = "block";
-            devRolesBtn.style.display = "block";
-            devServersBtn.style.display = "block";
-            terminalBtn.style.display = "flex";
+        if (userRole === 'Admin') {
+            container.innerHTML = `<span class="role-badge role-admin">ADMIN</span>`;
         } else if (userRole === 'Dev') {
-            roleContainer.innerHTML = `<span class="role-badge role-dev">DEVELOPER</span>`;
-            adminBanBtn.style.display = "block";
-            devRolesBtn.style.display = "block";
-            devServersBtn.style.display = "block";
-            terminalBtn.style.display = "flex";
-        } else if (userRole === 'Admin') {
-            roleContainer.innerHTML = `<span class="role-badge role-admin">ADMIN</span>`;
-            adminBanBtn.style.display = "block";
-            devServersBtn.style.display = "block"; // Only for Shutdown
+            container.innerHTML = `<span class="role-badge role-dev">DEVELOPER</span>`;
+        } else if (userRole === 'Owner' || ownerId === "rTDRUW71fiLuzcSNQV02uPDLXpJ") {
+            container.innerHTML = `<span class="role-badge role-owner">OWNER</span>`;
         }
+
+        // Show/Hide buttons based on Role
+        const isAdmin = (userRole === 'Admin' || userRole === 'Dev' || userRole === 'Owner');
+        const isDevOrOwner = (userRole === 'Dev' || userRole === 'Owner');
+
+        document.getElementById('btn-admin-ban').style.display = isAdmin ? 'block' : 'none';
+        document.getElementById('btn-admin-servers').style.display = isAdmin ? 'block' : 'none';
+        document.getElementById('btn-admin-roles').style.display = isDevOrOwner ? 'block' : 'none';
+        document.getElementById('terminal-floating-btn').style.display = isDevOrOwner ? 'flex' : 'none';
     }
 
-    // BAN USER MODAL
-    function openBanUserModal() {
-        closeAccountSettingsModal();
-        document.getElementById('ban-target-input').value = "";
-        document.getElementById('ban-days-input').value = "";
-        document.getElementById('modal-ban-user').style.display = 'flex';
-    }
-    function closeBanUserModal() { document.getElementById('modal-ban-user').style.display = 'none'; }
-    function submitBanUser() {
-        const targetUserId = document.getElementById('ban-target-input').value.trim();
-        const days = document.getElementById('ban-days-input').value.trim();
-        if (!targetUserId) return alert("Please enter a User ID.");
-
-        socket.emit('eb_admin_ban_user', { targetUserId, days, ownerId });
-        closeBanUserModal();
-    }
-
-    // ROLE MANAGER MODAL
-    function openRoleManagerModal() {
-        closeAccountSettingsModal();
-        document.getElementById('role-target-input').value = "";
-        document.getElementById('role-select-input').value = "None";
-        document.getElementById('modal-role-manager').style.display = 'flex';
-    }
-    function closeRoleManagerModal() { document.getElementById('modal-role-manager').style.display = 'none'; }
-    function submitUpdateRole() {
-        const targetUserId = document.getElementById('role-target-input').value.trim();
-        const role = document.getElementById('role-select-input').value;
-        if (!targetUserId) return alert("Please enter a User ID.");
-
-        socket.emit('eb_update_role', { targetUserId, role, ownerId });
-        closeRoleManagerModal();
-    }
-
-    // SERVER MANAGEMENT MODAL
-    function openServerManagementModal() {
-        closeAccountSettingsModal();
-        document.getElementById('modal-server-management').style.display = 'flex';
-        fetchServerManagementList();
-    }
-    function closeServerManagementModal() { document.getElementById('modal-server-management').style.display = 'none'; }
-    
-    function fetchServerManagementList() {
-        socket.emit('eb_admin_get_all_servers', { ownerId });
-    }
-
-    socket.on('eb_admin_all_servers_response', (data) => {
-        const list = document.getElementById('admin-servers-list');
-        list.innerHTML = "";
-
-        data.servers.forEach(s => {
-            const div = document.createElement('div');
-            div.style.background = "#020617";
-            div.style.padding = "10px";
-            div.style.borderRadius = "8px";
-            div.style.border = "1px solid var(--border)";
-            div.style.fontSize = "0.8rem";
-
-            let ramText = (s.ramUsageBytes / 1024).toFixed(1) + " KB";
-            let html = `<div><b>${s.clientId || s.ownerId}'s server</b> - status: <span style="color:${s.active ? 'var(--green)':'var(--error)'}">${s.active ? 'ONLINE':'OFFLINE'}</span></div>`;
-            html += `<div>RAM usage: ${ramText} | Settings: Type ${s.serverType} - Max RAM ${s.settings.ramLimitMB || 500}MB</div>`;
-
-            if (data.isFullInfo) {
-                html += `<div>Email: ${s.email || 'N/A'} | Auth Key: ${s.key}</div>`;
-            }
-
-            html += `<button class="btn btn-danger" style="margin-top:6px; padding:4px 10px; width:auto; font-size:0.75rem;" onclick="adminShutdownServer('${s.key}')">[SHUTDOWN]</button>`;
-            div.innerHTML = html;
-            list.appendChild(div);
-        });
-    });
-
-    function adminShutdownServer(key) {
-        socket.emit('eb_admin_shutdown_server', { key, ownerId });
-        setTimeout(fetchServerManagementList, 500);
-    }
-
-    // TERMINAL MODAL
-    function openTerminalModal() {
-        document.getElementById('modal-terminal').style.display = 'flex';
-        socket.emit('eb_join_terminal_stream');
-    }
-    function closeTerminalModal() { document.getElementById('modal-terminal').style.display = 'none'; }
-    function sendTerminalCommand() {
-        const input = document.getElementById('terminal-cmd-input');
-        if (!input.value.trim()) return;
-        socket.emit('eb_send_terminal_input', { cmd: input.value });
-        input.value = "";
-    }
-    function handleTerminalPaste(e) {
-        const pastedText = (e.clipboardData || window.clipboardData).getData('text');
-        if (!pastedText) return;
-        socket.emit('eb_send_terminal_input', { cmd: pastedText });
-    }
-
-    // GLOBAL CHAT SESSIONS MODAL
-    function openChatSessionsModal() {
-        document.getElementById('modal-chat-sessions').style.display = 'flex';
-    }
-    function closeChatSessionsModal() {
-        document.getElementById('modal-chat-sessions').style.display = 'none';
-    }
-    function enterChatSession(sNum) {
-        activeSessionNum = sNum;
-        closeChatSessionsModal();
-        document.getElementById('chat-room-title').innerText = `Chat Session S. ${sNum}`;
-        document.getElementById('modal-chat-room').style.display = 'flex';
-        socket.emit('eb_join_chat_session', { session: sNum });
-    }
-    function closeChatRoomModal() {
-        document.getElementById('modal-chat-room').style.display = 'none';
-        openChatSessionsModal();
-    }
-
-    function renderSessionChatHistory(messages) {
-        const box = document.getElementById('chat-messages-box');
-        box.innerHTML = "";
-        messages.forEach(appendSessionMsgUI);
-    }
-
-    function appendSessionMsgUI(msg) {
-        const box = document.getElementById('chat-messages-box');
-        const div = document.createElement('div');
-        div.className = "chat-bubble";
-
-        let roleTag = "";
-        if (msg.role === 'Owner') roleTag = `<span class="role-badge role-owner" style="font-size:0.6rem; padding:2px 6px;">OWNER</span>`;
-        else if (msg.role === 'Dev') roleTag = `<span class="role-badge role-dev" style="font-size:0.6rem; padding:2px 6px;">DEV</span>`;
-        else if (msg.role === 'Admin') roleTag = `<span class="role-badge role-admin" style="font-size:0.6rem; padding:2px 6px;">ADMIN</span>`;
-
-        div.innerHTML = `<div class="chat-sender">${roleTag} ${msg.userId.substring(0, 10)}</div><div>${escapeHtml(msg.text)}</div>`;
-        box.appendChild(div);
-        box.scrollTop = box.scrollHeight;
-    }
-
-    function limitChatInput(inputEl) {
-        if (inputEl.value.length > 250) {
-            inputEl.value = inputEl.value.substring(0, 250);
-        }
-        handleSessionTyping();
-    }
-
-    function handleSessionTyping() {
-        if (!isTypingLocal) {
-            isTypingLocal = true;
-            socket.emit('eb_chat_typing', { session: activeSessionNum, isTyping: true });
-        }
-        clearTimeout(typingTimeout);
-        typingTimeout = setTimeout(() => {
-            isTypingLocal = false;
-            socket.emit('eb_chat_typing', { session: activeSessionNum, isTyping: false });
-        }, 3000);
-    }
-
-    function submitSessionMsg() {
-        if (!canSendChat) return;
-        const input = document.getElementById('session-chat-input');
-        const text = input.value.trim();
-        if (!text) return;
-
-        canSendChat = false;
-        document.getElementById('session-send-btn').disabled = true;
-
-        socket.emit('eb_send_chat_msg', { session: activeSessionNum, text: text });
-
-        input.value = "";
-        isTypingLocal = false;
-        clearTimeout(typingTimeout);
-        socket.emit('eb_chat_typing', { session: activeSessionNum, isTyping: false });
-
-        // 1s Cooldown
-        setTimeout(() => {
-            canSendChat = true;
-            document.getElementById('session-send-btn').disabled = false;
-        }, 1000);
-    }
-
-    function escapeHtml(str) {
-        return String(str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    }
-
-    // CONTROLE DE CONTA
+    // MODALS DE CONTA E ADMINISTRAÇÃO
     function openAccountSettingsModal() { document.getElementById('modal-account-settings').style.display = 'flex'; }
     function closeAccountSettingsModal() { document.getElementById('modal-account-settings').style.display = 'none'; }
 
@@ -922,27 +674,141 @@
         closeAccountSettingsModal();
     }
 
-    function closeNewUserIdModal() { document.getElementById('modal-new-userid').style.display = 'none'; }
-
-    function openDeleteAccountConfirmModal() {
+    function openBanUserModal() {
         closeAccountSettingsModal();
-        document.getElementById('delete-confirm-input').value = "";
-        document.getElementById('modal-delete-confirm').style.display = 'flex';
+        document.getElementById('modal-ban-user').style.display = 'flex';
+    }
+    function closeBanUserModal() { document.getElementById('modal-ban-user').style.display = 'none'; }
+
+    function submitBanUser() {
+        const target = document.getElementById('ban-target-input').value.trim();
+        const days = document.getElementById('ban-days-input').value.trim();
+        if (!target) return alert("Target User ID/Email required!");
+
+        socket.emit('eb_admin_ban_user', { targetUserId: target, days: days, ownerId });
+        closeBanUserModal();
     }
 
-    function closeDeleteAccountConfirmModal() { document.getElementById('modal-delete-confirm').style.display = 'none'; }
+    function openRoleManagerModal() {
+        closeAccountSettingsModal();
+        document.getElementById('modal-role-manager').style.display = 'flex';
+    }
+    function closeRoleManagerModal() { document.getElementById('modal-role-manager').style.display = 'none'; }
 
-    function submitDeleteAccount() {
-        const inputVal = document.getElementById('delete-confirm-input').value.trim();
-        if (!inputVal) return alert("Please enter your User ID to validate.");
+    function submitUpdateRole() {
+        const target = document.getElementById('role-target-input').value.trim();
+        const role = document.getElementById('role-select').value;
+        if (!target) return alert("User ID required!");
 
-        socket.emit('eb_delete_account', {
-            key: serverKey,
-            ownerId,
-            googleSub,
-            confirmUserId: inputVal
+        socket.emit('eb_admin_update_role', { targetUserId: target, role: role, ownerId });
+        closeRoleManagerModal();
+    }
+
+    function openServerManagementModal() {
+        closeAccountSettingsModal();
+        document.getElementById('modal-server-management').style.display = 'flex';
+        fetchServerManagementList();
+    }
+    function closeServerManagementModal() { document.getElementById('modal-server-management').style.display = 'none'; }
+
+    function fetchServerManagementList() {
+        socket.emit('eb_admin_get_servers', { ownerId, googleSub });
+    }
+
+    socket.on('eb_admin_servers_list', (data) => {
+        const list = document.getElementById('server-management-list');
+        list.innerHTML = "";
+
+        data.servers.forEach(s => {
+            const div = document.createElement('div');
+            div.style.cssText = "background:#020617; padding:10px; border-radius:8px; border:1px solid var(--border); margin-bottom:8px; font-size:0.8rem;";
+            
+            const ramKb = (s.ramUsageBytes / 1024).toFixed(1);
+            let infoHtml = `<b>${s.userId}'s Server</b> - Status: <span style="color:${s.active?'var(--green)':'var(--error)'}">${s.active?'ONLINE':'OFFLINE'}</span><br>`;
+            infoHtml += `RAM: ${ramKb}kb - Type: ${s.serverType} - Max RAM: ${s.settings.ramLimitMB}MB<br>`;
+            
+            if (s.email) infoHtml += `Email: ${s.email}<br>`;
+            if (s.authKey) infoHtml += `Auth Key: ${s.authKey}<br>`;
+
+            infoHtml += `<button class="btn btn-danger" style="width:auto; padding:4px 8px; margin-top:5px;" onclick="shutdownServer('${s.key}')">SHUTDOWN</button>`;
+
+            div.innerHTML = infoHtml;
+            list.appendChild(div);
         });
+    });
+
+    function shutdownServer(key) {
+        socket.emit('eb_admin_shutdown_server', { key, ownerId, googleSub });
+        setTimeout(fetchServerManagementList, 500);
     }
+
+    // TERMINAL ACCESS
+    function openTerminalModal() { document.getElementById('modal-terminal').style.display = 'flex'; }
+    function closeTerminalModal() { document.getElementById('modal-terminal').style.display = 'none'; }
+    function sendTerminalCommand() {
+        const input = document.getElementById('terminal-cli-input');
+        if (input.value.trim()) {
+            socket.emit('eb_terminal_input', { cmd: input.value.trim(), ownerId });
+            input.value = "";
+        }
+    }
+
+    // CHAT SESSIONS SYSTEM
+    function openChatSessionsModal() { document.getElementById('modal-chat-sessions').style.display = 'flex'; }
+    function closeChatSessionsModal() { document.getElementById('modal-chat-sessions').style.display = 'none'; }
+
+    function enterChatSession(sessionKey) {
+        currentChatSession = sessionKey;
+        closeChatSessionsModal();
+        document.getElementById('chat-room-title').innerText = `Session ${sessionKey}`;
+        document.getElementById('modal-chat-room').style.display = 'flex';
+        socket.emit('eb_chat_join_session', { session: sessionKey, ownerId });
+    }
+
+    function closeChatRoomModal() { document.getElementById('modal-chat-room').style.display = 'none'; }
+
+    function limitChatInput(input) {
+        if (input.value.length > 250) input.value = input.value.substring(0, 250);
+    }
+
+    function sendChatMessage() {
+        const input = document.getElementById('chat-session-input');
+        if (input.value.trim().length >= 1 && input.value.trim().length <= 250) {
+            socket.emit('eb_chat_send_message', { session: currentChatSession, text: input.value.trim(), ownerId });
+            input.value = "";
+        }
+    }
+
+    socket.on('eb_chat_session_history', (data) => {
+        const box = document.getElementById('chat-messages-box');
+        box.innerHTML = "";
+        data.messages.forEach(m => renderChatMessageBubble(m));
+        box.scrollTop = box.scrollHeight;
+    });
+
+    socket.on('eb_chat_new_message', (data) => {
+        if (data.session === currentChatSession) {
+            renderChatMessageBubble(data.message);
+            const box = document.getElementById('chat-messages-box');
+            box.scrollTop = box.scrollHeight;
+        }
+    });
+
+    function renderChatMessageBubble(m) {
+        const box = document.getElementById('chat-messages-box');
+        const div = document.createElement('div');
+        div.style.cssText = "margin-bottom:8px; word-break:break-word;";
+        
+        let roleTag = "";
+        if (m.role === 'Admin') roleTag = `<span class="role-badge role-admin">ADMIN</span> `;
+        else if (m.role === 'Dev') roleTag = `<span class="role-badge role-dev">DEV</span> `;
+        else if (m.role === 'Owner') roleTag = `<span class="role-badge role-owner">OWNER</span> `;
+
+        div.innerHTML = `${roleTag}<b style="color:var(--blue);">${m.userId.substring(0, 10)}:</b> ${escapeHtml(m.text)}`;
+        box.appendChild(div);
+    }
+
+    function escapeHtml(str) { return String(str||'').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
 
     function toggleServerTypeUI() {
         const type = document.getElementById('cfg-server-type').value;
@@ -1118,7 +984,7 @@
 
     function showDashboard() {
         document.getElementById('dashboard').style.display = 'block';
-        applyRolePermissionsUI();
+        renderRoleBadge();
         updateDashboardGoogleBtn();
         updateStatusDisplay();
 
@@ -2000,7 +1866,7 @@ setInterval(() => {
 
                 if (res.ok) {
                     const json = await res.json();
-                    if (json.events && Array.isArray(json.events)) {
+                    if (json.events) {
                         json.events.forEach(evt => {
                             if (evt.type === 'send_message_reply' || evt.type === 'get_messages_reply') {
                                 renderChat(evt.data.messages);
@@ -2088,7 +1954,7 @@ ${serverType === 'websocket' ?
 4 - Learn More About EzBridge
 - Max Packet Size: 192KB per packet (350KB chunk stream processing).
 - Request Limit: Up to 60 requests/sec (more than 60 reqs/s or 200kbps triggers 5-min IP and client ratelimit).
-- Server Memory: Configured at ${serverSettings.ramLimitMB || 500}MB (+50MB hidden VRAM protection).
+- Server Memory: Configured at ${serverSettings.ramLimitMB || 500}MB.
 - Instance Scaling: Automatic room instancing per ${serverSettings.maxUsers || 20} max users.
 
 that's all you needed to know, now, you can start.
