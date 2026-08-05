@@ -21,7 +21,6 @@
             --error: #ef4444;
         }
 
-        /* Removido cantos arredondados de toda a UI */
         *, .card, .btn, input, select, textarea, .overlay, .code-box, .console-box, .status-indicator, .progress-container, .domain-item, .btn-icon, .role-tag {
             border-radius: 0px !important;
         }
@@ -48,7 +47,6 @@
 
         h1, h2, h3 { color: var(--accent); margin-top: 0; letter-spacing: 1px; }
 
-        /* Botões com fundo escuro/transparente e outline vermelho fino */
         .btn {
             width: 100%; padding: 12px; margin: 8px 0;
             background: rgba(239, 68, 68, 0.05) !important;
@@ -130,7 +128,6 @@
         </div>
     </div>
 
-    <!-- TELA DE BANIMENTO DE CONTA NO EZBRIDGE -->
     <div id="overlay-banned-app" class="overlay" style="display:none;">
         <div class="card" style="border-color: var(--error);">
             <h1 style="color: var(--error);">BANNED FROM EZBRIDGE</h1>
@@ -282,7 +279,6 @@
         </div>
     </div>
 
-    <!-- MODAL POPUP PARA VISUALIZAR SERVERSCRIPT -->
     <div id="modal-view-script" class="overlay" style="display:none;">
         <div class="card" style="max-width: 650px;">
             <h3>View ServerScript</h3>
@@ -294,7 +290,6 @@
         </div>
     </div>
 
-    <!-- MODAL ACCOUNT SETTINGS -->
     <div id="modal-account-settings" class="overlay" style="display:none;">
         <div class="card" style="max-width: 440px;">
             <h3>Account Settings</h3>
@@ -312,7 +307,6 @@
         </div>
     </div>
 
-    <!-- MODAL BAN USER PANEL -->
     <div id="modal-ban-user" class="overlay" style="display:none;">
         <div class="card" style="max-width: 440px;">
             <h3>BAN User Panel</h3>
@@ -331,7 +325,6 @@
         </div>
     </div>
 
-    <!-- MODAL ROLE MANAGER -->
     <div id="modal-role-mgr" class="overlay" style="display:none;">
         <div class="card" style="max-width: 440px;">
             <h3>Role Manager</h3>
@@ -354,7 +347,6 @@
         </div>
     </div>
 
-    <!-- MODAL SERVER MANAGEMENT PANEL -->
     <div id="modal-server-mgmt" class="overlay" style="display:none;">
         <div class="card" style="max-width: 650px; max-height:85vh; display:flex; flex-direction:column;">
             <h3>Server Management</h3>
@@ -363,7 +355,6 @@
         </div>
     </div>
 
-    <!-- MODAL TERMINAL INTERATIVO -->
     <div id="modal-terminal" class="overlay" style="display:none;">
         <div class="card" style="max-width: 700px; max-height:85vh; display:flex; flex-direction:column; background:#000;">
             <h3>Termux Terminal Stream</h3>
@@ -376,7 +367,6 @@
         </div>
     </div>
 
-    <!-- MODAL CONFIRMAÇÃO DE DELETAR CONTA -->
     <div id="modal-delete-confirm" class="overlay" style="display:none;">
         <div class="card" style="max-width: 420px; border-color: var(--error);">
             <h3 style="color: var(--error);">Confirm Account Deletion</h3>
@@ -589,6 +579,9 @@
 
     socket.on('eb_terminal_out', (data) => {
         if (data.chunk) {
+            if (data.isHistory && data.index === 0) {
+                terminalBufferText = "";
+            }
             terminalBufferText += data.chunk;
             const termEl = document.getElementById('terminal-screen');
             if (termEl) {
@@ -810,6 +803,7 @@
     }
 
     function openTerminalModal() {
+        terminalBufferText = "";
         document.getElementById('modal-terminal').style.display = 'flex';
         socket.emit('eb_join_terminal');
     }
@@ -1892,7 +1886,7 @@ setInterval(() => {
 
                 if (res.ok) {
                     const json = await res.json();
-                    if (json.events) {
+                    if (json.events && Array.isArray(json.events)) {
                         json.events.forEach(evt => {
                             if (evt.type === 'send_message_reply' || evt.type === 'get_messages_reply') {
                                 renderChat(evt.data.messages);
