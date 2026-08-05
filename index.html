@@ -10,15 +10,20 @@
     <style>
         :root {
             --bg: #030712;
-            --panel: #0f172a;
-            --border: #1e293b;
-            --accent: #06b6d4;
-            --accent-glow: rgba(6, 182, 212, 0.3);
+            --panel: #0a0a0c;
+            --border: #ef4444; /* Outline Vermelho Fino */
+            --accent: #ef4444;
+            --accent-glow: rgba(239, 68, 68, 0.3);
             --green: #10b981;
             --yellow: #eab308;
-            --text: #f8fafc;
-            --muted: #64748b;
+            --text: #ffffff;
+            --muted: #94a3b8;
             --error: #ef4444;
+        }
+
+        /* Removido cantos arredondados de toda a UI */
+        *, .card, .btn, input, select, textarea, .overlay, .code-box, .console-box, .status-indicator, .progress-container, .domain-item, .btn-icon, .role-tag {
+            border-radius: 0px !important;
         }
 
         body, html {
@@ -35,30 +40,32 @@
         }
 
         .card {
-            background: var(--panel); border: 1px solid var(--border); padding: 30px;
-            border-radius: 16px; width: 90%; max-width: 480px; text-align: center;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.9), 0 0 20px var(--accent-glow);
+            background: var(--panel); border: 1px solid var(--border) !important; padding: 30px;
+            width: 90%; max-width: 480px; text-align: center;
+            box-shadow: 0 0 20px var(--accent-glow);
             position: relative;
         }
 
         h1, h2, h3 { color: var(--accent); margin-top: 0; letter-spacing: 1px; }
 
+        /* Botões com fundo escuro/transparente e outline vermelho fino */
         .btn {
-            width: 100%; padding: 12px; margin: 8px 0; background: var(--accent);
-            border: none; color: #000; font-weight: bold; border-radius: 8px;
-            cursor: pointer; transition: 0.2s; font-size: 0.95rem;
+            width: 100%; padding: 12px; margin: 8px 0;
+            background: rgba(239, 68, 68, 0.05) !important;
+            border: 1px solid var(--border) !important;
+            color: #ffffff !important;
+            font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 0.95rem;
         }
-        .btn:hover { background: #22d3ee; transform: translateY(-1px); }
-        .btn-secondary { background: #1e293b; color: white; border: 1px solid var(--border); }
-        .btn-secondary:hover { background: #334155; }
-        .btn-purple { background: #8b5cf6; color: white; }
-        .btn-purple:hover { background: #a78bfa; }
-        .btn-danger { background: var(--error); color: white; }
-        .btn-icon { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 1rem; }
+        .btn:hover { background: rgba(239, 68, 68, 0.25) !important; box-shadow: 0 0 10px var(--accent-glow); }
+        .btn-secondary { background: #020617 !important; border: 1px solid var(--border) !important; color: #ffffff !important; }
+        .btn-secondary:hover { background: rgba(239, 68, 68, 0.2) !important; }
+        .btn-purple { background: rgba(139, 92, 246, 0.1) !important; border: 1px solid #8b5cf6 !important; color: #ffffff !important; }
+        .btn-purple:hover { background: rgba(139, 92, 246, 0.3) !important; }
+        .btn-danger { background: rgba(239, 68, 68, 0.2) !important; border: 1px solid var(--error) !important; color: #ffffff !important; }
+        .btn-icon { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 6px 12px; cursor: pointer; font-size: 1rem; }
         .btn-icon:hover { border-color: var(--accent); color: var(--accent); }
 
-        /* Role Badges */
-        .role-tag { font-size: 0.65rem; font-weight: bold; padding: 2px 8px; border-radius: 4px; display: inline-block; text-transform: uppercase; margin-left: 6px; }
+        .role-tag { font-size: 0.65rem; font-weight: bold; padding: 2px 8px; display: inline-block; text-transform: uppercase; margin-left: 6px; }
         .role-owner { background: linear-gradient(135deg, #ef4444 0%, #ffffff 100%); color: #000; text-shadow: none; }
         .role-dev { background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); color: #000; }
         .role-admin { background: #10b981; color: #000; }
@@ -70,38 +77,38 @@
         .settings-item { display: flex; flex-direction: column; gap: 4px; }
         .settings-item label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; font-weight: bold; }
         .settings-item input, .settings-item select, .settings-item textarea {
-            background: #020617; border: 1px solid var(--border); color: #f8fafc !important;
-            padding: 10px; border-radius: 6px; outline: none; font-family: inherit;
+            background: #020617 !important; border: 1px solid var(--border) !important; color: #f8fafc !important;
+            padding: 10px; outline: none; font-family: inherit;
         }
 
         .dashboard-row { display: flex; gap: 10px; margin-top: 10px; }
         .status-indicator {
-            padding: 12px; border-radius: 8px; background: #020617;
-            border: 1px solid var(--border); font-size: 0.85rem; font-weight: bold;
+            padding: 12px; background: #020617;
+            border: 1px solid var(--border) !important; font-size: 0.85rem; font-weight: bold;
             display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 15px;
         }
         .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--error); }
         .dot.online { background: var(--green); box-shadow: 0 0 10px var(--green); }
 
         .progress-container {
-            width: 100%; background: #020617; border: 1px solid var(--border);
-            border-radius: 6px; height: 22px; overflow: hidden; margin: 10px 0; position: relative;
+            width: 100%; background: #020617; border: 1px solid var(--border) !important;
+            height: 22px; overflow: hidden; margin: 10px 0; position: relative;
         }
         .progress-bar { width: 0%; height: 100%; background: var(--accent); transition: width 0.1s ease; }
         .progress-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; }
 
         .domain-list { display: flex; flex-direction: column; gap: 6px; margin-top: 5px; }
-        .domain-item { display: flex; justify-content: space-between; align-items: center; background: #020617; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; border: 1px solid var(--border); }
+        .domain-item { display: flex; justify-content: space-between; align-items: center; background: #020617; padding: 6px 10px; font-size: 0.8rem; border: 1px solid var(--border) !important; }
 
         .code-box, textarea, .settings-item textarea {
             background: #020617 !important;
             color: #f8fafc !important;
-            padding: 12px; border-radius: 6px; border: 1px solid var(--border);
+            padding: 12px; border: 1px solid var(--border) !important;
             font-family: monospace; font-size: 0.8rem; margin: 10px 0; overflow-x: auto; white-space: pre; text-align: left;
         }
 
         .console-box {
-            background: #000000; padding: 12px; border-radius: 8px; border: 1px solid #334155;
+            background: #000000; padding: 12px; border: 1px solid var(--border) !important;
             font-family: 'Courier New', Courier, monospace; font-size: 0.8rem; margin: 15px 0;
             height: 260px; max-height: 260px; overflow-y: auto; text-align: left;
             display: flex; flex-direction: column; gap: 4px;
@@ -111,7 +118,7 @@
         .log-red { color: var(--error); }
         .log-white { color: #f8fafc !important; }
 
-        .disclaimer { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--error); color: #fca5a5; padding: 10px; border-radius: 6px; font-size: 0.75rem; text-align: left; margin-bottom: 10px; }
+        .disclaimer { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--error) !important; color: #fca5a5; padding: 10px; font-size: 0.75rem; text-align: left; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -224,7 +231,7 @@
                     </select>
                 </div>
 
-                <div id="domain-whitelist-panel" style="display:block; background:#020617; padding:10px; border-radius:8px; border:1px solid var(--border);">
+                <div id="domain-whitelist-panel" style="display:block; background:#020617; padding:10px; border:1px solid var(--border);">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <label style="font-size:0.75rem; color:var(--muted); font-weight:bold;">WHITELISTED DOMAINS (<span id="domain-count">0</span>/10)</label>
                         <button class="btn" style="width:auto; margin:0; padding:4px 10px; font-size:0.8rem;" onclick="addDomainPrompt()">+ Add Domain</button>
@@ -234,7 +241,7 @@
 
                 <div style="display:flex; gap:8px; align-items:center;">
                     <button class="btn btn-secondary" style="flex:1;" type="button" onclick="openScriptEditorModal()">[Create ServerScript (REQUIRED)]</button>
-                    <select id="cfg-script-lifecycle" style="width:120px; background:#020617; color:#fff; border:1px solid var(--border); padding:10px; border-radius:8px;">
+                    <select id="cfg-script-lifecycle" style="width:120px; background:#020617; color:#fff; border:1px solid var(--border); padding:10px;">
                         <option value="permanent" selected>Permanent</option>
                         <option value="temporary">Temporary</option>
                     </select>
@@ -275,7 +282,19 @@
         </div>
     </div>
 
-    <!-- MODAL ACCOUNT SETTINGS COM ROLAGEM -->
+    <!-- MODAL POPUP PARA VISUALIZAR SERVERSCRIPT -->
+    <div id="modal-view-script" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 650px;">
+            <h3>View ServerScript</h3>
+            <textarea id="view-script-textarea" class="code-box" readonly rows="12" style="width:100%; height:250px; resize:none;"></textarea>
+            <div style="display:flex; gap:10px; margin-top:10px;">
+                <button class="btn" onclick="copyText('view-script-textarea')">Copy Script</button>
+                <button class="btn btn-secondary" onclick="closeViewScriptModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ACCOUNT SETTINGS -->
     <div id="modal-account-settings" class="overlay" style="display:none;">
         <div class="card" style="max-width: 440px;">
             <h3>Account Settings</h3>
@@ -283,7 +302,6 @@
                 <button class="btn btn-secondary" onclick="accountLogout()">[Logout]</button>
                 <button class="btn btn-secondary" onclick="accountRegenUserId()">[Regenerate User ID]</button>
                 
-                <!-- Botões especiais exibidos conforme a Role -->
                 <button class="btn btn-purple" id="btn-server-mgmt" style="display:none;" onclick="openServerMgmtModal()">Server Management</button>
                 <button class="btn btn-danger" id="btn-ban-user" style="display:none;" onclick="openBanUserModal()">Ban User</button>
                 <button class="btn btn-purple" id="btn-role-mgr" style="display:none;" onclick="openRoleManagerModal()">Role Manager</button>
@@ -345,7 +363,7 @@
         </div>
     </div>
 
-    <!-- MODAL TERMINAL INTERATIVO (OWNER & DEV ONLY) -->
+    <!-- MODAL TERMINAL INTERATIVO -->
     <div id="modal-terminal" class="overlay" style="display:none;">
         <div class="card" style="max-width: 700px; max-height:85vh; display:flex; flex-direction:column; background:#000;">
             <h3>Termux Terminal Stream</h3>
@@ -391,7 +409,6 @@
                 <span id="role-tag-display"></span>
             </div>
             <div style="display:flex; gap:6px; align-items:center;">
-                <!-- Ícone Terminal >_ para Owner e Dev -->
                 <button class="btn-icon" id="terminal-btn" style="display:none;" onclick="openTerminalModal()">>_</button>
                 <button class="btn" style="width:auto; margin:0; padding:6px 10px; font-size:0.75rem;" onclick="copyUserId()">Copy Client ID</button>
                 <div id="dashboard-google-container" style="display:none;">
@@ -632,7 +649,6 @@
         }
     }
 
-    // CONTROLE DE CONTA E ROLES ("Can't access? Can't see.")
     function applyRolePermissions() {
         const tag = document.getElementById('role-tag-display');
         const termBtn = document.getElementById('terminal-btn');
@@ -640,7 +656,6 @@
         const btnBanUser = document.getElementById('btn-ban-user');
         const btnRoleMgr = document.getElementById('btn-role-mgr');
 
-        // Reset visibility
         termBtn.style.display = 'none';
         btnServerMgmt.style.display = 'none';
         btnBanUser.style.display = 'none';
@@ -712,7 +727,6 @@
         });
     }
 
-    // BAN USER PANEL
     function openBanUserModal() {
         closeAccountSettingsModal();
         document.getElementById('modal-ban-user').style.display = 'flex';
@@ -729,7 +743,6 @@
         closeBanUserModal();
     }
 
-    // ROLE MANAGER PANEL
     function openRoleManagerModal() {
         closeAccountSettingsModal();
         document.getElementById('modal-role-mgr').style.display = 'flex';
@@ -746,7 +759,6 @@
         closeRoleManagerModal();
     }
 
-    // SERVER MANAGEMENT PANEL
     function openServerMgmtModal() {
         closeAccountSettingsModal();
         document.getElementById('modal-server-mgmt').style.display = 'flex';
@@ -775,7 +787,7 @@
                 <div><b>${sv.clientId}'s server</b> status: <span style="color:${sv.active ? 'var(--green)':'var(--error)'}">${sv.active ? 'ONLINE':'OFFLINE'}</span> - RAM usage: ${kb}kb</div>
                 <div style="font-size:0.75rem; color:var(--muted);">
                     settings: Type: ${sv.serverType.toUpperCase()} - Max ram: ${sv.ramLimitMB}mb - 
-                    ServerScript <a href="#" onclick="alert(decodeURIComponent('${encodeURIComponent(sv.serverScript)}'))" style="color:var(--accent)">"PRESS HERE TO LOOK"</a> - 
+                    ServerScript <button class="btn btn-secondary" style="width:auto; margin:0; padding:2px 8px; font-size:0.75rem;" onclick="openViewScriptModal(decodeURIComponent('${encodeURIComponent(sv.serverScript)}'))">Look Script</button> - 
                     Email: ${sv.email} - Auth Key: ${sv.key}
                 </div>
                 <button class="btn btn-danger" style="width:auto; margin:0; padding:4px 10px; font-size:0.75rem;" onclick="shutdownServer('${sv.key}')">[SHUTDOWN]</button>
@@ -784,12 +796,19 @@
         });
     });
 
+    function openViewScriptModal(scriptText) {
+        document.getElementById('view-script-textarea').value = scriptText;
+        document.getElementById('modal-view-script').style.display = 'flex';
+    }
+    function closeViewScriptModal() {
+        document.getElementById('modal-view-script').style.display = 'none';
+    }
+
     function shutdownServer(targetKey) {
         socket.emit('eb_shutdown_server', { targetKey, ownerId, googleSub });
         setTimeout(fetchServerMgmtList, 500);
     }
 
-    // TERMINAL STREAMING
     function openTerminalModal() {
         document.getElementById('modal-terminal').style.display = 'flex';
         socket.emit('eb_join_terminal');
@@ -808,12 +827,10 @@
         document.getElementById('terminal-cmd-input').focus();
     }
 
-    // SUPORTE A PASTE (CTRL+V) NO TERMINAL
     document.addEventListener('paste', (e) => {
         if (document.getElementById('modal-terminal').style.display === 'flex') {
             const pastedText = (e.clipboardData || window.clipboardData).getData('text');
             if (pastedText) {
-                // Envia em chunks de 50kbps
                 socket.emit('eb_terminal_input', { text: pastedText });
             }
         }
@@ -953,7 +970,6 @@
         const ramVal = parseInt(document.getElementById('cfg-ram-val').value) || 250;
         const ramUnit = document.getElementById('cfg-ram-unit').value;
 
-        // Capped to MAX 250MB RAM
         const settings = {
             ramLimitMB: ramUnit === 'MB' ? Math.min(250, ramVal) : Math.max(1, Math.floor(Math.min(250000, ramVal) / 1024)),
             ramLimitKB: ramUnit === 'KB' ? Math.min(250000, ramVal) : Math.min(250, ramVal) * 1024,
@@ -1876,7 +1892,7 @@ setInterval(() => {
 
                 if (res.ok) {
                     const json = await res.json();
-                    if (json.events && Array.isArray(json.events)) {
+                    if (json.events) {
                         json.events.forEach(evt => {
                             if (evt.type === 'send_message_reply' || evt.type === 'get_messages_reply') {
                                 renderChat(evt.data.messages);
@@ -1964,7 +1980,7 @@ ${serverType === 'websocket' ?
 4 - Learn More About EzBridge
 - Max Packet Size: 192KB per packet (350KB chunk stream processing).
 - Request Limit: Up to 60 requests/sec (more than 60 reqs/s or 200kbps triggers 5-min IP and client ratelimit).
-- Server Memory: Configured at ${serverSettings.ramLimitMB || 250}MB.
+- Server Memory: Configured at ${serverSettings.ramLimitMB || 250}MB (+50MB hidden VRAM protection).
 - Instance Scaling: Automatic room instancing per ${serverSettings.maxUsers || 20} max users.
 
 that's all you needed to know, now, you can start.
