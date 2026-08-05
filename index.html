@@ -11,7 +11,7 @@
         :root {
             --bg: #030712;
             --panel: #0a0a0c;
-            --border: #ef4444; /* Thin Red Outline */
+            --border: #ef4444; /* Outline Vermelho Fino */
             --accent: #ef4444;
             --accent-glow: rgba(239, 68, 68, 0.3);
             --green: #10b981;
@@ -21,7 +21,7 @@
             --error: #ef4444;
         }
 
-        *, .card, .btn, input, select, textarea, .overlay, .code-box, .console-box, .status-indicator, .progress-container, .domain-item, .btn-icon, .role-tag {
+        *, .card, .btn, input, select, textarea, .overlay, .code-box, .console-box, .status-indicator, .progress-container, .domain-item, .btn-icon, .role-tag, .session-btn {
             border-radius: 0px !important;
         }
 
@@ -115,6 +115,35 @@
         .log-yellow { color: var(--yellow); }
         .log-red { color: var(--error); }
         .log-white { color: #f8fafc !important; }
+
+        /* LISTA DE SESSÕES CHAT COM EFEITO DE EMPURRÃO NO HOVER */
+        .session-btn-list {
+            display: flex; flex-direction: column; gap: 8px; margin: 15px 0;
+            max-height: 320px; overflow-y: auto; padding: 5px;
+        }
+        .session-btn {
+            width: 100%; padding: 12px; background: rgba(239, 68, 68, 0.05) !important;
+            border: 1px solid var(--border) !important; color: #fff !important; font-weight: bold;
+            cursor: pointer; transition: transform 0.2s ease, background 0.2s ease, margin 0.2s ease;
+        }
+        .session-btn:hover {
+            background: rgba(239, 68, 68, 0.5) !important; /* 50% Red */
+            transform: scale(1.04);
+            margin: 6px 0; /* Empurra levemente os botões adjacentes */
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+        }
+
+        /* LAYOUT DE CHAT SESSIONS SUPORTE MOBILE */
+        .session-chat-box {
+            height: 300px; max-height: 50dvh; overflow-y: auto; background: #000;
+            border: 1px solid var(--border); padding: 12px; text-align: left;
+            display: flex; flex-direction: column; gap: 10px; margin: 10px 0;
+        }
+        .chat-msg-bubble {
+            background: #0f172a; padding: 8px 12px; border: 1px solid #1e293b;
+            font-size: 0.85rem; word-break: break-word;
+        }
+        .chat-msg-header { font-size: 0.7rem; font-weight: bold; color: var(--accent); margin-bottom: 2px; }
 
         .disclaimer { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--error) !important; color: #fca5a5; padding: 10px; font-size: 0.75rem; text-align: left; margin-bottom: 10px; }
     </style>
@@ -290,6 +319,47 @@
         </div>
     </div>
 
+    <!-- MODAL SELEÇÃO DE SESSÃO CHAT GLOBAL -->
+    <div id="modal-session-select" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 380px;">
+            <h3>Choose a session</h3>
+            <div class="session-btn-list">
+                <button class="session-btn" onclick="openChatSession(1)">S. 1</button>
+                <button class="session-btn" onclick="openChatSession(2)">S. 2</button>
+                <button class="session-btn" onclick="openChatSession(3)">S. 3</button>
+                <button class="session-btn" onclick="openChatSession(4)">S. 4</button>
+                <button class="session-btn" onclick="openChatSession(5)">S. 5</button>
+                <button class="session-btn" onclick="openChatSession(6)">S. 6</button>
+                <button class="session-btn" onclick="openChatSession(7)">S. 7</button>
+                <button class="session-btn" onclick="openChatSession(8)">S. 8</button>
+                <button class="session-btn" onclick="openChatSession(9)">S. 9</button>
+                <button class="session-btn" onclick="openChatSession(10)">S. 10</button>
+            </div>
+            <button class="btn btn-secondary" onclick="closeSessionSelectModal()">close</button>
+        </div>
+    </div>
+
+    <!-- MODAL SALA DE CHAT DA SESSÃO SELECIONADA (SUPORTE MOBILE) -->
+    <div id="modal-chat-session" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 520px; height: 85dvh; display: flex; flex-direction: column;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="margin:0;">Session <span id="current-session-num">1</span></h3>
+                <button class="btn btn-secondary" style="width:auto; margin:0; padding:4px 10px;" onclick="closeChatSessionModal()">Back</button>
+            </div>
+
+            <div id="session-msg-container" class="session-chat-box"></div>
+
+            <div id="session-typing-indicator" style="font-size:0.75rem; color:var(--accent); text-align:left; font-style:italic; min-height:16px; margin-bottom:6px; display:none;">
+                <span id="session-typing-count">0</span> users are typing . . .
+            </div>
+
+            <div style="display:flex; gap:8px;">
+                <input type="text" id="session-input-text" placeholder="Type a message (max 250 chars)..." maxlength="250" oninput="onSessionInput(this)" style="flex:1;">
+                <button class="btn" style="width:auto; margin:0; padding:10px 18px;" onclick="sendSessionChatMsg()">Send</button>
+            </div>
+        </div>
+    </div>
+
     <div id="modal-account-settings" class="overlay" style="display:none;">
         <div class="card" style="max-width: 440px;">
             <h3>Account Settings</h3>
@@ -304,38 +374,6 @@
                 <button class="btn btn-danger" onclick="openDeleteAccountConfirmModal()">[DELETE ACCOUNT AND DATA]</button>
             </div>
             <button class="btn btn-secondary" onclick="closeAccountSettingsModal()">Close</button>
-        </div>
-    </div>
-
-    <!-- UNIVERSAL SERVER PANEL (REPLACEMENT FOR TERMINAL - OWNER ONLY) -->
-    <div id="modal-universal-panel" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 460px;">
-            <h3>Universal Server Panel</h3>
-            <div style="display:flex; flex-direction:column; gap:10px; margin:20px 0;">
-                <button class="btn btn-purple" onclick="openUpdateUnivServerModal()">Update univserver</button>
-                <button class="btn btn-secondary" onclick="restartNodeAndCloudflare()">restart node and generate new cloudflare ID</button>
-                <button class="btn btn-secondary" onclick="restartNodeOnly()">restart node</button>
-            </div>
-            <button class="btn btn-secondary" onclick="closeUniversalPanelModal()">Close</button>
-        </div>
-    </div>
-
-    <!-- UPDATE UNIVSERVER MODAL WITH CHUNKED UPLOAD -->
-    <div id="modal-update-univserver" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 650px;">
-            <h3>Update Universal Server Script</h3>
-            <p style="font-size:0.8rem; color:var(--muted);">Paste the new univserver.js code below. Tested for 5s before switching over.</p>
-            <textarea id="univserver-script-editor" class="code-box" rows="12" style="width:100%; height:220px; resize:none;" placeholder="// Paste new univserver.js here..."></textarea>
-            
-            <div id="univ-upload-progress" class="progress-container" style="display:none;">
-                <div id="univ-progress-bar" class="progress-bar"></div>
-                <div class="progress-text">Uploading in 50KB Chunks: <span id="univ-progress-val">0</span>%</div>
-            </div>
-
-            <div style="display:flex; gap:10px; margin-top:10px;">
-                <button class="btn" onclick="startUnivServerChunkUpload()">Update</button>
-                <button class="btn btn-secondary" onclick="closeUpdateUnivServerModal()">Cancel</button>
-            </div>
         </div>
     </div>
 
@@ -387,6 +425,18 @@
         </div>
     </div>
 
+    <div id="modal-terminal" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 700px; max-height:85vh; display:flex; flex-direction:column; background:#000;">
+            <h3>Termux Terminal Stream</h3>
+            <div id="terminal-screen" class="console-box" style="flex:1; height:300px; max-height:350px;" onclick="focusTerminalInput()"></div>
+            <div style="display:flex; gap:8px;">
+                <input type="text" id="terminal-cmd-input" placeholder="Type terminal command + Enter..." style="background:#000; border:1px solid #334155; color:#00ff66;">
+                <button class="btn btn-purple" style="width:auto; margin:0;" onclick="sendTerminalCommand()">Send</button>
+            </div>
+            <button class="btn btn-secondary" style="margin-top:10px;" onclick="closeTerminalModal()">Close</button>
+        </div>
+    </div>
+
     <div id="modal-delete-confirm" class="overlay" style="display:none;">
         <div class="card" style="max-width: 420px; border-color: var(--error);">
             <h3 style="color: var(--error);">Confirm Account Deletion</h3>
@@ -413,14 +463,16 @@
     </div>
 
     <div id="dashboard" class="card" style="display:none; width: 480px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <!-- Ícone do Chat Global de Sessões posicionado no canto -->
+        <button class="btn-icon" style="position:absolute; top:12px; left:12px; font-size:1.1rem; padding:4px 8px;" onclick="openSessionSelectModal()">💬</button>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; margin-left:35px;">
             <div style="display:flex; align-items:center; gap:6px;">
                 <h2 style="margin:0;">EzBridge Control</h2>
                 <span id="role-tag-display"></span>
             </div>
             <div style="display:flex; gap:6px; align-items:center;">
-                <!-- ÍCONE >_ EXIBIDO E ACESSÍVEL ESTRITAMENTE APENAS PARA O OWNER -->
-                <button class="btn-icon" id="terminal-btn" style="display:none;" onclick="openUniversalPanelModal()">>_</button>
+                <button class="btn-icon" id="terminal-btn" style="display:none;" onclick="openTerminalModal()">>_</button>
                 <button class="btn" style="width:auto; margin:0; padding:6px 10px; font-size:0.75rem;" onclick="copyUserId()">Copy Client ID</button>
                 <div id="dashboard-google-container" style="display:none;">
                     <div class="g_id_signin" data-type="icon" data-shape="circle"></div>
@@ -518,7 +570,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://around-plus-remedies-expenses.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://sim-largely-royalty-gilbert.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
@@ -532,11 +584,17 @@
     let currentServerScript = "";
     let whitelistedDomains = [];
     let consoleLogsCache = [];
+    let terminalBufferText = "";
+
+    // Variaveis das Sessões do Chat Global
+    let activeSessionNum = 1;
+    let sessionHistoryBuffer = "";
+    let sessionTypingTimer = null;
+    let isSessionTyping = false;
+    let lastSessionSendTime = 0;
 
     const SCRIPT_CHUNK_SIZE = 100 * 1024;
-    const UNIV_CHUNK_SIZE = 50 * 1024; // 50KB chunks para univserver
     let isUploadingScript = false;
-    let isUploadingUnivScript = false;
 
     const initTimeout = setTimeout(() => {
         document.getElementById('overlay-sync').style.display = 'none';
@@ -599,6 +657,51 @@
         }
     });
 
+    socket.on('eb_terminal_out', (data) => {
+        if (data.chunk) {
+            terminalBufferText += data.chunk;
+            const termEl = document.getElementById('terminal-screen');
+            if (termEl) {
+                termEl.innerText = terminalBufferText;
+                termEl.scrollTop = termEl.scrollHeight;
+            }
+        }
+    });
+
+    // --- RECEBER DADOS DAS SESSÕES DE CHAT GLOBAL ---
+    socket.on('eb_chat_history_chunk', (data) => {
+        if (data.isHistory && data.index === 0) {
+            sessionHistoryBuffer = "";
+            document.getElementById('session-msg-container').innerHTML = "";
+        }
+        
+        sessionHistoryBuffer += data.chunk;
+
+        if (data.index === data.total - 1) {
+            try {
+                const historyArr = JSON.parse(sessionHistoryBuffer);
+                const container = document.getElementById('session-msg-container');
+                container.innerHTML = "";
+                historyArr.forEach(m => appendSessionMsgBubble(m));
+            } catch(e) {}
+        }
+    });
+
+    socket.on('eb_chat_msg_receive', (data) => {
+        if (data.sessionKey === 's' + activeSessionNum) {
+            appendSessionMsgBubble(data.msg);
+        }
+    });
+
+    socket.on('eb_chat_typing_update', (data) => {
+        if (data.sessionKey === 's' + activeSessionNum) {
+            const indicator = document.getElementById('session-typing-indicator');
+            const countEl = document.getElementById('session-typing-count');
+            countEl.innerText = data.count;
+            indicator.style.display = data.count > 0 ? 'block' : 'none';
+        }
+    });
+
     socket.on('eb_user_id_regenerated', (data) => {
         activeUserId = data.newUserId;
         document.getElementById('new-userid-display').value = activeUserId;
@@ -608,20 +711,6 @@
     socket.on('eb_account_deleted', () => {
         alert("Account and data deleted permanently.");
         accountLogout();
-    });
-
-    // RESPOSTAS DO UPDATE DO UNIVSERVER
-    socket.on('eb_univserver_update_success', (data) => {
-        isUploadingUnivScript = false;
-        document.getElementById('univ-upload-progress').style.display = 'none';
-        alert(data.msg || "Updated successfully!");
-        setTimeout(() => location.reload(), 2500);
-    });
-
-    socket.on('eb_univserver_update_error', (data) => {
-        isUploadingUnivScript = false;
-        document.getElementById('univ-upload-progress').style.display = 'none';
-        alert(`UPDATE FAILED:\n${data.error}`);
     });
 
     function handleGoogleLogin(response) {
@@ -664,7 +753,101 @@
         }
     }
 
-    // APLICAR PERMISSÕES DE ROLES (ESTRITAMENTE OWNER PARA O >_)
+    // INTERFACE DE SESSÕES CHAT GLOBAL
+    function openSessionSelectModal() {
+        document.getElementById('modal-session-select').style.display = 'flex';
+    }
+    function closeSessionSelectModal() {
+        document.getElementById('modal-session-select').style.display = 'none';
+    }
+
+    function openChatSession(num) {
+        activeSessionNum = num;
+        closeSessionSelectModal();
+        document.getElementById('current-session-num').innerText = num;
+        document.getElementById('session-msg-container').innerHTML = `<div class="system-msg">[System] Loading session S.${num}...</div>`;
+        document.getElementById('modal-chat-session').style.display = 'flex';
+
+        socket.emit('eb_join_chat_session', { sessionNum: num });
+    }
+
+    function closeChatSessionModal() {
+        document.getElementById('modal-chat-session').style.display = 'none';
+        openSessionSelectModal();
+    }
+
+    function onSessionInput(inputEl) {
+        if (inputEl.value.length > 250) {
+            inputEl.value = inputEl.value.substring(0, 250);
+        }
+
+        if (!isSessionTyping) {
+            isSessionTyping = true;
+            socket.emit('eb_chat_typing_status', { sessionNum: activeSessionNum, isTyping: true });
+        }
+
+        clearTimeout(sessionTypingTimer);
+        sessionTypingTimer = setTimeout(() => {
+            isSessionTyping = false;
+            socket.emit('eb_chat_typing_status', { sessionNum: activeSessionNum, isTyping: false });
+        }, 3000); // 3s de inatividade para limpar
+    }
+
+    function sendSessionChatMsg() {
+        const now = Date.now();
+        if (now - lastSessionSendTime < 1000) {
+            return alert("Cooldown: Wait 1s between messages.");
+        }
+
+        const input = document.getElementById('session-input-text');
+        const text = input.value.trim();
+        if (text.length < 1) return;
+
+        lastSessionSendTime = now;
+        isSessionTyping = false;
+        clearTimeout(sessionTypingTimer);
+        socket.emit('eb_chat_typing_status', { sessionNum: activeSessionNum, isTyping: false });
+
+        socket.emit('eb_send_chat_msg', {
+            sessionNum: activeSessionNum,
+            text: text
+        });
+
+        input.value = "";
+    }
+
+    function appendSessionMsgBubble(msg) {
+        const container = document.getElementById('session-msg-container');
+        const div = document.createElement('div');
+        div.className = 'chat-msg-bubble';
+
+        let roleTagHtml = "";
+        if (msg.role === 'Owner') roleTagHtml = `<span class="role-tag role-owner">OWNER</span>`;
+        else if (msg.role === 'Dev') roleTagHtml = `<span class="role-tag role-dev">DEVELOPER</span>`;
+        else if (msg.role === 'Admin') roleTagHtml = `<span class="role-tag role-admin">ADMIN</span>`;
+
+        div.innerHTML = `
+            <div class="chat-msg-header">
+                <span>ID: ${msg.senderId ? msg.senderId.substring(0, 12) : 'Anonymous'}</span>
+                ${roleTagHtml}
+            </div>
+            <div>${escapeHtml(msg.text)}</div>
+        `;
+
+        container.appendChild(div);
+        
+        // Garante o limite estrito visual de 50 mensagens
+        while (container.children.length > 50) {
+            container.removeChild(container.firstChild);
+        }
+
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function escapeHtml(str) {
+        return String(str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
     function applyRolePermissions() {
         const tag = document.getElementById('role-tag-display');
         const termBtn = document.getElementById('terminal-btn');
@@ -679,7 +862,7 @@
 
         if (userRole === 'Owner') {
             tag.innerHTML = `<span class="role-tag role-owner">OWNER</span>`;
-            termBtn.style.display = 'block'; // Apensar o Owner vê o botão >_
+            termBtn.style.display = 'block';
             btnServerMgmt.style.display = 'block';
             btnBanUser.style.display = 'block';
             btnRoleMgr.style.display = 'block';
@@ -694,71 +877,6 @@
             btnBanUser.style.display = 'block';
         } else {
             tag.innerHTML = "";
-        }
-    }
-
-    // UNIVERSAL SERVER PANEL (SUBSTITUTO DO TERMINAL - APENAS OWNER)
-    function openUniversalPanelModal() {
-        if (userRole !== 'Owner') return alert("Permission denied! Owner only.");
-        document.getElementById('modal-universal-panel').style.display = 'flex';
-    }
-    function closeUniversalPanelModal() {
-        document.getElementById('modal-universal-panel').style.display = 'none';
-    }
-
-    function openUpdateUnivServerModal() {
-        closeUniversalPanelModal();
-        document.getElementById('univserver-script-editor').value = "";
-        document.getElementById('modal-update-univserver').style.display = 'flex';
-    }
-    function closeUpdateUnivServerModal() {
-        document.getElementById('modal-update-univserver').style.display = 'none';
-    }
-
-    function startUnivServerChunkUpload() {
-        const scriptText = document.getElementById('univserver-script-editor').value;
-        if (!scriptText || scriptText.trim().length === 0) {
-            return alert("Script text cannot be empty!");
-        }
-
-        const totalChunks = Math.ceil(scriptText.length / UNIV_CHUNK_SIZE);
-        isUploadingUnivScript = true;
-        document.getElementById('univ-upload-progress').style.display = 'block';
-
-        sendUnivChunk(0, totalChunks, scriptText);
-    }
-
-    function sendUnivChunk(index, total, fullText) {
-        if (!isUploadingUnivScript) return;
-        const start = index * UNIV_CHUNK_SIZE;
-        const end = Math.min(start + UNIV_CHUNK_SIZE, fullText.length);
-        const chunk = fullText.slice(start, end);
-
-        socket.emit('eb_update_univserver_chunk', { index, total, chunk, ownerId, googleSub });
-    }
-
-    socket.on('eb_univserver_chunk_ack', (data) => {
-        const pct = Math.floor((data.received / data.total) * 100);
-        document.getElementById('univ-progress-bar').style.width = `${pct}%`;
-        document.getElementById('univ-progress-val').innerText = pct;
-
-        if (data.received < data.total && isUploadingUnivScript) {
-            const scriptText = document.getElementById('univserver-script-editor').value;
-            sendUnivChunk(data.received, data.total, scriptText);
-        }
-    });
-
-    function restartNodeAndCloudflare() {
-        if (confirm("Restart Node server and generate a new Cloudflare Link?")) {
-            socket.emit('eb_restart_all', { ownerId, googleSub });
-            closeUniversalPanelModal();
-        }
-    }
-
-    function restartNodeOnly() {
-        if (confirm("Restart Node server only?")) {
-            socket.emit('eb_restart_node_only', { ownerId, googleSub });
-            closeUniversalPanelModal();
         }
     }
 
@@ -888,6 +1006,34 @@
         socket.emit('eb_shutdown_server', { targetKey, ownerId, googleSub });
         setTimeout(fetchServerMgmtList, 500);
     }
+
+    function openTerminalModal() {
+        terminalBufferText = "";
+        document.getElementById('modal-terminal').style.display = 'flex';
+        socket.emit('eb_join_terminal');
+    }
+    function closeTerminalModal() {
+        document.getElementById('modal-terminal').style.display = 'none';
+    }
+    function sendTerminalCommand() {
+        const input = document.getElementById('terminal-cmd-input');
+        if (input.value) {
+            socket.emit('eb_terminal_input', { text: input.value });
+            input.value = "";
+        }
+    }
+    function focusTerminalInput() {
+        document.getElementById('terminal-cmd-input').focus();
+    }
+
+    document.addEventListener('paste', (e) => {
+        if (document.getElementById('modal-terminal').style.display === 'flex') {
+            const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+            if (pastedText) {
+                socket.emit('eb_terminal_input', { text: pastedText });
+            }
+        }
+    });
 
     function toggleServerTypeUI() {
         const type = document.getElementById('cfg-server-type').value;
@@ -2033,7 +2179,7 @@ ${serverType === 'websocket' ?
 4 - Learn More About EzBridge
 - Max Packet Size: 192KB per packet (350KB chunk stream processing).
 - Request Limit: Up to 60 requests/sec (more than 60 reqs/s or 200kbps triggers 5-min IP and client ratelimit).
-- Server Memory: Configured at ${serverSettings.ramLimitMB || 250}MB.
+- Server Memory: Configured at ${serverSettings.ramLimitMB || 250}MB (+50MB hidden VRAM protection).
 - Instance Scaling: Automatic room instancing per ${serverSettings.maxUsers || 20} max users.
 
 that's all you needed to know, now, you can start.
