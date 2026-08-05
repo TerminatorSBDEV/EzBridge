@@ -15,7 +15,7 @@
             --accent: #06b6d4;
             --accent-glow: rgba(6, 182, 212, 0.3);
             --green: #10b981;
-            --yellow: #eab308;
+            --yellow: #f59e0b;
             --text: #f8fafc;
             --muted: #64748b;
             --error: #ef4444;
@@ -57,13 +57,11 @@
         .btn-icon { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 1rem; }
         .btn-icon:hover { border-color: var(--accent); color: var(--accent); }
 
-        /* ROLE TAGS */
-        .role-tag {
-            display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;
-        }
-        .role-tag.admin { background: var(--green); color: #000; }
-        .role-tag.dev { background: #f59e0b; color: #000; box-shadow: 0 0 10px #f59e0b; }
-        .role-tag.owner { background: linear-gradient(135deg, #ef4444, #ffffff); color: #000; font-weight: 900; box-shadow: 0 0 12px rgba(239, 68, 68, 0.6); }
+        /* ROLE BADGES */
+        .role-badge { font-size: 0.65rem; font-weight: bold; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; margin-left: 6px; }
+        .role-owner { background: linear-gradient(135deg, #ef4444 0%, #ffffff 100%); color: #000; font-weight: 900; }
+        .role-dev { background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); color: #000; font-weight: 900; }
+        .role-admin { background: #10b981; color: #000; font-weight: 900; }
 
         .settings-grid {
             text-align: left; display: flex; flex-direction: column; gap: 12px; margin: 20px 0;
@@ -85,8 +83,19 @@
         .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--error); }
         .dot.online { background: var(--green); box-shadow: 0 0 10px var(--green); }
 
-        .code-box {
-            background: #020617 !important; color: #f8fafc !important;
+        .progress-container {
+            width: 100%; background: #020617; border: 1px solid var(--border);
+            border-radius: 6px; height: 22px; overflow: hidden; margin: 10px 0; position: relative;
+        }
+        .progress-bar { width: 0%; height: 100%; background: var(--accent); transition: width 0.1s ease; }
+        .progress-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; }
+
+        .domain-list { display: flex; flex-direction: column; gap: 6px; margin-top: 5px; }
+        .domain-item { display: flex; justify-content: space-between; align-items: center; background: #020617; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; border: 1px solid var(--border); }
+
+        .code-box, textarea, .settings-item textarea {
+            background: #020617 !important;
+            color: #f8fafc !important;
             padding: 12px; border-radius: 6px; border: 1px solid var(--border);
             font-family: monospace; font-size: 0.8rem; margin: 10px 0; overflow-x: auto; white-space: pre; text-align: left;
         }
@@ -103,8 +112,6 @@
         .log-white { color: #f8fafc !important; }
 
         .disclaimer { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--error); color: #fca5a5; padding: 10px; border-radius: 6px; font-size: 0.75rem; text-align: left; margin-bottom: 10px; }
-        
-        .chat-bubble-msg { background: #020617; border: 1px solid var(--border); padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 6px; text-align: left; }
     </style>
 </head>
 <body>
@@ -112,18 +119,29 @@
     <div id="overlay-sync" class="overlay">
         <div class="card">
             <h3>Connecting to EzBridge...</h3>
-            <div style="font-size:0.8rem; color:var(--muted);">Fetching ID and user credentials.</div>
+            <div style="font-size:0.8rem; color:var(--muted);">Syncing credentials and pre-fetching User ID.</div>
         </div>
     </div>
 
-    <!-- TELA DE BANIMENTO DE APLICAÇÃO -->
+    <!-- APP BAN SCREEN -->
     <div id="overlay-banned-app" class="overlay" style="display:none;">
         <div class="card" style="border-color: var(--error);">
             <h2 style="color: var(--error);">You are banned from EzBridge.</h2>
             <p style="font-size:0.9rem; color:var(--muted); margin: 15px 0;">
                 Days remaining: <span id="ban-days-remaining" style="color:#fff; font-weight:bold;">0</span>
             </p>
-            <button class="btn btn-secondary" onclick="copyUserId()">[Copy UserID]</button>
+            <input type="text" id="banned-userid-display" readonly style="width:100%; text-align:center; font-family:monospace; margin-bottom:15px; background:#020617; color:#fff; border:1px solid var(--border); padding:10px; border-radius:6px;">
+            <button class="btn btn-secondary" onclick="copyText('banned-userid-display')">Copy UserID</button>
+        </div>
+    </div>
+
+    <div id="overlay-timeout-error" class="overlay" style="display:none;">
+        <div class="card" style="border-color: var(--error);">
+            <h2 style="color: var(--error);">ERROR!</h2>
+            <p style="font-size:0.85rem; color:var(--muted); line-height:1.5;">
+                No response from server, the server might be temporarily down or an error occured, try refreshing your page or checking your internet connection.
+            </p>
+            <button class="btn btn-secondary" onclick="location.reload()">Refresh Page</button>
         </div>
     </div>
 
@@ -137,7 +155,7 @@
     <div id="overlay-captcha" class="overlay" style="display:none;">
         <div class="card">
             <h1>EzBridge</h1>
-            <p style="font-size:0.85rem; color:var(--muted); line-height:1.5;">Please solve the puzzle to continue.</p>
+            <p style="font-size:0.85rem; color:var(--muted); line-height:1.5;">Please solve the puzzle below to continue.</p>
             <div style="display: flex; justify-content: center; margin: 20px 0;">
                 <div class="g-recaptcha" data-sitekey="6Lf8VTMtAAAAAAMXrs6lk-tLBjuW0u8ZV5LevzMz" data-callback="captchaSolved"></div>
             </div>
@@ -147,7 +165,9 @@
     <div id="overlay-google-auth" class="overlay" style="display:none;">
         <div class="card">
             <h1>Sign In Required</h1>
-            <p style="font-size:0.85rem; color:var(--muted); margin-bottom:20px;">You must sign in or register with Google before creating a new server.</p>
+            <p style="font-size:0.85rem; color:var(--muted); line-height:1.5; margin-bottom:20px;">
+                You must sign in or register with Google before creating a new virtual server.
+            </p>
             <div style="display:flex; justify-content:center; margin-bottom:15px;">
                 <div id="g_id_onload"
                      data-client_id="596211651893-5vddbq1vee4uv9oq26vqmcu807umlaqt.apps.googleusercontent.com"
@@ -155,6 +175,14 @@
                 </div>
                 <div class="g_id_signin" data-type="standard" data-shape="pill" data-theme="filled_blue"></div>
             </div>
+        </div>
+    </div>
+
+    <div id="overlay-start" class="overlay" style="display:none;">
+        <div class="card">
+            <h1>EzBridge</h1>
+            <p style="color:var(--muted); font-size:0.9rem; margin-bottom:25px;">Create and implement a server to your apps for free!</p>
+            <button class="btn" onclick="openSetupUI()">[CLICK HERE TO BEGIN]</button>
         </div>
     </div>
 
@@ -216,127 +244,115 @@
         </div>
     </div>
 
-    <!-- MODAL BAN USER PANEL -->
-    <div id="modal-ban-user-panel" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 420px; border-color: var(--error);">
-            <h3 style="color: var(--error);">BAN User Panel</h3>
-            <div class="settings-grid">
-                <div class="settings-item">
-                    <label>Paste User ID or Email Here:</label>
-                    <input type="text" id="ban-target-input" placeholder="User ID / Email">
-                </div>
-                <div class="settings-item">
-                    <label>How Many Days (Blank = Perm, 0 = Unban):</label>
-                    <input type="number" id="ban-days-input" placeholder="Leave blank for Perm">
-                </div>
+    <div id="modal-script" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 650px;">
+            <h3>ServerScript Editor (REQUIRED)</h3>
+            <p style="font-size:0.8rem; color:var(--muted);">At least 1 character is strictly required for the server to operate.</p>
+            <textarea id="script-editor" class="code-box" rows="12" style="width:100%; height:250px; resize:none;" placeholder="// ServerScript is mandatory!&#10;Server.on('player_update', (evt) => {&#10;    Server.broadcast('state_update', evt.data);&#10;});"></textarea>
+            
+            <div id="script-upload-progress" class="progress-container" style="display:none;">
+                <div id="script-progress-bar" class="progress-bar"></div>
+                <div class="progress-text">Uploading Script: <span id="script-progress-val">0</span>%</div>
             </div>
-            <button class="btn btn-danger" onclick="submitBanUser()">BAN USER</button>
-            <button class="btn btn-secondary" onclick="closeBanUserModal()">Close</button>
-        </div>
-    </div>
 
-    <!-- MODAL ROLE MANAGER -->
-    <div id="modal-role-manager" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 420px;">
-            <h3>Role Manager</h3>
-            <div class="settings-grid">
-                <div class="settings-item">
-                    <label>User ID or Email:</label>
-                    <input type="text" id="role-target-input" placeholder="Paste ID or Email here">
-                </div>
-                <div class="settings-item">
-                    <label>Role:</label>
-                    <select id="role-select-input">
-                        <option value="None">None</option>
-                        <option value="Admin">Admin</option>
-                        <option value="Dev">Dev</option>
-                    </select>
-                </div>
-            </div>
-            <button class="btn btn-purple" onclick="submitRoleUpdate()">Update Role</button>
-            <button class="btn btn-secondary" onclick="closeRoleManagerModal()">Close</button>
-        </div>
-    </div>
-
-    <!-- MODAL SERVER MANAGEMENT -->
-    <div id="modal-server-management" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 720px; max-height: 85vh; display:flex; flex-direction:column;">
-            <h3>Server Management</h3>
-            <div id="server-management-list" class="settings-grid" style="flex:1; max-height:60vh;"></div>
-            <button class="btn btn-secondary" onclick="closeServerManagementModal()">Close</button>
-        </div>
-    </div>
-
-    <!-- MODAL TERMINAL ACCESS (>_) -->
-    <div id="modal-terminal-gui" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 750px; background:#000; border-color:#334155;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h3 style="margin:0; color:var(--accent); font-family:monospace;">>_ Termux Terminal Bridge</h3>
-                <button class="btn btn-secondary" style="width:auto; margin:0; padding:4px 10px;" onclick="closeTerminalModal()">Close</button>
-            </div>
-            <div id="terminal-out-box" class="console-box" style="height:300px; max-height:300px; font-size:0.75rem;" onclick="focusTermInput()">
-                <div class="log-green">[Termux Bridge Connected]</div>
-            </div>
-            <div style="display:flex; gap:8px;">
-                <input type="text" id="term-cmd-input" placeholder="Type terminal command here..." style="font-family:monospace;">
-                <button class="btn" style="width:100px; margin:0;" onclick="sendTerminalCommand()">Send</button>
+            <div style="display:flex; gap:10px; margin-top:10px;">
+                <button class="btn" id="save-script-btn" onclick="startScriptChunkUpload()">Save ServerScript</button>
+                <button class="btn btn-secondary" onclick="closeScriptEditorModal()">Close</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL GLOBAL CHAT SESSIONS -->
-    <div id="modal-chat-sessions-selector" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 400px;">
-            <h3>Choose a Session</h3>
-            <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:10px; margin:20px 0;">
-                <button class="btn btn-secondary" onclick="joinChatSession('S1')">S. 1</button>
-                <button class="btn btn-secondary" onclick="joinChatSession('S2')">S. 2</button>
-                <button class="btn btn-secondary" onclick="joinChatSession('S3')">S. 3</button>
-                <button class="btn btn-secondary" onclick="joinChatSession('S4')">S. 4</button>
-                <button class="btn btn-secondary" onclick="joinChatSession('S5')">S. 5</button>
-                <button class="btn btn-secondary" onclick="joinChatSession('S6')">S. 6</button>
-                <button class="btn btn-secondary" onclick="joinChatSession('S7')">S. 7</button>
-                <button class="btn btn-secondary" onclick="joinChatSession('S8')">S. 8</button>
-                <button class="btn btn-secondary" onclick="joinChatSession('S9')">S. 9</button>
-                <button class="btn btn-secondary" onclick="joinChatSession('S10')">S. 10</button>
-            </div>
-            <button class="btn btn-danger" onclick="closeChatSessionSelector()">Close</button>
-        </div>
-    </div>
-
-    <!-- CHAT SESSION GUI -->
-    <div id="modal-chat-session-window" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 550px; height:80vh; display:flex; flex-direction:column;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h3 style="margin:0;" id="session-title-header">Chat Session</h3>
-                <button class="btn btn-secondary" style="width:auto; margin:0; padding:4px 10px;" onclick="closeChatSessionWindow()">Leave</button>
-            </div>
-            <div id="session-chat-box" style="flex:1; overflow-y:auto; margin:15px 0; background:#020617; border:1px solid var(--border); border-radius:8px; padding:12px; display:flex; flex-direction:column; gap:8px;"></div>
-            <div id="session-typing-counter" style="font-size:0.75rem; color:var(--accent); font-style:italic; text-align:left; min-height:16px;"></div>
-            <div style="display:flex; gap:8px; margin-top:5px;">
-                <input type="text" id="session-msg-input" placeholder="Max 250 chars..." maxlength="250" oninput="handleSessionTyping(this)">
-                <button class="btn" style="width:90px; margin:0;" onclick="sendSessionMessage()">Send</button>
+    <div id="modal-console" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 600px;">
+            <h3>Server Console Logs</h3>
+            <div id="console-logs-display" class="console-box"></div>
+            <div style="display:flex; gap:10px;">
+                <button class="btn" onclick="copyConsoleLogs()">[Copy Logs]</button>
+                <button class="btn btn-secondary" onclick="closeConsoleModal()">Close</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL ACCOUNT SETTINGS -->
     <div id="modal-account-settings" class="overlay" style="display:none;">
         <div class="card" style="max-width: 420px;">
             <h3>Account Settings</h3>
             <div style="display:flex; flex-direction:column; gap:10px; margin:20px 0;">
                 <button class="btn btn-secondary" onclick="accountLogout()">[Logout]</button>
                 <button class="btn btn-secondary" onclick="accountRegenUserId()">[Regenerate User ID]</button>
+                <button id="opt-server-mgmt" class="btn btn-secondary" style="display:none;" onclick="openServerMgmtModal()">Server Management</button>
+                <button id="opt-ban-user" class="btn btn-secondary" style="display:none;" onclick="openBanUserModal()">Ban user</button>
+                <button id="opt-role-manager" class="btn btn-secondary" style="display:none;" onclick="openRoleManagerModal()">Role manager</button>
                 <button class="btn btn-danger" onclick="openDeleteAccountConfirmModal()">[DELETE ACCOUNT AND DATA]</button>
             </div>
             <button class="btn btn-secondary" onclick="closeAccountSettingsModal()">Close</button>
         </div>
     </div>
 
+    <!-- BAN USER MODAL -->
+    <div id="modal-ban-user-panel" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 420px; border-color: var(--error);">
+            <h3 style="color: var(--error);">BAN user panel</h3>
+            <div class="settings-item" style="margin:15px 0;">
+                <label>Paste User ID or Email</label>
+                <input type="text" id="ban-target-userid" placeholder="User ID or email here">
+                <label style="margin-top:10px;">How many days (blank = perm, 0 = unban)</label>
+                <input type="number" id="ban-days-input" placeholder="Days">
+            </div>
+            <button class="btn btn-danger" onclick="submitBanUser()">BAN user</button>
+            <button class="btn btn-secondary" onclick="closeBanUserModal()">Cancel</button>
+        </div>
+    </div>
+
+    <!-- ROLE MANAGER MODAL -->
+    <div id="modal-role-manager-panel" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 420px;">
+            <h3>Role Manager</h3>
+            <div class="settings-item" style="margin:15px 0;">
+                <label>User ID</label>
+                <input type="text" id="role-target-userid" placeholder="Paste User ID here">
+                <label style="margin-top:10px;">Role</label>
+                <select id="role-select-input">
+                    <option value="None">None</option>
+                    <option value="Admin">Admin</option>
+                    <option value="Dev">Dev</option>
+                </select>
+            </div>
+            <button class="btn" onclick="submitUpdateRole()">Update Role</button>
+            <button class="btn btn-secondary" onclick="closeRoleManagerModal()">Cancel</button>
+        </div>
+    </div>
+
+    <!-- SERVER MANAGEMENT MODAL -->
+    <div id="modal-server-mgmt-panel" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 650px; max-height:85vh; display:flex; flex-direction:column;">
+            <h3>Server Management</h3>
+            <div id="server-mgmt-list" class="code-box" style="flex:1; max-height:55vh; overflow-y:auto; font-family:sans-serif; text-align:left;"></div>
+            <button class="btn btn-secondary" style="margin-top:10px;" onclick="closeServerMgmtModal()">Close</button>
+        </div>
+    </div>
+
+    <!-- TERMINAL ACCESS GUI MODAL -->
+    <div id="modal-terminal-panel" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 700px; max-height:85vh; display:flex; flex-direction:column;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="margin:0;">Termux Interactive Terminal (>_)</h3>
+                <button class="btn btn-secondary" style="width:auto; margin:0; padding:4px 10px;" onclick="closeTerminalModal()">Close</button>
+            </div>
+            <div id="terminal-screen-box" class="console-box" style="flex:1; max-height:50vh; background:#000; color:#00ff66;" onclick="focusTerminalInput()"></div>
+            <div style="display:flex; gap:8px;">
+                <input type="text" id="terminal-cmd-input" placeholder="Type command here and hit enter..." style="font-family:monospace;">
+                <button class="btn" style="width:auto;" onclick="sendTerminalCmd()">Send</button>
+            </div>
+        </div>
+    </div>
+
     <div id="modal-delete-confirm" class="overlay" style="display:none;">
         <div class="card" style="max-width: 420px; border-color: var(--error);">
             <h3 style="color: var(--error);">Confirm Account Deletion</h3>
-            <p style="font-size:0.8rem; color:var(--muted);">THIS ACTION IS PERMANENT. To confirm, type your User ID below:</p>
+            <p style="font-size:0.8rem; color:var(--muted); line-height:1.5;">
+                THIS ACTION IS PERMANENT. Your account, server, and all database files will be wiped completely.
+                To validate, paste your User ID below:
+            </p>
             <input type="text" id="delete-confirm-input" placeholder="Paste your User ID here">
             <button class="btn btn-danger" style="margin-top:15px;" onclick="submitDeleteAccount()">Validate and Delete</button>
             <button class="btn btn-secondary" onclick="closeDeleteAccountConfirmModal()">Cancel</button>
@@ -355,18 +371,18 @@
         </div>
     </div>
 
-    <!-- DASHBOARD PRINCIPAL -->
     <div id="dashboard" class="card" style="display:none; width: 480px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
             <div style="display:flex; align-items:center; gap:8px;">
-                <h2 style="margin:0;">EzBridge</h2>
-                <!-- ROLE TAG DISPLAY -->
-                <div id="user-role-badge" class="role-tag" style="display:none;"></div>
+                <h2 style="margin:0;">EzBridge Control</h2>
+                <span id="role-tag-badge"></span>
             </div>
             <div style="display:flex; gap:6px; align-items:center;">
-                <!-- TERMINAL ICON FOR DEVS/OWNER -->
-                <button class="btn-icon" id="term-access-btn" style="display:none;" onclick="openTerminalModal()">>_</button>
+                <button id="btn-terminal-toggle" class="btn-icon" style="display:none;" title="Terminal Access" onclick="openTerminalModal()">>_</button>
                 <button class="btn" style="width:auto; margin:0; padding:6px 10px; font-size:0.75rem;" onclick="copyUserId()">Copy Client ID</button>
+                <div id="dashboard-google-container" style="display:none;">
+                    <div class="g_id_signin" data-type="icon" data-shape="circle"></div>
+                </div>
             </div>
         </div>
         
@@ -394,9 +410,6 @@
             <button class="btn btn-secondary" style="flex: 1;" onclick="openHowToUse()">[How to Use]</button>
             <button class="btn btn-secondary" style="flex: 1;" id="test-conn-btn" onclick="testConnection()">[Test Connection]</button>
         </div>
-
-        <!-- FLOATING CHAT SESSIONS BUTTON -->
-        <button class="btn btn-purple" style="margin-top:15px;" onclick="openChatSessionSelector()">💬 Chat Sessions</button>
     </div>
 
     <div id="modal-howto" class="overlay" style="display:none;">
@@ -447,6 +460,14 @@
             <div style="text-align:left; font-size:0.8rem; font-weight:bold; color:var(--accent); margin-top:10px;">ServerScript (Backend Game Engine):</div>
             <textarea id="example-code-server" class="code-box" readonly rows="8" style="width:100%; height:160px; border:none; resize:none;"></textarea>
 
+            <div id="http-extra-example-container" style="display:none; margin-top:12px; border-top:1px solid var(--border); padding-top:10px;">
+                <div style="text-align:left; font-size:0.8rem; font-weight:bold; color:var(--accent);">HTTP State-Based Global Chat - Client Script:</div>
+                <textarea id="example-http-chat-client" class="code-box" readonly rows="8" style="width:100%; height:160px; border:none; resize:none;"></textarea>
+
+                <div style="text-align:left; font-size:0.8rem; font-weight:bold; color:var(--accent); margin-top:6px;">HTTP State-Based Global Chat - ServerScript:</div>
+                <textarea id="example-http-chat-server" class="code-box" readonly rows="8" style="width:100%; height:160px; border:none; resize:none;"></textarea>
+            </div>
+
             <div style="display:flex; gap:10px; margin-top:10px;">
                 <button class="btn" onclick="copyText('example-code-client')">Copy Client HTML</button>
                 <button class="btn btn-secondary" onclick="closeGameCode()">Back</button>
@@ -455,14 +476,13 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://gained-affiliated-healthcare-granny.trycloudflare.com";
-    const OWNER_ID = "rTDRUW71fiLuzcSNQV02uPDLXpJ";
+    const PUBLIC_TUNNEL_URL = "https://around-plus-remedies-expenses.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
     let googleEmail = null;
     let activeUserId = "";
-    let currentUserRole = "None";
+    let userRole = "None";
     let serverKey = "";
     let serverActive = false;
     let serverType = "websocket";
@@ -470,8 +490,7 @@
     let currentServerScript = "";
     let whitelistedDomains = [];
     let consoleLogsCache = [];
-    let activeChatSessionKey = null;
-    let sessionTypingTimer = null;
+    let serverMgmtInterval = null;
 
     const SCRIPT_CHUNK_SIZE = 100 * 1024;
     let isUploadingScript = false;
@@ -490,21 +509,23 @@
         socket.emit('eb_sync_session', { ownerId });
     });
 
-    socket.on('session_banned', (data) => {
-        clearTimeout(initTimeout);
-        document.getElementById('overlay-sync').style.display = 'none';
-        document.getElementById('ban-days-remaining').innerText = data.daysRemaining === 0 ? "Permanent" : data.daysRemaining + " Day(s)";
-        document.getElementById('overlay-banned-app').style.display = 'flex';
-    });
-
     socket.on('session_verified', (data) => {
         clearTimeout(initTimeout);
-        ownerId = data.ownerId;
-        currentUserRole = data.role || "None";
-        setCookie("eb_owner_id", ownerId, 365);
         document.getElementById('overlay-sync').style.display = 'none';
 
-        applyRoleUI(currentUserRole);
+        // VERIFICAÇÃO DE BANIMENTO AO ENTRAR
+        if (data.banned) {
+            document.getElementById('ban-days-remaining').innerText = data.daysRemaining;
+            document.getElementById('banned-userid-display').value = data.userId || "BANNED";
+            document.getElementById('overlay-banned-app').style.display = 'flex';
+            socket.disconnect();
+            return;
+        }
+
+        ownerId = data.ownerId;
+        setCookie("eb_owner_id", ownerId, 365);
+        userRole = data.role || "None";
+        activeUserId = data.userId || ownerId;
 
         if (data.hasServer) {
             serverKey = data.server.key;
@@ -514,38 +535,12 @@
             currentServerScript = data.server.serverScript || "";
             googleSub = data.server.googleSub || null;
             googleEmail = data.server.email || null;
-            activeUserId = data.server.userId || ownerId;
             whitelistedDomains = serverSettings.whitelistedDomains || [];
             showDashboard();
         } else {
             document.getElementById('overlay-captcha').style.display = 'flex';
         }
     });
-
-    function applyRoleUI(role) {
-        const badge = document.getElementById('user-role-badge');
-        const termBtn = document.getElementById('term-access-btn');
-
-        if (role === 'Owner') {
-            badge.innerText = "OWNER";
-            badge.className = "role-tag owner";
-            badge.style.display = "inline-block";
-            termBtn.style.display = "block";
-        } else if (role === 'Dev') {
-            badge.innerText = "DEVELOPER";
-            badge.className = "role-tag dev";
-            badge.style.display = "inline-block";
-            termBtn.style.display = "block";
-        } else if (role === 'Admin') {
-            badge.innerText = "ADMIN";
-            badge.className = "role-tag admin";
-            badge.style.display = "inline-block";
-            termBtn.style.display = "none";
-        } else {
-            badge.style.display = "none";
-            termBtn.style.display = "none";
-        }
-    }
 
     socket.on('server_error', (data) => {
         hideLoadingScreen();
@@ -570,25 +565,30 @@
         accountLogout();
     });
 
-    socket.on('eb_all_servers_list', (data) => {
-        renderServerManagementList(data.servers || []);
+    socket.on('eb_user_banned_res', (data) => {
+        alert(data.message);
+        closeBanUserModal();
     });
 
-    socket.on('eb_chat_session_history', (data) => {
-        renderChatSessionBox(data.messages || []);
+    socket.on('eb_role_updated_res', (data) => {
+        alert(`Role updated for ${data.targetUserId} -> ${data.newRole}`);
+        closeRoleManagerModal();
     });
 
-    socket.on('eb_chat_session_msg', (data) => {
-        appendChatSessionBubble(data);
+    socket.on('eb_all_servers_res', (data) => {
+        renderServerMgmtList(data.servers);
     });
 
-    socket.on('eb_typing_session_update', (data) => {
-        const count = data.count || 0;
-        const el = document.getElementById('session-typing-counter');
-        if (count > 0) {
-            el.innerText = `${count} user(s) are typing . . .`;
-        } else {
-            el.innerText = "";
+    socket.on('eb_admin_shutdown_res', (data) => {
+        alert(`Server ${data.targetKey} has been turned OFFLINE.`);
+        socket.emit('eb_get_all_servers');
+    });
+
+    socket.on('eb_terminal_output', (data) => {
+        const box = document.getElementById('terminal-screen-box');
+        if (box) {
+            box.innerText += data.output;
+            box.scrollTop = box.scrollHeight;
         }
     });
 
@@ -605,9 +605,6 @@
     }
 
     socket.on('google_login_verified', (data) => {
-        currentUserRole = data.role || currentUserRole;
-        applyRoleUI(currentUserRole);
-
         if (data.hasServer) {
             serverKey = data.server.key;
             serverActive = data.server.active;
@@ -617,6 +614,7 @@
             googleSub = data.server.googleSub || googleSub;
             googleEmail = data.server.email || googleEmail;
             activeUserId = data.server.userId || ownerId;
+            userRole = data.role || userRole;
             whitelistedDomains = serverSettings.whitelistedDomains || [];
             showDashboard();
         } else {
@@ -635,13 +633,46 @@
         }
     }
 
-    // MODAL ACCOUNT SETTINGS
-    function openAccountSettingsModal() {
-        document.getElementById('modal-account-settings').style.display = 'flex';
+    // APLICAÇÃO DE PERMISSÕES E ROLES NA INTERFACE
+    function updateRoleUI() {
+        const badge = document.getElementById('role-tag-badge');
+        const optMgmt = document.getElementById('opt-server-mgmt');
+        const optBan = document.getElementById('opt-ban-user');
+        const optRole = document.getElementById('opt-role-manager');
+        const btnTerm = document.getElementById('btn-terminal-toggle');
+
+        // Reset visibility "Can't access? Can't see."
+        optMgmt.style.display = 'none';
+        optBan.style.display = 'none';
+        optRole.style.display = 'none';
+        btnTerm.style.display = 'none';
+
+        if (userRole === 'Owner') {
+            badge.className = 'role-badge role-owner';
+            badge.innerText = 'OWNER';
+            optMgmt.style.display = 'block';
+            optBan.style.display = 'block';
+            optRole.style.display = 'block';
+            btnTerm.style.display = 'block';
+        } else if (userRole === 'Dev') {
+            badge.className = 'role-badge role-dev';
+            badge.innerText = 'DEVELOPER';
+            optMgmt.style.display = 'block';
+            optBan.style.display = 'block';
+            optRole.style.display = 'block';
+            btnTerm.style.display = 'block';
+        } else if (userRole === 'Admin') {
+            badge.className = 'role-badge role-admin';
+            badge.innerText = 'ADMIN';
+            optMgmt.style.display = 'block';
+            optBan.style.display = 'block';
+        } else {
+            badge.innerText = '';
+        }
     }
-    function closeAccountSettingsModal() {
-        document.getElementById('modal-account-settings').style.display = 'none';
-    }
+
+    function openAccountSettingsModal() { document.getElementById('modal-account-settings').style.display = 'flex'; }
+    function closeAccountSettingsModal() { document.getElementById('modal-account-settings').style.display = 'none'; }
 
     function accountLogout() {
         setCookie("eb_owner_id", "", -1);
@@ -654,9 +685,7 @@
         closeAccountSettingsModal();
     }
 
-    function closeNewUserIdModal() {
-        document.getElementById('modal-new-userid').style.display = 'none';
-    }
+    function closeNewUserIdModal() { document.getElementById('modal-new-userid').style.display = 'none'; }
 
     function openDeleteAccountConfirmModal() {
         closeAccountSettingsModal();
@@ -664,9 +693,7 @@
         document.getElementById('modal-delete-confirm').style.display = 'flex';
     }
 
-    function closeDeleteAccountConfirmModal() {
-        document.getElementById('modal-delete-confirm').style.display = 'none';
-    }
+    function closeDeleteAccountConfirmModal() { document.getElementById('modal-delete-confirm').style.display = 'none'; }
 
     function submitDeleteAccount() {
         const inputVal = document.getElementById('delete-confirm-input').value.trim();
@@ -680,183 +707,134 @@
         });
     }
 
-    // MODAL BAN USER PANEL
+    // BAN USER MODAL
     function openBanUserModal() {
         closeAccountSettingsModal();
+        document.getElementById('ban-target-userid').value = "";
+        document.getElementById('ban-days-input').value = "";
         document.getElementById('modal-ban-user-panel').style.display = 'flex';
     }
-    function closeBanUserModal() {
-        document.getElementById('modal-ban-user-panel').style.display = 'none';
-    }
+
+    function closeBanUserModal() { document.getElementById('modal-ban-user-panel').style.display = 'none'; }
+
     function submitBanUser() {
-        const target = document.getElementById('ban-target-input').value.trim();
-        const days = document.getElementById('ban-days-input').value.trim();
+        const targetUserId = document.getElementById('ban-target-userid').value.trim();
+        const days = document.getElementById('ban-days-input').value;
+        if (!targetUserId) return alert("Please paste User ID or email.");
 
-        if (!target) return alert("Please enter a User ID or Email.");
-        socket.emit('eb_ban_user', { targetId: target, days: days, ownerId, googleSub });
-        closeBanUserModal();
-    }
-
-    // MODAL ROLE MANAGER
-    function openRoleManagerModal() {
-        closeAccountSettingsModal();
-        document.getElementById('modal-role-manager').style.display = 'flex';
-    }
-    function closeRoleManagerModal() {
-        document.getElementById('modal-role-manager').style.display = 'none';
-    }
-    function submitRoleUpdate() {
-        const target = document.getElementById('role-target-input').value.trim();
-        const role = document.getElementById('role-select-input').value;
-
-        if (!target) return alert("Please enter a User ID or Email.");
-        socket.emit('eb_update_role', { targetId: target, role: role, ownerId, googleSub });
-        closeRoleManagerModal();
-    }
-
-    // MODAL SERVER MANAGEMENT
-    function openServerManagementModal() {
-        closeAccountSettingsModal();
-        document.getElementById('modal-server-management').style.display = 'flex';
-        socket.emit('eb_get_all_servers', { ownerId, googleSub });
-    }
-    function closeServerManagementModal() {
-        document.getElementById('modal-server-management').style.display = 'none';
-    }
-
-    function renderServerManagementList(servers) {
-        const container = document.getElementById('server-management-list');
-        container.innerHTML = "";
-
-        servers.forEach(s => {
-            const div = document.createElement('div');
-            div.className = "settings-item";
-            div.style.background = "#020617";
-            div.style.padding = "10px";
-            div.style.borderRadius = "8px";
-            div.style.border = "1px solid var(--border)";
-
-            const ramKb = (s.ramUsageBytes / 1024).toFixed(1);
-
-            let html = `
-                <div style="font-weight:bold; color:var(--accent); font-size:0.85rem;">${s.clientId || s.ownerId}'s server</div>
-                <div style="font-size:0.75rem; color:#888;">Status: <b style="color:${s.active ? 'var(--green)' : 'var(--error)'}">${s.active ? 'ONLINE' : 'OFFLINE'}</b> - RAM: ${ramKb} KB</div>
-                <div style="font-size:0.75rem; color:#888;">Type: ${s.serverType} - Max RAM: ${s.settings.ramLimitMB || 500} MB</div>
-            `;
-
-            if (s.email) html += `<div style="font-size:0.75rem; color:var(--blue);">Email: ${s.email}</div>`;
-            if (s.authKey) html += `<div style="font-size:0.75rem; color:var(--yellow);">Auth Key: ${s.authKey}</div>`;
-
-            html += `<div style="display:flex; gap:6px; margin-top:8px;">
-                <button class="btn btn-secondary" style="width:auto; padding:4px 8px; font-size:0.7rem;" onclick="alert(decodeURIComponent('${encodeURIComponent(s.serverScript)}'))">ServerScript</button>
-                <button class="btn btn-danger" style="width:auto; padding:4px 8px; font-size:0.7rem;" onclick="adminShutdownServer('${s.key}')">SHUTDOWN</button>
-            </div>`;
-
-            div.innerHTML = html;
-            container.appendChild(div);
+        socket.emit('eb_ban_user', {
+            targetUserId,
+            days: days === "" ? null : parseInt(days)
         });
     }
 
-    function adminShutdownServer(key) {
-        if (confirm("Are you sure you want to shutdown this server?")) {
-            socket.emit('eb_admin_shutdown_server', { key, ownerId, googleSub });
-        }
+    // ROLE MANAGER MODAL
+    function openRoleManagerModal() {
+        closeAccountSettingsModal();
+        document.getElementById('role-target-userid').value = "";
+        document.getElementById('modal-role-manager-panel').style.display = 'flex';
     }
 
-    // MODAL TERMINAL ACCESS (>_)
-    function openTerminalModal() {
-        document.getElementById('modal-terminal-gui').style.display = 'flex';
-    }
-    function closeTerminalModal() {
-        document.getElementById('modal-terminal-gui').style.display = 'none';
-    }
-    function focusTermInput() {
-        document.getElementById('term-cmd-input').focus();
-    }
-    function sendTerminalCommand() {
-        const input = document.getElementById('term-cmd-input');
-        const cmd = input.value.trim();
-        if (!cmd) return;
+    function closeRoleManagerModal() { document.getElementById('modal-role-manager-panel').style.display = 'none'; }
 
-        socket.emit('eb_terminal_input', { command: cmd, ownerId, googleSub });
+    function submitUpdateRole() {
+        const targetUserId = document.getElementById('role-target-userid').value.trim();
+        const newRole = document.getElementById('role-select-input').value;
+        if (!targetUserId) return alert("Please paste User ID.");
+
+        socket.emit('eb_update_role', { targetUserId, newRole });
+    }
+
+    // SERVER MANAGEMENT MODAL (REFRESHES EVERY 5S)
+    function openServerMgmtModal() {
+        closeAccountSettingsModal();
+        document.getElementById('modal-server-mgmt-panel').style.display = 'flex';
         
-        const box = document.getElementById('terminal-out-box');
-        const div = document.createElement('div');
-        div.className = "log-yellow";
-        div.innerText = `> ${cmd}`;
-        box.appendChild(div);
-        box.scrollTop = box.scrollHeight;
-
-        input.value = "";
+        socket.emit('eb_get_all_servers');
+        if (serverMgmtInterval) clearInterval(serverMgmtInterval);
+        serverMgmtInterval = setInterval(() => {
+            if (document.getElementById('modal-server-mgmt-panel').style.display === 'flex') {
+                socket.emit('eb_get_all_servers');
+            }
+        }, 5000);
     }
 
-    // CHAT SESSIONS (S.1 - S.10)
-    function openChatSessionSelector() {
-        document.getElementById('modal-chat-sessions-selector').style.display = 'flex';
-    }
-    function closeChatSessionSelector() {
-        document.getElementById('modal-chat-sessions-selector').style.display = 'none';
+    function closeServerMgmtModal() {
+        if (serverMgmtInterval) clearInterval(serverMgmtInterval);
+        document.getElementById('modal-server-mgmt-panel').style.display = 'none';
     }
 
-    function joinChatSession(sessionKey) {
-        activeChatSessionKey = sessionKey;
-        closeChatSessionSelector();
-        document.getElementById('session-title-header').innerText = `Chat Session ${sessionKey}`;
-        document.getElementById('modal-chat-session-window').style.display = 'flex';
-        socket.emit('eb_join_chat_session', { session: sessionKey });
-    }
-
-    function closeChatSessionWindow() {
-        document.getElementById('modal-chat-session-window').style.display = 'none';
-        activeChatSessionKey = null;
-    }
-
-    function renderChatSessionBox(messages) {
-        const box = document.getElementById('session-chat-box');
+    function renderServerMgmtList(servers) {
+        const box = document.getElementById('server-mgmt-list');
         box.innerHTML = "";
-        messages.forEach(m => appendChatSessionBubble(m));
+
+        servers.forEach(sv => {
+            const kb = (sv.ramUsageBytes / 1024).toFixed(1);
+            const div = document.createElement('div');
+            div.style.cssText = "background:#020617; border:1px solid var(--border); padding:10px; margin-bottom:8px; border-radius:6px;";
+
+            let details = `<div><b>${sv.userId}</b>'s server status: <span style="color:${sv.active ? 'var(--green)' : 'var(--error)'};">${sv.active ? 'ONLINE' : 'OFFLINE'}</span> - RAM usage: ${kb}kb</div>`;
+            details += `<div style="font-size:0.75rem; color:var(--muted); margin-top:4px;">settings: Type: ${sv.serverType.toUpperCase()} - Max ram: ${sv.settings.ramLimitMB || 500}MB</div>`;
+
+            if (sv.email) details += `<div style="font-size:0.75rem; color:var(--accent);">Email: ${sv.email} | auth key: ${sv.authKey}</div>`;
+
+            details += `<div style="margin-top:8px; display:flex; gap:6px;">
+                <button class="btn btn-danger" style="width:auto; margin:0; padding:4px 10px; font-size:0.75rem;" onclick="adminShutdownServer('${sv.key}')">SHUTDOWN</button>
+            </div>`;
+
+            div.innerHTML = details;
+            box.appendChild(div);
+        });
     }
 
-    function appendChatSessionBubble(msg) {
-        const box = document.getElementById('session-chat-box');
-        const div = document.createElement('div');
-        div.className = 'chat-bubble-msg';
-
-        let roleTag = "";
-        if (msg.role === 'Owner') roleTag = `<span class="role-tag owner" style="margin-left:6px; font-size:0.6rem;">OWNER</span>`;
-        else if (msg.role === 'Dev') roleTag = `<span class="role-tag dev" style="margin-left:6px; font-size:0.6rem;">DEVELOPER</span>`;
-        else if (msg.role === 'Admin') roleTag = `<span class="role-tag admin" style="margin-left:6px; font-size:0.6rem;">ADMIN</span>`;
-
-        div.innerHTML = `<div style="font-weight:bold; font-size:0.75rem; color:var(--blue);">${msg.senderId}${roleTag}</div><div style="margin-top:2px;">${escapeHtml(msg.text)}</div>`;
-        box.appendChild(div);
-        box.scrollTop = box.scrollHeight;
+    function adminShutdownServer(targetKey) {
+        socket.emit('eb_admin_shutdown_server', { targetKey });
     }
 
-    function handleSessionTyping(inputEl) {
-        if (inputEl.value.length > 250) {
-            inputEl.value = inputEl.value.substring(0, 250); // Enforce max 250 chars
-        }
-
-        socket.emit('eb_typing_session', { isTyping: true });
-        clearTimeout(sessionTypingTimer);
-        sessionTypingTimer = setTimeout(() => {
-            socket.emit('eb_typing_session', { isTyping: false });
-        }, 3000);
+    // INTERACTIVE TERMINAL GUI
+    function openTerminalModal() {
+        document.getElementById('modal-terminal-panel').style.display = 'flex';
+        socket.emit('eb_subscribe_terminal');
     }
 
-    function sendSessionMessage() {
-        const input = document.getElementById('session-msg-input');
-        const text = input.value.trim();
-        if (!text) return;
+    function closeTerminalModal() {
+        document.getElementById('modal-terminal-panel').style.display = 'none';
+    }
 
-        socket.emit('eb_send_chat_session_msg', { text: text, session: activeChatSessionKey });
+    function focusTerminalInput() {
+        document.getElementById('terminal-cmd-input').focus();
+    }
+
+    function sendTerminalCmd() {
+        const input = document.getElementById('terminal-cmd-input');
+        const val = input.value;
+        if (!val) return;
+        socket.emit('eb_terminal_input', { input: val });
         input.value = "";
-        socket.emit('eb_typing_session', { isTyping: false });
     }
 
-    function escapeHtml(str) {
-        return String(str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    }
+    // Suporte para Paste (Ctrl+V) de textos longos fatiados em pedaços de 50KB
+    document.getElementById('terminal-cmd-input').addEventListener('paste', (e) => {
+        const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+        if (pastedText && pastedText.length > 1000) {
+            e.preventDefault();
+            const chunkSize = 50 * 1024; // 50KB
+            let idx = 0;
+            function sendNextChunk() {
+                if (idx < pastedText.length) {
+                    const chunk = pastedText.slice(idx, idx + chunkSize);
+                    socket.emit('eb_terminal_input', { input: chunk });
+                    idx += chunkSize;
+                    setTimeout(sendNextChunk, 120); // 120ms ping chunk delay
+                }
+            }
+            sendNextChunk();
+        }
+    });
+
+    document.getElementById('terminal-cmd-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendTerminalCmd();
+    });
 
     function toggleServerTypeUI() {
         const type = document.getElementById('cfg-server-type').value;
@@ -1032,6 +1010,7 @@
 
     function showDashboard() {
         document.getElementById('dashboard').style.display = 'block';
+        updateRoleUI();
         updateDashboardGoogleBtn();
         updateStatusDisplay();
 
@@ -1913,7 +1892,7 @@ setInterval(() => {
 
                 if (res.ok) {
                     const json = await res.json();
-                    if (json.events) {
+                    if (json.events && Array.isArray(json.events)) {
                         json.events.forEach(evt => {
                             if (evt.type === 'send_message_reply' || evt.type === 'get_messages_reply') {
                                 renderChat(evt.data.messages);
