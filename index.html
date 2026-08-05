@@ -21,7 +21,7 @@
             --error: #ef4444;
         }
 
-        *, .card, .btn, input, select, textarea, .overlay, .code-box, .console-box, .status-indicator, .progress-container, .domain-item, .btn-icon, .role-tag, .session-btn {
+        *, .card, .btn, input, select, textarea, .overlay, .code-box, .console-box, .status-indicator, .progress-container, .domain-item, .btn-icon, .role-tag {
             border-radius: 0px !important;
         }
 
@@ -62,6 +62,21 @@
         .btn-danger { background: rgba(239, 68, 68, 0.2) !important; border: 1px solid var(--error) !important; color: #ffffff !important; }
         .btn-icon { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 6px 12px; cursor: pointer; font-size: 1rem; }
         .btn-icon:hover { border-color: var(--accent); color: var(--accent); }
+
+        /* Botões das Sessões de Chat (Com efeito hover de 50% vermelho e escala) */
+        .session-btn {
+            width: 100%; margin: 6px 0; padding: 12px;
+            background: rgba(239, 68, 68, 0.05) !important;
+            border: 1px solid var(--border) !important;
+            color: #fff !important; font-weight: bold; cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+            text-align: center;
+        }
+        .session-btn:hover {
+            background: rgba(239, 68, 68, 0.5) !important; /* 50% Vermelho ao passar o mouse */
+            transform: scale(1.04); /* Empurra levemente os outros */
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+        }
 
         .role-tag { font-size: 0.65rem; font-weight: bold; padding: 2px 8px; display: inline-block; text-transform: uppercase; margin-left: 6px; }
         .role-owner { background: linear-gradient(135deg, #ef4444 0%, #ffffff 100%); color: #000; text-shadow: none; }
@@ -116,36 +131,14 @@
         .log-red { color: var(--error); }
         .log-white { color: #f8fafc !important; }
 
-        /* LISTA DE SESSÕES CHAT COM EFEITO DE EMPURRÃO NO HOVER */
-        .session-btn-list {
-            display: flex; flex-direction: column; gap: 8px; margin: 15px 0;
-            max-height: 320px; overflow-y: auto; padding: 5px;
-        }
-        .session-btn {
-            width: 100%; padding: 12px; background: rgba(239, 68, 68, 0.05) !important;
-            border: 1px solid var(--border) !important; color: #fff !important; font-weight: bold;
-            cursor: pointer; transition: transform 0.2s ease, background 0.2s ease, margin 0.2s ease;
-        }
-        .session-btn:hover {
-            background: rgba(239, 68, 68, 0.5) !important; /* 50% Red */
-            transform: scale(1.04);
-            margin: 6px 0; /* Empurra levemente os botões adjacentes */
-            box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
-        }
-
-        /* LAYOUT DE CHAT SESSIONS SUPORTE MOBILE */
-        .session-chat-box {
-            height: 300px; max-height: 50dvh; overflow-y: auto; background: #000;
-            border: 1px solid var(--border); padding: 12px; text-align: left;
-            display: flex; flex-direction: column; gap: 10px; margin: 10px 0;
-        }
-        .chat-msg-bubble {
-            background: #0f172a; padding: 8px 12px; border: 1px solid #1e293b;
-            font-size: 0.85rem; word-break: break-word;
-        }
-        .chat-msg-header { font-size: 0.7rem; font-weight: bold; color: var(--accent); margin-bottom: 2px; }
-
         .disclaimer { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--error) !important; color: #fca5a5; padding: 10px; font-size: 0.75rem; text-align: left; margin-bottom: 10px; }
+
+        /* Balões do Global Chat Session */
+        .chat-bubble {
+            background: #020617; border: 1px solid var(--border); padding: 8px 12px; margin: 4px 0;
+            font-size: 0.85rem; text-align: left; display: flex; flex-direction: column; gap: 2px;
+        }
+        .chat-sender-header { font-size: 0.7rem; font-weight: bold; color: var(--accent); display: flex; align-items: center; gap: 6px; }
     </style>
 </head>
 <body>
@@ -319,43 +312,41 @@
         </div>
     </div>
 
-    <!-- MODAL SELEÇÃO DE SESSÃO CHAT GLOBAL -->
-    <div id="modal-session-select" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 380px;">
+    <!-- MODAL SELETOR DE SESSÕES DO GLOBAL CHAT (VERTICAL COM HOVER 50% VERMELHO) -->
+    <div id="modal-chat-sessions" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 400px; max-height: 85vh; overflow-y: auto;">
             <h3>Choose a session</h3>
-            <div class="session-btn-list">
-                <button class="session-btn" onclick="openChatSession(1)">S. 1</button>
-                <button class="session-btn" onclick="openChatSession(2)">S. 2</button>
-                <button class="session-btn" onclick="openChatSession(3)">S. 3</button>
-                <button class="session-btn" onclick="openChatSession(4)">S. 4</button>
-                <button class="session-btn" onclick="openChatSession(5)">S. 5</button>
-                <button class="session-btn" onclick="openChatSession(6)">S. 6</button>
-                <button class="session-btn" onclick="openChatSession(7)">S. 7</button>
-                <button class="session-btn" onclick="openChatSession(8)">S. 8</button>
-                <button class="session-btn" onclick="openChatSession(9)">S. 9</button>
-                <button class="session-btn" onclick="openChatSession(10)">S. 10</button>
+            <div style="display:flex; flex-direction:column; gap:4px; margin: 15px 0;">
+                <button class="session-btn" onclick="joinChatSession('S1')">S. 1</button>
+                <button class="session-btn" onclick="joinChatSession('S2')">S. 2</button>
+                <button class="session-btn" onclick="joinChatSession('S3')">S. 3</button>
+                <button class="session-btn" onclick="joinChatSession('S4')">S. 4</button>
+                <button class="session-btn" onclick="joinChatSession('S5')">S. 5</button>
+                <button class="session-btn" onclick="joinChatSession('S6')">S. 6</button>
+                <button class="session-btn" onclick="joinChatSession('S7')">S. 7</button>
+                <button class="session-btn" onclick="joinChatSession('S8')">S. 8</button>
+                <button class="session-btn" onclick="joinChatSession('S9')">S. 9</button>
+                <button class="session-btn" onclick="joinChatSession('S10')">S. 10</button>
             </div>
-            <button class="btn btn-secondary" onclick="closeSessionSelectModal()">close</button>
+            <button class="btn btn-secondary" onclick="closeChatSessionsModal()">Close</button>
         </div>
     </div>
 
-    <!-- MODAL SALA DE CHAT DA SESSÃO SELECIONADA (SUPORTE MOBILE) -->
-    <div id="modal-chat-session" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 520px; height: 85dvh; display: flex; flex-direction: column;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h3 style="margin:0;">Session <span id="current-session-num">1</span></h3>
-                <button class="btn btn-secondary" style="width:auto; margin:0; padding:4px 10px;" onclick="closeChatSessionModal()">Back</button>
+    <!-- MODAL CHAT DA SESSÃO (RESPONSIVO PARA MOBILE) -->
+    <div id="modal-session-chat" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 550px; width: 100vw; height: 90dvh; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:10px;">
+                <h3 style="margin:0;" id="session-chat-title">Session S. 1</h3>
+                <button class="btn btn-secondary" style="width:auto; margin:0; padding:6px 12px;" onclick="closeSessionChatModal()">Close</button>
             </div>
 
-            <div id="session-msg-container" class="session-chat-box"></div>
+            <div id="session-messages-box" style="flex:1; overflow-y:auto; margin:15px 0; display:flex; flex-direction:column; gap:10px; text-align:left;"></div>
 
-            <div id="session-typing-indicator" style="font-size:0.75rem; color:var(--accent); text-align:left; font-style:italic; min-height:16px; margin-bottom:6px; display:none;">
-                <span id="session-typing-count">0</span> users are typing . . .
-            </div>
+            <div id="session-typing-indicator" style="font-size:0.75rem; color:var(--accent); font-style:italic; text-align:left; min-height:16px; margin-bottom:5px;"></div>
 
             <div style="display:flex; gap:8px;">
-                <input type="text" id="session-input-text" placeholder="Type a message (max 250 chars)..." maxlength="250" oninput="onSessionInput(this)" style="flex:1;">
-                <button class="btn" style="width:auto; margin:0; padding:10px 18px;" onclick="sendSessionChatMsg()">Send</button>
+                <input type="text" id="session-chat-input" placeholder="Type message (max 250 chars)..." maxlength="250" oninput="handleSessionInput(this)" onkeypress="if(event.key==='Enter') sendSessionMsg()">
+                <button class="btn" style="width:auto; margin:0;" id="session-send-btn" onclick="sendSessionMsg()">Send</button>
             </div>
         </div>
     </div>
@@ -463,15 +454,14 @@
     </div>
 
     <div id="dashboard" class="card" style="display:none; width: 480px;">
-        <!-- Ícone do Chat Global de Sessões posicionado no canto -->
-        <button class="btn-icon" style="position:absolute; top:12px; left:12px; font-size:1.1rem; padding:4px 8px;" onclick="openSessionSelectModal()">💬</button>
-
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; margin-left:35px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
             <div style="display:flex; align-items:center; gap:6px;">
                 <h2 style="margin:0;">EzBridge Control</h2>
                 <span id="role-tag-display"></span>
             </div>
             <div style="display:flex; gap:6px; align-items:center;">
+                <!-- ÍCONE CHAT DAS SESSÕES -->
+                <button class="btn-icon" style="margin-left: 2px;" onclick="openChatSessionsModal()" title="Global Chat Sessions">💬</button>
                 <button class="btn-icon" id="terminal-btn" style="display:none;" onclick="openTerminalModal()">>_</button>
                 <button class="btn" style="width:auto; margin:0; padding:6px 10px; font-size:0.75rem;" onclick="copyUserId()">Copy Client ID</button>
                 <div id="dashboard-google-container" style="display:none;">
@@ -586,9 +576,10 @@
     let consoleLogsCache = [];
     let terminalBufferText = "";
 
-    // Variaveis das Sessões do Chat Global
-    let activeSessionNum = 1;
-    let sessionHistoryBuffer = "";
+    // SESSÕES DE CHAT
+    let activeSessionKey = "";
+    let activeSessionHistory = [];
+    let sessionHistoryChunks = [];
     let sessionTypingTimer = null;
     let isSessionTyping = false;
     let lastSessionSendTime = 0;
@@ -659,6 +650,9 @@
 
     socket.on('eb_terminal_out', (data) => {
         if (data.chunk) {
+            if (data.isHistory && data.index === 0) {
+                terminalBufferText = "";
+            }
             terminalBufferText += data.chunk;
             const termEl = document.getElementById('terminal-screen');
             if (termEl) {
@@ -668,37 +662,42 @@
         }
     });
 
-    // --- RECEBER DADOS DAS SESSÕES DE CHAT GLOBAL ---
+    // RECEBIMENTO DE HISTÓRICO DAS SESSÕES DE CHAT (50KB CHUNKS)
     socket.on('eb_chat_history_chunk', (data) => {
-        if (data.isHistory && data.index === 0) {
-            sessionHistoryBuffer = "";
-            document.getElementById('session-msg-container').innerHTML = "";
-        }
-        
-        sessionHistoryBuffer += data.chunk;
-
-        if (data.index === data.total - 1) {
-            try {
-                const historyArr = JSON.parse(sessionHistoryBuffer);
-                const container = document.getElementById('session-msg-container');
-                container.innerHTML = "";
-                historyArr.forEach(m => appendSessionMsgBubble(m));
-            } catch(e) {}
-        }
-    });
-
-    socket.on('eb_chat_msg_receive', (data) => {
-        if (data.sessionKey === 's' + activeSessionNum) {
-            appendSessionMsgBubble(data.msg);
+        if (data.session === activeSessionKey) {
+            if (data.index === 0) sessionHistoryChunks = [];
+            
+            if (data.chunkStr) sessionHistoryChunks.push(data.chunkStr);
+            
+            if (data.index === data.total - 1 || data.history) {
+                let fullHistory = [];
+                if (data.history) {
+                    fullHistory = data.history;
+                } else {
+                    try { fullHistory = JSON.parse(sessionHistoryChunks.join('')); } catch(e) {}
+                }
+                activeSessionHistory = fullHistory;
+                renderSessionChatHistory();
+            }
         }
     });
 
-    socket.on('eb_chat_typing_update', (data) => {
-        if (data.sessionKey === 's' + activeSessionNum) {
+    socket.on('eb_chat_session_msg', (data) => {
+        if (data.session === activeSessionKey && data.msg) {
+            activeSessionHistory.push(data.msg);
+            if (activeSessionHistory.length > 50) activeSessionHistory.shift();
+            appendSessionMessage(data.msg);
+        }
+    });
+
+    socket.on('eb_chat_typing_count', (data) => {
+        if (data.session === activeSessionKey) {
             const indicator = document.getElementById('session-typing-indicator');
-            const countEl = document.getElementById('session-typing-count');
-            countEl.innerText = data.count;
-            indicator.style.display = data.count > 0 ? 'block' : 'none';
+            if (data.count && data.count > 0) {
+                indicator.innerText = `${data.count} user(s) are typing . . .`;
+            } else {
+                indicator.innerText = "";
+            }
         }
     });
 
@@ -753,101 +752,7 @@
         }
     }
 
-    // INTERFACE DE SESSÕES CHAT GLOBAL
-    function openSessionSelectModal() {
-        document.getElementById('modal-session-select').style.display = 'flex';
-    }
-    function closeSessionSelectModal() {
-        document.getElementById('modal-session-select').style.display = 'none';
-    }
-
-    function openChatSession(num) {
-        activeSessionNum = num;
-        closeSessionSelectModal();
-        document.getElementById('current-session-num').innerText = num;
-        document.getElementById('session-msg-container').innerHTML = `<div class="system-msg">[System] Loading session S.${num}...</div>`;
-        document.getElementById('modal-chat-session').style.display = 'flex';
-
-        socket.emit('eb_join_chat_session', { sessionNum: num });
-    }
-
-    function closeChatSessionModal() {
-        document.getElementById('modal-chat-session').style.display = 'none';
-        openSessionSelectModal();
-    }
-
-    function onSessionInput(inputEl) {
-        if (inputEl.value.length > 250) {
-            inputEl.value = inputEl.value.substring(0, 250);
-        }
-
-        if (!isSessionTyping) {
-            isSessionTyping = true;
-            socket.emit('eb_chat_typing_status', { sessionNum: activeSessionNum, isTyping: true });
-        }
-
-        clearTimeout(sessionTypingTimer);
-        sessionTypingTimer = setTimeout(() => {
-            isSessionTyping = false;
-            socket.emit('eb_chat_typing_status', { sessionNum: activeSessionNum, isTyping: false });
-        }, 3000); // 3s de inatividade para limpar
-    }
-
-    function sendSessionChatMsg() {
-        const now = Date.now();
-        if (now - lastSessionSendTime < 1000) {
-            return alert("Cooldown: Wait 1s between messages.");
-        }
-
-        const input = document.getElementById('session-input-text');
-        const text = input.value.trim();
-        if (text.length < 1) return;
-
-        lastSessionSendTime = now;
-        isSessionTyping = false;
-        clearTimeout(sessionTypingTimer);
-        socket.emit('eb_chat_typing_status', { sessionNum: activeSessionNum, isTyping: false });
-
-        socket.emit('eb_send_chat_msg', {
-            sessionNum: activeSessionNum,
-            text: text
-        });
-
-        input.value = "";
-    }
-
-    function appendSessionMsgBubble(msg) {
-        const container = document.getElementById('session-msg-container');
-        const div = document.createElement('div');
-        div.className = 'chat-msg-bubble';
-
-        let roleTagHtml = "";
-        if (msg.role === 'Owner') roleTagHtml = `<span class="role-tag role-owner">OWNER</span>`;
-        else if (msg.role === 'Dev') roleTagHtml = `<span class="role-tag role-dev">DEVELOPER</span>`;
-        else if (msg.role === 'Admin') roleTagHtml = `<span class="role-tag role-admin">ADMIN</span>`;
-
-        div.innerHTML = `
-            <div class="chat-msg-header">
-                <span>ID: ${msg.senderId ? msg.senderId.substring(0, 12) : 'Anonymous'}</span>
-                ${roleTagHtml}
-            </div>
-            <div>${escapeHtml(msg.text)}</div>
-        `;
-
-        container.appendChild(div);
-        
-        // Garante o limite estrito visual de 50 mensagens
-        while (container.children.length > 50) {
-            container.removeChild(container.firstChild);
-        }
-
-        container.scrollTop = container.scrollHeight;
-    }
-
-    function escapeHtml(str) {
-        return String(str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    }
-
+    // APLICAÇÃO DE PERMISSÕES DE ROLES
     function applyRolePermissions() {
         const tag = document.getElementById('role-tag-display');
         const termBtn = document.getElementById('terminal-btn');
@@ -878,6 +783,111 @@
         } else {
             tag.innerHTML = "";
         }
+    }
+
+    // LÓGICA DE NAVEGAÇÃO DAS SESSÕES DE CHAT GLOBAL
+    function openChatSessionsModal() {
+        document.getElementById('modal-chat-sessions').style.display = 'flex';
+    }
+    function closeChatSessionsModal() {
+        document.getElementById('modal-chat-sessions').style.display = 'none';
+    }
+
+    function joinChatSession(sessionKey) {
+        activeSessionKey = sessionKey;
+        activeSessionHistory = [];
+        closeChatSessionsModal();
+
+        document.getElementById('session-chat-title').innerText = `Session ${sessionKey.replace('S', 'S. ')}`;
+        document.getElementById('session-messages-box').innerHTML = "";
+        document.getElementById('modal-session-chat').style.display = 'flex';
+
+        socket.emit('eb_join_chat_session', { session: sessionKey });
+    }
+
+    function closeSessionChatModal() {
+        document.getElementById('modal-session-chat').style.display = 'none';
+        activeSessionKey = "";
+    }
+
+    function handleSessionInput(inputEl) {
+        // Trima caracteres a mais que 250 no cliente em tempo real
+        if (inputEl.value.length > 250) {
+            inputEl.value = inputEl.value.substring(0, 250);
+        }
+
+        if (!isSessionTyping && activeSessionKey) {
+            isSessionTyping = true;
+            socket.emit('eb_chat_typing_status', { session: activeSessionKey, isTyping: true });
+        }
+
+        clearTimeout(sessionTypingTimeout);
+        sessionTypingTimeout = setTimeout(() => {
+            isSessionTyping = false;
+            if (activeSessionKey) {
+                socket.emit('eb_chat_typing_status', { session: activeSessionKey, isTyping: false });
+            }
+        }, 3000);
+    }
+
+    function sendSessionMsg() {
+        const now = Date.now();
+        if (now - lastSessionSendTime < 1000) {
+            return alert("Cooldown! Please wait 1 second between messages.");
+        }
+
+        const input = document.getElementById('session-chat-input');
+        let text = input.value.trim();
+        if (!text || !activeSessionKey) return;
+
+        if (text.length > 250) text = text.substring(0, 250);
+
+        lastSessionSendTime = now;
+        isSessionTyping = false;
+        clearTimeout(sessionTypingTimeout);
+        socket.emit('eb_chat_typing_status', { session: activeSessionKey, isTyping: false });
+
+        socket.emit('eb_send_chat_session_msg', {
+            session: activeSessionKey,
+            text: text
+        });
+
+        input.value = "";
+    }
+
+    function renderSessionChatHistory() {
+        const box = document.getElementById('session-messages-box');
+        box.innerHTML = "";
+        activeSessionHistory.forEach(appendSessionMessage);
+    }
+
+    function appendSessionMessage(msgObj) {
+        const box = document.getElementById('session-messages-box');
+        const div = document.createElement('div');
+        div.className = 'chat-bubble';
+
+        let roleTagHtml = '';
+        if (msgObj.role === 'Owner') roleTagHtml = `<span class="role-tag role-owner">OWNER</span>`;
+        else if (msgObj.role === 'Dev') roleTagHtml = `<span class="role-tag role-dev">DEVELOPER</span>`;
+        else if (msgObj.role === 'Admin') roleTagHtml = `<span class="role-tag role-admin">ADMIN</span>`;
+
+        div.innerHTML = `
+            <div class="chat-sender-header">
+                <span>ID: ${msgObj.senderId.substring(0, 10)}</span>
+                ${roleTagHtml}
+            </div>
+            <div>${escapeHtml(msgObj.text)}</div>
+        `;
+
+        box.appendChild(div);
+        while (box.children.length > 50) {
+            box.removeChild(box.firstChild);
+        }
+        box.scrollTop = box.scrollHeight;
+    }
+
+    function escapeHtml(str) {
+        return String(str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
 
     function openAccountSettingsModal() {
