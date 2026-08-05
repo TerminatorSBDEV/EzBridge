@@ -11,7 +11,7 @@
         :root {
             --bg: #030712;
             --panel: #0a0a0c;
-            --border: #ef4444; /* Outline Vermelho Fino */
+            --border: #ef4444; /* Thin Red Outline */
             --accent: #ef4444;
             --accent-glow: rgba(239, 68, 68, 0.3);
             --green: #10b981;
@@ -518,7 +518,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://ice-loads-dear-being.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://sleep-controlled-quote-coupon.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
@@ -610,7 +610,6 @@
         accountLogout();
     });
 
-    // RESPOSTAS DO UPDATE DO UNIVSERVER
     socket.on('eb_univserver_update_success', (data) => {
         isUploadingUnivScript = false;
         document.getElementById('univ-upload-progress').style.display = 'none';
@@ -664,7 +663,6 @@
         }
     }
 
-    // APLICAR PERMISSÕES DE ROLES (ESTRITAMENTE OWNER PARA O >_)
     function applyRolePermissions() {
         const tag = document.getElementById('role-tag-display');
         const termBtn = document.getElementById('terminal-btn');
@@ -697,7 +695,6 @@
         }
     }
 
-    // UNIVERSAL SERVER PANEL (SUBSTITUTO DO TERMINAL - APENAS OWNER)
     function openUniversalPanelModal() {
         if (userRole !== 'Owner') return alert("Permission denied! Owner only.");
         document.getElementById('modal-universal-panel').style.display = 'flex';
@@ -750,7 +747,7 @@
 
     function restartNodeAndCloudflare() {
         if (confirm("Restart Node server and generate a new Cloudflare Link?")) {
-            socket.emit('eb_restart_all', { ownerId, googleSub });
+            socket.emit('eb_terminal_input', { text: '/r all' });
             closeUniversalPanelModal();
         }
     }
