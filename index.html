@@ -15,7 +15,7 @@
             --accent: #06b6d4;
             --accent-glow: rgba(6, 182, 212, 0.3);
             --green: #10b981;
-            --yellow: #f59e0b;
+            --yellow: #eab308;
             --text: #f8fafc;
             --muted: #64748b;
             --error: #ef4444;
@@ -57,11 +57,11 @@
         .btn-icon { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 1rem; }
         .btn-icon:hover { border-color: var(--accent); color: var(--accent); }
 
-        /* ROLE BADGES */
-        .role-badge { font-size: 0.65rem; font-weight: bold; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; margin-left: 6px; }
-        .role-owner { background: linear-gradient(135deg, #ef4444 0%, #ffffff 100%); color: #000; font-weight: 900; }
-        .role-dev { background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); color: #000; font-weight: 900; }
-        .role-admin { background: #10b981; color: #000; font-weight: 900; }
+        /* Role Badges */
+        .role-tag { font-size: 0.65rem; font-weight: bold; padding: 2px 8px; border-radius: 4px; display: inline-block; text-transform: uppercase; margin-left: 6px; }
+        .role-owner { background: linear-gradient(135deg, #ef4444 0%, #ffffff 100%); color: #000; text-shadow: none; }
+        .role-dev { background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); color: #000; }
+        .role-admin { background: #10b981; color: #000; }
 
         .settings-grid {
             text-align: left; display: flex; flex-direction: column; gap: 12px; margin: 20px 0;
@@ -119,19 +119,19 @@
     <div id="overlay-sync" class="overlay">
         <div class="card">
             <h3>Connecting to EzBridge...</h3>
-            <div style="font-size:0.8rem; color:var(--muted);">Syncing credentials and pre-fetching User ID.</div>
+            <div style="font-size:0.8rem; color:var(--muted);">Syncing credentials and loading data.</div>
         </div>
     </div>
 
-    <!-- APP BAN SCREEN -->
+    <!-- TELA DE BANIMENTO DE CONTA NO EZBRIDGE -->
     <div id="overlay-banned-app" class="overlay" style="display:none;">
         <div class="card" style="border-color: var(--error);">
-            <h2 style="color: var(--error);">You are banned from EzBridge.</h2>
-            <p style="font-size:0.9rem; color:var(--muted); margin: 15px 0;">
-                Days remaining: <span id="ban-days-remaining" style="color:#fff; font-weight:bold;">0</span>
+            <h1 style="color: var(--error);">BANNED FROM EZBRIDGE</h1>
+            <p style="font-size:0.9rem; color:var(--muted); line-height:1.5; margin:15px 0;">
+                You are banned from EzBridge.<br>
+                Days remaining: <span id="ban-days-text" style="color:#fff; font-weight:bold;">-</span>
             </p>
-            <input type="text" id="banned-userid-display" readonly style="width:100%; text-align:center; font-family:monospace; margin-bottom:15px; background:#020617; color:#fff; border:1px solid var(--border); padding:10px; border-radius:6px;">
-            <button class="btn btn-secondary" onclick="copyText('banned-userid-display')">Copy UserID</button>
+            <button class="btn btn-secondary" onclick="copyUserId()">[Copy UserID]</button>
         </div>
     </div>
 
@@ -155,7 +155,9 @@
     <div id="overlay-captcha" class="overlay" style="display:none;">
         <div class="card">
             <h1>EzBridge</h1>
-            <p style="font-size:0.85rem; color:var(--muted); line-height:1.5;">Please solve the puzzle below to continue.</p>
+            <p style="font-size:0.85rem; color:var(--muted); line-height:1.5;">
+                Please solve the puzzle below to continue.
+            </p>
             <div style="display: flex; justify-content: center; margin: 20px 0;">
                 <div class="g-recaptcha" data-sitekey="6Lf8VTMtAAAAAAMXrs6lk-tLBjuW0u8ZV5LevzMz" data-callback="captchaSolved"></div>
             </div>
@@ -199,9 +201,9 @@
                 </div>
 
                 <div class="settings-item">
-                    <label>Server RAM Limit</label>
+                    <label>Server RAM Limit (MAX 250MB)</label>
                     <div style="display:flex; gap:8px;">
-                        <input type="number" id="cfg-ram-val" value="500" style="flex:1;">
+                        <input type="number" id="cfg-ram-val" value="250" max="250" style="flex:1;">
                         <select id="cfg-ram-unit" style="width:80px;">
                             <option value="MB" selected>MB</option>
                             <option value="KB">KB</option>
@@ -273,79 +275,90 @@
         </div>
     </div>
 
+    <!-- MODAL ACCOUNT SETTINGS COM ROLAGEM -->
     <div id="modal-account-settings" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 420px;">
+        <div class="card" style="max-width: 440px;">
             <h3>Account Settings</h3>
             <div style="display:flex; flex-direction:column; gap:10px; margin:20px 0;">
                 <button class="btn btn-secondary" onclick="accountLogout()">[Logout]</button>
                 <button class="btn btn-secondary" onclick="accountRegenUserId()">[Regenerate User ID]</button>
-                <button id="opt-server-mgmt" class="btn btn-secondary" style="display:none;" onclick="openServerMgmtModal()">Server Management</button>
-                <button id="opt-ban-user" class="btn btn-secondary" style="display:none;" onclick="openBanUserModal()">Ban user</button>
-                <button id="opt-role-manager" class="btn btn-secondary" style="display:none;" onclick="openRoleManagerModal()">Role manager</button>
+                
+                <!-- Botões especiais exibidos conforme a Role -->
+                <button class="btn btn-purple" id="btn-server-mgmt" style="display:none;" onclick="openServerMgmtModal()">Server Management</button>
+                <button class="btn btn-danger" id="btn-ban-user" style="display:none;" onclick="openBanUserModal()">Ban User</button>
+                <button class="btn btn-purple" id="btn-role-mgr" style="display:none;" onclick="openRoleManagerModal()">Role Manager</button>
+                
                 <button class="btn btn-danger" onclick="openDeleteAccountConfirmModal()">[DELETE ACCOUNT AND DATA]</button>
             </div>
             <button class="btn btn-secondary" onclick="closeAccountSettingsModal()">Close</button>
         </div>
     </div>
 
-    <!-- BAN USER MODAL -->
-    <div id="modal-ban-user-panel" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 420px; border-color: var(--error);">
-            <h3 style="color: var(--error);">BAN user panel</h3>
-            <div class="settings-item" style="margin:15px 0;">
-                <label>Paste User ID or Email</label>
-                <input type="text" id="ban-target-userid" placeholder="User ID or email here">
-                <label style="margin-top:10px;">How many days (blank = perm, 0 = unban)</label>
-                <input type="number" id="ban-days-input" placeholder="Days">
+    <!-- MODAL BAN USER PANEL -->
+    <div id="modal-ban-user" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 440px;">
+            <h3>BAN User Panel</h3>
+            <div class="settings-grid" style="max-height:none;">
+                <div class="settings-item">
+                    <label>Paste User ID Here</label>
+                    <input type="text" id="ban-target-userid" placeholder="User ID">
+                </div>
+                <div class="settings-item">
+                    <label>How Many Days (Leave blank for perm, 0 for unban)</label>
+                    <input type="number" id="ban-days-val" placeholder="Days">
+                </div>
             </div>
             <button class="btn btn-danger" onclick="submitBanUser()">BAN user</button>
             <button class="btn btn-secondary" onclick="closeBanUserModal()">Cancel</button>
         </div>
     </div>
 
-    <!-- ROLE MANAGER MODAL -->
-    <div id="modal-role-manager-panel" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 420px;">
+    <!-- MODAL ROLE MANAGER -->
+    <div id="modal-role-mgr" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 440px;">
             <h3>Role Manager</h3>
-            <div class="settings-item" style="margin:15px 0;">
-                <label>User ID</label>
-                <input type="text" id="role-target-userid" placeholder="Paste User ID here">
-                <label style="margin-top:10px;">Role</label>
-                <select id="role-select-input">
-                    <option value="None">None</option>
-                    <option value="Admin">Admin</option>
-                    <option value="Dev">Dev</option>
-                </select>
+            <div class="settings-grid" style="max-height:none;">
+                <div class="settings-item">
+                    <label>User ID</label>
+                    <input type="text" id="role-target-userid" placeholder="Paste User ID here">
+                </div>
+                <div class="settings-item">
+                    <label>Role</label>
+                    <select id="role-select">
+                        <option value="None">None</option>
+                        <option value="Admin">Admin</option>
+                        <option value="Dev">Dev</option>
+                    </select>
+                </div>
             </div>
-            <button class="btn" onclick="submitUpdateRole()">Update Role</button>
+            <button class="btn btn-purple" onclick="submitUpdateRole()">Update Role</button>
             <button class="btn btn-secondary" onclick="closeRoleManagerModal()">Cancel</button>
         </div>
     </div>
 
-    <!-- SERVER MANAGEMENT MODAL -->
-    <div id="modal-server-mgmt-panel" class="overlay" style="display:none;">
+    <!-- MODAL SERVER MANAGEMENT PANEL -->
+    <div id="modal-server-mgmt" class="overlay" style="display:none;">
         <div class="card" style="max-width: 650px; max-height:85vh; display:flex; flex-direction:column;">
             <h3>Server Management</h3>
-            <div id="server-mgmt-list" class="code-box" style="flex:1; max-height:55vh; overflow-y:auto; font-family:sans-serif; text-align:left;"></div>
-            <button class="btn btn-secondary" style="margin-top:10px;" onclick="closeServerMgmtModal()">Close</button>
+            <div id="server-mgmt-list" style="flex:1; overflow-y:auto; margin:15px 0; text-align:left; display:flex; flex-direction:column; gap:10px;"></div>
+            <button class="btn btn-secondary" onclick="closeServerMgmtModal()">Close</button>
         </div>
     </div>
 
-    <!-- TERMINAL ACCESS GUI MODAL -->
-    <div id="modal-terminal-panel" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 700px; max-height:85vh; display:flex; flex-direction:column;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h3 style="margin:0;">Termux Interactive Terminal (>_)</h3>
-                <button class="btn btn-secondary" style="width:auto; margin:0; padding:4px 10px;" onclick="closeTerminalModal()">Close</button>
-            </div>
-            <div id="terminal-screen-box" class="console-box" style="flex:1; max-height:50vh; background:#000; color:#00ff66;" onclick="focusTerminalInput()"></div>
+    <!-- MODAL TERMINAL INTERATIVO (OWNER & DEV ONLY) -->
+    <div id="modal-terminal" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 700px; max-height:85vh; display:flex; flex-direction:column; background:#000;">
+            <h3>Termux Terminal Stream</h3>
+            <div id="terminal-screen" class="console-box" style="flex:1; height:300px; max-height:350px;" onclick="focusTerminalInput()"></div>
             <div style="display:flex; gap:8px;">
-                <input type="text" id="terminal-cmd-input" placeholder="Type command here and hit enter..." style="font-family:monospace;">
-                <button class="btn" style="width:auto;" onclick="sendTerminalCmd()">Send</button>
+                <input type="text" id="terminal-cmd-input" placeholder="Type terminal command + Enter..." style="background:#000; border:1px solid #334155; color:#00ff66;">
+                <button class="btn btn-purple" style="width:auto; margin:0;" onclick="sendTerminalCommand()">Send</button>
             </div>
+            <button class="btn btn-secondary" style="margin-top:10px;" onclick="closeTerminalModal()">Close</button>
         </div>
     </div>
 
+    <!-- MODAL CONFIRMAÇÃO DE DELETAR CONTA -->
     <div id="modal-delete-confirm" class="overlay" style="display:none;">
         <div class="card" style="max-width: 420px; border-color: var(--error);">
             <h3 style="color: var(--error);">Confirm Account Deletion</h3>
@@ -373,12 +386,13 @@
 
     <div id="dashboard" class="card" style="display:none; width: 480px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <div style="display:flex; align-items:center; gap:8px;">
+            <div style="display:flex; align-items:center; gap:6px;">
                 <h2 style="margin:0;">EzBridge Control</h2>
-                <span id="role-tag-badge"></span>
+                <span id="role-tag-display"></span>
             </div>
             <div style="display:flex; gap:6px; align-items:center;">
-                <button id="btn-terminal-toggle" class="btn-icon" style="display:none;" title="Terminal Access" onclick="openTerminalModal()">>_</button>
+                <!-- Ícone Terminal >_ para Owner e Dev -->
+                <button class="btn-icon" id="terminal-btn" style="display:none;" onclick="openTerminalModal()">>_</button>
                 <button class="btn" style="width:auto; margin:0; padding:6px 10px; font-size:0.75rem;" onclick="copyUserId()">Copy Client ID</button>
                 <div id="dashboard-google-container" style="display:none;">
                     <div class="g_id_signin" data-type="icon" data-shape="circle"></div>
@@ -490,7 +504,7 @@
     let currentServerScript = "";
     let whitelistedDomains = [];
     let consoleLogsCache = [];
-    let serverMgmtInterval = null;
+    let terminalBufferText = "";
 
     const SCRIPT_CHUNK_SIZE = 100 * 1024;
     let isUploadingScript = false;
@@ -511,21 +525,18 @@
 
     socket.on('session_verified', (data) => {
         clearTimeout(initTimeout);
+        ownerId = data.ownerId;
+        setCookie("eb_owner_id", ownerId, 365);
         document.getElementById('overlay-sync').style.display = 'none';
 
-        // VERIFICAÇÃO DE BANIMENTO AO ENTRAR
+        userRole = data.role || "None";
+
         if (data.banned) {
-            document.getElementById('ban-days-remaining').innerText = data.daysRemaining;
-            document.getElementById('banned-userid-display').value = data.userId || "BANNED";
+            document.getElementById('ban-days-text').innerText = data.banInfo.days ? `${data.banInfo.days} day(s)` : "Permanent";
             document.getElementById('overlay-banned-app').style.display = 'flex';
             socket.disconnect();
             return;
         }
-
-        ownerId = data.ownerId;
-        setCookie("eb_owner_id", ownerId, 365);
-        userRole = data.role || "None";
-        activeUserId = data.userId || ownerId;
 
         if (data.hasServer) {
             serverKey = data.server.key;
@@ -535,6 +546,7 @@
             currentServerScript = data.server.serverScript || "";
             googleSub = data.server.googleSub || null;
             googleEmail = data.server.email || null;
+            activeUserId = data.server.userId || ownerId;
             whitelistedDomains = serverSettings.whitelistedDomains || [];
             showDashboard();
         } else {
@@ -547,10 +559,25 @@
         alert(data.error);
     });
 
+    socket.on('eb_action_success', (data) => {
+        alert(data.msg);
+    });
+
     socket.on('eb_console_update', (data) => {
         if (data.logs) {
             consoleLogsCache = data.logs;
             renderConsoleLogs();
+        }
+    });
+
+    socket.on('eb_terminal_out', (data) => {
+        if (data.chunk) {
+            terminalBufferText += data.chunk;
+            const termEl = document.getElementById('terminal-screen');
+            if (termEl) {
+                termEl.innerText = terminalBufferText;
+                termEl.scrollTop = termEl.scrollHeight;
+            }
         }
     });
 
@@ -563,33 +590,6 @@
     socket.on('eb_account_deleted', () => {
         alert("Account and data deleted permanently.");
         accountLogout();
-    });
-
-    socket.on('eb_user_banned_res', (data) => {
-        alert(data.message);
-        closeBanUserModal();
-    });
-
-    socket.on('eb_role_updated_res', (data) => {
-        alert(`Role updated for ${data.targetUserId} -> ${data.newRole}`);
-        closeRoleManagerModal();
-    });
-
-    socket.on('eb_all_servers_res', (data) => {
-        renderServerMgmtList(data.servers);
-    });
-
-    socket.on('eb_admin_shutdown_res', (data) => {
-        alert(`Server ${data.targetKey} has been turned OFFLINE.`);
-        socket.emit('eb_get_all_servers');
-    });
-
-    socket.on('eb_terminal_output', (data) => {
-        const box = document.getElementById('terminal-screen-box');
-        if (box) {
-            box.innerText += data.output;
-            box.scrollTop = box.scrollHeight;
-        }
     });
 
     function handleGoogleLogin(response) {
@@ -614,7 +614,6 @@
             googleSub = data.server.googleSub || googleSub;
             googleEmail = data.server.email || googleEmail;
             activeUserId = data.server.userId || ownerId;
-            userRole = data.role || userRole;
             whitelistedDomains = serverSettings.whitelistedDomains || [];
             showDashboard();
         } else {
@@ -633,46 +632,48 @@
         }
     }
 
-    // APLICAÇÃO DE PERMISSÕES E ROLES NA INTERFACE
-    function updateRoleUI() {
-        const badge = document.getElementById('role-tag-badge');
-        const optMgmt = document.getElementById('opt-server-mgmt');
-        const optBan = document.getElementById('opt-ban-user');
-        const optRole = document.getElementById('opt-role-manager');
-        const btnTerm = document.getElementById('btn-terminal-toggle');
+    // CONTROLE DE CONTA E ROLES ("Can't access? Can't see.")
+    function applyRolePermissions() {
+        const tag = document.getElementById('role-tag-display');
+        const termBtn = document.getElementById('terminal-btn');
+        const btnServerMgmt = document.getElementById('btn-server-mgmt');
+        const btnBanUser = document.getElementById('btn-ban-user');
+        const btnRoleMgr = document.getElementById('btn-role-mgr');
 
-        // Reset visibility "Can't access? Can't see."
-        optMgmt.style.display = 'none';
-        optBan.style.display = 'none';
-        optRole.style.display = 'none';
-        btnTerm.style.display = 'none';
+        // Reset visibility
+        termBtn.style.display = 'none';
+        btnServerMgmt.style.display = 'none';
+        btnBanUser.style.display = 'none';
+        btnRoleMgr.style.display = 'none';
 
         if (userRole === 'Owner') {
-            badge.className = 'role-badge role-owner';
-            badge.innerText = 'OWNER';
-            optMgmt.style.display = 'block';
-            optBan.style.display = 'block';
-            optRole.style.display = 'block';
-            btnTerm.style.display = 'block';
+            tag.innerHTML = `<span class="role-tag role-owner">OWNER</span>`;
+            termBtn.style.display = 'block';
+            btnServerMgmt.style.display = 'block';
+            btnBanUser.style.display = 'block';
+            btnRoleMgr.style.display = 'block';
         } else if (userRole === 'Dev') {
-            badge.className = 'role-badge role-dev';
-            badge.innerText = 'DEVELOPER';
-            optMgmt.style.display = 'block';
-            optBan.style.display = 'block';
-            optRole.style.display = 'block';
-            btnTerm.style.display = 'block';
+            tag.innerHTML = `<span class="role-tag role-dev">DEVELOPER</span>`;
+            termBtn.style.display = 'block';
+            btnServerMgmt.style.display = 'block';
+            btnBanUser.style.display = 'block';
+            btnRoleMgr.style.display = 'block';
         } else if (userRole === 'Admin') {
-            badge.className = 'role-badge role-admin';
-            badge.innerText = 'ADMIN';
-            optMgmt.style.display = 'block';
-            optBan.style.display = 'block';
+            tag.innerHTML = `<span class="role-tag role-admin">ADMIN</span>`;
+            btnServerMgmt.style.display = 'block';
+            btnBanUser.style.display = 'block';
         } else {
-            badge.innerText = '';
+            tag.innerHTML = "";
         }
     }
 
-    function openAccountSettingsModal() { document.getElementById('modal-account-settings').style.display = 'flex'; }
-    function closeAccountSettingsModal() { document.getElementById('modal-account-settings').style.display = 'none'; }
+    function openAccountSettingsModal() {
+        applyRolePermissions();
+        document.getElementById('modal-account-settings').style.display = 'flex';
+    }
+    function closeAccountSettingsModal() {
+        document.getElementById('modal-account-settings').style.display = 'none';
+    }
 
     function accountLogout() {
         setCookie("eb_owner_id", "", -1);
@@ -685,7 +686,9 @@
         closeAccountSettingsModal();
     }
 
-    function closeNewUserIdModal() { document.getElementById('modal-new-userid').style.display = 'none'; }
+    function closeNewUserIdModal() {
+        document.getElementById('modal-new-userid').style.display = 'none';
+    }
 
     function openDeleteAccountConfirmModal() {
         closeAccountSettingsModal();
@@ -693,7 +696,9 @@
         document.getElementById('modal-delete-confirm').style.display = 'flex';
     }
 
-    function closeDeleteAccountConfirmModal() { document.getElementById('modal-delete-confirm').style.display = 'none'; }
+    function closeDeleteAccountConfirmModal() {
+        document.getElementById('modal-delete-confirm').style.display = 'none';
+    }
 
     function submitDeleteAccount() {
         const inputVal = document.getElementById('delete-confirm-input').value.trim();
@@ -707,133 +712,111 @@
         });
     }
 
-    // BAN USER MODAL
+    // BAN USER PANEL
     function openBanUserModal() {
         closeAccountSettingsModal();
-        document.getElementById('ban-target-userid').value = "";
-        document.getElementById('ban-days-input').value = "";
-        document.getElementById('modal-ban-user-panel').style.display = 'flex';
+        document.getElementById('modal-ban-user').style.display = 'flex';
     }
-
-    function closeBanUserModal() { document.getElementById('modal-ban-user-panel').style.display = 'none'; }
-
+    function closeBanUserModal() {
+        document.getElementById('modal-ban-user').style.display = 'none';
+    }
     function submitBanUser() {
         const targetUserId = document.getElementById('ban-target-userid').value.trim();
-        const days = document.getElementById('ban-days-input').value;
-        if (!targetUserId) return alert("Please paste User ID or email.");
+        const days = document.getElementById('ban-days-val').value.trim();
+        if (!targetUserId) return alert("Please paste the target User ID.");
 
-        socket.emit('eb_ban_user', {
-            targetUserId,
-            days: days === "" ? null : parseInt(days)
-        });
+        socket.emit('eb_ban_user', { targetUserId, days, ownerId, googleSub });
+        closeBanUserModal();
     }
 
-    // ROLE MANAGER MODAL
+    // ROLE MANAGER PANEL
     function openRoleManagerModal() {
         closeAccountSettingsModal();
-        document.getElementById('role-target-userid').value = "";
-        document.getElementById('modal-role-manager-panel').style.display = 'flex';
+        document.getElementById('modal-role-mgr').style.display = 'flex';
     }
-
-    function closeRoleManagerModal() { document.getElementById('modal-role-manager-panel').style.display = 'none'; }
-
+    function closeRoleManagerModal() {
+        document.getElementById('modal-role-mgr').style.display = 'none';
+    }
     function submitUpdateRole() {
         const targetUserId = document.getElementById('role-target-userid').value.trim();
-        const newRole = document.getElementById('role-select-input').value;
-        if (!targetUserId) return alert("Please paste User ID.");
+        const newRole = document.getElementById('role-select').value;
+        if (!targetUserId) return alert("Please paste the User ID.");
 
-        socket.emit('eb_update_role', { targetUserId, newRole });
+        socket.emit('eb_update_role', { targetUserId, newRole, ownerId, googleSub });
+        closeRoleManagerModal();
     }
 
-    // SERVER MANAGEMENT MODAL (REFRESHES EVERY 5S)
+    // SERVER MANAGEMENT PANEL
     function openServerMgmtModal() {
         closeAccountSettingsModal();
-        document.getElementById('modal-server-mgmt-panel').style.display = 'flex';
-        
-        socket.emit('eb_get_all_servers');
-        if (serverMgmtInterval) clearInterval(serverMgmtInterval);
-        serverMgmtInterval = setInterval(() => {
-            if (document.getElementById('modal-server-mgmt-panel').style.display === 'flex') {
-                socket.emit('eb_get_all_servers');
-            }
-        }, 5000);
+        document.getElementById('modal-server-mgmt').style.display = 'flex';
+        fetchServerMgmtList();
     }
-
     function closeServerMgmtModal() {
-        if (serverMgmtInterval) clearInterval(serverMgmtInterval);
-        document.getElementById('modal-server-mgmt-panel').style.display = 'none';
+        document.getElementById('modal-server-mgmt').style.display = 'none';
     }
 
-    function renderServerMgmtList(servers) {
-        const box = document.getElementById('server-mgmt-list');
-        box.innerHTML = "";
+    function fetchServerMgmtList() {
+        socket.emit('eb_get_all_servers', { ownerId, googleSub });
+    }
 
-        servers.forEach(sv => {
+    socket.on('eb_all_servers_response', (data) => {
+        const container = document.getElementById('server-mgmt-list');
+        container.innerHTML = "";
+        data.servers.forEach(sv => {
             const kb = (sv.ramUsageBytes / 1024).toFixed(1);
             const div = document.createElement('div');
-            div.style.cssText = "background:#020617; border:1px solid var(--border); padding:10px; margin-bottom:8px; border-radius:6px;";
+            div.className = 'domain-item';
+            div.style.flexDirection = 'column';
+            div.style.alignItems = 'flex-start';
+            div.style.gap = '6px';
 
-            let details = `<div><b>${sv.userId}</b>'s server status: <span style="color:${sv.active ? 'var(--green)' : 'var(--error)'};">${sv.active ? 'ONLINE' : 'OFFLINE'}</span> - RAM usage: ${kb}kb</div>`;
-            details += `<div style="font-size:0.75rem; color:var(--muted); margin-top:4px;">settings: Type: ${sv.serverType.toUpperCase()} - Max ram: ${sv.settings.ramLimitMB || 500}MB</div>`;
-
-            if (sv.email) details += `<div style="font-size:0.75rem; color:var(--accent);">Email: ${sv.email} | auth key: ${sv.authKey}</div>`;
-
-            details += `<div style="margin-top:8px; display:flex; gap:6px;">
-                <button class="btn btn-danger" style="width:auto; margin:0; padding:4px 10px; font-size:0.75rem;" onclick="adminShutdownServer('${sv.key}')">SHUTDOWN</button>
-            </div>`;
-
-            div.innerHTML = details;
-            box.appendChild(div);
+            div.innerHTML = `
+                <div><b>${sv.clientId}'s server</b> status: <span style="color:${sv.active ? 'var(--green)':'var(--error)'}">${sv.active ? 'ONLINE':'OFFLINE'}</span> - RAM usage: ${kb}kb</div>
+                <div style="font-size:0.75rem; color:var(--muted);">
+                    settings: Type: ${sv.serverType.toUpperCase()} - Max ram: ${sv.ramLimitMB}mb - 
+                    ServerScript <a href="#" onclick="alert(decodeURIComponent('${encodeURIComponent(sv.serverScript)}'))" style="color:var(--accent)">"PRESS HERE TO LOOK"</a> - 
+                    Email: ${sv.email} - Auth Key: ${sv.key}
+                </div>
+                <button class="btn btn-danger" style="width:auto; margin:0; padding:4px 10px; font-size:0.75rem;" onclick="shutdownServer('${sv.key}')">[SHUTDOWN]</button>
+            `;
+            container.appendChild(div);
         });
+    });
+
+    function shutdownServer(targetKey) {
+        socket.emit('eb_shutdown_server', { targetKey, ownerId, googleSub });
+        setTimeout(fetchServerMgmtList, 500);
     }
 
-    function adminShutdownServer(targetKey) {
-        socket.emit('eb_admin_shutdown_server', { targetKey });
-    }
-
-    // INTERACTIVE TERMINAL GUI
+    // TERMINAL STREAMING
     function openTerminalModal() {
-        document.getElementById('modal-terminal-panel').style.display = 'flex';
-        socket.emit('eb_subscribe_terminal');
+        document.getElementById('modal-terminal').style.display = 'flex';
+        socket.emit('eb_join_terminal');
     }
-
     function closeTerminalModal() {
-        document.getElementById('modal-terminal-panel').style.display = 'none';
+        document.getElementById('modal-terminal').style.display = 'none';
     }
-
+    function sendTerminalCommand() {
+        const input = document.getElementById('terminal-cmd-input');
+        if (input.value) {
+            socket.emit('eb_terminal_input', { text: input.value });
+            input.value = "";
+        }
+    }
     function focusTerminalInput() {
         document.getElementById('terminal-cmd-input').focus();
     }
 
-    function sendTerminalCmd() {
-        const input = document.getElementById('terminal-cmd-input');
-        const val = input.value;
-        if (!val) return;
-        socket.emit('eb_terminal_input', { input: val });
-        input.value = "";
-    }
-
-    // Suporte para Paste (Ctrl+V) de textos longos fatiados em pedaços de 50KB
-    document.getElementById('terminal-cmd-input').addEventListener('paste', (e) => {
-        const pastedText = (e.clipboardData || window.clipboardData).getData('text');
-        if (pastedText && pastedText.length > 1000) {
-            e.preventDefault();
-            const chunkSize = 50 * 1024; // 50KB
-            let idx = 0;
-            function sendNextChunk() {
-                if (idx < pastedText.length) {
-                    const chunk = pastedText.slice(idx, idx + chunkSize);
-                    socket.emit('eb_terminal_input', { input: chunk });
-                    idx += chunkSize;
-                    setTimeout(sendNextChunk, 120); // 120ms ping chunk delay
-                }
+    // SUPORTE A PASTE (CTRL+V) NO TERMINAL
+    document.addEventListener('paste', (e) => {
+        if (document.getElementById('modal-terminal').style.display === 'flex') {
+            const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+            if (pastedText) {
+                // Envia em chunks de 50kbps
+                socket.emit('eb_terminal_input', { text: pastedText });
             }
-            sendNextChunk();
         }
-    });
-
-    document.getElementById('terminal-cmd-input').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') sendTerminalCmd();
     });
 
     function toggleServerTypeUI() {
@@ -967,12 +950,13 @@
             return alert("GOOGLE SIGN-IN IS REQUIRED TO CREATE A NEW SERVER! Please sign in with Google first.");
         }
 
-        const ramVal = parseInt(document.getElementById('cfg-ram-val').value) || 500;
+        const ramVal = parseInt(document.getElementById('cfg-ram-val').value) || 250;
         const ramUnit = document.getElementById('cfg-ram-unit').value;
 
+        // Capped to MAX 250MB RAM
         const settings = {
-            ramLimitMB: ramUnit === 'MB' ? ramVal : Math.max(1, Math.floor(ramVal / 1024)),
-            ramLimitKB: ramUnit === 'KB' ? ramVal : ramVal * 1024,
+            ramLimitMB: ramUnit === 'MB' ? Math.min(250, ramVal) : Math.max(1, Math.floor(Math.min(250000, ramVal) / 1024)),
+            ramLimitKB: ramUnit === 'KB' ? Math.min(250000, ramVal) : Math.min(250, ramVal) * 1024,
             ramUnit: ramUnit,
             maxUsers: parseInt(document.getElementById('cfg-max-users').value) || 20,
             scriptLifecycle: document.getElementById('cfg-script-lifecycle').value,
@@ -1010,8 +994,8 @@
 
     function showDashboard() {
         document.getElementById('dashboard').style.display = 'block';
-        updateRoleUI();
         updateDashboardGoogleBtn();
+        applyRolePermissions();
         updateStatusDisplay();
 
         setInterval(() => {
@@ -1141,10 +1125,10 @@
         document.getElementById('cfg-server-type').value = type;
         
         if (settings.ramUnit === 'KB') {
-            document.getElementById('cfg-ram-val').value = settings.ramLimitKB || 512000;
+            document.getElementById('cfg-ram-val').value = Math.min(250000, settings.ramLimitKB || 250000);
             document.getElementById('cfg-ram-unit').value = 'KB';
         } else {
-            document.getElementById('cfg-ram-val').value = settings.ramLimitMB || 500;
+            document.getElementById('cfg-ram-val').value = Math.min(250, settings.ramLimitMB || 250);
             document.getElementById('cfg-ram-unit').value = 'MB';
         }
 
@@ -1980,7 +1964,7 @@ ${serverType === 'websocket' ?
 4 - Learn More About EzBridge
 - Max Packet Size: 192KB per packet (350KB chunk stream processing).
 - Request Limit: Up to 60 requests/sec (more than 60 reqs/s or 200kbps triggers 5-min IP and client ratelimit).
-- Server Memory: Configured at ${serverSettings.ramLimitMB || 500}MB (+50MB hidden VRAM protection).
+- Server Memory: Configured at ${serverSettings.ramLimitMB || 250}MB.
 - Instance Scaling: Automatic room instancing per ${serverSettings.maxUsers || 20} max users.
 
 that's all you needed to know, now, you can start.
