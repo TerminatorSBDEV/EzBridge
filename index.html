@@ -11,7 +11,7 @@
         :root {
             --bg: #030712;
             --panel: #0a0a0c;
-            --border: #ef4444; /* Outline Vermelho Fino */
+            --border: #ef4444; /* Thin Red Outline */
             --accent: #ef4444;
             --accent-glow: rgba(239, 68, 68, 0.3);
             --green: #10b981;
@@ -307,6 +307,38 @@
         </div>
     </div>
 
+    <!-- UNIVERSAL SERVER PANEL (REPLACEMENT FOR TERMINAL - OWNER ONLY) -->
+    <div id="modal-universal-panel" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 460px;">
+            <h3>Universal Server Panel</h3>
+            <div style="display:flex; flex-direction:column; gap:10px; margin:20px 0;">
+                <button class="btn btn-purple" onclick="openUpdateUnivServerModal()">Update univserver</button>
+                <button class="btn btn-secondary" onclick="restartNodeAndCloudflare()">restart node and generate new cloudflare ID</button>
+                <button class="btn btn-secondary" onclick="restartNodeOnly()">restart node</button>
+            </div>
+            <button class="btn btn-secondary" onclick="closeUniversalPanelModal()">Close</button>
+        </div>
+    </div>
+
+    <!-- UPDATE UNIVSERVER MODAL WITH CHUNKED UPLOAD -->
+    <div id="modal-update-univserver" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 650px;">
+            <h3>Update Universal Server Script</h3>
+            <p style="font-size:0.8rem; color:var(--muted);">Paste the new univserver.js code below. Tested for 5s before switching over.</p>
+            <textarea id="univserver-script-editor" class="code-box" rows="12" style="width:100%; height:220px; resize:none;" placeholder="// Paste new univserver.js here..."></textarea>
+            
+            <div id="univ-upload-progress" class="progress-container" style="display:none;">
+                <div id="univ-progress-bar" class="progress-bar"></div>
+                <div class="progress-text">Uploading in 50KB Chunks: <span id="univ-progress-val">0</span>%</div>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:10px;">
+                <button class="btn" onclick="startUnivServerChunkUpload()">Update</button>
+                <button class="btn btn-secondary" onclick="closeUpdateUnivServerModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <div id="modal-ban-user" class="overlay" style="display:none;">
         <div class="card" style="max-width: 440px;">
             <h3>BAN User Panel</h3>
@@ -355,18 +387,6 @@
         </div>
     </div>
 
-    <div id="modal-terminal" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 700px; max-height:85vh; display:flex; flex-direction:column; background:#000;">
-            <h3>Termux Terminal Stream</h3>
-            <div id="terminal-screen" class="console-box" style="flex:1; height:300px; max-height:350px;" onclick="focusTerminalInput()"></div>
-            <div style="display:flex; gap:8px;">
-                <input type="text" id="terminal-cmd-input" placeholder="Type terminal command + Enter..." style="background:#000; border:1px solid #334155; color:#00ff66;">
-                <button class="btn btn-purple" style="width:auto; margin:0;" onclick="sendTerminalCommand()">Send</button>
-            </div>
-            <button class="btn btn-secondary" style="margin-top:10px;" onclick="closeTerminalModal()">Close</button>
-        </div>
-    </div>
-
     <div id="modal-delete-confirm" class="overlay" style="display:none;">
         <div class="card" style="max-width: 420px; border-color: var(--error);">
             <h3 style="color: var(--error);">Confirm Account Deletion</h3>
@@ -399,7 +419,8 @@
                 <span id="role-tag-display"></span>
             </div>
             <div style="display:flex; gap:6px; align-items:center;">
-                <button class="btn-icon" id="terminal-btn" style="display:none;" onclick="openTerminalModal()">>_</button>
+                <!-- ÍCONE >_ EXIBIDO E ACESSÍVEL ESTRITAMENTE APENAS PARA O OWNER -->
+                <button class="btn-icon" id="terminal-btn" style="display:none;" onclick="openUniversalPanelModal()">>_</button>
                 <button class="btn" style="width:auto; margin:0; padding:6px 10px; font-size:0.75rem;" onclick="copyUserId()">Copy Client ID</button>
                 <div id="dashboard-google-container" style="display:none;">
                     <div class="g_id_signin" data-type="icon" data-shape="circle"></div>
@@ -511,10 +532,11 @@
     let currentServerScript = "";
     let whitelistedDomains = [];
     let consoleLogsCache = [];
-    let terminalBufferText = "";
 
     const SCRIPT_CHUNK_SIZE = 100 * 1024;
+    const UNIV_CHUNK_SIZE = 50 * 1024; // 50KB chunks para univserver
     let isUploadingScript = false;
+    let isUploadingUnivScript = false;
 
     const initTimeout = setTimeout(() => {
         document.getElementById('overlay-sync').style.display = 'none';
@@ -577,20 +599,6 @@
         }
     });
 
-    socket.on('eb_terminal_out', (data) => {
-        if (data.chunk) {
-            if (data.isHistory && data.index === 0) {
-                terminalBufferText = "";
-            }
-            terminalBufferText += data.chunk;
-            const termEl = document.getElementById('terminal-screen');
-            if (termEl) {
-                termEl.innerText = terminalBufferText;
-                termEl.scrollTop = termEl.scrollHeight;
-            }
-        }
-    });
-
     socket.on('eb_user_id_regenerated', (data) => {
         activeUserId = data.newUserId;
         document.getElementById('new-userid-display').value = activeUserId;
@@ -600,6 +608,20 @@
     socket.on('eb_account_deleted', () => {
         alert("Account and data deleted permanently.");
         accountLogout();
+    });
+
+    // RESPOSTAS DO UPDATE DO UNIVSERVER
+    socket.on('eb_univserver_update_success', (data) => {
+        isUploadingUnivScript = false;
+        document.getElementById('univ-upload-progress').style.display = 'none';
+        alert(data.msg || "Updated successfully!");
+        setTimeout(() => location.reload(), 2500);
+    });
+
+    socket.on('eb_univserver_update_error', (data) => {
+        isUploadingUnivScript = false;
+        document.getElementById('univ-upload-progress').style.display = 'none';
+        alert(`UPDATE FAILED:\n${data.error}`);
     });
 
     function handleGoogleLogin(response) {
@@ -642,6 +664,7 @@
         }
     }
 
+    // APLICAR PERMISSÕES DE ROLES (ESTRITAMENTE OWNER PARA O >_)
     function applyRolePermissions() {
         const tag = document.getElementById('role-tag-display');
         const termBtn = document.getElementById('terminal-btn');
@@ -656,13 +679,12 @@
 
         if (userRole === 'Owner') {
             tag.innerHTML = `<span class="role-tag role-owner">OWNER</span>`;
-            termBtn.style.display = 'block';
+            termBtn.style.display = 'block'; // Apensar o Owner vê o botão >_
             btnServerMgmt.style.display = 'block';
             btnBanUser.style.display = 'block';
             btnRoleMgr.style.display = 'block';
         } else if (userRole === 'Dev') {
             tag.innerHTML = `<span class="role-tag role-dev">DEVELOPER</span>`;
-            termBtn.style.display = 'block';
             btnServerMgmt.style.display = 'block';
             btnBanUser.style.display = 'block';
             btnRoleMgr.style.display = 'block';
@@ -672,6 +694,71 @@
             btnBanUser.style.display = 'block';
         } else {
             tag.innerHTML = "";
+        }
+    }
+
+    // UNIVERSAL SERVER PANEL (SUBSTITUTO DO TERMINAL - APENAS OWNER)
+    function openUniversalPanelModal() {
+        if (userRole !== 'Owner') return alert("Permission denied! Owner only.");
+        document.getElementById('modal-universal-panel').style.display = 'flex';
+    }
+    function closeUniversalPanelModal() {
+        document.getElementById('modal-universal-panel').style.display = 'none';
+    }
+
+    function openUpdateUnivServerModal() {
+        closeUniversalPanelModal();
+        document.getElementById('univserver-script-editor').value = "";
+        document.getElementById('modal-update-univserver').style.display = 'flex';
+    }
+    function closeUpdateUnivServerModal() {
+        document.getElementById('modal-update-univserver').style.display = 'none';
+    }
+
+    function startUnivServerChunkUpload() {
+        const scriptText = document.getElementById('univserver-script-editor').value;
+        if (!scriptText || scriptText.trim().length === 0) {
+            return alert("Script text cannot be empty!");
+        }
+
+        const totalChunks = Math.ceil(scriptText.length / UNIV_CHUNK_SIZE);
+        isUploadingUnivScript = true;
+        document.getElementById('univ-upload-progress').style.display = 'block';
+
+        sendUnivChunk(0, totalChunks, scriptText);
+    }
+
+    function sendUnivChunk(index, total, fullText) {
+        if (!isUploadingUnivScript) return;
+        const start = index * UNIV_CHUNK_SIZE;
+        const end = Math.min(start + UNIV_CHUNK_SIZE, fullText.length);
+        const chunk = fullText.slice(start, end);
+
+        socket.emit('eb_update_univserver_chunk', { index, total, chunk, ownerId, googleSub });
+    }
+
+    socket.on('eb_univserver_chunk_ack', (data) => {
+        const pct = Math.floor((data.received / data.total) * 100);
+        document.getElementById('univ-progress-bar').style.width = `${pct}%`;
+        document.getElementById('univ-progress-val').innerText = pct;
+
+        if (data.received < data.total && isUploadingUnivScript) {
+            const scriptText = document.getElementById('univserver-script-editor').value;
+            sendUnivChunk(data.received, data.total, scriptText);
+        }
+    });
+
+    function restartNodeAndCloudflare() {
+        if (confirm("Restart Node server and generate a new Cloudflare Link?")) {
+            socket.emit('eb_restart_all', { ownerId, googleSub });
+            closeUniversalPanelModal();
+        }
+    }
+
+    function restartNodeOnly() {
+        if (confirm("Restart Node server only?")) {
+            socket.emit('eb_restart_node_only', { ownerId, googleSub });
+            closeUniversalPanelModal();
         }
     }
 
@@ -801,34 +888,6 @@
         socket.emit('eb_shutdown_server', { targetKey, ownerId, googleSub });
         setTimeout(fetchServerMgmtList, 500);
     }
-
-    function openTerminalModal() {
-        terminalBufferText = "";
-        document.getElementById('modal-terminal').style.display = 'flex';
-        socket.emit('eb_join_terminal');
-    }
-    function closeTerminalModal() {
-        document.getElementById('modal-terminal').style.display = 'none';
-    }
-    function sendTerminalCommand() {
-        const input = document.getElementById('terminal-cmd-input');
-        if (input.value) {
-            socket.emit('eb_terminal_input', { text: input.value });
-            input.value = "";
-        }
-    }
-    function focusTerminalInput() {
-        document.getElementById('terminal-cmd-input').focus();
-    }
-
-    document.addEventListener('paste', (e) => {
-        if (document.getElementById('modal-terminal').style.display === 'flex') {
-            const pastedText = (e.clipboardData || window.clipboardData).getData('text');
-            if (pastedText) {
-                socket.emit('eb_terminal_input', { text: pastedText });
-            }
-        }
-    });
 
     function toggleServerTypeUI() {
         const type = document.getElementById('cfg-server-type').value;
@@ -1974,7 +2033,7 @@ ${serverType === 'websocket' ?
 4 - Learn More About EzBridge
 - Max Packet Size: 192KB per packet (350KB chunk stream processing).
 - Request Limit: Up to 60 requests/sec (more than 60 reqs/s or 200kbps triggers 5-min IP and client ratelimit).
-- Server Memory: Configured at ${serverSettings.ramLimitMB || 250}MB (+50MB hidden VRAM protection).
+- Server Memory: Configured at ${serverSettings.ramLimitMB || 250}MB.
 - Instance Scaling: Automatic room instancing per ${serverSettings.maxUsers || 20} max users.
 
 that's all you needed to know, now, you can start.
