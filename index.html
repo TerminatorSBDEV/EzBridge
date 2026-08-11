@@ -116,7 +116,6 @@
         .log-red { color: var(--error); }
         .log-white { color: #f8fafc !important; }
 
-        /* SESSION BUTTONS HOVER EFFECT & MOBILE RESPONSIVE CHAT */
         .session-btn-list {
             display: flex; flex-direction: column; gap: 8px; margin: 15px 0;
             max-height: 320px; overflow-y: auto;
@@ -127,10 +126,10 @@
             transition: transform 0.2s, background 0.2s; text-align: center;
         }
         .session-btn:hover {
-            background: rgba(239, 68, 68, 0.5) !important; /* 50% Red on Hover */
+            background: rgba(239, 68, 68, 0.5) !important;
         }
         .session-btn-list:hover .session-btn:not(:hover) {
-            transform: scale(0.96); /* Pushes other buttons away slightly */
+            transform: scale(0.96);
         }
 
         .chat-bubble-box {
@@ -152,6 +151,87 @@
         <div class="card">
             <h3>Connecting to EzBridge...</h3>
             <div style="font-size:0.8rem; color:var(--muted);">Syncing credentials and loading data.</div>
+        </div>
+    </div>
+
+    <!-- OVERLAY FETCHING SITES (150KB CHUNKS) -->
+    <div id="overlay-fetching-sites" class="overlay" style="display:none;">
+        <div class="card">
+            <h3>Fetching sites...</h3>
+            <div class="progress-container" style="margin:20px 0;">
+                <div id="site-fetch-bar" class="progress-bar"></div>
+                <div class="progress-text"><span id="site-fetch-pct">0</span>%</div>
+            </div>
+            <button class="btn btn-secondary" onclick="cancelSiteFetch()">[CANCEL]</button>
+        </div>
+    </div>
+
+    <!-- MODAL SEE AND PUBLISH GUI -->
+    <div id="modal-see-publish" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 680px; width:95%; max-height:85vh; display:flex; flex-direction:column;">
+            <h3>SEE AND PUBLISH</h3>
+            <div style="display:flex; gap:10px; margin-bottom:10px; align-items:center; flex-wrap:wrap;">
+                <label style="font-size:0.8rem; font-weight:bold;">Sort by:</label>
+                <select id="site-sort-select" onchange="applySiteSearchAndSort()" style="padding:6px; background:#020617; color:#fff; border:1px solid var(--border);">
+                    <option value="visits">Most accessed</option>
+                    <option value="newest">Newest</option>
+                </select>
+                <input type="text" id="site-search-input" placeholder="Search site name or 20-digit ID..." maxlength="30" oninput="applySiteSearchAndSort()" style="flex:1; padding:6px;">
+            </div>
+
+            <div id="published-sites-container" class="settings-grid" style="flex:1; max-height:none;"></div>
+
+            <button class="btn btn-purple" id="btn-create-update-site" style="margin-top:10px;" onclick="openCreateSiteModal()">Create site</button>
+            <button class="btn btn-secondary" style="margin-top:6px;" onclick="closeSeeAndPublishModal()">Close</button>
+        </div>
+    </div>
+
+    <!-- MODAL CREATE / UPDATE SITE -->
+    <div id="modal-create-site" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 580px; width:95%;">
+            <h3 id="create-site-title">CREATE SITE</h3>
+            <div class="settings-grid" style="max-height:none;">
+                <div class="settings-item">
+                    <label>Title (min 2 chars, max 20, no symbols)</label>
+                    <input type="text" id="site-title-field" maxlength="20" placeholder="My Epic Game">
+                </div>
+                <div class="settings-item">
+                    <label>HTML Script (at least 100 chars, max 20MB)</label>
+                    <textarea id="site-html-field" rows="8" style="height:150px;" placeholder="<!DOCTYPE html>..."></textarea>
+                </div>
+                <div class="settings-item">
+                    <label>Visibility</label>
+                    <select id="site-vis-field">
+                        <option value="public">Public 🌐 - Everyone can see and visit this site</option>
+                        <option value="unlisted">Unlisted 🔏 - Only people who enter ID in search bar</option>
+                    </select>
+                </div>
+                <div class="settings-item">
+                    <label>Generate Site ID</label>
+                    <button id="btn-gen-site-id" class="btn btn-secondary" onclick="generateSiteIdSubmit()">Generate site ID</button>
+                </div>
+            </div>
+
+            <div id="site-upload-progress" class="progress-container" style="display:none; margin-top:10px;">
+                <div id="site-progress-bar" class="progress-bar"></div>
+                <div class="progress-text">Publishing Site: <span id="site-progress-val">0</span>%</div>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <button class="btn" id="submit-site-btn" onclick="submitPublishSite()">Create site</button>
+                <button class="btn btn-secondary" onclick="closeCreateSiteModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL SITE VIEWER (RED BORDER, BLACK BACKGROUND) -->
+    <div id="modal-site-viewer" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 900px; width:98%; max-height:92vh; display:flex; flex-direction:column; background:#000000; border:2px solid #ef4444 !important; padding:15px; box-shadow: 0 0 30px rgba(239, 68, 68, 0.4);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <h3 id="site-viewer-title" style="margin:0;">Site Viewer</h3>
+                <button class="btn btn-secondary" style="width:auto; margin:0; padding:6px 16px;" onclick="closeSiteViewerModal()">Back to EzBridge</button>
+            </div>
+            <iframe id="site-viewer-frame" style="flex:1; width:100%; height:75vh; border:1px solid #ef4444; background:#ffffff;"></iframe>
         </div>
     </div>
 
@@ -306,7 +386,6 @@
         </div>
     </div>
 
-    <!-- MODAL CHOOSE CHAT SESSION -->
     <div id="modal-choose-session" class="overlay" style="display:none;">
         <div class="card" style="max-width: 420px;">
             <h3>Choose a session</h3>
@@ -326,13 +405,10 @@
         </div>
     </div>
 
-    <!-- MODAL CHAT ROOM SESSION -->
     <div id="modal-chat-room" class="overlay" style="display:none;">
         <div class="card" style="max-width: 500px; width:95%; max-height:85vh; display:flex; flex-direction:column;">
             <h3 id="chat-session-title">Session S. 1</h3>
             <div id="chat-messages-container" class="chat-bubble-box"></div>
-            
-            <!-- INDICADOR DE TYPING DA SESSÃO -->
             <div id="chat-typing-status" style="font-size:0.75rem; color:var(--muted); text-align:left; min-height:18px; margin: 4px 0;"></div>
 
             <div style="display:flex; gap:8px;">
@@ -481,7 +557,6 @@
                 <span id="role-tag-display"></span>
             </div>
             <div style="display:flex; gap:6px; align-items:center;">
-                <!-- CHAT ICON BUTTON NO CANTO DA TELA DO DASHBOARD -->
                 <button class="btn-icon" title="Global Chat Sessions" onclick="openChooseSessionModal()">💬</button>
                 <button class="btn-icon" id="terminal-btn" style="display:none;" onclick="openUniversalPanelModal()">>_</button>
                 <button class="btn" style="width:auto; margin:0; padding:6px 10px; font-size:0.75rem;" onclick="copyUserId()">Copy Client ID</button>
@@ -515,6 +590,9 @@
             <button class="btn btn-secondary" style="flex: 1;" onclick="openHowToUse()">[How to Use]</button>
             <button class="btn btn-secondary" style="flex: 1;" id="test-conn-btn" onclick="testConnection()">[Test Connection]</button>
         </div>
+
+        <!-- BOTÃO BRANCO "SEE AND PUBLISH" -->
+        <button class="btn" style="background:#ffffff !important; color:#000000 !important; font-weight:bold; margin-top:15px;" onclick="openSeeAndPublishModal()">SEE AND PUBLISH</button>
     </div>
 
     <div id="modal-howto" class="overlay" style="display:none;">
@@ -581,7 +659,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://perth-tan-july-stand.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://less-loud-wax-grid.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
@@ -602,10 +680,19 @@
     let chatHistoryChunks = [];
     let chatTypingTimeout = null;
 
+    // See and Publish State
+    let publishedSitesCache = [];
+    let siteFetchChunks = [];
+    let isUserHasSite = false;
+    let siteGenCooldownTimer = null;
+    let generatedSiteIdVal = "";
+
     const SCRIPT_CHUNK_SIZE = 100 * 1024;
     const UNIV_CHUNK_SIZE = 50 * 1024;
+    const SITE_CHUNK_SIZE = 150 * 1024;
     let isUploadingScript = false;
     let isUploadingUnivScript = false;
+    let isUploadingSiteScript = false;
 
     const initTimeout = setTimeout(() => {
         document.getElementById('overlay-sync').style.display = 'none';
@@ -647,6 +734,7 @@
             activeUserId = data.server.userId || ownerId;
             whitelistedDomains = serverSettings.whitelistedDomains || [];
             showDashboard();
+            checkUrlSiteHash();
         } else {
             document.getElementById('overlay-captcha').style.display = 'flex';
         }
@@ -706,7 +794,7 @@
         alert(`UPDATE FAILED:\n${data.error}`);
     });
 
-    // CHAT SESSION SOCKET EVENTS
+    // --- CHAT SESSION SOCKET EVENTS ---
     socket.on('eb_chat_history_chunk', (data) => {
         if (data.session !== currentChatSession) return;
         if (data.index === 0) chatHistoryChunks = [];
@@ -739,6 +827,57 @@
         }
     });
 
+    // --- SEE AND PUBLISH SOCKET EVENTS (150KB CHUNKS) ---
+    socket.on('eb_published_sites_chunk', (data) => {
+        if (data.index === 0) siteFetchChunks = [];
+        siteFetchChunks.push(data.chunk);
+
+        const pct = Math.floor(((data.index + 1) / data.total) * 100);
+        document.getElementById('site-fetch-pct').innerText = pct;
+        document.getElementById('site-fetch-bar').style.width = `${pct}%`;
+
+        if (siteFetchChunks.length === data.total) {
+            try {
+                publishedSitesCache = JSON.parse(siteFetchChunks.join(''));
+                isUserHasSite = Boolean(data.userHasSite);
+                
+                document.getElementById('overlay-fetching-sites').style.display = 'none';
+                document.getElementById('modal-see-publish').style.display = 'flex';
+                
+                updateCreateUpdateSiteBtnText();
+                applySiteSearchAndSort();
+            } catch(e) {
+                document.getElementById('overlay-fetching-sites').style.display = 'none';
+                alert("Failed to parse published sites data.");
+            }
+        }
+    });
+
+    socket.on('eb_site_id_generated', (data) => {
+        generatedSiteIdVal = data.siteId;
+        startSiteIdGenCooldown(data.cooldownMs / 1000);
+    });
+
+    socket.on('eb_site_chunk_ack', (data) => {
+        const pct = Math.floor((data.received / data.total) * 100);
+        document.getElementById('site-progress-bar').style.width = `${pct}%`;
+        document.getElementById('site-progress-val').innerText = pct;
+    });
+
+    socket.on('eb_site_publish_complete', (data) => {
+        isUploadingSiteScript = false;
+        document.getElementById('site-upload-progress').style.display = 'none';
+        alert("Site published/updated successfully!");
+        closeCreateSiteModal();
+        openSeeAndPublishModal();
+    });
+
+    socket.on('eb_site_data_response', (data) => {
+        if (data.site) {
+            renderSiteFrame(data.site);
+        }
+    });
+
     function handleGoogleLogin(response) {
         const base64Url = response.credential.split('.')[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -763,6 +902,7 @@
             activeUserId = data.server.userId || ownerId;
             whitelistedDomains = serverSettings.whitelistedDomains || [];
             showDashboard();
+            checkUrlSiteHash();
         } else {
             document.getElementById('overlay-captcha').style.display = 'none';
             document.getElementById('overlay-google-auth').style.display = 'none';
@@ -811,6 +951,220 @@
         }
     }
 
+    // SEE AND PUBLISH SYSTEM FUNCTIONS
+    function openSeeAndPublishModal() {
+        siteFetchChunks = [];
+        document.getElementById('site-fetch-pct').innerText = '0';
+        document.getElementById('site-fetch-bar').style.width = '0%';
+        document.getElementById('overlay-fetching-sites').style.display = 'flex';
+
+        socket.emit('eb_get_published_sites', {
+            ownerId, googleSub,
+            search: document.getElementById('site-search-input') ? document.getElementById('site-search-input').value : '',
+            sortBy: document.getElementById('site-sort-select') ? document.getElementById('site-sort-select').value : 'visits'
+        });
+    }
+
+    function cancelSiteFetch() {
+        document.getElementById('overlay-fetching-sites').style.display = 'none';
+    }
+
+    function closeSeeAndPublishModal() {
+        document.getElementById('modal-see-publish').style.display = 'none';
+    }
+
+    function updateCreateUpdateSiteBtnText() {
+        const btn = document.getElementById('btn-create-update-site');
+        const submitBtn = document.getElementById('submit-site-btn');
+        const titleHeader = document.getElementById('create-site-title');
+
+        if (isUserHasSite) {
+            if (btn) btn.innerText = "UPDATE SITE";
+            if (submitBtn) submitBtn.innerText = "UPDATE SITE";
+            if (titleHeader) titleHeader.innerText = "UPDATE SITE";
+        } else {
+            if (btn) btn.innerText = "Create site";
+            if (submitBtn) submitBtn.innerText = "Create site";
+            if (titleHeader) titleHeader.innerText = "CREATE SITE";
+        }
+    }
+
+    function applySiteSearchAndSort() {
+        const searchVal = document.getElementById('site-search-input').value.trim().toLowerCase();
+        const sortVal = document.getElementById('site-sort-select').value;
+
+        let filtered = publishedSitesCache.filter(s => {
+            if (!searchVal) return s.visibility === 'public' || s.ownerUserId === activeUserId || userRole !== 'None';
+            return s.id === searchVal || s.title.toLowerCase().includes(searchVal);
+        });
+
+        if (sortVal === 'newest') {
+            filtered.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+        } else {
+            filtered.sort((a, b) => (b.visits || 0) - (a.visits || 0));
+        }
+
+        renderPublishedSitesList(filtered);
+    }
+
+    function renderPublishedSitesList(sites) {
+        const container = document.getElementById('published-sites-container');
+        container.innerHTML = "";
+
+        if (sites.length === 0) {
+            container.innerHTML = `<div style="color:var(--muted); padding:20px; font-size:0.85rem;">No published sites found.</div>`;
+            return;
+        }
+
+        sites.forEach(s => {
+            const div = document.createElement('div');
+            div.className = 'domain-item';
+            div.style.flexDirection = 'column';
+            div.style.alignItems = 'flex-start';
+            div.style.gap = '6px';
+
+            const canDelete = (userRole === 'Owner' || userRole === 'Dev' || userRole === 'Admin');
+            const deleteBtnHTML = canDelete ? `<button class="btn btn-danger" style="width:auto; margin:0; padding:2px 8px; font-size:0.7rem;" onclick="deletePublishedSite('${s.id}')">[DELETE]</button>` : '';
+
+            div.innerHTML = `
+                <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
+                    <span><b>${escapeHtml(s.title)}</b> <button class="btn-secondary" style="padding:2px 6px; font-size:0.65rem;" onclick="copyTextValue('${s.id}')">[COPY ID]</button> by <b>${escapeHtml(s.ownerUserId)}</b></span>
+                    ${deleteBtnHTML}
+                </div>
+                <div style="font-size:0.75rem; color:var(--muted);">
+                    Latest update: ${s.dateStr || '0/0/0'} | <b>${s.onlineCount || 0}</b> people online in it! | visits: <b>${s.visits || 0}</b>
+                </div>
+                <button class="btn" style="width:auto; margin:0; padding:4px 14px; font-size:0.8rem;" onclick="accessSite('${s.id}')">[access]</button>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function deletePublishedSite(siteId) {
+        if (confirm(`Delete site ${siteId} permanently?`)) {
+            socket.emit('eb_delete_site', { siteId, ownerId, googleSub });
+            setTimeout(openSeeAndPublishModal, 500);
+        }
+    }
+
+    function accessSite(siteId) {
+        closeSeeAndPublishModal();
+        window.location.hash = `#/sites/${siteId}`;
+        socket.emit('eb_visit_site', { siteId });
+    }
+
+    function renderSiteFrame(site) {
+        document.getElementById('site-viewer-title').innerText = `${site.title} (${site.id})`;
+        const iframe = document.getElementById('site-viewer-frame');
+        
+        // Write raw htmlScript into iframe
+        const doc = iframe.contentWindow.document;
+        doc.open();
+        doc.write(site.htmlScript);
+        doc.close();
+
+        document.getElementById('modal-site-viewer').style.display = 'flex';
+    }
+
+    function closeSiteViewerModal() {
+        document.getElementById('modal-site-viewer').style.display = 'none';
+        window.location.hash = "";
+        openSeeAndPublishModal();
+    }
+
+    function checkUrlSiteHash() {
+        const hash = window.location.hash;
+        if (hash && hash.startsWith('#/sites/')) {
+            const sId = hash.replace('#/sites/', '').trim();
+            if (sId) {
+                socket.emit('eb_visit_site', { siteId: sId });
+            }
+        }
+    }
+
+    // CREATE / UPDATE SITE MODAL & GENERATE SITE ID
+    function openCreateSiteModal() {
+        closeSeeAndPublishModal();
+        updateCreateUpdateSiteBtnText();
+        document.getElementById('site-title-field').value = "";
+        document.getElementById('site-html-field').value = "";
+        document.getElementById('modal-create-site').style.display = 'flex';
+    }
+
+    function closeCreateSiteModal() {
+        document.getElementById('modal-create-site').style.display = 'none';
+    }
+
+    function generateSiteIdSubmit() {
+        socket.emit('eb_generate_site_id', { key: serverKey, ownerId, googleSub });
+    }
+
+    function startSiteIdGenCooldown(seconds) {
+        const btn = document.getElementById('btn-gen-site-id');
+        btn.disabled = true;
+        btn.style.background = "#10b981 !important";
+        btn.style.color = "#000000 !important";
+
+        let remaining = Math.floor(seconds);
+        if (siteGenCooldownTimer) clearInterval(siteGenCooldownTimer);
+
+        siteGenCooldownTimer = setInterval(() => {
+            const mins = Math.floor(remaining / 60);
+            const secs = String(remaining % 60).padStart(2, '0');
+            btn.innerText = `ID generated. ${mins}:${secs} left until next use`;
+
+            remaining--;
+            if (remaining < 0) {
+                clearInterval(siteGenCooldownTimer);
+                btn.disabled = false;
+                btn.innerText = "Generate site ID";
+                btn.style.background = "";
+                btn.style.color = "";
+            }
+        }, 1000);
+    }
+
+    function submitPublishSite() {
+        const title = document.getElementById('site-title-field').value.trim();
+        const htmlScript = document.getElementById('site-html-field').value;
+        const visibility = document.getElementById('site-vis-field').value;
+
+        if (!title || title.length < 2 || title.length > 20 || !/^[a-zA-Z0-9 ]+$/.test(title)) {
+            return alert("Title must be between 2 and 20 characters with NO symbols!");
+        }
+
+        if (!htmlScript || htmlScript.length < 100) {
+            return alert("HTML script must be at least 100 characters long!");
+        }
+
+        if (!isUserHasSite && !generatedSiteIdVal) {
+            return alert("You MUST click 'Generate site ID' before creating the site!");
+        }
+
+        // Upload in 150KB Chunks
+        const totalChunks = Math.ceil(htmlScript.length / SITE_CHUNK_SIZE);
+        isUploadingSiteScript = true;
+        document.getElementById('site-upload-progress').style.display = 'block';
+
+        sendSiteChunk(0, totalChunks, htmlScript, title, visibility, generatedSiteIdVal);
+    }
+
+    function sendSiteChunk(index, total, fullScript, title, visibility, siteId) {
+        if (!isUploadingSiteScript) return;
+        const start = index * SITE_CHUNK_SIZE;
+        const end = Math.min(start + SITE_CHUNK_SIZE, fullScript.length);
+        const chunk = fullScript.slice(start, end);
+
+        socket.emit('eb_upload_site_chunk', {
+            index, total, chunk,
+            siteId: siteId,
+            title: title,
+            visibility: visibility,
+            key: serverKey,
+            ownerId, googleSub
+        });
+    }
+
     // CHAT SESSIONS UI FUNCTIONS
     function openChooseSessionModal() {
         document.getElementById('modal-choose-session').style.display = 'flex';
@@ -843,12 +1197,10 @@
     function setupChatTextboxEvents() {
         const input = document.getElementById('chat-textbox');
         input.oninput = () => {
-            // Strict Real-time max 250 character truncation on client
             if (input.value.length > 250) {
                 input.value = input.value.substring(0, 250);
             }
 
-            // Real-time typing notification
             socket.emit('eb_chat_typing', { session: currentChatSession, isTyping: true });
 
             if (chatTypingTimeout) clearTimeout(chatTypingTimeout);
@@ -889,9 +1241,13 @@
         else if (msg.role === 'Dev') roleTagHTML = `<span class="role-tag role-dev">DEVELOPER</span>`;
         else if (msg.role === 'Admin') roleTagHTML = `<span class="role-tag role-admin">ADMIN</span>`;
 
+        // COPY USER ID BUTTON FOR ADMINS, DEVS AND OWNER
+        const canCopyId = (userRole === 'Owner' || userRole === 'Dev' || userRole === 'Admin');
+        const copyBtnHTML = canCopyId ? `<button class="btn-secondary" style="padding:2px 6px; font-size:0.65rem; margin-left:6px;" onclick="copyTextValue('${msg.userId}')">[Copy ID]</button>` : '';
+
         bubble.innerHTML = `
             <div style="font-size:0.75rem; font-weight:bold; color:var(--accent); margin-bottom:4px;">
-                ${escapeHtml(msg.userId || 'Guest')} ${roleTagHTML}
+                ${escapeHtml(msg.userId || 'Guest')} ${roleTagHTML} ${copyBtnHTML}
             </div>
             <div>${escapeHtml(msg.text)}</div>
         `;
@@ -902,6 +1258,11 @@
 
     function escapeHtml(str) {
         return String(str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function copyTextValue(text) {
+        navigator.clipboard.writeText(text);
+        alert(`Copied to clipboard: ${text}`);
     }
 
     // UNIVERSAL SERVER PANEL
