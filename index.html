@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -143,6 +142,27 @@
             padding: 8px 12px; font-size: 0.85rem; word-break: break-word;
         }
 
+        /* SITE VIEWER FULLSCREEN 5% SMALLER (95vw, 95vh) */
+        #modal-site-viewer .card {
+            width: 95vw !important;
+            height: 95vh !important;
+            max-width: 95vw !important;
+            max-height: 95vh !important;
+            padding: 15px;
+            display: flex; flex-direction: column;
+            background: #000000 !important;
+            border: 2px solid #ef4444 !important;
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.4);
+        }
+
+        #site-viewer-frame {
+            flex: 1;
+            width: 100%;
+            height: calc(95vh - 70px) !important;
+            border: 1px solid #ef4444;
+            background: #ffffff;
+        }
+
         .disclaimer { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--error) !important; color: #fca5a5; padding: 10px; font-size: 0.75rem; text-align: left; margin-bottom: 10px; }
     </style>
 </head>
@@ -155,7 +175,7 @@
         </div>
     </div>
 
-    <!-- OVERLAY FETCHING ALL SITES -->
+    <!-- OVERLAY FETCHING SITES (150KB CHUNKS) -->
     <div id="overlay-fetching-sites" class="overlay" style="display:none;">
         <div class="card">
             <h3>Fetching sites...</h3>
@@ -167,17 +187,18 @@
         </div>
     </div>
 
-    <!-- OVERLAY FETCHING EXISTING USER SITE DATA BEFORE UPDATE -->
-    <div id="overlay-fetching-user-site" class="overlay" style="display:none;">
+    <!-- OVERLAY FETCHING PREVIOUS SITE SETTINGS FOR UPDATE SITE -->
+    <div id="overlay-fetching-site-data" class="overlay" style="display:none;">
         <div class="card">
-            <h3>Fetching site data...</h3>
+            <h3>Fetching previous site settings...</h3>
             <div class="progress-container" style="margin:20px 0;">
-                <div id="user-site-fetch-bar" class="progress-bar"></div>
-                <div class="progress-text"><span id="user-site-fetch-pct">0</span>%</div>
+                <div id="site-data-bar" class="progress-bar"></div>
+                <div class="progress-text"><span id="site-data-pct">0</span>%</div>
             </div>
         </div>
     </div>
 
+    <!-- MODAL SEE AND PUBLISH GUI -->
     <div id="modal-see-publish" class="overlay" style="display:none;">
         <div class="card" style="max-width: 680px; width:95%; max-height:85vh; display:flex; flex-direction:column;">
             <h3>SEE AND PUBLISH</h3>
@@ -192,11 +213,12 @@
 
             <div id="published-sites-container" class="settings-grid" style="flex:1; max-height:none;"></div>
 
-            <button class="btn btn-purple" id="btn-create-update-site" style="margin-top:10px;" onclick="openCreateSiteModal()">Create site</button>
+            <button class="btn btn-purple" id="btn-create-update-site" style="margin-top:10px;" onclick="handleCreateOrUpdateSiteClick()">Create site</button>
             <button class="btn btn-secondary" style="margin-top:6px;" onclick="closeSeeAndPublishModal()">Close</button>
         </div>
     </div>
 
+    <!-- MODAL CREATE / UPDATE SITE -->
     <div id="modal-create-site" class="overlay" style="display:none;">
         <div class="card" style="max-width: 580px; width:95%;">
             <h3 id="create-site-title">CREATE SITE</h3>
@@ -234,14 +256,14 @@
         </div>
     </div>
 
-    <!-- MODAL SITE VIEWER - 5% SMALLER THAN FULLSCREEN (95vw x 95vh) -->
+    <!-- MODAL SITE VIEWER (FULLSCREEN 5% SMALLER) -->
     <div id="modal-site-viewer" class="overlay" style="display:none;">
-        <div class="card" style="width: 95vw; height: 95vh; max-width: 95vw; max-height: 95vh; display:flex; flex-direction:column; background:#000000; border:2px solid #ef4444 !important; padding:12px; box-shadow: 0 0 30px rgba(239, 68, 68, 0.4);">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-shrink: 0;">
-                <h3 id="site-viewer-title" style="margin:0; font-size:1rem;">Site Viewer</h3>
+        <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <h3 id="site-viewer-title" style="margin:0;">Site Viewer</h3>
                 <button class="btn btn-secondary" style="width:auto; margin:0; padding:6px 16px;" onclick="closeSiteViewerModal()">Back to EzBridge</button>
             </div>
-            <iframe id="site-viewer-frame" style="flex:1; width:100%; height:100%; border:1px solid #ef4444; background:#ffffff;"></iframe>
+            <iframe id="site-viewer-frame"></iframe>
         </div>
     </div>
 
@@ -691,10 +713,10 @@
     // See and Publish State
     let publishedSitesCache = [];
     let siteFetchChunks = [];
-    let userSiteDataChunks = [];
     let isUserHasSite = false;
     let siteGenCooldownTimer = null;
     let generatedSiteIdVal = "";
+    let userSiteDataChunks = [];
 
     const SCRIPT_CHUNK_SIZE = 100 * 1024;
     const UNIV_CHUNK_SIZE = 50 * 1024;
@@ -765,20 +787,6 @@
         }
     });
 
-    socket.on('eb_terminal_out', (data) => {
-        if (data.chunk) {
-            if (data.isHistory && data.index === 0) {
-                terminalBufferText = "";
-            }
-            terminalBufferText += data.chunk;
-            const termEl = document.getElementById('terminal-screen');
-            if (termEl) {
-                termEl.innerText = terminalBufferText;
-                termEl.scrollTop = termEl.scrollHeight;
-            }
-        }
-    });
-
     socket.on('eb_user_id_regenerated', (data) => {
         activeUserId = data.newUserId;
         document.getElementById('new-userid-display').value = activeUserId;
@@ -836,7 +844,7 @@
         }
     });
 
-    // SEE AND PUBLISH SOCKET EVENTS
+    // SEE AND PUBLISH SOCKET EVENTS (150KB CHUNKS)
     socket.on('eb_published_sites_chunk', (data) => {
         if (data.index === 0) siteFetchChunks = [];
         siteFetchChunks.push(data.chunk);
@@ -862,30 +870,46 @@
         }
     });
 
-    // CHUNKS DA BUSCA DOS DADOS DO SITE DO USUÁRIO ANTES DE ATUALIZAR
+    // FETCH PREVIOUS USER SITE SETTINGS IN 150KB CHUNKS
     socket.on('eb_user_site_data_chunk', (data) => {
+        if (!data.success) {
+            document.getElementById('overlay-fetching-site-data').style.display = 'none';
+            openCreateSiteModalForm();
+            return;
+        }
+
         if (data.index === 0) userSiteDataChunks = [];
-        userSiteDataChunks.push(data.chunk || '');
+        userSiteDataChunks.push(data.chunk);
 
         const pct = Math.floor(((data.index + 1) / data.total) * 100);
-        document.getElementById('user-site-fetch-pct').innerText = pct;
-        document.getElementById('user-site-fetch-bar').style.width = `${pct}%`;
+        document.getElementById('site-data-pct').innerText = pct;
+        document.getElementById('site-data-bar').style.width = `${pct}%`;
 
         if (userSiteDataChunks.length === data.total) {
-            document.getElementById('overlay-fetching-user-site').style.display = 'none';
+            try {
+                const parsed = JSON.parse(userSiteDataChunks.join(''));
+                document.getElementById('overlay-fetching-site-data').style.display = 'none';
 
-            if (data.siteId) {
-                document.getElementById('site-title-field').value = data.title || '';
-                document.getElementById('site-html-field').value = userSiteDataChunks.join('');
-                document.getElementById('site-vis-field').value = data.visibility || 'public';
-                generatedSiteIdVal = data.siteId;
+                openCreateSiteModalForm();
+
+                document.getElementById('site-title-field').value = parsed.site.title || "";
+                document.getElementById('site-html-field').value = parsed.site.htmlScript || "";
+                document.getElementById('site-vis-field').value = parsed.site.visibility || "public";
+                generatedSiteIdVal = parsed.site.id || "";
+
+                if (parsed.remCooldownMs > 0) {
+                    startSiteIdGenCooldown(parsed.remCooldownMs / 1000);
+                } else if (generatedSiteIdVal) {
+                    const btn = document.getElementById('btn-gen-site-id');
+                    btn.disabled = false;
+                    btn.innerText = `ID generated.`;
+                    btn.style.background = "#10b981";
+                    btn.style.color = "#000000";
+                }
+            } catch(e) {
+                document.getElementById('overlay-fetching-site-data').style.display = 'none';
+                openCreateSiteModalForm();
             }
-
-            if (data.cooldownMs && data.cooldownMs > 0) {
-                startSiteIdGenCooldown(data.cooldownMs / 1000);
-            }
-
-            document.getElementById('modal-create-site').style.display = 'flex';
         }
     });
 
@@ -1117,24 +1141,25 @@
         }
     }
 
-    // BUSCA DE DADOS ANTES DE ATUALIZAR SITE EXISTENTE
-    function openCreateSiteModal() {
+    // CREATE / UPDATE SITE MODAL & FETCH PREVIOUS SETTINGS
+    function handleCreateOrUpdateSiteClick() {
         closeSeeAndPublishModal();
-        updateCreateUpdateSiteBtnText();
-
         if (isUserHasSite) {
+            // PULL PREVIOUS SETTINGS WITH PROGRESS BAR
             userSiteDataChunks = [];
-            document.getElementById('user-site-fetch-pct').innerText = "0";
-            document.getElementById('user-site-fetch-bar').style.width = "0%";
-            document.getElementById('overlay-fetching-user-site').style.display = 'flex';
+            document.getElementById('site-data-pct').innerText = '0';
+            document.getElementById('site-data-bar').style.width = '0%';
+            document.getElementById('overlay-fetching-site-data').style.display = 'flex';
 
             socket.emit('eb_get_user_site_data', { key: serverKey, ownerId, googleSub });
         } else {
-            document.getElementById('site-title-field').value = "";
-            document.getElementById('site-html-field').value = "";
-            document.getElementById('site-vis-field').value = "public";
-            document.getElementById('modal-create-site').style.display = 'flex';
+            openCreateSiteModalForm();
         }
+    }
+
+    function openCreateSiteModalForm() {
+        updateCreateUpdateSiteBtnText();
+        document.getElementById('modal-create-site').style.display = 'flex';
     }
 
     function closeCreateSiteModal() {
@@ -1309,7 +1334,6 @@
         alert(`Copied to clipboard: ${text}`);
     }
 
-    // UNIVERSAL SERVER PANEL
     function openUniversalPanelModal() {
         if (userRole !== 'Owner') return alert("Permission denied! Owner only.");
         document.getElementById('modal-universal-panel').style.display = 'flex';
