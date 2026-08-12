@@ -256,14 +256,14 @@
         </div>
     </div>
 
-    <!-- MODAL SITE VIEWER (FULLSCREEN 5% SMALLER) -->
+    <!-- MODAL SITE VIEWER (FULLSCREEN 5% SMALLER WITH EMBEDDED CONNECTIONS) -->
     <div id="modal-site-viewer" class="overlay" style="display:none;">
         <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                 <h3 id="site-viewer-title" style="margin:0;">Site Viewer</h3>
                 <button class="btn btn-secondary" style="width:auto; margin:0; padding:6px 16px;" onclick="closeSiteViewerModal()">Back to EzBridge</button>
             </div>
-            <iframe id="site-viewer-frame"></iframe>
+            <iframe id="site-viewer-frame" sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-downloads"></iframe>
         </div>
     </div>
 
@@ -690,7 +690,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://less-loud-wax-grid.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://venue-missed-break-area.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
@@ -870,7 +870,7 @@
         }
     });
 
-    // FETCH PREVIOUS USER SITE SETTINGS IN 150KB CHUNKS
+    // FETCH PREVIOUS USER SITE SETTINGS IN 150KB CHUNKS FOR UPDATE SITE
     socket.on('eb_user_site_data_chunk', (data) => {
         if (!data.success) {
             document.getElementById('overlay-fetching-site-data').style.display = 'none';
@@ -903,8 +903,8 @@
                     const btn = document.getElementById('btn-gen-site-id');
                     btn.disabled = false;
                     btn.innerText = `ID generated.`;
-                    btn.style.background = "#10b981";
-                    btn.style.color = "#000000";
+                    btn.style.background = "#10b981 !important";
+                    btn.style.color = "#000000 !important";
                 }
             } catch(e) {
                 document.getElementById('overlay-fetching-site-data').style.display = 'none';
@@ -1049,22 +1049,16 @@
         }
     }
 
+    let searchDebounceTimer = null;
     function applySiteSearchAndSort() {
-        const searchVal = document.getElementById('site-search-input').value.trim().toLowerCase();
-        const sortVal = document.getElementById('site-sort-select').value;
+        if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+        searchDebounceTimer = setTimeout(() => {
+            const searchVal = document.getElementById('site-search-input').value.trim();
+            const sortVal = document.getElementById('site-sort-select').value;
 
-        let filtered = publishedSitesCache.filter(s => {
-            if (!searchVal) return s.visibility === 'public' || s.ownerUserId === activeUserId || userRole !== 'None';
-            return s.id === searchVal || s.title.toLowerCase().includes(searchVal);
-        });
-
-        if (sortVal === 'newest') {
-            filtered.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
-        } else {
-            filtered.sort((a, b) => (b.visits || 0) - (a.visits || 0));
-        }
-
-        renderPublishedSitesList(filtered);
+            // Query server to support fetching unlisted sites by exact 20-digit ID
+            socket.emit('eb_get_published_sites', { search: searchVal, sortBy: sortVal, ownerId, googleSub });
+        }, 300);
     }
 
     function renderPublishedSitesList(sites) {
@@ -1117,9 +1111,15 @@
         document.getElementById('site-viewer-title').innerText = `${site.title} (${site.id})`;
         const iframe = document.getElementById('site-viewer-frame');
         
+        let htmlToInject = site.htmlScript;
+        // Inject <base> URL so relative paths & Socket.io resolve to EzBridge tunnel URL seamlessly
+        if (!htmlToInject.includes('<base')) {
+            htmlToInject = `<base href="${PUBLIC_TUNNEL_URL}/">\n` + htmlToInject;
+        }
+
         const doc = iframe.contentWindow.document;
         doc.open();
-        doc.write(site.htmlScript);
+        doc.write(htmlToInject);
         doc.close();
 
         document.getElementById('modal-site-viewer').style.display = 'flex';
@@ -1145,7 +1145,6 @@
     function handleCreateOrUpdateSiteClick() {
         closeSeeAndPublishModal();
         if (isUserHasSite) {
-            // PULL PREVIOUS SETTINGS WITH PROGRESS BAR
             userSiteDataChunks = [];
             document.getElementById('site-data-pct').innerText = '0';
             document.getElementById('site-data-bar').style.width = '0%';
