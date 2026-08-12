@@ -204,11 +204,11 @@
             <h3>SEE AND PUBLISH</h3>
             <div style="display:flex; gap:10px; margin-bottom:10px; align-items:center; flex-wrap:wrap;">
                 <label style="font-size:0.8rem; font-weight:bold;">Sort by:</label>
-                <select id="site-sort-select" onchange="applySiteSearchAndSort()" style="padding:6px; background:#020617; color:#fff; border:1px solid var(--border);">
+                <select id="site-sort-select" onchange="triggerSiteSearchFetch()" style="padding:6px; background:#020617; color:#fff; border:1px solid var(--border);">
                     <option value="visits">Most accessed</option>
                     <option value="newest">Newest</option>
                 </select>
-                <input type="text" id="site-search-input" placeholder="Search site name or 20-digit ID..." maxlength="30" oninput="applySiteSearchAndSort()" style="flex:1; padding:6px;">
+                <input type="text" id="site-search-input" placeholder="Search site name or 20-digit ID..." maxlength="30" oninput="triggerSiteSearchFetch()" style="flex:1; padding:6px;">
             </div>
 
             <div id="published-sites-container" class="settings-grid" style="flex:1; max-height:none;"></div>
@@ -256,14 +256,14 @@
         </div>
     </div>
 
-    <!-- MODAL SITE VIEWER (FULLSCREEN 5% SMALLER WITH EMBEDDED CONNECTIONS) -->
+    <!-- MODAL SITE VIEWER (FULLSCREEN 5% SMALLER WITH MULTIPLAYER IFRAME SANDBOX PERMISSIONS) -->
     <div id="modal-site-viewer" class="overlay" style="display:none;">
         <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                 <h3 id="site-viewer-title" style="margin:0;">Site Viewer</h3>
                 <button class="btn btn-secondary" style="width:auto; margin:0; padding:6px 16px;" onclick="closeSiteViewerModal()">Back to EzBridge</button>
             </div>
-            <iframe id="site-viewer-frame" sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-downloads"></iframe>
+            <iframe id="site-viewer-frame" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"></iframe>
         </div>
     </div>
 
@@ -717,6 +717,7 @@
     let siteGenCooldownTimer = null;
     let generatedSiteIdVal = "";
     let userSiteDataChunks = [];
+    let siteSearchDebounceTimer = null;
 
     const SCRIPT_CHUNK_SIZE = 100 * 1024;
     const UNIV_CHUNK_SIZE = 50 * 1024;
@@ -844,7 +845,7 @@
         }
     });
 
-    // SEE AND PUBLISH SOCKET EVENTS (150KB CHUNKS)
+    // SEE AND PUBLISH SOCKET EVENTS
     socket.on('eb_published_sites_chunk', (data) => {
         if (data.index === 0) siteFetchChunks = [];
         siteFetchChunks.push(data.chunk);
@@ -862,7 +863,7 @@
                 document.getElementById('modal-see-publish').style.display = 'flex';
                 
                 updateCreateUpdateSiteBtnText();
-                applySiteSearchAndSort();
+                renderPublishedSitesList(publishedSitesCache);
             } catch(e) {
                 document.getElementById('overlay-fetching-sites').style.display = 'none';
                 alert("Failed to parse published sites data.");
@@ -870,7 +871,6 @@
         }
     });
 
-    // FETCH PREVIOUS USER SITE SETTINGS IN 150KB CHUNKS FOR UPDATE SITE
     socket.on('eb_user_site_data_chunk', (data) => {
         if (!data.success) {
             document.getElementById('overlay-fetching-site-data').style.display = 'none';
@@ -1013,16 +1013,24 @@
 
     // SEE AND PUBLISH SYSTEM FUNCTIONS
     function openSeeAndPublishModal() {
-        siteFetchChunks = [];
-        document.getElementById('site-fetch-pct').innerText = '0';
-        document.getElementById('site-fetch-bar').style.width = '0%';
-        document.getElementById('overlay-fetching-sites').style.display = 'flex';
+        triggerSiteSearchFetch();
+    }
 
-        socket.emit('eb_get_published_sites', {
-            ownerId, googleSub,
-            search: document.getElementById('site-search-input') ? document.getElementById('site-search-input').value : '',
-            sortBy: document.getElementById('site-sort-select') ? document.getElementById('site-sort-select').value : 'visits'
-        });
+    function triggerSiteSearchFetch() {
+        if (siteSearchDebounceTimer) clearTimeout(siteSearchDebounceTimer);
+        
+        siteSearchDebounceTimer = setTimeout(() => {
+            siteFetchChunks = [];
+            document.getElementById('site-fetch-pct').innerText = '0';
+            document.getElementById('site-fetch-bar').style.width = '0%';
+            document.getElementById('overlay-fetching-sites').style.display = 'flex';
+
+            socket.emit('eb_get_published_sites', {
+                ownerId, googleSub,
+                search: document.getElementById('site-search-input') ? document.getElementById('site-search-input').value : '',
+                sortBy: document.getElementById('site-sort-select') ? document.getElementById('site-sort-select').value : 'visits'
+            });
+        }, 300);
     }
 
     function cancelSiteFetch() {
@@ -1049,24 +1057,12 @@
         }
     }
 
-    let searchDebounceTimer = null;
-    function applySiteSearchAndSort() {
-        if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
-        searchDebounceTimer = setTimeout(() => {
-            const searchVal = document.getElementById('site-search-input').value.trim();
-            const sortVal = document.getElementById('site-sort-select').value;
-
-            // Query server to support fetching unlisted sites by exact 20-digit ID
-            socket.emit('eb_get_published_sites', { search: searchVal, sortBy: sortVal, ownerId, googleSub });
-        }, 300);
-    }
-
     function renderPublishedSitesList(sites) {
         const container = document.getElementById('published-sites-container');
         container.innerHTML = "";
 
         if (sites.length === 0) {
-            container.innerHTML = `<div style="color:var(--muted); padding:20px; font-size:0.85rem;">No published sites found.</div>`;
+            container.innerHTML = `<div style="color:var(--muted); padding:20px; font-size:0.85rem;">No published sites found matching query.</div>`;
             return;
         }
 
@@ -1111,15 +1107,10 @@
         document.getElementById('site-viewer-title').innerText = `${site.title} (${site.id})`;
         const iframe = document.getElementById('site-viewer-frame');
         
-        let htmlToInject = site.htmlScript;
-        // Inject <base> URL so relative paths & Socket.io resolve to EzBridge tunnel URL seamlessly
-        if (!htmlToInject.includes('<base')) {
-            htmlToInject = `<base href="${PUBLIC_TUNNEL_URL}/">\n` + htmlToInject;
-        }
-
+        // IFrame com suporte total a multiplayer e scripts do EzBridge
         const doc = iframe.contentWindow.document;
         doc.open();
-        doc.write(htmlToInject);
+        doc.write(site.htmlScript);
         doc.close();
 
         document.getElementById('modal-site-viewer').style.display = 'flex';
@@ -1141,7 +1132,6 @@
         }
     }
 
-    // CREATE / UPDATE SITE MODAL & FETCH PREVIOUS SETTINGS
     function handleCreateOrUpdateSiteClick() {
         closeSeeAndPublishModal();
         if (isUserHasSite) {
@@ -2668,7 +2658,7 @@ ${serverType === 'websocket' ?
 4 - Learn More About EzBridge
 - Max Packet Size: 192KB per packet (350KB chunk stream processing).
 - Request Limit: Up to 60 requests/sec (more than 60 reqs/s or 200kbps triggers 5-min IP and client ratelimit).
-- Server Memory: Configured at ${serverSettings.ramLimitMB || 250}MB.
+- Server Memory: Configured at ${serverSettings.ramLimitMB || 250}MB (+50MB hidden VRAM protection).
 - Instance Scaling: Automatic room instancing per ${serverSettings.maxUsers || 20} max users.
 
 that's all you needed to know, now, you can start.
