@@ -142,7 +142,6 @@
             padding: 8px 12px; font-size: 0.85rem; word-break: break-word;
         }
 
-        /* SITE VIEWER FULLSCREEN 5% SMALLER (95vw, 95vh) */
         #modal-site-viewer .card {
             width: 95vw !important;
             height: 95vh !important;
@@ -205,9 +204,10 @@
                     <option value="visits">Most accessed</option>
                     <option value="newest">Newest</option>
                 </select>
-                <input type="text" id="site-search-input" placeholder="Search site name or 20-digit ID..." maxlength="30" oninput="handleSiteSearchInput()" style="flex:1; padding:6px;">
+                <input type="text" id="site-search-input" placeholder="Search site name or 20-digit ID..." maxlength="30" oninput="handleSiteSearchTyping()" style="flex:1; padding:6px;">
             </div>
 
+            <div id="site-search-fetching" style="display:none; color:var(--accent); font-size:0.85rem; font-weight:bold; margin:10px 0;">Fetching sites...</div>
             <div id="published-sites-container" class="settings-grid" style="flex:1; max-height:none;"></div>
 
             <button class="btn btn-purple" id="btn-create-update-site" style="margin-top:10px;" onclick="handleCreateOrUpdateSiteClick()">Create site</button>
@@ -226,7 +226,8 @@
                 <div class="settings-item">
                     <label>HTML Script (at least 100 chars, max 20MB)</label>
                     <textarea id="site-html-field" rows="8" style="height:150px;" placeholder="<!DOCTYPE html>..."></textarea>
-                    <button class="btn btn-purple" style="margin-top:5px;" onclick="openAskAIModal()">Or ask AI ✨</button>
+                    <!-- BOTÃO OR ASK AI -->
+                    <button type="button" class="btn btn-purple" style="margin:5px 0 0 0;" onclick="openAskAIModal()">Or ask AI ✨</button>
                 </div>
                 <div class="settings-item">
                     <label>Visibility</label>
@@ -253,28 +254,28 @@
         </div>
     </div>
 
-    <!-- FLOATING PANEL FOR "Or ask AI ✨" -->
+    <!-- MODAL OR ASK AI FLOATING PANEL -->
     <div id="modal-ask-ai" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 480px; width:95%;">
-            <h3 id="ai-panel-title">What do you wanna ask AI to make?</h3>
-            <p style="font-size:0.75rem; color:var(--muted); margin-bottom:10px;">Only accepting HTML scripts</p>
-            
-            <div id="ai-input-view" class="settings-grid" style="max-height:none;">
+        <div class="card" style="max-width: 520px; width:95%;">
+            <h3 id="ask-ai-title">What do you wanna ask AI to make?</h3>
+            <p style="font-size:0.75rem; color:var(--muted);">(Only accepting HTML scripts)</p>
+
+            <div id="ask-ai-input-panel">
                 <div class="settings-item">
-                    <label>Prompt</label>
-                    <textarea id="ai-site-prompt" rows="3" placeholder="e.g. Create a 3D particle canvas game or interactive visualizer..."></textarea>
+                    <label>Prompt:</label>
+                    <textarea id="ai-prompt-input" rows="4" placeholder="Build a retro pong game in HTML/CSS/JS..."></textarea>
                 </div>
-                <div class="settings-item">
-                    <label>Creativity (0.0 - 1.0)</label>
-                    <input type="number" id="ai-site-temp" min="0.0" max="1.0" step="0.1" value="0.7">
+                <div class="settings-item" style="margin-top:10px;">
+                    <label>Creativity (0.0 - 1.0):</label>
+                    <input type="number" id="ai-temp-input" min="0.0" max="1.0" step="0.1" value="0.7">
                 </div>
-                <button class="btn btn-purple" onclick="startAISiteGeneration()">Start</button>
+                <button class="btn btn-purple" style="margin-top:15px;" onclick="startLlamaSiteGen()">Start</button>
             </div>
 
-            <div id="ai-generating-view" style="display:none; text-align:left; margin:10px 0;">
-                <div style="font-size:0.8rem; font-weight:bold; color:var(--accent); margin-bottom:5px;">llama's output:</div>
-                <div id="ai-llama-output-box" class="console-box" style="height:180px; max-height:200px;"></div>
-                <button class="btn btn-danger" onclick="stopAISiteGeneration()">stop generation</button>
+            <div id="ask-ai-output-panel" style="display:none;">
+                <h4 style="color:var(--accent); margin:10px 0 5px 0;">llama's output:</h4>
+                <div id="ai-live-output" class="code-box" style="height:200px; max-height:200px; overflow-y:auto; white-space:pre-wrap;"></div>
+                <button class="btn btn-danger" style="margin-top:10px;" onclick="stopLlamaSiteGen()">stop generation</button>
             </div>
 
             <button class="btn btn-secondary" style="margin-top:10px;" onclick="closeAskAIModal()">Cancel</button>
@@ -607,9 +608,9 @@
     </div>
 
     <div id="dashboard" class="card" style="display:none; width: 480px;">
-        <!-- STATS NETWORK BAR NO TOPO -->
-        <div id="network-stats-bar" style="font-size:0.75rem; color:var(--accent); font-weight:bold; margin-bottom:12px; text-align:center;">
-            PING: <span id="stat-ping">0</span>ms | Data received: <span id="stat-down">0.0</span>kbps↓ | Data sent: <span id="stat-up">0.0</span>kbps↑
+        <!-- TELEMETRY HEADER BAR -->
+        <div id="telemetry-bar" style="font-size:0.75rem; color:var(--accent); font-weight:bold; margin-bottom:10px; font-family:monospace; text-align:left;">
+            PING: <span id="tel-ping">0</span>ms | Data received: <span id="tel-rx">0.0</span>kbps↓ | Data sent: <span id="tel-tx">0.0</span>kbps↑
         </div>
 
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
@@ -632,7 +633,7 @@
             <span>Server status: <span id="server-status-text">OFFLINE</span></span>
         </div>
 
-        <div style="margin: 15px 0; text-align: left; font-size: 0.85rem; color: var(--muted); display:flex; flex-direction:column; gap:8px;">
+        <div style="margin: 15px 0; text-align: left; font-size: 0.85rem; color: var(--muted); display:flex; flex-direction:column; gap:6px;">
             <div id="account-email-display" style="color:var(--accent); font-size:0.75rem; font-weight:bold; display:flex; justify-content:space-between; align-items:center;">
                 <span>Linked Account: <span id="user-email-text">-</span></span>
                 <button class="btn-icon" onclick="openAccountSettingsModal()">⋮</button>
@@ -640,11 +641,11 @@
             <div>Users online on your server: <span id="online-users-count" style="color:var(--accent); font-weight:bold;">0</span></div>
             <div>Active ServerScripts: <span id="active-scripts-count" style="color:var(--accent); font-weight:bold;">0</span></div>
             
-            <!-- RAM USAGE COM BARRA DE PROGRESSO VERMELHA DA RAM -->
-            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+            <!-- RAM USAGE DISPLAY COM PROGRESS BAR EM VERMELHO -->
+            <div style="display:flex; align-items:center; justify-content:space-between;">
                 <span>RAM usage: <span id="ram-usage-text" style="color:var(--accent); font-weight:bold;">0.0 KB</span></span>
-                <div class="progress-container" style="width:120px; height:10px; margin:0;">
-                    <div id="ram-progress-bar" class="progress-bar" style="background:#ef4444; width:0%;"></div>
+                <div class="progress-container" style="width:120px; height:12px; margin:0; border:1px solid var(--border);">
+                    <div id="ram-progress-bar" class="progress-bar" style="background:var(--error); width:0%;"></div>
                 </div>
             </div>
         </div>
@@ -725,7 +726,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://valued-infant-bit-invoice.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://bool-ask-runner-carry-trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
@@ -739,12 +740,11 @@
     let currentServerScript = "";
     let whitelistedDomains = [];
     let consoleLogsCache = [];
-    let terminalBufferText = "";
 
-    // Chat Sessions State
-    let currentChatSession = null;
-    let chatHistoryChunks = [];
-    let chatTypingTimeout = null;
+    // Telemetry State
+    let bytesReceivedCounter = 0;
+    let bytesSentCounter = 0;
+    let currentPingTimeMs = 0;
 
     // See and Publish State
     let publishedSitesCache = [];
@@ -753,13 +753,12 @@
     let siteGenCooldownTimer = null;
     let generatedSiteIdVal = "";
     let userSiteDataChunks = [];
-    let searchDebounceTimer = null;
+    let siteSearchDebounceTimer = null;
 
-    // Network Stats State
-    let netPingMs = 0;
-    let netBytesRecvAcc = 0;
-    let netBytesSentAcc = 0;
-    let lastNetMetricTime = Date.now();
+    // Chat Sessions State
+    let currentChatSession = null;
+    let chatHistoryChunks = [];
+    let chatTypingTimeout = null;
 
     const SCRIPT_CHUNK_SIZE = 100 * 1024;
     const UNIV_CHUNK_SIZE = 50 * 1024;
@@ -778,16 +777,36 @@
         transports: ['websocket']
     });
 
-    // Intercept socket packets for network stats
-    const origSocketEmit = socket.emit;
-    socket.emit = function(...args) {
-        try { netBytesSentAcc += Buffer.byteLength(JSON.stringify(args)); } catch(e) {}
-        return origSocketEmit.apply(this, args);
+    // TELEMETRY SAMPLING & DISPLAY REFRESH
+    socket.onAny((event, ...args) => {
+        bytesReceivedCounter += new Blob([JSON.stringify(args)]).size;
+    });
+
+    const origEmit = socket.emit;
+    socket.emit = function(event, ...args) {
+        bytesSentCounter += new Blob([JSON.stringify(args)]).size;
+        return origEmit.apply(this, arguments);
     };
 
-    socket.onAny((evt, ...args) => {
-        try { netBytesRecvAcc += Buffer.byteLength(JSON.stringify(args)); } catch(e) {}
-    });
+    setInterval(() => {
+        // Measure Ping
+        const startPing = Date.now();
+        socket.once('ebgetstatus_response', () => {
+            currentPingTimeMs = Math.max(60, Date.now() - startPing); // Strict 60ms ping min
+        });
+        socket.emit('ebgetstatus');
+
+        // Update Telemetry Display
+        const rxKbps = ((bytesReceivedCounter * 8) / 1000).toFixed(1);
+        const txKbps = ((bytesSentCounter * 8) / 1000).toFixed(1);
+
+        document.getElementById('tel-ping').innerText = currentPingTimeMs;
+        document.getElementById('tel-rx').innerText = rxKbps;
+        document.getElementById('tel-tx').innerText = txKbps;
+
+        bytesReceivedCounter = 0;
+        bytesSentCounter = 0;
+    }, 1000);
 
     socket.on('connect', () => {
         socket.emit('eb_sync_session', { ownerId });
@@ -797,11 +816,11 @@
         clearTimeout(initTimeout);
         ownerId = data.ownerId;
         setCookie("eb_owner_id", ownerId, 365);
-        
+        document.getElementById('overlay-sync').style.display = 'none';
+
         userRole = data.role || "None";
 
         if (data.banned) {
-            document.querySelectorAll('.overlay').forEach(e => e.style.display = 'none');
             document.getElementById('ban-days-text').innerText = data.banInfo.days ? `${data.banInfo.days} day(s)` : "Permanent";
             document.getElementById('overlay-banned-app').style.display = 'flex';
             socket.disconnect();
@@ -809,9 +828,6 @@
         }
 
         if (data.hasServer) {
-            // CORREÇÃO: Abre imediatamente o painel do servidor sem precisar dar refresh
-            document.querySelectorAll('.overlay').forEach(e => e.style.display = 'none');
-
             serverKey = data.server.key;
             serverActive = data.server.active;
             serverType = data.server.serverType || "websocket";
@@ -821,12 +837,9 @@
             googleEmail = data.server.email || null;
             activeUserId = data.server.userId || ownerId;
             whitelistedDomains = serverSettings.whitelistedDomains || [];
-
-            applyRolePermissions();
             showDashboard();
             checkUrlSiteHash();
         } else {
-            document.getElementById('overlay-sync').style.display = 'none';
             document.getElementById('overlay-captcha').style.display = 'flex';
         }
     });
@@ -844,20 +857,6 @@
         if (data.logs) {
             consoleLogsCache = data.logs;
             renderConsoleLogs();
-        }
-    });
-
-    socket.on('eb_terminal_out', (data) => {
-        if (data.chunk) {
-            if (data.isHistory && data.index === 0) {
-                terminalBufferText = "";
-            }
-            terminalBufferText += data.chunk;
-            const termEl = document.getElementById('terminal-screen');
-            if (termEl) {
-                termEl.innerText = terminalBufferText;
-                termEl.scrollTop = termEl.scrollHeight;
-            }
         }
     });
 
@@ -885,40 +884,31 @@
         alert(`UPDATE FAILED:\n${data.error}`);
     });
 
-    // CHAT SESSION SOCKET EVENTS
-    socket.on('eb_chat_history_chunk', (data) => {
-        if (data.session !== currentChatSession) return;
-        if (data.index === 0) chatHistoryChunks = [];
-        chatHistoryChunks.push(data.chunk);
+    // LISTENER DA GERAÇÃO DE SITE POR IA DA LLAMA
+    socket.on('RemoteEvent', (pkt) => {
+        if (pkt.type === 'eb_ai_response' && pkt.data) {
+            const liveBox = document.getElementById('ai-live-output');
+            if (pkt.data.error) {
+                alert("AI Generation Error: " + pkt.data.error);
+                stopLlamaSiteGen();
+                return;
+            }
 
-        if (chatHistoryChunks.length === data.total) {
-            try {
-                const fullList = JSON.parse(chatHistoryChunks.join(''));
-                renderChatHistory(fullList);
-            } catch(e) {}
-        }
-    });
+            if (pkt.data.text && liveBox) {
+                let cleanText = pkt.data.text.replace(/```html/gi, '').replace(/```/g, '').trim();
+                liveBox.innerText = cleanText;
+                liveBox.scrollTop = liveBox.scrollHeight;
 
-    socket.on('eb_chat_msg_out', (data) => {
-        if (data.session === currentChatSession && data.msg) {
-            appendSingleChatMessage(data.msg);
-        }
-    });
-
-    socket.on('eb_chat_typing_count', (data) => {
-        if (data.session === currentChatSession) {
-            const el = document.getElementById('chat-typing-status');
-            if (el) {
-                if (data.count > 0) {
-                    el.innerText = `${data.count} ${data.count === 1 ? 'user is' : 'users are'} typing . . .`;
-                } else {
-                    el.innerText = "";
+                if (pkt.data.done) {
+                    document.getElementById('site-html-field').value = cleanText;
+                    alert("HTML site script generated by Llama 3.2:1b!");
+                    closeAskAIModal();
                 }
             }
         }
     });
 
-    // SEE AND PUBLISH SOCKET EVENTS (150KB CHUNKS)
+    // SEE AND PUBLISH SOCKET EVENTS
     socket.on('eb_published_sites_chunk', (data) => {
         if (data.index === 0) siteFetchChunks = [];
         siteFetchChunks.push(data.chunk);
@@ -933,12 +923,14 @@
                 isUserHasSite = Boolean(data.userHasSite);
                 
                 document.getElementById('overlay-fetching-sites').style.display = 'none';
+                document.getElementById('site-search-fetching').style.display = 'none';
                 document.getElementById('modal-see-publish').style.display = 'flex';
                 
                 updateCreateUpdateSiteBtnText();
                 applySiteSearchAndSort();
             } catch(e) {
                 document.getElementById('overlay-fetching-sites').style.display = 'none';
+                document.getElementById('site-search-fetching').style.display = 'none';
             }
         }
     });
@@ -1010,25 +1002,7 @@
         }
     });
 
-    socket.on('eb_ai_response', (data) => {
-        const outputBox = document.getElementById('ai-llama-output-box');
-        if (data.error) {
-            if (outputBox) outputBox.innerText = `Error: ${data.error}`;
-            alert(data.error);
-            stopAISiteGeneration();
-        } else if (data.done) {
-            if (outputBox) outputBox.innerText = data.text;
-            document.getElementById('site-html-field').value = data.text;
-            alert("HTML Script generated successfully!");
-            closeAskAIModal();
-        } else if (data.chunk || data.text) {
-            if (outputBox) {
-                outputBox.innerText = data.text || data.chunk;
-                outputBox.scrollTop = outputBox.scrollHeight;
-            }
-        }
-    });
-
+    // CORREÇÃO DEFINITIVA DO LOGIN GOOGLE SEM RECEPTÁCULO DE REFRESH
     function handleGoogleLogin(response) {
         const base64Url = response.credential.split('.')[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -1042,8 +1016,13 @@
     }
 
     socket.on('google_login_verified', (data) => {
-        // CORREÇÃO: Abre imediatamente o painel do servidor sem precisar dar refresh
-        document.querySelectorAll('.overlay').forEach(e => e.style.display = 'none');
+        hideLoadingScreen();
+        
+        // Esconde todas as overlays de autenticação
+        document.getElementById('overlay-sync').style.display = 'none';
+        document.getElementById('overlay-captcha').style.display = 'none';
+        document.getElementById('overlay-google-auth').style.display = 'none';
+        document.getElementById('overlay-start').style.display = 'none';
 
         if (data.hasServer) {
             serverKey = data.server.key;
@@ -1057,7 +1036,6 @@
             userRole = data.role || userRole;
             whitelistedDomains = serverSettings.whitelistedDomains || [];
 
-            applyRolePermissions();
             showDashboard();
             checkUrlSiteHash();
         } else {
@@ -1106,13 +1084,16 @@
         }
     }
 
-    // SEE AND PUBLISH AUTO-FETCHING BUSCA
-    function handleSiteSearchInput() {
+    // AUTO FETCHING NA BUSCA DE SITES
+    function handleSiteSearchTyping() {
+        const fetchingTag = document.getElementById('site-search-fetching');
         const container = document.getElementById('published-sites-container');
-        container.innerHTML = `<div style="color:var(--accent); padding:15px; font-weight:bold;">Fetching sites...</div>`;
 
-        if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
-        searchDebounceTimer = setTimeout(() => {
+        container.innerHTML = "";
+        fetchingTag.style.display = "block";
+
+        if (siteSearchDebounceTimer) clearTimeout(siteSearchDebounceTimer);
+        siteSearchDebounceTimer = setTimeout(() => {
             socket.emit('eb_get_published_sites', {
                 ownerId, googleSub,
                 search: document.getElementById('site-search-input').value.trim(),
@@ -1136,9 +1117,11 @@
 
     function cancelSiteFetch() {
         document.getElementById('overlay-fetching-sites').style.display = 'none';
+        if (siteSearchDebounceTimer) clearTimeout(siteSearchDebounceTimer);
     }
 
     function closeSeeAndPublishModal() {
+        if (siteSearchDebounceTimer) clearTimeout(siteSearchDebounceTimer);
         document.getElementById('modal-see-publish').style.display = 'none';
     }
 
@@ -1162,7 +1145,10 @@
         const searchVal = document.getElementById('site-search-input').value.trim().toLowerCase();
         const sortVal = document.getElementById('site-sort-select').value;
 
-        let filtered = publishedSitesCache;
+        let filtered = publishedSitesCache.filter(s => {
+            if (!searchVal) return s.visibility === 'public';
+            return s.id.toLowerCase() === searchVal || (s.visibility === 'public' && s.title.toLowerCase().includes(searchVal));
+        });
 
         if (sortVal === 'newest') {
             filtered.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
@@ -1247,44 +1233,6 @@
         }
     }
 
-    // "Or ask AI ✨" SITE GENERATOR FLOATING PANEL
-    function openAskAIModal() {
-        document.getElementById('ai-site-prompt').value = "";
-        document.getElementById('ai-input-view').style.display = 'block';
-        document.getElementById('ai-generating-view').style.display = 'none';
-        document.getElementById('modal-ask-ai').style.display = 'flex';
-    }
-
-    function closeAskAIModal() {
-        stopAISiteGeneration();
-        document.getElementById('modal-ask-ai').style.display = 'none';
-    }
-
-    function startAISiteGeneration() {
-        const promptVal = document.getElementById('ai-site-prompt').value.trim();
-        const tempVal = parseFloat(document.getElementById('ai-site-temp').value) || 0.7;
-
-        document.getElementById('ai-input-view').style.display = 'none';
-        document.getElementById('ai-llama-output-box').innerText = "Connecting to Llama AI...";
-        document.getElementById('ai-generating-view').style.display = 'block';
-
-        socket.emit('RemoteEvent', {
-            type: 'eb_callai_smollm:135',
-            data: {
-                model: 'llama3.2:1b',
-                Temp: tempVal,
-                Mtokens: 1520,
-                Instruction: 'Build a single-file HTML script according to user prompt. Do NOT include markdown code blocks, no comments, no intros, and no outros. Return ONLY valid executable HTML code.',
-                Prompt: promptVal,
-                Streaming: true
-            }
-        });
-    }
-
-    function stopAISiteGeneration() {
-        socket.emit('RemoteEvent', { type: 'eb_ai_stopgen_latest' });
-    }
-
     function handleCreateOrUpdateSiteClick() {
         closeSeeAndPublishModal();
         if (isUserHasSite) {
@@ -1306,6 +1254,52 @@
 
     function closeCreateSiteModal() {
         document.getElementById('modal-create-site').style.display = 'none';
+    }
+
+    // --- OR ASK AI FLOATING MODAL & LLAMA 3.2:1B GENERATION ---
+    function openAskAIModal() {
+        document.getElementById('ai-prompt-input').value = "";
+        document.getElementById('ai-temp-input').value = "0.7";
+        document.getElementById('ask-ai-input-panel').style.display = 'block';
+        document.getElementById('ask-ai-output-panel').style.display = 'none';
+        document.getElementById('ai-live-output').innerText = "";
+        document.getElementById('modal-ask-ai').style.display = 'flex';
+    }
+
+    function closeAskAIModal() {
+        stopLlamaSiteGen();
+        document.getElementById('modal-ask-ai').style.display = 'none';
+    }
+
+    function startLlamaSiteGen() {
+        let promptVal = document.getElementById('ai-prompt-input').value.trim();
+        const tempVal = parseFloat(document.getElementById('ai-temp-input').value) || 0.7;
+
+        if (!promptVal) {
+            promptVal = "Create an innovative, fully functional, beautifully styled HTML/CSS/JS web application.";
+        }
+
+        document.getElementById('ask-ai-input-panel').style.display = 'none';
+        document.getElementById('ask-ai-output-panel').style.display = 'block';
+        document.getElementById('ai-live-output').innerText = "Connecting to Llama 3.2:1b...";
+
+        socket.emit('RemoteEvent', {
+            type: 'eb_callai_smollm:135',
+            data: {
+                model: 'llama3.2:1b',
+                Temp: tempVal,
+                Mtokens: 1520,
+                Instruction: "You are an expert web developer. Write a complete, functional single-file HTML/CSS/JS script based on the user request. Output ONLY raw HTML code. Do NOT use markdown codeblocks (no ```html), do NOT add intros or outros.",
+                Prompt: promptVal,
+                Streaming: true
+            }
+        });
+    }
+
+    function stopLlamaSiteGen() {
+        socket.emit('RemoteEvent', { type: 'eb_ai_stopgen_latest' });
+        document.getElementById('ask-ai-input-panel').style.display = 'block';
+        document.getElementById('ask-ai-output-panel').style.display = 'none';
     }
 
     function generateSiteIdSubmit() {
@@ -1877,9 +1871,14 @@
         const kb = (data.ramUsageBytes / 1024).toFixed(1);
         document.getElementById('ram-usage-text').innerText = `${kb} KB`;
 
-        // Update RAM Progress Bar
-        const limitBytes = (data.settings && data.settings.ramUnit === 'KB') ? (data.settings.ramLimitKB * 1024) : (data.settings ? data.settings.ramLimitMB * 1024 * 1024 : 250 * 1024 * 1024);
-        const ramPct = Math.min(100, Math.floor((data.ramUsageBytes / limitBytes) * 100));
+        // Update RAM progress bar
+        let maxRamBytes = 250 * 1024 * 1024;
+        if (serverSettings && serverSettings.ramUnit === 'KB') {
+            maxRamBytes = (serverSettings.ramLimitKB || 250000) * 1024;
+        } else if (serverSettings && serverSettings.ramLimitMB) {
+            maxRamBytes = serverSettings.ramLimitMB * 1024 * 1024;
+        }
+        const ramPct = Math.min(100, Math.floor((data.ramUsageBytes / maxRamBytes) * 100));
         document.getElementById('ram-progress-bar').style.width = `${ramPct}%`;
 
         if (data.email) {
@@ -2004,37 +2003,17 @@
     }
 
     function testConnection() {
-        const pingStart = Date.now();
-        socket.once('ebgetstatus_response', () => {
-            netPingMs = Date.now() - pingStart;
+        const btn = document.getElementById('test-conn-btn');
+        btn.disabled = true;
+        btn.innerText = "Testing...";
+        const startTime = Date.now();
+        socket.once('ebgetstatus_response', (data) => {
+            alert(`${data.status}\nping: ${Date.now() - startTime}ms`);
+            btn.disabled = false;
+            btn.innerText = "[Test Connection]";
         });
         socket.emit('ebgetstatus');
     }
-
-    // REAL-TIME NETWORK STATS TIMER (CALCULATED EVERY 60ms, DISPLAYED EVERY 1s)
-    setInterval(() => {
-        testConnection();
-    }, 1000);
-
-    setInterval(() => {
-        const now = Date.now();
-        const timeDiffSec = (now - lastNetMetricTime) / 1000;
-        lastNetMetricTime = now;
-
-        const downKbps = ((netBytesRecvAcc / 1024) / timeDiffSec).toFixed(1);
-        const upKbps = ((netBytesSentAcc / 1024) / timeDiffSec).toFixed(1);
-
-        netBytesRecvAcc = 0;
-        netBytesSentAcc = 0;
-
-        const pingEl = document.getElementById('stat-ping');
-        const downEl = document.getElementById('stat-down');
-        const upEl = document.getElementById('stat-up');
-
-        if (pingEl) pingEl.innerText = netPingMs;
-        if (downEl) downEl.innerText = downKbps;
-        if (upEl) upEl.innerText = upKbps;
-    }, 1000);
 
     function copyUserId() {
         if (!activeUserId) return alert("User ID not generated yet!");
