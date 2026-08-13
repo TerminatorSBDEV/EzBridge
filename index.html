@@ -89,11 +89,11 @@
         .dot.online { background: var(--green); box-shadow: 0 0 10px var(--green); }
 
         .progress-container {
-            width: 100%; background: #020617; border: 1px solid var(--border) !important;
-            height: 22px; overflow: hidden; margin: 10px 0; position: relative;
+            width: 100%; background: #000000; border: 1px solid var(--border) !important;
+            height: 14px; overflow: hidden; margin: 10px 0; position: relative;
         }
-        .progress-bar { width: 0%; height: 100%; background: var(--accent); transition: width 0.1s ease; }
-        .progress-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; }
+        .progress-bar { width: 0%; height: 100%; background: #ef4444; transition: width 0.1s ease; }
+        .progress-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold; }
 
         .domain-list { display: flex; flex-direction: column; gap: 6px; margin-top: 5px; }
         .domain-item { display: flex; justify-content: space-between; align-items: center; background: #020617; padding: 6px 10px; font-size: 0.8rem; border: 1px solid var(--border) !important; }
@@ -125,41 +125,27 @@
             color: #fff !important; padding: 12px; font-weight: bold; cursor: pointer;
             transition: transform 0.2s, background 0.2s; text-align: center;
         }
-        .session-btn:hover {
-            background: rgba(239, 68, 68, 0.5) !important;
-        }
-        .session-btn-list:hover .session-btn:not(:hover) {
-            transform: scale(0.96);
-        }
+        .session-btn:hover { background: rgba(239, 68, 68, 0.5) !important; }
+        .session-btn-list:hover .session-btn:not(:hover) { transform: scale(0.96); }
 
         .chat-bubble-box {
             background: #020617; border: 1px solid var(--border);
             height: 300px; max-height: 320px; overflow-y: auto; padding: 12px;
             display: flex; flex-direction: column; gap: 10px; text-align: left;
         }
-        .chat-bubble {
-            background: #0f172a; border: 1px solid var(--border);
-            padding: 8px 12px; font-size: 0.85rem; word-break: break-word;
-        }
+        .chat-bubble { background: #0f172a; border: 1px solid var(--border); padding: 8px 12px; font-size: 0.85rem; word-break: break-word; }
 
         #modal-site-viewer .card {
-            width: 95vw !important;
-            height: 95vh !important;
-            max-width: 95vw !important;
-            max-height: 95vh !important;
-            padding: 15px;
-            display: flex; flex-direction: column;
-            background: #000000 !important;
-            border: 2px solid #ef4444 !important;
+            width: 95vw !important; height: 95vh !important;
+            max-width: 95vw !important; max-height: 95vh !important;
+            padding: 15px; display: flex; flex-direction: column;
+            background: #000000 !important; border: 2px solid #ef4444 !important;
             box-shadow: 0 0 30px rgba(239, 68, 68, 0.4);
         }
 
         #site-viewer-frame {
-            flex: 1;
-            width: 100%;
-            height: calc(95vh - 70px) !important;
-            border: 1px solid #ef4444;
-            background: #ffffff;
+            flex: 1; width: 100%; height: calc(95vh - 70px) !important;
+            border: 1px solid #ef4444; background: #ffffff;
         }
 
         .disclaimer { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--error) !important; color: #fca5a5; padding: 10px; font-size: 0.75rem; text-align: left; margin-bottom: 10px; }
@@ -200,18 +186,14 @@
             <h3>SEE AND PUBLISH</h3>
             <div style="display:flex; gap:10px; margin-bottom:10px; align-items:center; flex-wrap:wrap;">
                 <label style="font-size:0.8rem; font-weight:bold;">Sort by:</label>
-                <select id="site-sort-select" onchange="triggerAutoSiteSearch()" style="padding:6px; background:#020617; color:#fff; border:1px solid var(--border);">
+                <select id="site-sort-select" onchange="triggerSearchAutoFetch()" style="padding:6px; background:#020617; color:#fff; border:1px solid var(--border);">
                     <option value="visits">Most accessed</option>
                     <option value="newest">Newest</option>
                 </select>
-                <input type="text" id="site-search-input" placeholder="Search site name or 20-digit ID..." maxlength="30" oninput="triggerAutoSiteSearch()" style="flex:1; padding:6px;">
+                <input type="text" id="site-search-input" placeholder="Search site name or 20-digit ID..." maxlength="30" oninput="triggerSearchAutoFetch()" style="flex:1; padding:6px;">
             </div>
 
-            <!-- SEARCH LOADING TEXT FOR AUTO FETCH -->
-            <div id="site-search-loading" style="display:none; font-size:0.85rem; color:var(--accent); font-weight:bold; margin:15px 0;">
-                Fetching sites...
-            </div>
-
+            <!-- AUTO FETCHING LIST CONTAINER -->
             <div id="published-sites-container" class="settings-grid" style="flex:1; max-height:none;"></div>
 
             <button class="btn btn-purple" id="btn-create-update-site" style="margin-top:10px;" onclick="handleCreateOrUpdateSiteClick()">Create site</button>
@@ -230,7 +212,7 @@
                 <div class="settings-item">
                     <label>HTML Script (at least 100 chars, max 20MB)</label>
                     <textarea id="site-html-field" rows="8" style="height:150px;" placeholder="<!DOCTYPE html>..."></textarea>
-                    <button class="btn btn-purple" style="margin-top:6px;" onclick="openAskAIModal()">Or ask AI ✨</button>
+                    <button class="btn btn-purple" style="margin-top:4px;" onclick="openAiSiteModal()">Or ask AI ✨</button>
                 </div>
                 <div class="settings-item">
                     <label>Visibility</label>
@@ -257,30 +239,34 @@
         </div>
     </div>
 
-    <!-- FLOATING PANEL "Or ask AI ✨" -->
-    <div id="modal-ask-ai" class="overlay" style="display:none;">
+    <!-- MODAL OR ASK AI ✨ -->
+    <div id="modal-ai-site" class="overlay" style="display:none;">
         <div class="card" style="max-width: 520px;">
-            <h3 id="ask-ai-header">What do you wanna ask AI to make? (only accepting Html scripts)</h3>
-            
-            <div id="ask-ai-input-form">
-                <textarea id="ai-prompt-input" class="code-box" rows="4" style="height:100px;" placeholder="e.g. Create a retro space shooter game in HTML5..."></textarea>
-                <div class="settings-item" style="margin:10px 0;">
-                    <label>Creativity (0.0 - 1.0)</label>
-                    <input type="number" id="ai-temp-input" min="0.0" max="1.0" step="0.1" value="0.7">
+            <h3 id="ai-site-modal-title">Or ask AI ✨</h3>
+            <div id="ai-site-input-block">
+                <p style="font-size:0.8rem; color:var(--muted); margin-bottom:10px;">What do you wanna ask AI to make? (only accepting Html scripts)</p>
+                <div class="settings-item">
+                    <label>Prompt</label>
+                    <textarea id="ai-site-prompt-input" rows="4" style="height:80px;" placeholder="e.g. A tic-tac-toe game with score counter..."></textarea>
                 </div>
-                <button class="btn btn-purple" onclick="startAIGenerationSubmit()">Start</button>
+                <div class="settings-item" style="margin-top:10px;">
+                    <label>Creativity (0.0 - 1.0)</label>
+                    <input type="number" id="ai-site-temp-input" value="0.7" min="0.0" max="1.0" step="0.1">
+                </div>
+                <button class="btn btn-purple" style="margin-top:15px;" onclick="startAiSiteGen()">Start</button>
             </div>
 
-            <div id="ask-ai-generating-view" style="display:none;">
-                <div style="font-size:0.8rem; color:var(--accent); font-weight:bold; text-align:left;">llama's output:</div>
-                <textarea id="ai-output-stream-box" class="code-box" readonly rows="8" style="width:100%; height:180px;"></textarea>
-                <button class="btn btn-danger" onclick="stopAIGenerationSubmit()">stop generation</button>
+            <div id="ai-site-generating-block" style="display:none; text-align:left;">
+                <div style="font-size:0.85rem; font-weight:bold; color:var(--accent); margin-bottom:8px;">llama's output:</div>
+                <div id="ai-site-output-box" class="code-box" style="height:200px; max-height:220px; overflow-y:auto; white-space:pre-wrap;"></div>
+                <button class="btn btn-danger" style="margin-top:10px;" onclick="stopAiSiteGen()">stop generation</button>
             </div>
 
-            <button class="btn btn-secondary" style="margin-top:10px;" onclick="closeAskAIModal()">Close</button>
+            <button class="btn btn-secondary" style="margin-top:10px;" onclick="closeAiSiteModal()">Close</button>
         </div>
     </div>
 
+    <!-- MODAL SITE VIEWER -->
     <div id="modal-site-viewer" class="overlay" style="display:none;">
         <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
@@ -607,9 +593,9 @@
     </div>
 
     <div id="dashboard" class="card" style="display:none; width: 480px;">
-        <!-- METRICS BAR AT THE TOP OF DASHBOARD -->
-        <div id="metrics-bar" style="font-size:0.75rem; color:var(--muted); font-weight:bold; margin-bottom:8px; border-bottom:1px solid var(--border); padding-bottom:6px;">
-            PING: <span id="metric-ping" style="color:var(--green)">0</span>ms | Data received: <span id="metric-down" style="color:var(--accent)">0.0</span>kbps↓ | Data sent: <span id="metric-up" style="color:var(--yellow)">0.0</span>kbps↑
+        <!-- HEADER TELEMETRY BAR -->
+        <div id="telemetry-bar" style="font-size:0.75rem; color:var(--accent); font-weight:bold; margin-bottom:8px; text-align:center;">
+            PING: <span id="telemetry-ping">0</span>ms | Data received: <span id="telemetry-down">0</span>kbs↓ | Data sent: <span id="telemetry-up">0</span>kbps↑
         </div>
 
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
@@ -640,10 +626,10 @@
             <div>Users online on your server: <span id="online-users-count" style="color:var(--accent); font-weight:bold;">0</span></div>
             <div>Active ServerScripts: <span id="active-scripts-count" style="color:var(--accent); font-weight:bold;">0</span></div>
             
-            <!-- RAM USAGE WITH PROGRESS BAR RIGHT TO THE NUMBERS -->
-            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+            <!-- RAM USAGE WITH VISUAL RED PROGRESS BAR RIGHT NEXT TO NUMBERS -->
+            <div style="display:flex; align-items:center; gap:8px;">
                 <div>RAM usage: <span id="ram-usage-text" style="color:var(--accent); font-weight:bold;">0.0 KB</span></div>
-                <div class="progress-container" style="width:120px; height:12px; margin:0; background:#000000; border:1px solid var(--border);">
+                <div class="progress-container" style="width:120px; height:12px; background:#000000; border:1px solid var(--border); margin:0;">
                     <div id="ram-progress-bar" class="progress-bar" style="background:#ef4444; width:0%;"></div>
                 </div>
             </div>
@@ -725,7 +711,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://traditional-arizona-debut-ten.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://bool-ask-runner-carry-trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
@@ -739,26 +725,26 @@
     let currentServerScript = "";
     let whitelistedDomains = [];
     let consoleLogsCache = [];
-    let terminalBufferText = "";
 
-    // Chat Sessions State
-    let currentChatSession = null;
-    let chatHistoryChunks = [];
-    let chatTypingTimeout = null;
+    // Telemetry state
+    let totalBytesSent = 0;
+    let totalBytesReceived = 0;
+    let lastBytesSent = 0;
+    let lastBytesReceived = 0;
+    let currentPingMs = 0;
 
-    // See and Publish State & Auto Search
+    // See and Publish State
     let publishedSitesCache = [];
     let siteFetchChunks = [];
     let isUserHasSite = false;
     let siteGenCooldownTimer = null;
     let generatedSiteIdVal = "";
     let userSiteDataChunks = [];
-    let siteSearchDebounceTimer = null;
+    let searchDebounceTimer = null;
 
-    // Network Metrics (KB/s and Ping)
-    let bytesReceivedSec = 0;
-    let bytesSentSec = 0;
-    let lastPingMs = 0;
+    // AI Site Gen State
+    let isAiSiteGenActive = false;
+    let aiSiteGenBuffer = "";
 
     const SCRIPT_CHUNK_SIZE = 100 * 1024;
     const UNIV_CHUNK_SIZE = 50 * 1024;
@@ -777,21 +763,15 @@
         transports: ['websocket']
     });
 
-    // NETWORK SPEED TRACKER WRAPPERS
-    const origEmit = socket.emit;
-    socket.emit = function(evt, ...args) {
-        try {
-            const str = JSON.stringify(args);
-            bytesSentSec += new Blob([str]).size;
-        } catch(e) {}
-        return origEmit.apply(socket, [evt, ...args]);
-    };
+    // Track Socket Data Traffic
+    socket.onAnyOutgoing((evt, ...args) => {
+        const payloadStr = JSON.stringify(args);
+        totalBytesSent += (payloadStr ? payloadStr.length : 10);
+    });
 
     socket.onAny((evt, ...args) => {
-        try {
-            const str = JSON.stringify(args);
-            bytesReceivedSec += new Blob([str]).size;
-        } catch(e) {}
+        const payloadStr = JSON.stringify(args);
+        totalBytesReceived += (payloadStr ? payloadStr.length : 10);
     });
 
     socket.on('connect', () => {
@@ -802,7 +782,9 @@
         clearTimeout(initTimeout);
         ownerId = data.ownerId;
         setCookie("eb_owner_id", ownerId, 365);
-        document.getElementById('overlay-sync').style.display = 'none';
+
+        // Hide ALL overlays immediately
+        document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
 
         userRole = data.role || "None";
 
@@ -823,10 +805,36 @@
             googleEmail = data.server.email || null;
             activeUserId = data.server.userId || ownerId;
             whitelistedDomains = serverSettings.whitelistedDomains || [];
+            
+            document.getElementById('dashboard').style.display = 'block';
             showDashboard();
             checkUrlSiteHash();
         } else {
             document.getElementById('overlay-captcha').style.display = 'flex';
+        }
+    });
+
+    socket.on('google_login_verified', (data) => {
+        // HIDE ALL OVERLAYS IMMEDIATELY WITHOUT NEEDING PAGE REFRESH
+        document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
+
+        if (data.hasServer) {
+            serverKey = data.server.key;
+            serverActive = data.server.active;
+            serverType = data.server.serverType || "websocket";
+            serverSettings = data.server.settings;
+            currentServerScript = data.server.serverScript || "";
+            googleSub = data.server.googleSub || googleSub;
+            googleEmail = data.server.email || googleEmail;
+            activeUserId = data.server.userId || ownerId;
+            userRole = data.role || userRole;
+            whitelistedDomains = serverSettings.whitelistedDomains || [];
+
+            document.getElementById('dashboard').style.display = 'block';
+            showDashboard();
+            checkUrlSiteHash();
+        } else {
+            openSetupUI();
         }
     });
 
@@ -846,443 +854,109 @@
         }
     });
 
-    socket.on('eb_terminal_out', (data) => {
-        if (data.chunk) {
-            if (data.isHistory && data.index === 0) {
-                terminalBufferText = "";
+    // TELEMETRY COUNTER LOOP (UPDATES UI EVERY 1 SECOND)
+    setInterval(() => {
+        const sentKbps = (((totalBytesSent - lastBytesSent) * 8) / 1024).toFixed(1);
+        const recvKbps = (((totalBytesReceived - lastBytesReceived) * 8) / 1024).toFixed(1);
+
+        lastBytesSent = totalBytesSent;
+        lastBytesReceived = totalBytesReceived;
+
+        document.getElementById('telemetry-down').innerText = recvKbps;
+        document.getElementById('telemetry-up').innerText = sentKbps;
+
+        // Measure PING every 1s
+        const pingStart = Date.now();
+        socket.once('ebgetstatus_response', () => {
+            currentPingMs = Date.now() - pingStart;
+            document.getElementById('telemetry-ping').innerText = currentPingMs;
+        });
+        socket.emit('ebgetstatus');
+    }, 1000);
+
+    // AI STREAMING SITE SCRIPT HANDLER
+    socket.on('RemoteEvent', (pkt) => {
+        if (pkt.type === 'eb_ai_response') {
+            const data = pkt.data;
+            const outputBox = document.getElementById('ai-site-output-box');
+
+            if (data.error) {
+                alert(`AI Error: ${data.error}`);
+                closeAiSiteModal();
+                return;
             }
-            terminalBufferText += data.chunk;
-            const termEl = document.getElementById('terminal-screen');
-            if (termEl) {
-                termEl.innerText = terminalBufferText;
-                termEl.scrollTop = termEl.scrollHeight;
-            }
-        }
-    });
 
-    socket.on('eb_user_id_regenerated', (data) => {
-        activeUserId = data.newUserId;
-        document.getElementById('new-userid-display').value = activeUserId;
-        document.getElementById('modal-new-userid').style.display = 'flex';
-    });
-
-    socket.on('eb_account_deleted', () => {
-        alert("Account and data deleted permanently.");
-        accountLogout();
-    });
-
-    socket.on('eb_univserver_update_success', (data) => {
-        isUploadingUnivScript = false;
-        document.getElementById('univ-upload-progress').style.display = 'none';
-        alert(data.msg || "Updated successfully!");
-        setTimeout(() => location.reload(), 2500);
-    });
-
-    socket.on('eb_univserver_update_error', (data) => {
-        isUploadingUnivScript = false;
-        document.getElementById('univ-upload-progress').style.display = 'none';
-        alert(`UPDATE FAILED:\n${data.error}`);
-    });
-
-    // CHAT SESSION SOCKET EVENTS
-    socket.on('eb_chat_history_chunk', (data) => {
-        if (data.session !== currentChatSession) return;
-        if (data.index === 0) chatHistoryChunks = [];
-        chatHistoryChunks.push(data.chunk);
-
-        if (chatHistoryChunks.length === data.total) {
-            try {
-                const fullList = JSON.parse(chatHistoryChunks.join(''));
-                renderChatHistory(fullList);
-            } catch(e) {}
-        }
-    });
-
-    socket.on('eb_chat_msg_out', (data) => {
-        if (data.session === currentChatSession && data.msg) {
-            appendSingleChatMessage(data.msg);
-        }
-    });
-
-    socket.on('eb_chat_typing_count', (data) => {
-        if (data.session === currentChatSession) {
-            const el = document.getElementById('chat-typing-status');
-            if (el) {
-                if (data.count > 0) {
-                    el.innerText = `${data.count} ${data.count === 1 ? 'user is' : 'users are'} typing . . .`;
-                } else {
-                    el.innerText = "";
+            if (data.chunk || data.text) {
+                aiSiteGenBuffer = data.text || (aiSiteGenBuffer + data.chunk);
+                // Strip markdown html codeblocks
+                const cleanCode = aiSiteGenBuffer.replace(/```html?/gi, '').replace(/```/g, '').trim();
+                if (outputBox) {
+                    outputBox.innerText = cleanCode;
+                    outputBox.scrollTop = outputBox.scrollHeight;
+                }
+                
+                if (data.done) {
+                    document.getElementById('site-html-field').value = cleanCode;
+                    alert("HTML Script generated and applied!");
+                    closeAiSiteModal();
                 }
             }
         }
     });
 
-    // SEE AND PUBLISH SOCKET EVENTS
-    socket.on('eb_published_sites_chunk', (data) => {
-        if (data.index === 0) siteFetchChunks = [];
-        siteFetchChunks.push(data.chunk);
+    function openAiSiteModal() {
+        document.getElementById('ai-site-input-block').style.display = 'block';
+        document.getElementById('ai-site-generating-block').style.display = 'none';
+        document.getElementById('modal-ai-site').style.display = 'flex';
+    }
 
-        const pct = Math.floor(((data.index + 1) / data.total) * 100);
-        document.getElementById('site-fetch-pct').innerText = pct;
-        document.getElementById('site-fetch-bar').style.width = `${pct}%`;
-
-        if (siteFetchChunks.length === data.total) {
-            try {
-                publishedSitesCache = JSON.parse(siteFetchChunks.join(''));
-                isUserHasSite = Boolean(data.userHasSite);
-                
-                document.getElementById('overlay-fetching-sites').style.display = 'none';
-                document.getElementById('site-search-loading').style.display = 'none';
-                document.getElementById('published-sites-container').style.display = 'flex';
-                document.getElementById('modal-see-publish').style.display = 'flex';
-                
-                updateCreateUpdateSiteBtnText();
-                renderPublishedSitesList(publishedSitesCache);
-            } catch(e) {
-                document.getElementById('overlay-fetching-sites').style.display = 'none';
-                document.getElementById('site-search-loading').style.display = 'none';
-                document.getElementById('published-sites-container').style.display = 'flex';
-            }
+    function closeAiSiteModal() {
+        if (isAiSiteGenActive) {
+            socket.emit('RemoteEvent', { type: "eb_ai_stopgen_latest" });
+            isAiSiteGenActive = false;
         }
-    });
-
-    socket.on('eb_user_site_data_chunk', (data) => {
-        if (!data.success) {
-            document.getElementById('overlay-fetching-site-data').style.display = 'none';
-            openCreateSiteModalForm();
-            return;
-        }
-
-        if (data.index === 0) userSiteDataChunks = [];
-        userSiteDataChunks.push(data.chunk);
-
-        const pct = Math.floor(((data.index + 1) / data.total) * 100);
-        document.getElementById('site-data-pct').innerText = pct;
-        document.getElementById('site-data-bar').style.width = `${pct}%`;
-
-        if (userSiteDataChunks.length === data.total) {
-            try {
-                const parsed = JSON.parse(userSiteDataChunks.join(''));
-                document.getElementById('overlay-fetching-site-data').style.display = 'none';
-
-                openCreateSiteModalForm();
-
-                document.getElementById('site-title-field').value = parsed.site.title || "";
-                document.getElementById('site-html-field').value = parsed.site.htmlScript || "";
-                document.getElementById('site-vis-field').value = parsed.site.visibility || "public";
-                generatedSiteIdVal = parsed.site.id || "";
-
-                if (parsed.remCooldownMs > 0) {
-                    startSiteIdGenCooldown(parsed.remCooldownMs / 1000);
-                } else if (generatedSiteIdVal) {
-                    const btn = document.getElementById('btn-gen-site-id');
-                    btn.disabled = false;
-                    btn.innerText = `ID generated.`;
-                    btn.style.background = "#10b981";
-                    btn.style.color = "#000000";
-                }
-            } catch(e) {
-                document.getElementById('overlay-fetching-site-data').style.display = 'none';
-                openCreateSiteModalForm();
-            }
-        }
-    });
-
-    socket.on('eb_site_id_generated', (data) => {
-        generatedSiteIdVal = data.siteId;
-        startSiteIdGenCooldown(data.cooldownMs / 1000);
-    });
-
-    socket.on('eb_site_chunk_ack', (data) => {
-        const pct = Math.floor((data.received / data.total) * 100);
-        document.getElementById('site-progress-bar').style.width = `${pct}%`;
-        document.getElementById('site-progress-val').innerText = pct;
-    });
-
-    socket.on('eb_site_publish_complete', (data) => {
-        isUploadingSiteScript = false;
-        document.getElementById('site-upload-progress').style.display = 'none';
-        alert("Site published/updated successfully!");
-        closeCreateSiteModal();
-        openSeeAndPublishModal();
-    });
-
-    socket.on('eb_site_data_response', (data) => {
-        if (data.site) {
-            renderSiteFrame(data.site);
-        }
-    });
-
-    // CORREÇÃO IMEDIATA DO GOOGLE LOGIN (PAINEL DO SERVIDOR CARREGA DIRETO)
-    function handleGoogleLogin(response) {
-        const base64Url = response.credential.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-        const payload = JSON.parse(jsonPayload);
-
-        googleSub = payload.sub;
-        googleEmail = payload.email;
-
-        socket.emit('eb_google_login', { googleSub, email: googleEmail, ownerId });
+        document.getElementById('modal-ai-site').style.display = 'none';
     }
 
-    socket.on('google_login_verified', (data) => {
-        hideLoadingScreen();
-        document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
+    function startAiSiteGen() {
+        const userPrompt = document.getElementById('ai-site-prompt-input').value.trim();
+        const temp = parseFloat(document.getElementById('ai-site-temp-input').value) || 0.7;
 
-        if (data.hasServer) {
-            serverKey = data.server.key;
-            serverActive = data.server.active;
-            serverType = data.server.serverType || "websocket";
-            serverSettings = data.server.settings;
-            currentServerScript = data.server.serverScript || "";
-            googleSub = data.server.googleSub || googleSub;
-            googleEmail = data.server.email || googleEmail;
-            activeUserId = data.server.userId || ownerId;
-            userRole = data.role || userRole;
-            whitelistedDomains = serverSettings.whitelistedDomains || [];
-
-            applyRolePermissions();
-            showDashboard();
-            checkUrlSiteHash();
-        } else {
-            openSetupUI();
-        }
-    });
-
-    function captchaSolved() {
-        document.getElementById('overlay-captcha').style.display = 'none';
-        if (!googleSub) {
-            document.getElementById('overlay-google-auth').style.display = 'flex';
-        } else {
-            document.getElementById('overlay-start').style.display = 'flex';
-        }
-    }
-
-    function applyRolePermissions() {
-        const tag = document.getElementById('role-tag-display');
-        const termBtn = document.getElementById('terminal-btn');
-        const btnServerMgmt = document.getElementById('btn-server-mgmt');
-        const btnBanUser = document.getElementById('btn-ban-user');
-        const btnRoleMgr = document.getElementById('btn-role-mgr');
-
-        termBtn.style.display = 'none';
-        btnServerMgmt.style.display = 'none';
-        btnBanUser.style.display = 'none';
-        btnRoleMgr.style.display = 'none';
-
-        if (userRole === 'Owner') {
-            tag.innerHTML = `<span class="role-tag role-owner">OWNER</span>`;
-            termBtn.style.display = 'block';
-            btnServerMgmt.style.display = 'block';
-            btnBanUser.style.display = 'block';
-            btnRoleMgr.style.display = 'block';
-        } else if (userRole === 'Dev') {
-            tag.innerHTML = `<span class="role-tag role-dev">DEVELOPER</span>`;
-            btnServerMgmt.style.display = 'block';
-            btnBanUser.style.display = 'block';
-            btnRoleMgr.style.display = 'block';
-        } else if (userRole === 'Admin') {
-            tag.innerHTML = `<span class="role-tag role-admin">ADMIN</span>`;
-            btnServerMgmt.style.display = 'block';
-            btnBanUser.style.display = 'block';
-        } else {
-            tag.innerHTML = "";
-        }
-    }
-
-    // SEE AND PUBLISH AUTO FETCHING SEARCH
-    function openSeeAndPublishModal() {
-        siteFetchChunks = [];
-        document.getElementById('site-fetch-pct').innerText = '0';
-        document.getElementById('site-fetch-bar').style.width = '0%';
-        document.getElementById('overlay-fetching-sites').style.display = 'flex';
-
-        socket.emit('eb_get_published_sites', {
-            ownerId, googleSub,
-            search: document.getElementById('site-search-input') ? document.getElementById('site-search-input').value : '',
-            sortBy: document.getElementById('site-sort-select') ? document.getElementById('site-sort-select').value : 'visits'
-        });
-    }
-
-    function triggerAutoSiteSearch() {
-        document.getElementById('published-sites-container').style.display = 'none';
-        document.getElementById('site-search-loading').style.display = 'block';
-
-        if (siteSearchDebounceTimer) clearTimeout(siteSearchDebounceTimer);
-        siteSearchDebounceTimer = setTimeout(() => {
-            socket.emit('eb_get_published_sites', {
-                ownerId, googleSub,
-                search: document.getElementById('site-search-input').value,
-                sortBy: document.getElementById('site-sort-select').value
-            });
-        }, 300);
-    }
-
-    function cancelSiteFetch() {
-        document.getElementById('overlay-fetching-sites').style.display = 'none';
-    }
-
-    function closeSeeAndPublishModal() {
-        if (siteSearchDebounceTimer) clearTimeout(siteSearchDebounceTimer);
-        document.getElementById('modal-see-publish').style.display = 'none';
-    }
-
-    function updateCreateUpdateSiteBtnText() {
-        const btn = document.getElementById('btn-create-update-site');
-        const submitBtn = document.getElementById('submit-site-btn');
-        const titleHeader = document.getElementById('create-site-title');
-
-        if (isUserHasSite) {
-            if (btn) btn.innerText = "UPDATE SITE";
-            if (submitBtn) submitBtn.innerText = "UPDATE SITE";
-            if (titleHeader) titleHeader.innerText = "UPDATE SITE";
-        } else {
-            if (btn) btn.innerText = "Create site";
-            if (submitBtn) submitBtn.innerText = "Create site";
-            if (titleHeader) titleHeader.innerText = "CREATE SITE";
-        }
-    }
-
-    function renderPublishedSitesList(sites) {
-        const container = document.getElementById('published-sites-container');
-        container.innerHTML = "";
-
-        if (sites.length === 0) {
-            container.innerHTML = `<div style="color:var(--muted); padding:20px; font-size:0.85rem;">No published sites found.</div>`;
-            return;
-        }
-
-        sites.forEach(s => {
-            const div = document.createElement('div');
-            div.className = 'domain-item';
-            div.style.flexDirection = 'column';
-            div.style.alignItems = 'flex-start';
-            div.style.gap = '6px';
-
-            const canDelete = (userRole === 'Owner' || userRole === 'Dev' || userRole === 'Admin');
-            const deleteBtnHTML = canDelete ? `<button class="btn btn-danger" style="width:auto; margin:0; padding:2px 8px; font-size:0.7rem;" onclick="deletePublishedSite('${s.id}')">[DELETE]</button>` : '';
-
-            div.innerHTML = `
-                <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
-                    <span><b>${escapeHtml(s.title)}</b> <button class="btn-secondary" style="padding:2px 6px; font-size:0.65rem;" onclick="copyTextValue('${s.id}')">[COPY ID]</button> by <b>${escapeHtml(s.ownerUserId)}</b></span>
-                    ${deleteBtnHTML}
-                </div>
-                <div style="font-size:0.75rem; color:var(--muted);">
-                    Latest update: ${s.dateStr || '0/0/0'} | <b>${s.onlineCount || 0}</b> people online in it! | visits: <b>${s.visits || 0}</b>
-                </div>
-                <button class="btn" style="width:auto; margin:0; padding:4px 14px; font-size:0.8rem;" onclick="accessSite('${s.id}')">[access]</button>
-            `;
-            container.appendChild(div);
-        });
-    }
-
-    function deletePublishedSite(siteId) {
-        if (confirm(`Delete site ${siteId} permanently?`)) {
-            socket.emit('eb_delete_site', { siteId, ownerId, googleSub });
-            setTimeout(openSeeAndPublishModal, 500);
-        }
-    }
-
-    function accessSite(siteId) {
-        closeSeeAndPublishModal();
-        window.location.hash = `#/sites/${siteId}`;
-        socket.emit('eb_visit_site', { siteId });
-    }
-
-    function renderSiteFrame(site) {
-        document.getElementById('site-viewer-title').innerText = `${site.title} (${site.id})`;
-        const iframe = document.getElementById('site-viewer-frame');
+        document.getElementById('ai-site-input-block').style.display = 'none';
+        document.getElementById('ai-site-generating-block').style.display = 'block';
         
-        const doc = iframe.contentWindow.document;
-        doc.open();
-        doc.write(site.htmlScript);
-        doc.close();
+        aiSiteGenBuffer = "";
+        document.getElementById('ai-site-output-box').innerText = "Generating HTML...";
+        isAiSiteGenActive = true;
 
-        document.getElementById('modal-site-viewer').style.display = 'flex';
-    }
-
-    function closeSiteViewerModal() {
-        document.getElementById('modal-site-viewer').style.display = 'none';
-        window.location.hash = "";
-        openSeeAndPublishModal();
-    }
-
-    function checkUrlSiteHash() {
-        const hash = window.location.hash;
-        if (hash && hash.startsWith('#/sites/')) {
-            const sId = hash.replace('#/sites/', '').trim();
-            if (sId) {
-                socket.emit('eb_visit_site', { siteId: sId });
-            }
-        }
-    }
-
-    // "Or ask AI ✨" FLOATING PANEL & LLAMA GENERATION
-    function openAskAIModal() {
-        document.getElementById('ai-prompt-input').value = "";
-        document.getElementById('ask-ai-input-form').style.display = 'block';
-        document.getElementById('ask-ai-generating-view').style.display = 'none';
-        document.getElementById('modal-ask-ai').style.display = 'flex';
-    }
-
-    function closeAskAIModal() {
-        stopAIGenerationSubmit();
-        document.getElementById('modal-ask-ai').style.display = 'none';
-    }
-
-    function startAIGenerationSubmit() {
-        const promptText = document.getElementById('ai-prompt-input').value.trim();
-        const tempVal = parseFloat(document.getElementById('ai-temp-input').value) || 0.7;
-
-        document.getElementById('ask-ai-input-form').style.display = 'none';
-        document.getElementById('ai-output-stream-box').value = "Connecting to Llama 3.2b...";
-        document.getElementById('ask-ai-generating-view').style.display = 'block';
+        const systemInstruction = "You are an expert HTML developer. Generate a complete, standalone, valid HTML script based on the user request. Output ONLY raw HTML code without markdown formatting, ticks, comments, intros, or outros. If the user request is vague, unspecific, or not about HTML, invent a creative HTML web app.";
 
         socket.emit('RemoteEvent', {
-            type: "eb_callai_smollm:135", // Invoca o modelo no backend
+            type: "eb_callai_smollm:135m",
             data: {
                 model: "llama3.2:1b",
-                Temp: tempVal,
+                Temp: temp,
                 Mtokens: 1520,
-                Instruction: "Build a complete single-file HTML script according to the user request. Output ONLY raw executable HTML code. Do NOT include markdown code blocks, backticks, comments, intros, outros, or explanations. If the prompt is not for an HTML site or is vague, invent a creative random HTML site idea.",
-                Prompt: promptText || "Create a cool interactive HTML canvas site",
+                Instruction: systemInstruction,
+                Prompt: userPrompt || "Build a creative interactive HTML site.",
                 Streaming: true
             }
         });
     }
 
-    function stopAIGenerationSubmit() {
-        socket.emit('RemoteEvent', { type: "eb_ai_stopgen_latest" });
+    function stopAiSiteGen() {
+        closeAiSiteModal();
     }
 
-    // ESCUTA RETORNO DO LLAMA EM STREAMING
-    socket.on('RemoteEvent', (pkt) => {
-        if (pkt.type === 'eb_ai_response' && pkt.data) {
-            const outputBox = document.getElementById('ai-output-stream-box');
-            if (outputBox && document.getElementById('modal-ask-ai').style.display === 'flex') {
-                if (pkt.data.error) {
-                    outputBox.value = `ERROR:\n${pkt.data.error}`;
-                    return;
-                }
+    function triggerSearchAutoFetch() {
+        const container = document.getElementById('published-sites-container');
+        container.innerHTML = `<div style="color:var(--accent); font-weight:bold; padding:20px;">Fetching sites...</div>`;
 
-                let cleanText = pkt.data.text || "";
-                // Sanatização estrita de blocos markdown
-                cleanText = cleanText.replace(/```html?/gi, '').replace(/```/g, '').trim();
-                outputBox.value = cleanText;
-                outputBox.scrollTop = outputBox.scrollHeight;
-
-                if (pkt.data.done) {
-                    // Preenche o campo de script HTML da criação de site automaticamente!
-                    document.getElementById('site-html-field').value = cleanText;
-                    setTimeout(() => {
-                        alert("HTML Script generated and populated successfully!");
-                        closeAskAIModal();
-                    }, 500);
-                }
-            }
-        }
-    });
+        if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+        searchDebounceTimer = setTimeout(() => {
+            openSeeAndPublishModal();
+        }, 300);
+    }
 
     function handleCreateOrUpdateSiteClick() {
         closeSeeAndPublishModal();
@@ -1376,7 +1050,135 @@
         });
     }
 
-    // CHAT SESSIONS UI FUNCTIONS
+    function openSeeAndPublishModal() {
+        siteFetchChunks = [];
+        document.getElementById('site-fetch-pct').innerText = '0';
+        document.getElementById('site-fetch-bar').style.width = '0%';
+        document.getElementById('overlay-fetching-sites').style.display = 'flex';
+
+        socket.emit('eb_get_published_sites', {
+            ownerId, googleSub,
+            search: document.getElementById('site-search-input') ? document.getElementById('site-search-input').value : '',
+            sortBy: document.getElementById('site-sort-select') ? document.getElementById('site-sort-select').value : 'visits'
+        });
+    }
+
+    function cancelSiteFetch() {
+        document.getElementById('overlay-fetching-sites').style.display = 'none';
+    }
+
+    function closeSeeAndPublishModal() {
+        document.getElementById('modal-see-publish').style.display = 'none';
+    }
+
+    function updateCreateUpdateSiteBtnText() {
+        const btn = document.getElementById('btn-create-update-site');
+        const submitBtn = document.getElementById('submit-site-btn');
+        const titleHeader = document.getElementById('create-site-title');
+
+        if (isUserHasSite) {
+            if (btn) btn.innerText = "UPDATE SITE";
+            if (submitBtn) submitBtn.innerText = "UPDATE SITE";
+            if (titleHeader) titleHeader.innerText = "UPDATE SITE";
+        } else {
+            if (btn) btn.innerText = "Create site";
+            if (submitBtn) submitBtn.innerText = "Create site";
+            if (titleHeader) titleHeader.innerText = "CREATE SITE";
+        }
+    }
+
+    function applySiteSearchAndSort() {
+        const searchVal = document.getElementById('site-search-input').value.trim().toLowerCase();
+        const sortVal = document.getElementById('site-sort-select').value;
+
+        let filtered = publishedSitesCache.filter(s => {
+            if (!searchVal) return s.visibility === 'public' || s.ownerUserId === activeUserId || userRole !== 'None';
+            return s.id === searchVal || s.title.toLowerCase().includes(searchVal);
+        });
+
+        if (sortVal === 'newest') {
+            filtered.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+        } else {
+            filtered.sort((a, b) => (b.visits || 0) - (a.visits || 0));
+        }
+
+        renderPublishedSitesList(filtered);
+    }
+
+    function renderPublishedSitesList(sites) {
+        const container = document.getElementById('published-sites-container');
+        container.innerHTML = "";
+
+        if (sites.length === 0) {
+            container.innerHTML = `<div style="color:var(--muted); padding:20px; font-size:0.85rem;">No published sites found.</div>`;
+            return;
+        }
+
+        sites.forEach(s => {
+            const div = document.createElement('div');
+            div.className = 'domain-item';
+            div.style.flexDirection = 'column';
+            div.style.alignItems = 'flex-start';
+            div.style.gap = '6px';
+
+            const canDelete = (userRole === 'Owner' || userRole === 'Dev' || userRole === 'Admin');
+            const deleteBtnHTML = canDelete ? `<button class="btn btn-danger" style="width:auto; margin:0; padding:2px 8px; font-size:0.7rem;" onclick="deletePublishedSite('${s.id}')">[DELETE]</button>` : '';
+
+            div.innerHTML = `
+                <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
+                    <span><b>${escapeHtml(s.title)}</b> <button class="btn-secondary" style="padding:2px 6px; font-size:0.65rem;" onclick="copyTextValue('${s.id}')">[COPY ID]</button> by <b>${escapeHtml(s.ownerUserId)}</b></span>
+                    ${deleteBtnHTML}
+                </div>
+                <div style="font-size:0.75rem; color:var(--muted);">
+                    Latest update: ${s.dateStr || '0/0/0'} | <b>${s.onlineCount || 0}</b> people online in it! | visits: <b>${s.visits || 0}</b>
+                </div>
+                <button class="btn" style="width:auto; margin:0; padding:4px 14px; font-size:0.8rem;" onclick="accessSite('${s.id}')">[access]</button>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function deletePublishedSite(siteId) {
+        if (confirm(`Delete site ${siteId} permanently?`)) {
+            socket.emit('eb_delete_site', { siteId, ownerId, googleSub });
+            setTimeout(openSeeAndPublishModal, 500);
+        }
+    }
+
+    function accessSite(siteId) {
+        closeSeeAndPublishModal();
+        window.location.hash = `#/sites/${siteId}`;
+        socket.emit('eb_visit_site', { siteId });
+    }
+
+    function renderSiteFrame(site) {
+        document.getElementById('site-viewer-title').innerText = `${site.title} (${site.id})`;
+        const iframe = document.getElementById('site-viewer-frame');
+        
+        const doc = iframe.contentWindow.document;
+        doc.open();
+        doc.write(site.htmlScript);
+        doc.close();
+
+        document.getElementById('modal-site-viewer').style.display = 'flex';
+    }
+
+    function closeSiteViewerModal() {
+        document.getElementById('modal-site-viewer').style.display = 'none';
+        window.location.hash = "";
+        openSeeAndPublishModal();
+    }
+
+    function checkUrlSiteHash() {
+        const hash = window.location.hash;
+        if (hash && hash.startsWith('#/sites/')) {
+            const sId = hash.replace('#/sites/', '').trim();
+            if (sId) {
+                socket.emit('eb_visit_site', { siteId: sId });
+            }
+        }
+    }
+
     function openChooseSessionModal() {
         document.getElementById('modal-choose-session').style.display = 'flex';
     }
@@ -1873,14 +1675,13 @@
         document.getElementById('online-users-count').innerText = data.users;
         document.getElementById('active-scripts-count').innerText = data.activeScripts;
 
-        const ramBytes = data.ramUsageBytes || 0;
-        const ramKB = (ramBytes / 1024).toFixed(1);
-        const ramMB = (ramBytes / (1024 * 1024)).toFixed(2);
-        document.getElementById('ram-usage-text').innerText = `${ramKB} KB (${ramMB} MB)`;
+        const kb = (data.ramUsageBytes / 1024).toFixed(1);
+        document.getElementById('ram-usage-text').innerText = `${kb} KB`;
 
-        const maxRamBytes = 250 * 1024 * 1024;
-        const ramPct = Math.min(100, Math.max(0, (ramBytes / maxRamBytes) * 100));
-        document.getElementById('ram-progress-bar').style.width = `${ramPct}%`;
+        // Update RAM Progress Bar
+        const ramPct = Math.min(100, Math.floor((data.ramUsageBytes / (250 * 1024 * 1024)) * 100));
+        const ramBar = document.getElementById('ram-progress-bar');
+        if (ramBar) ramBar.style.width = `${ramPct}%`;
 
         if (data.email) {
             googleEmail = data.email;
@@ -1889,31 +1690,6 @@
 
         updateStatusDisplay();
     });
-
-    // PING E NETWORK SPEED METRICS TIMER (Atualiza UI a cada 1 segundo)
-    setInterval(() => {
-        if (serverKey) {
-            const startPing = Date.now();
-            socket.emit('ebgetstatus');
-            socket.once('ebgetstatus_response', () => {
-                lastPingMs = Date.now() - startPing;
-            });
-        }
-
-        const downKbps = (bytesReceivedSec * 8 / 1024).toFixed(1);
-        const upKbps = (bytesSentSec * 8 / 1024).toFixed(1);
-
-        const pingEl = document.getElementById('metric-ping');
-        const downEl = document.getElementById('metric-down');
-        const upEl = document.getElementById('metric-up');
-
-        if (pingEl) pingEl.innerText = lastPingMs;
-        if (downEl) downEl.innerText = downKbps;
-        if (upEl) upEl.innerText = upKbps;
-
-        bytesReceivedSec = 0;
-        bytesSentSec = 0;
-    }, 1000);
 
     function toggleServerState() {
         serverActive = !serverActive;
@@ -2029,9 +1805,14 @@
     }
 
     function testConnection() {
-        const start = Date.now();
+        const btn = document.getElementById('test-conn-btn');
+        btn.disabled = true;
+        btn.innerText = "Testing...";
+        const startTime = Date.now();
         socket.once('ebgetstatus_response', (data) => {
-            alert(`${data.status}\nping: ${Date.now() - start}ms`);
+            alert(`${data.status}\nping: ${Date.now() - startTime}ms`);
+            btn.disabled = false;
+            btn.innerText = "[Test Connection]";
         });
         socket.emit('ebgetstatus');
     }
@@ -2836,7 +2617,7 @@ ${serverType === 'websocket' ?
 4 - Learn More About EzBridge
 - Max Packet Size: 192KB per packet (350KB chunk stream processing).
 - Request Limit: Up to 60 requests/sec (more than 60 reqs/s or 200kbps triggers 5-min IP and client ratelimit).
-- Server Memory: Configured at ${serverSettings.ramLimitMB || 250}MB (+50MB hidden VRAM protection).
+- Server Memory: Configured at ${serverSettings.ramLimitMB || 250}MB.
 - Instance Scaling: Automatic room instancing per ${serverSettings.maxUsers || 20} max users.
 
 that's all you needed to know, now, you can start.
