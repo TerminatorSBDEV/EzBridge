@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EzBridge | Cloud Virtual Hosting</title>
+    <title>EzBridge, your free Universal Server.</title>
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
@@ -142,7 +142,6 @@
             padding: 8px 12px; font-size: 0.85rem; word-break: break-word;
         }
 
-        /* SITE VIEWER FULLSCREEN 5% SMALLER (95vw, 95vh) */
         #modal-site-viewer .card {
             width: 95vw !important;
             height: 95vh !important;
@@ -175,7 +174,6 @@
         </div>
     </div>
 
-    <!-- OVERLAY FETCHING SITES (150KB CHUNKS) -->
     <div id="overlay-fetching-sites" class="overlay" style="display:none;">
         <div class="card">
             <h3>Fetching sites...</h3>
@@ -187,7 +185,6 @@
         </div>
     </div>
 
-    <!-- OVERLAY FETCHING PREVIOUS SITE SETTINGS FOR UPDATE SITE -->
     <div id="overlay-fetching-site-data" class="overlay" style="display:none;">
         <div class="card">
             <h3>Fetching previous site settings...</h3>
@@ -198,17 +195,21 @@
         </div>
     </div>
 
-    <!-- MODAL SEE AND PUBLISH GUI -->
     <div id="modal-see-publish" class="overlay" style="display:none;">
         <div class="card" style="max-width: 680px; width:95%; max-height:85vh; display:flex; flex-direction:column;">
             <h3>SEE AND PUBLISH</h3>
             <div style="display:flex; gap:10px; margin-bottom:10px; align-items:center; flex-wrap:wrap;">
                 <label style="font-size:0.8rem; font-weight:bold;">Sort by:</label>
-                <select id="site-sort-select" onchange="applySiteSearchAndSort()" style="padding:6px; background:#020617; color:#fff; border:1px solid var(--border);">
+                <select id="site-sort-select" onchange="triggerAutoSiteSearch()" style="padding:6px; background:#020617; color:#fff; border:1px solid var(--border);">
                     <option value="visits">Most accessed</option>
                     <option value="newest">Newest</option>
                 </select>
-                <input type="text" id="site-search-input" placeholder="Search site name or 20-digit ID..." maxlength="30" oninput="applySiteSearchAndSort()" style="flex:1; padding:6px;">
+                <input type="text" id="site-search-input" placeholder="Search site name or 20-digit ID..." maxlength="30" oninput="triggerAutoSiteSearch()" style="flex:1; padding:6px;">
+            </div>
+
+            <!-- SEARCH LOADING TEXT FOR AUTO FETCH -->
+            <div id="site-search-loading" style="display:none; font-size:0.85rem; color:var(--accent); font-weight:bold; margin:15px 0;">
+                Fetching sites...
             </div>
 
             <div id="published-sites-container" class="settings-grid" style="flex:1; max-height:none;"></div>
@@ -218,7 +219,6 @@
         </div>
     </div>
 
-    <!-- MODAL CREATE / UPDATE SITE -->
     <div id="modal-create-site" class="overlay" style="display:none;">
         <div class="card" style="max-width: 580px; width:95%;">
             <h3 id="create-site-title">CREATE SITE</h3>
@@ -230,6 +230,7 @@
                 <div class="settings-item">
                     <label>HTML Script (at least 100 chars, max 20MB)</label>
                     <textarea id="site-html-field" rows="8" style="height:150px;" placeholder="<!DOCTYPE html>..."></textarea>
+                    <button class="btn btn-purple" style="margin-top:6px;" onclick="openAskAIModal()">Or ask AI ✨</button>
                 </div>
                 <div class="settings-item">
                     <label>Visibility</label>
@@ -256,14 +257,37 @@
         </div>
     </div>
 
-    <!-- MODAL SITE VIEWER (FULLSCREEN 5% SMALLER) -->
+    <!-- FLOATING PANEL "Or ask AI ✨" -->
+    <div id="modal-ask-ai" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 520px;">
+            <h3 id="ask-ai-header">What do you wanna ask AI to make? (only accepting Html scripts)</h3>
+            
+            <div id="ask-ai-input-form">
+                <textarea id="ai-prompt-input" class="code-box" rows="4" style="height:100px;" placeholder="e.g. Create a retro space shooter game in HTML5..."></textarea>
+                <div class="settings-item" style="margin:10px 0;">
+                    <label>Creativity (0.0 - 1.0)</label>
+                    <input type="number" id="ai-temp-input" min="0.0" max="1.0" step="0.1" value="0.7">
+                </div>
+                <button class="btn btn-purple" onclick="startAIGenerationSubmit()">Start</button>
+            </div>
+
+            <div id="ask-ai-generating-view" style="display:none;">
+                <div style="font-size:0.8rem; color:var(--accent); font-weight:bold; text-align:left;">llama's output:</div>
+                <textarea id="ai-output-stream-box" class="code-box" readonly rows="8" style="width:100%; height:180px;"></textarea>
+                <button class="btn btn-danger" onclick="stopAIGenerationSubmit()">stop generation</button>
+            </div>
+
+            <button class="btn btn-secondary" style="margin-top:10px;" onclick="closeAskAIModal()">Close</button>
+        </div>
+    </div>
+
     <div id="modal-site-viewer" class="overlay" style="display:none;">
         <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                 <h3 id="site-viewer-title" style="margin:0;">Site Viewer</h3>
                 <button class="btn btn-secondary" style="width:auto; margin:0; padding:6px 16px;" onclick="closeSiteViewerModal()">Back to EzBridge</button>
             </div>
-            <iframe id="site-viewer-frame"></iframe>
+            <iframe id="site-viewer-frame" sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-downloads" allow="autoplay; fullscreen; geolocation"></iframe>
         </div>
     </div>
 
@@ -583,6 +607,11 @@
     </div>
 
     <div id="dashboard" class="card" style="display:none; width: 480px;">
+        <!-- METRICS BAR AT THE TOP OF DASHBOARD -->
+        <div id="metrics-bar" style="font-size:0.75rem; color:var(--muted); font-weight:bold; margin-bottom:8px; border-bottom:1px solid var(--border); padding-bottom:6px;">
+            PING: <span id="metric-ping" style="color:var(--green)">0</span>ms | Data received: <span id="metric-down" style="color:var(--accent)">0.0</span>kbps↓ | Data sent: <span id="metric-up" style="color:var(--yellow)">0.0</span>kbps↑
+        </div>
+
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
             <div style="display:flex; align-items:center; gap:6px;">
                 <h2 style="margin:0;">EzBridge Control</h2>
@@ -610,7 +639,14 @@
             </div>
             <div>Users online on your server: <span id="online-users-count" style="color:var(--accent); font-weight:bold;">0</span></div>
             <div>Active ServerScripts: <span id="active-scripts-count" style="color:var(--accent); font-weight:bold;">0</span></div>
-            <div>RAM usage: <span id="ram-usage-text" style="color:var(--accent); font-weight:bold;">0.0 KB</span></div>
+            
+            <!-- RAM USAGE WITH PROGRESS BAR RIGHT TO THE NUMBERS -->
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                <div>RAM usage: <span id="ram-usage-text" style="color:var(--accent); font-weight:bold;">0.0 KB</span></div>
+                <div class="progress-container" style="width:120px; height:12px; margin:0; background:#000000; border:1px solid var(--border);">
+                    <div id="ram-progress-bar" class="progress-bar" style="background:#ef4444; width:0%;"></div>
+                </div>
+            </div>
         </div>
 
         <div class="dashboard-row">
@@ -620,7 +656,6 @@
         </div>
         <div class="dashboard-row">
             <button class="btn btn-secondary" style="flex: 1;" onclick="openHowToUse()">[How to Use]</button>
-            <button class="btn btn-secondary" style="flex: 1;" id="test-conn-btn" onclick="testConnection()">[Test Connection]</button>
         </div>
 
         <button class="btn" style="background:#ffffff !important; color:#000000 !important; font-weight:bold; margin-top:15px;" onclick="openSeeAndPublishModal()">SEE AND PUBLISH</button>
@@ -704,19 +739,26 @@
     let currentServerScript = "";
     let whitelistedDomains = [];
     let consoleLogsCache = [];
+    let terminalBufferText = "";
 
     // Chat Sessions State
     let currentChatSession = null;
     let chatHistoryChunks = [];
     let chatTypingTimeout = null;
 
-    // See and Publish State
+    // See and Publish State & Auto Search
     let publishedSitesCache = [];
     let siteFetchChunks = [];
     let isUserHasSite = false;
     let siteGenCooldownTimer = null;
     let generatedSiteIdVal = "";
     let userSiteDataChunks = [];
+    let siteSearchDebounceTimer = null;
+
+    // Network Metrics (KB/s and Ping)
+    let bytesReceivedSec = 0;
+    let bytesSentSec = 0;
+    let lastPingMs = 0;
 
     const SCRIPT_CHUNK_SIZE = 100 * 1024;
     const UNIV_CHUNK_SIZE = 50 * 1024;
@@ -733,6 +775,23 @@
     let socket = io(PUBLIC_TUNNEL_URL, {
         auth: { token: "default_key" },
         transports: ['websocket']
+    });
+
+    // NETWORK SPEED TRACKER WRAPPERS
+    const origEmit = socket.emit;
+    socket.emit = function(evt, ...args) {
+        try {
+            const str = JSON.stringify(args);
+            bytesSentSec += new Blob([str]).size;
+        } catch(e) {}
+        return origEmit.apply(socket, [evt, ...args]);
+    };
+
+    socket.onAny((evt, ...args) => {
+        try {
+            const str = JSON.stringify(args);
+            bytesReceivedSec += new Blob([str]).size;
+        } catch(e) {}
     });
 
     socket.on('connect', () => {
@@ -784,6 +843,20 @@
         if (data.logs) {
             consoleLogsCache = data.logs;
             renderConsoleLogs();
+        }
+    });
+
+    socket.on('eb_terminal_out', (data) => {
+        if (data.chunk) {
+            if (data.isHistory && data.index === 0) {
+                terminalBufferText = "";
+            }
+            terminalBufferText += data.chunk;
+            const termEl = document.getElementById('terminal-screen');
+            if (termEl) {
+                termEl.innerText = terminalBufferText;
+                termEl.scrollTop = termEl.scrollHeight;
+            }
         }
     });
 
@@ -844,7 +917,7 @@
         }
     });
 
-    // SEE AND PUBLISH SOCKET EVENTS (150KB CHUNKS)
+    // SEE AND PUBLISH SOCKET EVENTS
     socket.on('eb_published_sites_chunk', (data) => {
         if (data.index === 0) siteFetchChunks = [];
         siteFetchChunks.push(data.chunk);
@@ -859,18 +932,20 @@
                 isUserHasSite = Boolean(data.userHasSite);
                 
                 document.getElementById('overlay-fetching-sites').style.display = 'none';
+                document.getElementById('site-search-loading').style.display = 'none';
+                document.getElementById('published-sites-container').style.display = 'flex';
                 document.getElementById('modal-see-publish').style.display = 'flex';
                 
                 updateCreateUpdateSiteBtnText();
-                applySiteSearchAndSort();
+                renderPublishedSitesList(publishedSitesCache);
             } catch(e) {
                 document.getElementById('overlay-fetching-sites').style.display = 'none';
-                alert("Failed to parse published sites data.");
+                document.getElementById('site-search-loading').style.display = 'none';
+                document.getElementById('published-sites-container').style.display = 'flex';
             }
         }
     });
 
-    // FETCH PREVIOUS USER SITE SETTINGS IN 150KB CHUNKS
     socket.on('eb_user_site_data_chunk', (data) => {
         if (!data.success) {
             document.getElementById('overlay-fetching-site-data').style.display = 'none';
@@ -938,6 +1013,7 @@
         }
     });
 
+    // CORREÇÃO IMEDIATA DO GOOGLE LOGIN (PAINEL DO SERVIDOR CARREGA DIRETO)
     function handleGoogleLogin(response) {
         const base64Url = response.credential.split('.')[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -951,6 +1027,9 @@
     }
 
     socket.on('google_login_verified', (data) => {
+        hideLoadingScreen();
+        document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
+
         if (data.hasServer) {
             serverKey = data.server.key;
             serverActive = data.server.active;
@@ -960,12 +1039,13 @@
             googleSub = data.server.googleSub || googleSub;
             googleEmail = data.server.email || googleEmail;
             activeUserId = data.server.userId || ownerId;
+            userRole = data.role || userRole;
             whitelistedDomains = serverSettings.whitelistedDomains || [];
+
+            applyRolePermissions();
             showDashboard();
             checkUrlSiteHash();
         } else {
-            document.getElementById('overlay-captcha').style.display = 'none';
-            document.getElementById('overlay-google-auth').style.display = 'none';
             openSetupUI();
         }
     });
@@ -1011,7 +1091,7 @@
         }
     }
 
-    // SEE AND PUBLISH SYSTEM FUNCTIONS
+    // SEE AND PUBLISH AUTO FETCHING SEARCH
     function openSeeAndPublishModal() {
         siteFetchChunks = [];
         document.getElementById('site-fetch-pct').innerText = '0';
@@ -1025,11 +1105,26 @@
         });
     }
 
+    function triggerAutoSiteSearch() {
+        document.getElementById('published-sites-container').style.display = 'none';
+        document.getElementById('site-search-loading').style.display = 'block';
+
+        if (siteSearchDebounceTimer) clearTimeout(siteSearchDebounceTimer);
+        siteSearchDebounceTimer = setTimeout(() => {
+            socket.emit('eb_get_published_sites', {
+                ownerId, googleSub,
+                search: document.getElementById('site-search-input').value,
+                sortBy: document.getElementById('site-sort-select').value
+            });
+        }, 300);
+    }
+
     function cancelSiteFetch() {
         document.getElementById('overlay-fetching-sites').style.display = 'none';
     }
 
     function closeSeeAndPublishModal() {
+        if (siteSearchDebounceTimer) clearTimeout(siteSearchDebounceTimer);
         document.getElementById('modal-see-publish').style.display = 'none';
     }
 
@@ -1047,24 +1142,6 @@
             if (submitBtn) submitBtn.innerText = "Create site";
             if (titleHeader) titleHeader.innerText = "CREATE SITE";
         }
-    }
-
-    function applySiteSearchAndSort() {
-        const searchVal = document.getElementById('site-search-input').value.trim().toLowerCase();
-        const sortVal = document.getElementById('site-sort-select').value;
-
-        let filtered = publishedSitesCache.filter(s => {
-            if (!searchVal) return s.visibility === 'public' || s.ownerUserId === activeUserId || userRole !== 'None';
-            return s.id === searchVal || s.title.toLowerCase().includes(searchVal);
-        });
-
-        if (sortVal === 'newest') {
-            filtered.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
-        } else {
-            filtered.sort((a, b) => (b.visits || 0) - (a.visits || 0));
-        }
-
-        renderPublishedSitesList(filtered);
     }
 
     function renderPublishedSitesList(sites) {
@@ -1141,11 +1218,75 @@
         }
     }
 
-    // CREATE / UPDATE SITE MODAL & FETCH PREVIOUS SETTINGS
+    // "Or ask AI ✨" FLOATING PANEL & LLAMA GENERATION
+    function openAskAIModal() {
+        document.getElementById('ai-prompt-input').value = "";
+        document.getElementById('ask-ai-input-form').style.display = 'block';
+        document.getElementById('ask-ai-generating-view').style.display = 'none';
+        document.getElementById('modal-ask-ai').style.display = 'flex';
+    }
+
+    function closeAskAIModal() {
+        stopAIGenerationSubmit();
+        document.getElementById('modal-ask-ai').style.display = 'none';
+    }
+
+    function startAIGenerationSubmit() {
+        const promptText = document.getElementById('ai-prompt-input').value.trim();
+        const tempVal = parseFloat(document.getElementById('ai-temp-input').value) || 0.7;
+
+        document.getElementById('ask-ai-input-form').style.display = 'none';
+        document.getElementById('ai-output-stream-box').value = "Connecting to Llama 3.2b...";
+        document.getElementById('ask-ai-generating-view').style.display = 'block';
+
+        socket.emit('RemoteEvent', {
+            type: "eb_callai_smollm:135", // Invoca o modelo no backend
+            data: {
+                model: "llama3.2:1b",
+                Temp: tempVal,
+                Mtokens: 1520,
+                Instruction: "Build a complete single-file HTML script according to the user request. Output ONLY raw executable HTML code. Do NOT include markdown code blocks, backticks, comments, intros, outros, or explanations. If the prompt is not for an HTML site or is vague, invent a creative random HTML site idea.",
+                Prompt: promptText || "Create a cool interactive HTML canvas site",
+                Streaming: true
+            }
+        });
+    }
+
+    function stopAIGenerationSubmit() {
+        socket.emit('RemoteEvent', { type: "eb_ai_stopgen_latest" });
+    }
+
+    // ESCUTA RETORNO DO LLAMA EM STREAMING
+    socket.on('RemoteEvent', (pkt) => {
+        if (pkt.type === 'eb_ai_response' && pkt.data) {
+            const outputBox = document.getElementById('ai-output-stream-box');
+            if (outputBox && document.getElementById('modal-ask-ai').style.display === 'flex') {
+                if (pkt.data.error) {
+                    outputBox.value = `ERROR:\n${pkt.data.error}`;
+                    return;
+                }
+
+                let cleanText = pkt.data.text || "";
+                // Sanatização estrita de blocos markdown
+                cleanText = cleanText.replace(/```html?/gi, '').replace(/```/g, '').trim();
+                outputBox.value = cleanText;
+                outputBox.scrollTop = outputBox.scrollHeight;
+
+                if (pkt.data.done) {
+                    // Preenche o campo de script HTML da criação de site automaticamente!
+                    document.getElementById('site-html-field').value = cleanText;
+                    setTimeout(() => {
+                        alert("HTML Script generated and populated successfully!");
+                        closeAskAIModal();
+                    }, 500);
+                }
+            }
+        }
+    });
+
     function handleCreateOrUpdateSiteClick() {
         closeSeeAndPublishModal();
         if (isUserHasSite) {
-            // PULL PREVIOUS SETTINGS WITH PROGRESS BAR
             userSiteDataChunks = [];
             document.getElementById('site-data-pct').innerText = '0';
             document.getElementById('site-data-bar').style.width = '0%';
@@ -1732,8 +1873,14 @@
         document.getElementById('online-users-count').innerText = data.users;
         document.getElementById('active-scripts-count').innerText = data.activeScripts;
 
-        const kb = (data.ramUsageBytes / 1024).toFixed(1);
-        document.getElementById('ram-usage-text').innerText = `${kb} KB`;
+        const ramBytes = data.ramUsageBytes || 0;
+        const ramKB = (ramBytes / 1024).toFixed(1);
+        const ramMB = (ramBytes / (1024 * 1024)).toFixed(2);
+        document.getElementById('ram-usage-text').innerText = `${ramKB} KB (${ramMB} MB)`;
+
+        const maxRamBytes = 250 * 1024 * 1024;
+        const ramPct = Math.min(100, Math.max(0, (ramBytes / maxRamBytes) * 100));
+        document.getElementById('ram-progress-bar').style.width = `${ramPct}%`;
 
         if (data.email) {
             googleEmail = data.email;
@@ -1742,6 +1889,31 @@
 
         updateStatusDisplay();
     });
+
+    // PING E NETWORK SPEED METRICS TIMER (Atualiza UI a cada 1 segundo)
+    setInterval(() => {
+        if (serverKey) {
+            const startPing = Date.now();
+            socket.emit('ebgetstatus');
+            socket.once('ebgetstatus_response', () => {
+                lastPingMs = Date.now() - startPing;
+            });
+        }
+
+        const downKbps = (bytesReceivedSec * 8 / 1024).toFixed(1);
+        const upKbps = (bytesSentSec * 8 / 1024).toFixed(1);
+
+        const pingEl = document.getElementById('metric-ping');
+        const downEl = document.getElementById('metric-down');
+        const upEl = document.getElementById('metric-up');
+
+        if (pingEl) pingEl.innerText = lastPingMs;
+        if (downEl) downEl.innerText = downKbps;
+        if (upEl) upEl.innerText = upKbps;
+
+        bytesReceivedSec = 0;
+        bytesSentSec = 0;
+    }, 1000);
 
     function toggleServerState() {
         serverActive = !serverActive;
@@ -1857,14 +2029,9 @@
     }
 
     function testConnection() {
-        const btn = document.getElementById('test-conn-btn');
-        btn.disabled = true;
-        btn.innerText = "Testing...";
-        const startTime = Date.now();
+        const start = Date.now();
         socket.once('ebgetstatus_response', (data) => {
-            alert(`${data.status}\nping: ${Date.now() - startTime}ms`);
-            btn.disabled = false;
-            btn.innerText = "[Test Connection]";
+            alert(`${data.status}\nping: ${Date.now() - start}ms`);
         });
         socket.emit('ebgetstatus');
     }
@@ -2669,7 +2836,7 @@ ${serverType === 'websocket' ?
 4 - Learn More About EzBridge
 - Max Packet Size: 192KB per packet (350KB chunk stream processing).
 - Request Limit: Up to 60 requests/sec (more than 60 reqs/s or 200kbps triggers 5-min IP and client ratelimit).
-- Server Memory: Configured at ${serverSettings.ramLimitMB || 250}MB.
+- Server Memory: Configured at ${serverSettings.ramLimitMB || 250}MB (+50MB hidden VRAM protection).
 - Instance Scaling: Automatic room instancing per ${serverSettings.maxUsers || 20} max users.
 
 that's all you needed to know, now, you can start.
