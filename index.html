@@ -203,15 +203,14 @@
             <h3>SEE AND PUBLISH</h3>
             <div style="display:flex; gap:10px; margin-bottom:10px; align-items:center; flex-wrap:wrap;">
                 <label style="font-size:0.8rem; font-weight:bold;">Sort by:</label>
-                <select id="site-sort-select" onchange="triggerLiveSiteSearch()" style="padding:6px; background:#020617; color:#fff; border:1px solid var(--border);">
+                <select id="site-sort-select" onchange="triggerAutoSiteSearch()" style="padding:6px; background:#020617; color:#fff; border:1px solid var(--border);">
                     <option value="visits">Most accessed</option>
                     <option value="newest">Newest</option>
                 </select>
-                <input type="text" id="site-search-input" placeholder="Search site name or 20-digit ID..." maxlength="30" oninput="triggerLiveSiteSearch()" style="flex:1; padding:6px;">
+                <input type="text" id="site-search-input" placeholder="Search site name or 20-digit ID..." maxlength="30" oninput="triggerAutoSiteSearch()" style="flex:1; padding:6px;">
             </div>
 
-            <!-- AUTO FETCHING SEARCH MESSAGE -->
-            <div id="search-fetching-msg" style="display:none; font-size:0.8rem; color:var(--accent); text-align:left; margin-bottom:6px;">Fetching sites...</div>
+            <div id="site-searching-indicator" style="display:none; font-size:0.85rem; color:var(--accent); font-weight:bold; padding:10px;">Fetching sites...</div>
 
             <div id="published-sites-container" class="settings-grid" style="flex:1; max-height:none;"></div>
 
@@ -232,7 +231,8 @@
                 <div class="settings-item">
                     <label>HTML Script (at least 100 chars, max 20MB)</label>
                     <textarea id="site-html-field" rows="8" style="height:150px;" placeholder="<!DOCTYPE html>..."></textarea>
-                    <button class="btn btn-purple" style="margin-top:5px;" onclick="openAiSiteGeneratorModal()">Or ask AI ✨</button>
+                    <!-- BOTÃO OR ASK AI ✨ -->
+                    <button class="btn btn-purple" style="margin-top:6px;" onclick="openAskAiModal()">Or ask AI ✨</button>
                 </div>
                 <div class="settings-item">
                     <label>Visibility</label>
@@ -259,48 +259,42 @@
         </div>
     </div>
 
-    <!-- MODAL FLOATING "OR ASK AI ✨" SITE GENERATOR -->
-    <div id="modal-ai-site-prompt" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 480px;">
-            <h3>Ask AI to Make an HTML Site</h3>
-            <p style="font-size:0.8rem; color:var(--muted);">What do you wanna ask AI to make? (only accepting Html scripts)</p>
+    <!-- MODAL OR ASK AI ✨ -->
+    <div id="modal-ask-ai" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 520px; width:95%;">
+            <h3>What do you wanna ask AI to make?</h3>
+            <p style="font-size:0.75rem; color:var(--muted); margin-bottom:15px;">(Only accepting HTML scripts)</p>
             
-            <div class="settings-grid" style="max-height:none;">
+            <div id="ask-ai-input-view">
                 <div class="settings-item">
                     <label>Prompt</label>
-                    <textarea id="ai-site-prompt-input" rows="4" placeholder="Build a cyber tic-tac-toe game with score counter..."></textarea>
+                    <textarea id="ai-site-prompt-input" rows="4" style="height:100px;" placeholder="e.g. Create a 2D Canvas snake game with score counter..."></textarea>
                 </div>
-                <div class="settings-item">
-                    <label>Creativity (0.0 to 1.0)</label>
-                    <input type="number" id="ai-site-creativity-input" min="0.0" max="1.0" step="0.1" value="0.7">
+                <div class="settings-item" style="margin-top:10px;">
+                    <label>Creativity (0.0 - 1.0)</label>
+                    <input type="number" id="ai-site-temp-input" min="0" max="1" step="0.1" value="0.7">
                 </div>
+                <button class="btn btn-purple" style="margin-top:15px;" onclick="startAiSiteGen()">Start</button>
             </div>
 
-            <div style="display:flex; gap:10px; margin-top:15px;">
-                <button class="btn btn-purple" onclick="startAiSiteGeneration()">Start</button>
-                <button class="btn btn-secondary" onclick="closeAiSitePromptModal()">Cancel</button>
+            <div id="ask-ai-gen-view" style="display:none; margin-top:10px;">
+                <label style="font-size:0.8rem; font-weight:bold; color:var(--accent);">llama's output:</label>
+                <textarea id="ai-site-output-box" class="code-box" readonly rows="10" style="width:100%; height:200px; resize:none;"></textarea>
+                <button class="btn btn-danger" style="margin-top:10px;" onclick="stopAiSiteGen()">stop generation</button>
             </div>
+
+            <button class="btn btn-secondary" style="margin-top:10px;" onclick="closeAskAiModal()">Cancel</button>
         </div>
     </div>
 
-    <!-- MODAL REAL-TIME LLAMA AI GENERATION OUTPUT -->
-    <div id="modal-ai-site-generating" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 600px;">
-            <h3>llama's output:</h3>
-            <div id="ai-site-output-box" class="code-box" style="height:250px; max-height:280px; overflow-y:auto;"></div>
-            <button class="btn btn-danger" style="margin-top:15px;" onclick="stopAiSiteGen()">stop generation</button>
-        </div>
-    </div>
-
-    <!-- MODAL SITE VIEWER (FULLSCREEN 5% SMALLER) -->
+    <!-- MODAL SITE VIEWER -->
     <div id="modal-site-viewer" class="overlay" style="display:none;">
         <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                 <h3 id="site-viewer-title" style="margin:0;">Site Viewer</h3>
                 <button class="btn btn-secondary" style="width:auto; margin:0; padding:6px 16px;" onclick="closeSiteViewerModal()">Back to EzBridge</button>
             </div>
-            <!-- Embedded iframe with full script execution permissions -->
-            <iframe id="site-viewer-frame" sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-downloads" allow="autoplay; fullscreen; geolocation"></iframe>
+            <iframe id="site-viewer-frame" sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-downloads"></iframe>
         </div>
     </div>
 
@@ -455,6 +449,39 @@
         </div>
     </div>
 
+    <div id="modal-choose-session" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 420px;">
+            <h3>Choose a session</h3>
+            <div class="session-btn-list">
+                <button class="session-btn" onclick="openChatRoomModal(1)">S. 1</button>
+                <button class="session-btn" onclick="openChatRoomModal(2)">S. 2</button>
+                <button class="session-btn" onclick="openChatRoomModal(3)">S. 3</button>
+                <button class="session-btn" onclick="openChatRoomModal(4)">S. 4</button>
+                <button class="session-btn" onclick="openChatRoomModal(5)">S. 5</button>
+                <button class="session-btn" onclick="openChatRoomModal(6)">S. 6</button>
+                <button class="session-btn" onclick="openChatRoomModal(7)">S. 7</button>
+                <button class="session-btn" onclick="openChatRoomModal(8)">S. 8</button>
+                <button class="session-btn" onclick="openChatRoomModal(9)">S. 9</button>
+                <button class="session-btn" onclick="openChatRoomModal(10)">S. 10</button>
+            </div>
+            <button class="btn btn-secondary" onclick="closeChooseSessionModal()">Close</button>
+        </div>
+    </div>
+
+    <div id="modal-chat-room" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 500px; width:95%; max-height:85vh; display:flex; flex-direction:column;">
+            <h3 id="chat-session-title">Session S. 1</h3>
+            <div id="chat-messages-container" class="chat-bubble-box"></div>
+            <div id="chat-typing-status" style="font-size:0.75rem; color:var(--muted); text-align:left; min-height:18px; margin: 4px 0;"></div>
+
+            <div style="display:flex; gap:8px;">
+                <input type="text" id="chat-textbox" placeholder="Type a message (max 250 chars)..." maxlength="250" style="flex:1;">
+                <button class="btn" style="width:auto; margin:0; padding:0 16px;" onclick="sendChatMessage()">Send</button>
+            </div>
+            <button class="btn btn-secondary" style="margin-top:10px;" onclick="closeChatRoomModal()">Close</button>
+        </div>
+    </div>
+
     <div id="modal-view-script" class="overlay" style="display:none;">
         <div class="card" style="max-width: 650px;">
             <h3>View ServerScript</h3>
@@ -587,9 +614,9 @@
     </div>
 
     <div id="dashboard" class="card" style="display:none; width: 480px;">
-        <!-- PING E TRAFEGO ACIMA DO CONTROL -->
-        <div style="font-size: 0.75rem; color: var(--accent); font-weight: bold; margin-bottom: 8px; text-align: left;" id="dashboard-top-stats">
-            PING: 0ms | Data received: 0.0kbs↓ | Data sent: 0.0kbps↑
+        <!-- BARRA DE MÉTRICAS (PING, RX, TX) -->
+        <div id="metrics-bar" style="font-size:0.75rem; color:var(--muted); font-weight:bold; margin-bottom:8px; font-family:monospace; text-align:left;">
+            PING: <span id="ping-val" style="color:var(--accent)">0</span>ms | Data received: <span id="rx-val" style="color:var(--green)">0</span>kbps↓ | Data sent: <span id="tx-val" style="color:var(--yellow)">0</span>kbps↑
         </div>
 
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
@@ -620,11 +647,11 @@
             <div>Users online on your server: <span id="online-users-count" style="color:var(--accent); font-weight:bold;">0</span></div>
             <div>Active ServerScripts: <span id="active-scripts-count" style="color:var(--accent); font-weight:bold;">0</span></div>
             
-            <!-- RAM USAGE COM BARRA DE PROGRESSO VERMELHA SOBRE FUNDO PRETO -->
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-top:2px;">
-                <div>RAM usage: <span id="ram-usage-text" style="color:var(--accent); font-weight:bold;">0.0 KB</span></div>
-                <div style="width:110px; height:12px; background:#000000; border:1px solid #ef4444; overflow:hidden;">
-                    <div id="dashboard-ram-bar" style="width:0%; height:100%; background:#ef4444; transition:width 0.3s ease;"></div>
+            <!-- RAM USAGE COM PROGRESS BAR VERMELHA DE COM MANCHAS PRETAS -->
+            <div style="display:flex; align-items:center;">
+                RAM usage: <span id="ram-usage-text" style="color:var(--accent); font-weight:bold; margin-left:4px;">0.0 KB</span>
+                <div class="progress-container" style="display:inline-block; width:120px; height:12px; margin-left:10px; vertical-align:middle; background:#000000 !important; border:1px solid var(--border) !important;">
+                    <div id="ram-progress-fill" style="width:0%; height:100%; background:#ef4444 !important; transition:width 0.3s ease;"></div>
                 </div>
             </div>
         </div>
@@ -705,7 +732,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://players-exclusion-rather-adaptor.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://peoples-tops-rugs-cardiff.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
@@ -720,13 +747,6 @@
     let whitelistedDomains = [];
     let consoleLogsCache = [];
 
-    // Stats & Traffic Tracking
-    let currentPing = 0;
-    let bytesRx60ms = 0;
-    let bytesTx60ms = 0;
-    let accumRx1s = 0;
-    let accumTx1s = 0;
-
     // Chat Sessions State
     let currentChatSession = null;
     let chatHistoryChunks = [];
@@ -739,11 +759,12 @@
     let siteGenCooldownTimer = null;
     let generatedSiteIdVal = "";
     let userSiteDataChunks = [];
-    let siteSearchDebounceTimer = null;
+    let autoSiteSearchTimer = null;
 
-    // AI Site Generator State
-    let currentAiSiteGenId = null;
-    let currentAiSiteOutput = "";
+    // Metrics Sampling (60ms samples, 1s UI render)
+    let samplePingMs = 0;
+    let sampleRxBytes = 0;
+    let sampleTxBytes = 0;
 
     const SCRIPT_CHUNK_SIZE = 100 * 1024;
     const UNIV_CHUNK_SIZE = 50 * 1024;
@@ -762,35 +783,25 @@
         transports: ['websocket']
     });
 
-    // Tracking das estatísticas de dados a cada 60ms
+    // SAMPLING DE MÉTRICAS (60MS) E RENDERIZAÇÃO (1S)
     setInterval(() => {
         if (socket && socket.connected) {
             const start = Date.now();
-            socket.emit('ebgetstatus');
-            socket.once('ebgetstatus_response', () => {
-                currentPing = Date.now() - start;
+            socket.volatile.emit('ebgetstatus');
+            socket.volatile.once('ebgetstatus_response', () => {
+                samplePingMs = Date.now() - start;
             });
         }
     }, 60);
 
-    // Atualização dos contadores da UI a cada 1s
     setInterval(() => {
-        const kbRx = (accumRx1s / 1024).toFixed(1);
-        const kbTx = (accumTx1s / 1024).toFixed(1);
+        document.getElementById('ping-val').innerText = samplePingMs;
+        document.getElementById('rx-val').innerText = (sampleRxBytes / 1024).toFixed(1);
+        document.getElementById('tx-val').innerText = (sampleTxBytes / 1024).toFixed(1);
         
-        const statsEl = document.getElementById('dashboard-top-stats');
-        if (statsEl) {
-            statsEl.innerText = `PING: ${currentPing}ms | Data received: ${kbRx}kbs↓ | Data sent: ${kbTx}kbps↑`;
-        }
-
-        accumRx1s = 0;
-        accumTx1s = 0;
+        sampleRxBytes = 0;
+        sampleTxBytes = 0;
     }, 1000);
-
-    socket.onAny((event, ...args) => {
-        const str = JSON.stringify(args);
-        accumRx1s += str.length;
-    });
 
     socket.on('connect', () => {
         socket.emit('eb_sync_session', { ownerId });
@@ -821,9 +832,7 @@
             googleEmail = data.server.email || null;
             activeUserId = data.server.userId || ownerId;
             whitelistedDomains = serverSettings.whitelistedDomains || [];
-            
-            // CORREÇÃO: ABRE O PAINEL DE SERVIDOR IMEDIATAMENTE
-            showDashboardDirect();
+            showDashboard();
             checkUrlSiteHash();
         } else {
             document.getElementById('overlay-captcha').style.display = 'flex';
@@ -843,20 +852,6 @@
         if (data.logs) {
             consoleLogsCache = data.logs;
             renderConsoleLogs();
-        }
-    });
-
-    socket.on('eb_terminal_out', (data) => {
-        if (data.chunk) {
-            if (data.isHistory && data.index === 0) {
-                terminalBufferText = "";
-            }
-            terminalBufferText += data.chunk;
-            const termEl = document.getElementById('terminal-screen');
-            if (termEl) {
-                termEl.innerText = terminalBufferText;
-                termEl.scrollTop = termEl.scrollHeight;
-            }
         }
     });
 
@@ -884,7 +879,6 @@
         alert(`UPDATE FAILED:\n${data.error}`);
     });
 
-    // CHAT SESSION SOCKET EVENTS
     socket.on('eb_chat_history_chunk', (data) => {
         if (data.session !== currentChatSession) return;
         if (data.index === 0) chatHistoryChunks = [];
@@ -917,7 +911,6 @@
         }
     });
 
-    // SEE AND PUBLISH SOCKET EVENTS
     socket.on('eb_published_sites_chunk', (data) => {
         if (data.index === 0) siteFetchChunks = [];
         siteFetchChunks.push(data.chunk);
@@ -932,19 +925,18 @@
                 isUserHasSite = Boolean(data.userHasSite);
                 
                 document.getElementById('overlay-fetching-sites').style.display = 'none';
-                document.getElementById('search-fetching-msg').style.display = 'none';
+                document.getElementById('site-searching-indicator').style.display = 'none';
                 document.getElementById('modal-see-publish').style.display = 'flex';
                 
                 updateCreateUpdateSiteBtnText();
                 applySiteSearchAndSort();
             } catch(e) {
                 document.getElementById('overlay-fetching-sites').style.display = 'none';
-                document.getElementById('search-fetching-msg').style.display = 'none';
+                document.getElementById('site-searching-indicator').style.display = 'none';
             }
         }
     });
 
-    // FETCH PREVIOUS USER SITE SETTINGS
     socket.on('eb_user_site_data_chunk', (data) => {
         if (!data.success) {
             document.getElementById('overlay-fetching-site-data').style.display = 'none';
@@ -1012,33 +1004,7 @@
         }
     });
 
-    // REAL-TIME AI SITE GENERATOR EVENT LISTENERS
-    socket.on('RemoteEvent', (pkt) => {
-        if (pkt.type === 'eb_ai_response' && pkt.data) {
-            const data = pkt.data;
-            if (data.error) {
-                alert(`AI Generation Error: ${data.error}`);
-                closeAiSiteGeneratingModal();
-            } else {
-                currentAiSiteGenId = data.id;
-                currentAiSiteOutput = data.text || "";
-                
-                const box = document.getElementById('ai-site-output-box');
-                if (box) {
-                    box.innerText = currentAiSiteOutput;
-                    box.scrollTop = box.scrollHeight;
-                }
-
-                if (data.done) {
-                    // Preenche o campo HTML no modal principal
-                    document.getElementById('site-html-field').value = currentAiSiteOutput;
-                    alert("HTML generated and populated successfully!");
-                    closeAiSiteGeneratingModal();
-                }
-            }
-        }
-    });
-
+    // CORREÇÃO DEFINITIVA DE LOGIN VIA GOOGLE (ABRE DIRETO O DASHBOARD SEM REFRESH)
     function handleGoogleLogin(response) {
         const base64Url = response.credential.split('.')[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -1051,9 +1017,9 @@
         socket.emit('eb_google_login', { googleSub, email: googleEmail, ownerId });
     }
 
-    // CORREÇÃO IMEDIATA SEM NECESSIDADE DE REFRESH AO LOGAR CONTA COM SERVIDOR
     socket.on('google_login_verified', (data) => {
         hideLoadingScreen();
+        // Esconde todas as overlays ativas imediatamente
         document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
 
         if (data.hasServer) {
@@ -1067,21 +1033,14 @@
             activeUserId = data.server.userId || ownerId;
             userRole = data.role || userRole;
             whitelistedDomains = serverSettings.whitelistedDomains || [];
-            
-            showDashboardDirect();
+
+            applyRolePermissions();
+            showDashboard();
             checkUrlSiteHash();
         } else {
             openSetupUI();
         }
     });
-
-    function showDashboardDirect() {
-        document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
-        document.getElementById('dashboard').style.display = 'block';
-        updateDashboardGoogleBtn();
-        applyRolePermissions();
-        updateStatusDisplay();
-    }
 
     function captchaSolved() {
         document.getElementById('overlay-captcha').style.display = 'none';
@@ -1124,7 +1083,7 @@
         }
     }
 
-    // SEE AND PUBLISH SYSTEM FUNCTIONS WITH AUTO FETCHING SEARCH
+    // SEE AND PUBLISH SYSTEM & AUTO FETCHING
     function openSeeAndPublishModal() {
         siteFetchChunks = [];
         document.getElementById('site-fetch-pct').innerText = '0';
@@ -1138,31 +1097,27 @@
         });
     }
 
-    function triggerLiveSiteSearch() {
-        // Mostra a mensagem de carregamento e limpa lista pública
+    function triggerAutoSiteSearch() {
         document.getElementById('published-sites-container').innerHTML = "";
-        document.getElementById('search-fetching-msg').style.display = 'block';
+        document.getElementById('site-searching-indicator').style.display = 'block';
 
-        if (siteSearchDebounceTimer) clearTimeout(siteSearchDebounceTimer);
-        siteSearchDebounceTimer = setTimeout(() => {
-            if (document.getElementById('modal-see-publish').style.display === 'flex') {
-                socket.emit('eb_get_published_sites', {
-                    ownerId, googleSub,
-                    search: document.getElementById('site-search-input').value,
-                    sortBy: document.getElementById('site-sort-select').value
-                });
-            }
+        if (autoSiteSearchTimer) clearTimeout(autoSiteSearchTimer);
+        autoSiteSearchTimer = setTimeout(() => {
+            socket.emit('eb_get_published_sites', {
+                ownerId, googleSub,
+                search: document.getElementById('site-search-input').value.trim(),
+                sortBy: document.getElementById('site-sort-select').value
+            });
         }, 300);
     }
 
     function cancelSiteFetch() {
         document.getElementById('overlay-fetching-sites').style.display = 'none';
-        document.getElementById('search-fetching-msg').style.display = 'none';
+        document.getElementById('site-searching-indicator').style.display = 'none';
     }
 
     function closeSeeAndPublishModal() {
-        if (siteSearchDebounceTimer) clearTimeout(siteSearchDebounceTimer);
-        document.getElementById('search-fetching-msg').style.display = 'none';
+        cancelSiteFetch();
         document.getElementById('modal-see-publish').style.display = 'none';
     }
 
@@ -1260,7 +1215,63 @@
         }
     }
 
-    // CREATE / UPDATE SITE MODAL & FETCH PREVIOUS SETTINGS
+    // "OR ASK AI ✨" SITE GENERATOR FLOATING MODAL
+    function openAskAiModal() {
+        document.getElementById('ai-site-prompt-input').value = "";
+        document.getElementById('ai-site-output-box').value = "";
+        document.getElementById('ask-ai-input-view').style.display = 'block';
+        document.getElementById('ask-ai-gen-view').style.display = 'none';
+        document.getElementById('modal-ask-ai').style.display = 'flex';
+    }
+
+    function closeAskAiModal() {
+        stopAiSiteGen();
+        document.getElementById('modal-ask-ai').style.display = 'none';
+    }
+
+    function startAiSiteGen() {
+        const promptText = document.getElementById('ai-site-prompt-input').value.trim() || "Build a cool creative interactive HTML site with clean animations.";
+        const temp = parseFloat(document.getElementById('ai-site-temp-input').value) || 0.7;
+
+        document.getElementById('ask-ai-input-view').style.display = 'none';
+        document.getElementById('ask-ai-gen-view').style.display = 'block';
+        document.getElementById('ai-site-output-box').value = "Connecting to Llama 3.2 1B...";
+
+        const systemInstruction = "You are an expert web developer. Build a complete, functional single-file HTML/CSS/JS script as requested by the user. Do NOT include any markdown code block formatting (no ```html or ```), no comments, and no intro or outro text. Return raw HTML only. If the user prompt does not specify a site idea, invent a creative, useful, interactive HTML website.";
+
+        socket.off('eb_ai_response');
+        socket.on('eb_ai_response', (res) => {
+            if (res.error) {
+                document.getElementById('ai-site-output-box').value = `Error: ${res.error}`;
+            } else {
+                const cleanedText = String(res.text || '').replace(/^```html\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim();
+                document.getElementById('ai-site-output-box').value = cleanedText;
+
+                if (res.done) {
+                    document.getElementById('site-html-field').value = cleanedText;
+                    alert("HTML generated and populated successfully!");
+                    document.getElementById('modal-ask-ai').style.display = 'none';
+                }
+            }
+        });
+
+        socket.emit('RemoteEvent', {
+            type: 'eb_callai_smollm:135',
+            data: {
+                model: 'llama3.2:1b',
+                Temp: temp,
+                Mtokens: 1520,
+                Instruction: systemInstruction,
+                Prompt: promptText,
+                Streaming: true
+            }
+        });
+    }
+
+    function stopAiSiteGen() {
+        socket.emit('RemoteEvent', { type: 'eb_ai_stopgen_latest' });
+    }
+
     function handleCreateOrUpdateSiteClick() {
         closeSeeAndPublishModal();
         if (isUserHasSite) {
@@ -1282,47 +1293,6 @@
 
     function closeCreateSiteModal() {
         document.getElementById('modal-create-site').style.display = 'none';
-    }
-
-    // "OR ASK AI ✨" SITE GENERATOR FUNCTIONS
-    function openAiSiteGeneratorModal() {
-        document.getElementById('ai-site-prompt-input').value = "";
-        document.getElementById('modal-ai-site-prompt').style.display = 'flex';
-    }
-    function closeAiSitePromptModal() {
-        document.getElementById('modal-ai-site-prompt').style.display = 'none';
-    }
-
-    function startAiSiteGeneration() {
-        const promptText = document.getElementById('ai-site-prompt-input').value.trim();
-        const creativityVal = parseFloat(document.getElementById('ai-site-creativity-input').value) || 0.7;
-
-        closeAiSitePromptModal();
-
-        document.getElementById('ai-site-output-box').innerText = "Initializing llama3.2:1b generation...";
-        document.getElementById('modal-ai-site-generating').style.display = 'flex';
-
-        // Trigger llama3.2:1b AI Model via Socket RemoteEvent
-        socket.emit('RemoteEvent', {
-            type: "eb_callai_smollm:135", // Handled by LLAMA parser internally
-            data: {
-                model: "llama3.2:1b",
-                Temp: creativityVal,
-                Mtokens: 1520,
-                Instruction: "Build a clean HTML script without markdown formatting, code block fences, comments, intros, or outros. If user didn't request a script or prompt wasn't for a site, create a random creative HTML site.",
-                Prompt: promptText || "Create a creative interactive HTML site.",
-                Streaming: true
-            }
-        });
-    }
-
-    function stopAiSiteGen() {
-        socket.emit('RemoteEvent', { type: "eb_ai_stopgen_latest" });
-        closeAiSiteGeneratingModal();
-    }
-
-    function closeAiSiteGeneratingModal() {
-        document.getElementById('modal-ai-site-generating').style.display = 'none';
     }
 
     function generateSiteIdSubmit() {
@@ -1394,7 +1364,6 @@
         });
     }
 
-    // CHAT SESSIONS UI FUNCTIONS
     function openChooseSessionModal() {
         document.getElementById('modal-choose-session').style.display = 'flex';
     }
@@ -1894,11 +1863,14 @@
         const kb = (data.ramUsageBytes / 1024).toFixed(1);
         document.getElementById('ram-usage-text').innerText = `${kb} KB`;
 
-        // RAM PROGRESS BAR CALCULATION
-        let limitBytes = (data.settings && data.settings.ramUnit === 'KB') ? (data.settings.ramLimitKB || 100) * 1024 : Math.min(250, (data.settings ? data.settings.ramLimitMB : 250)) * 1024 * 1024;
+        let configuredRamMB = Math.min(250, (serverSettings.ramLimitMB || 250));
+        let limitBytes = configuredRamMB * 1024 * 1024;
+        if (serverSettings.ramUnit === 'KB') {
+            limitBytes = (serverSettings.ramLimitKB || 250000) * 1024;
+        }
+
         const ramPct = Math.min(100, Math.floor((data.ramUsageBytes / limitBytes) * 100));
-        const ramBar = document.getElementById('dashboard-ram-bar');
-        if (ramBar) ramBar.style.width = `${ramPct}%`;
+        document.getElementById('ram-progress-fill').style.width = `${ramPct}%`;
 
         if (data.email) {
             googleEmail = data.email;
