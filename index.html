@@ -155,12 +155,21 @@
             box-shadow: 0 0 30px rgba(239, 68, 68, 0.4);
         }
 
-        #site-viewer-frame {
+        #site-viewer-frame-container {
             flex: 1;
             width: 100%;
             height: calc(95vh - 70px) !important;
             border: 1px solid #ef4444;
             background: #ffffff;
+            overflow: hidden;
+            position: relative;
+        }
+
+        iframe.site-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
         }
 
         .disclaimer { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--error) !important; color: #fca5a5; padding: 10px; font-size: 0.75rem; text-align: left; margin-bottom: 10px; }
@@ -216,7 +225,8 @@
             <div id="published-sites-container" class="settings-grid" style="flex:1; max-height:none;"></div>
 
             <button class="btn btn-purple" id="btn-create-update-site" style="margin-top:10px;" onclick="handleCreateOrUpdateSiteClick()">Create site</button>
-            <button class="btn btn-secondary" style="margin-top:6px;" onclick="closeSeeAndPublishModal()">Close</button>
+            <button class="btn btn-secondary" id="btn-sites-back-login" style="display:none; margin-top:6px;" onclick="returnToLoginFromSites()">Go back to login</button>
+            <button class="btn btn-secondary" id="btn-sites-close" style="margin-top:6px;" onclick="closeSeeAndPublishModal()">Close</button>
         </div>
     </div>
 
@@ -295,7 +305,7 @@
                 <h3 id="site-viewer-title" style="margin:0;">Site Viewer</h3>
                 <button class="btn btn-secondary" id="site-viewer-back-btn" style="width:auto; margin:0; padding:6px 16px;" onclick="closeSiteViewerModal()">Back to EzBridge</button>
             </div>
-            <iframe id="site-viewer-frame" sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-downloads allow-pointer-lock" allow="autoplay; fullscreen; geolocation; microphone; camera; notifications"></iframe>
+            <div id="site-viewer-frame-container"></div>
         </div>
     </div>
 
@@ -327,7 +337,7 @@
         </div>
     </div>
 
-    <!-- TELA 1: CAPTCHA E EXPLORE SITES GUEST -->
+    <!-- PASSO 1: CAPTCHA (COM BOTÃO EXPLORE SITES PARA GUESTS) -->
     <div id="overlay-captcha" class="overlay" style="display:none;">
         <div class="card">
             <h1>EzBridge</h1>
@@ -337,12 +347,11 @@
             <div style="display: flex; justify-content: center; margin: 20px 0;">
                 <div class="g-recaptcha" data-sitekey="6Lf8VTMtAAAAAAMXrs6lk-tLBjuW0u8ZV5LevzMz" data-callback="captchaSolved"></div>
             </div>
-            <!-- BOTÃO BRANCO "EXPLORE SITES" PARA GUESTS -->
-            <button class="btn" style="background:#ffffff !important; color:#000000 !important; font-weight:bold; margin-top:10px;" onclick="openExploreSitesGuest()">Explore Sites</button>
+            <button class="btn" style="background:#ffffff !important; color:#000000 !important; font-weight:bold; margin-top:10px;" onclick="exploreSitesAsGuest()">Explore Sites</button>
         </div>
     </div>
 
-    <!-- TELA 2: GOOGLE AUTH E EXPLORE SITES GUEST -->
+    <!-- PASSO 2: GOOGLE AUTH (COM BOTÃO EXPLORE SITES PARA GUESTS) -->
     <div id="overlay-google-auth" class="overlay" style="display:none;">
         <div class="card">
             <h1>Sign In Required</h1>
@@ -356,8 +365,7 @@
                 </div>
                 <div class="g_id_signin" data-type="standard" data-shape="pill" data-theme="filled_blue"></div>
             </div>
-            <!-- BOTÃO BRANCO "EXPLORE SITES" PARA GUESTS -->
-            <button class="btn" style="background:#ffffff !important; color:#000000 !important; font-weight:bold; margin-top:10px;" onclick="openExploreSitesGuest()">Explore Sites</button>
+            <button class="btn" style="background:#ffffff !important; color:#000000 !important; font-weight:bold; margin-top:10px;" onclick="exploreSitesAsGuest()">Explore Sites</button>
         </div>
     </div>
 
@@ -405,7 +413,7 @@
                     </select>
                 </div>
 
-                <div id="domain-whitelist-panel" style="display:block; background:#020617; padding:10px; border-radius:8px; border:1px solid var(--border);">
+                <div id="domain-whitelist-panel" style="display:block; background:#020617; padding:10px; border:1px solid var(--border);">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <label style="font-size:0.75rem; color:var(--muted); font-weight:bold;">WHITELISTED DOMAINS (<span id="domain-count">0</span>/10)</label>
                         <button class="btn" style="width:auto; margin:0; padding:4px 10px; font-size:0.8rem;" onclick="addDomainPrompt()">+ Add Domain</button>
@@ -492,7 +500,7 @@
     <div id="modal-view-script" class="overlay" style="display:none;">
         <div class="card" style="max-width: 650px;">
             <h3>View ServerScript</h3>
-            <textarea id="view-script-textarea" class="code-box" readonly rows="12" style="width:100%; height:250px; resize:none;" placeholder="ServerScript contents..."></textarea>
+            <textarea id="view-script-textarea" class="code-box" readonly rows="12" style="width:100%; height:250px; resize:none;"></textarea>
             <div style="display:flex; gap:10px; margin-top:10px;">
                 <button class="btn" onclick="copyText('view-script-textarea')">Copy Script</button>
                 <button class="btn btn-secondary" onclick="closeViewScriptModal()">Close</button>
@@ -622,7 +630,7 @@
 
     <div id="dashboard" class="card" style="display:none; width: 480px;">
         <div id="metrics-bar" style="font-size: 0.75rem; color: var(--accent); font-weight: bold; margin-bottom: 8px;">
-            PING: <span id="metric-ping">0</span>ms | Data received: <span id="metric-rx">0.0</span>kbs↓ | Data sent: <span id="metric-tx">0.0</span>kbps↑
+            PING: <span id="metric-ping">60</span>ms | Data received: <span id="metric-rx">0.0</span>kbs↓ | Data sent: <span id="metric-tx">0.0</span>kbps↑
         </div>
 
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
@@ -751,7 +759,9 @@
     let currentServerScript = "";
     let whitelistedDomains = [];
     let consoleLogsCache = [];
-    let terminalBufferText = "";
+
+    // Guest Mode Exploration
+    let isGuestMode = false;
 
     // Metrics Tracking (60ms intervals, updated every 1s)
     let rxBytesAccum = 0;
@@ -767,7 +777,6 @@
     let publishedSitesCache = [];
     let siteFetchChunks = [];
     let isUserHasSite = false;
-    let isGuestMode = false;
     let siteGenCooldownTimer = null;
     let generatedSiteIdVal = "";
     let userSiteDataChunks = [];
@@ -813,6 +822,7 @@
         socket.emit('eb_sync_session', { ownerId });
     });
 
+    // CORREÇÃO: SINCRONIZAÇÃO E ATRIBUIÇÃO IMEDIATA DO USER ID SEM PRECISAR DE REFRESH
     socket.on('session_verified', (data) => {
         clearTimeout(initTimeout);
         ownerId = data.ownerId;
@@ -820,7 +830,7 @@
         document.getElementById('overlay-sync').style.display = 'none';
 
         userRole = data.role || "None";
-        activeUserId = data.userId || data.clientId || ownerId;
+        activeUserId = data.userId || data.ownerId;
 
         if (data.banned) {
             document.getElementById('ban-days-text').innerText = data.banInfo.days ? `${data.banInfo.days} day(s)` : "Permanent";
@@ -837,7 +847,7 @@
             currentServerScript = data.server.serverScript || "";
             googleSub = data.server.googleSub || null;
             googleEmail = data.server.email || null;
-            activeUserId = data.server.userId || data.server.clientId || ownerId;
+            activeUserId = data.server.userId || activeUserId;
             whitelistedDomains = serverSettings.whitelistedDomains || [];
             showDashboard();
             checkUrlSiteHash();
@@ -863,7 +873,7 @@
     });
 
     socket.on('eb_user_id_regenerated', (data) => {
-        activeUserId = data.newUserId || data.userId || data.clientId;
+        activeUserId = data.newUserId;
         document.getElementById('new-userid-display').value = activeUserId;
         document.getElementById('modal-new-userid').style.display = 'flex';
     });
@@ -886,7 +896,6 @@
         alert(`UPDATE FAILED:\n${data.error}`);
     });
 
-    // AI RESPONSES
     socket.on('eb_ai_started', (data) => {
         currentAiGenId = data.id;
     });
@@ -919,7 +928,6 @@
         return cleaned.trim();
     }
 
-    // CHAT SESSION SOCKET EVENTS
     socket.on('eb_chat_history_chunk', (data) => {
         if (data.session !== currentChatSession) return;
         if (data.index === 0) chatHistoryChunks = [];
@@ -952,7 +960,6 @@
         }
     });
 
-    // SEE AND PUBLISH SOCKET EVENTS (150KB CHUNKS)
     socket.on('eb_published_sites_chunk', (data) => {
         if (data.index === 0) siteFetchChunks = [];
         siteFetchChunks.push(data.chunk);
@@ -1070,7 +1077,7 @@
             currentServerScript = data.server.serverScript || "";
             googleSub = data.server.googleSub || googleSub;
             googleEmail = data.server.email || googleEmail;
-            activeUserId = data.server.userId || data.server.clientId || ownerId;
+            activeUserId = data.server.userId || data.userId || ownerId;
             userRole = data.role || userRole;
             whitelistedDomains = serverSettings.whitelistedDomains || [];
 
@@ -1078,6 +1085,7 @@
             showDashboard();
             checkUrlSiteHash();
         } else {
+            activeUserId = data.userId || ownerId;
             openSetupUI();
         }
     });
@@ -1091,12 +1099,18 @@
         }
     }
 
-    // GUEST EXPLORE SITES MODE
-    function openExploreSitesGuest() {
+    // GUEST EXPLORE SITES SYSTEM
+    function exploreSitesAsGuest() {
         isGuestMode = true;
         document.getElementById('overlay-captcha').style.display = 'none';
         document.getElementById('overlay-google-auth').style.display = 'none';
         openSeeAndPublishModal();
+    }
+
+    function returnToLoginFromSites() {
+        closeSeeAndPublishModal();
+        isGuestMode = false;
+        document.getElementById('overlay-captcha').style.display = 'flex';
     }
 
     function applyRolePermissions() {
@@ -1131,7 +1145,6 @@
         }
     }
 
-    // ASK AI ✨ FOR SITE CREATION
     function openAskAiSiteModal() {
         document.getElementById('ai-site-prompt').value = "";
         document.getElementById('ai-site-output-box').value = "";
@@ -1191,6 +1204,21 @@
         document.getElementById('site-fetch-bar').style.width = '0%';
         document.getElementById('overlay-fetching-sites').style.display = 'flex';
 
+        // Toggle guest navigation buttons
+        const btnCreateSite = document.getElementById('btn-create-update-site');
+        const btnBackLogin = document.getElementById('btn-sites-back-login');
+        const btnClose = document.getElementById('btn-sites-close');
+
+        if (isGuestMode) {
+            if (btnCreateSite) btnCreateSite.style.display = 'none';
+            if (btnBackLogin) btnBackLogin.style.display = 'block';
+            if (btnClose) btnClose.style.display = 'none';
+        } else {
+            if (btnCreateSite) btnCreateSite.style.display = 'block';
+            if (btnBackLogin) btnBackLogin.style.display = 'none';
+            if (btnClose) btnClose.style.display = 'block';
+        }
+
         socket.emit('eb_get_published_sites', {
             ownerId, googleSub,
             search: document.getElementById('site-search-input') ? document.getElementById('site-search-input').value : '',
@@ -1201,30 +1229,19 @@
     function cancelSiteFetch() {
         document.getElementById('overlay-fetching-sites').style.display = 'none';
         if (isGuestMode) {
-            closeSeeAndPublishModal();
+            returnToLoginFromSites();
         }
     }
 
     function closeSeeAndPublishModal() {
         if (siteSearchDebounce) clearTimeout(siteSearchDebounce);
         document.getElementById('modal-see-publish').style.display = 'none';
-        if (isGuestMode) {
-            isGuestMode = false;
-            document.getElementById('overlay-captcha').style.display = 'flex';
-        }
     }
 
     function updateCreateUpdateSiteBtnText() {
         const btn = document.getElementById('btn-create-update-site');
         const submitBtn = document.getElementById('submit-site-btn');
         const titleHeader = document.getElementById('create-site-title');
-
-        if (isGuestMode) {
-            if (btn) btn.style.display = 'none';
-            return;
-        } else {
-            if (btn) btn.style.display = 'block';
-        }
 
         if (isUserHasSite) {
             if (btn) btn.innerText = "UPDATE SITE";
@@ -1271,7 +1288,7 @@
             div.style.alignItems = 'flex-start';
             div.style.gap = '6px';
 
-            const canDelete = !isGuestMode && (userRole === 'Owner' || userRole === 'Dev' || userRole === 'Admin');
+            const canDelete = (userRole === 'Owner' || userRole === 'Dev' || userRole === 'Admin');
             const deleteBtnHTML = canDelete ? `<button class="btn btn-danger" style="width:auto; margin:0; padding:2px 8px; font-size:0.7rem;" onclick="deletePublishedSite('${s.id}')">[DELETE]</button>` : '';
 
             div.innerHTML = `
@@ -1301,37 +1318,45 @@
         socket.emit('eb_visit_site', { siteId });
     }
 
+    // CORREÇÃO: RENDERIZAÇÃO LIMPA E COMPLETA ISOLADA NO IFRAME
     function renderSiteFrame(site) {
         document.getElementById('site-viewer-title').innerText = `${site.title} (${site.id})`;
         const backBtn = document.getElementById('site-viewer-back-btn');
-        if (isGuestMode) {
-            backBtn.innerText = "Return to MENU";
-        } else {
-            backBtn.innerText = "Back to EzBridge";
+        if (backBtn) {
+            backBtn.innerText = isGuestMode ? "Return to MENU" : "Back to EzBridge";
         }
 
-        const iframe = document.getElementById('site-viewer-frame');
-        iframe.srcdoc = site.htmlScript;
+        const container = document.getElementById('site-viewer-frame-container');
+        container.innerHTML = ""; // Clear existing iframe and destroy background scripts completely
+
+        const iframe = document.createElement('iframe');
+        iframe.className = 'site-frame';
+        iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-downloads');
+        iframe.setAttribute('allow', 'autoplay; fullscreen; geolocation');
+        container.appendChild(iframe);
+
+        const doc = iframe.contentWindow.document;
+        doc.open();
+        doc.write(site.htmlScript);
+        doc.close();
 
         document.getElementById('modal-site-viewer').style.display = 'flex';
     }
 
+    // CORREÇÃO: UNLOAD TOTAL DO IFRAME AO FECHAR PARA DESTRUIR SCRIPTS E SONS EM BACKGROUND
     function closeSiteViewerModal() {
-        const iframe = document.getElementById('site-viewer-frame');
-        iframe.src = "about:blank";
-        iframe.removeAttribute('srcdoc');
-
-        const newIframe = iframe.cloneNode(true);
-        iframe.parentNode.replaceChild(newIframe, iframe);
+        const container = document.getElementById('site-viewer-frame-container');
+        if (container) {
+            const iframe = container.querySelector('iframe');
+            if (iframe) {
+                try { iframe.src = 'about:blank'; } catch(e) {}
+            }
+            container.innerHTML = ""; // Destroi todo o conteúdo e timers do site
+        }
 
         document.getElementById('modal-site-viewer').style.display = 'none';
         window.location.hash = "";
-
-        if (isGuestMode) {
-            document.getElementById('overlay-captcha').style.display = 'flex';
-        } else {
-            openSeeAndPublishModal();
-        }
+        openSeeAndPublishModal();
     }
 
     function checkUrlSiteHash() {
@@ -1436,7 +1461,6 @@
         });
     }
 
-    // CHAT SESSIONS UI FUNCTIONS
     function openChooseSessionModal() {
         document.getElementById('modal-choose-session').style.display = 'flex';
     }
@@ -1881,12 +1905,13 @@
         }
     }
 
+    // CORREÇÃO: CRIAÇÃO DO SERVIDOR ATRIBUI IMEDIATAMENTE O USER ID GERADO
     socket.on('server_created', (data) => {
         serverKey = data.key;
         serverSettings = data.server.settings;
         serverType = data.server.serverType;
         serverActive = false;
-        activeUserId = data.clientId || data.userId || (data.server ? data.server.clientId : ownerId);
+        activeUserId = data.userId || data.server.clientId || ownerId;
         hideLoadingScreen();
         document.getElementById('overlay-setup').style.display = 'none';
         showDashboard();
@@ -2084,10 +2109,12 @@
         document.getElementById('overlay-loading').style.display = 'none';
     }
 
+    // CORREÇÃO: CÓPIA IMEDIATA DO USER ID COM ATRIBUIÇÃO AUTOMÁTICA
     function copyUserId() {
-        if (!activeUserId) return alert("User ID not generated yet!");
-        navigator.clipboard.writeText(activeUserId);
-        alert(`Copied User ID: ${activeUserId}`);
+        const idToCopy = activeUserId || socket.clientId || ownerId;
+        if (!idToCopy) return alert("User ID not generated yet!");
+        navigator.clipboard.writeText(idToCopy);
+        alert(`Copied Client ID: ${idToCopy}`);
     }
 
     function openHowToUse() {
@@ -2318,8 +2345,6 @@
                 const screenCenterX = canvas.width / 2;
                 const screenCenterY = canvas.height / 2;
                 aimAngle = Math.atan2(mousePos.y - screenCenterY, mousePos.x - screenCenterX);
-
-                socket.emit("RemoteEvent", { type: "player_update", data: { id: myId, x: myPos.x, y: myPos.y, angle: aimAngle, color: myColor } });
             }
 
             for (let i = bullets.length - 1; i >= 0; i--) {
@@ -2336,7 +2361,7 @@
                     for (let id in players) {
                         let p = players[id];
                         if (p.hp > 0 && Math.abs(p.x - b.x) < 25 && Math.abs(p.y - b.y) < 25) {
-                            socket.emit("RemoteEvent", { type: "apply_damage", data: { targetId: id, damage: b.damage } });
+                            syncHttp("apply_damage", { targetId: id, damage: b.damage });
                             bullets.splice(i, 1);
                             break;
                         }
