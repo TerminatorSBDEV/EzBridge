@@ -155,11 +155,12 @@
             box-shadow: 0 0 30px rgba(239, 68, 68, 0.4);
         }
 
-        #site-viewer-container {
+        #site-viewer-frame {
             flex: 1;
             width: 100%;
             height: calc(95vh - 70px) !important;
-            display: flex;
+            border: 1px solid #ef4444;
+            background: #ffffff;
         }
 
         .disclaimer { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--error) !important; color: #fca5a5; padding: 10px; font-size: 0.75rem; text-align: left; margin-bottom: 10px; }
@@ -292,9 +293,9 @@
         <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                 <h3 id="site-viewer-title" style="margin:0;">Site Viewer</h3>
-                <button class="btn btn-secondary" style="width:auto; margin:0; padding:6px 16px;" onclick="closeSiteViewerModal()">Back to EzBridge</button>
+                <button class="btn btn-secondary" id="site-viewer-back-btn" style="width:auto; margin:0; padding:6px 16px;" onclick="closeSiteViewerModal()">Back to EzBridge</button>
             </div>
-            <div id="site-viewer-container"></div>
+            <iframe id="site-viewer-frame" sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-downloads allow-pointer-lock" allow="autoplay; fullscreen; geolocation; microphone; camera; notifications"></iframe>
         </div>
     </div>
 
@@ -326,7 +327,7 @@
         </div>
     </div>
 
-    <!-- CAPTCHA COM BOTÃO EXPLORE SITES PARA GUESTS -->
+    <!-- TELA 1: CAPTCHA E EXPLORE SITES GUEST -->
     <div id="overlay-captcha" class="overlay" style="display:none;">
         <div class="card">
             <h1>EzBridge</h1>
@@ -336,11 +337,12 @@
             <div style="display: flex; justify-content: center; margin: 20px 0;">
                 <div class="g-recaptcha" data-sitekey="6Lf8VTMtAAAAAAMXrs6lk-tLBjuW0u8ZV5LevzMz" data-callback="captchaSolved"></div>
             </div>
-            <button class="btn" style="background:#ffffff !important; color:#000000 !important; font-weight:bold; margin-top:10px;" onclick="openGuestExploreSites()">Explore Sites</button>
+            <!-- BOTÃO BRANCO "EXPLORE SITES" PARA GUESTS -->
+            <button class="btn" style="background:#ffffff !important; color:#000000 !important; font-weight:bold; margin-top:10px;" onclick="openExploreSitesGuest()">Explore Sites</button>
         </div>
     </div>
 
-    <!-- GOOGLE LOGIN COM BOTÃO EXPLORE SITES PARA GUESTS -->
+    <!-- TELA 2: GOOGLE AUTH E EXPLORE SITES GUEST -->
     <div id="overlay-google-auth" class="overlay" style="display:none;">
         <div class="card">
             <h1>Sign In Required</h1>
@@ -354,7 +356,8 @@
                 </div>
                 <div class="g_id_signin" data-type="standard" data-shape="pill" data-theme="filled_blue"></div>
             </div>
-            <button class="btn" style="background:#ffffff !important; color:#000000 !important; font-weight:bold; margin-top:10px;" onclick="openGuestExploreSites()">Explore Sites</button>
+            <!-- BOTÃO BRANCO "EXPLORE SITES" PARA GUESTS -->
+            <button class="btn" style="background:#ffffff !important; color:#000000 !important; font-weight:bold; margin-top:10px;" onclick="openExploreSitesGuest()">Explore Sites</button>
         </div>
     </div>
 
@@ -363,7 +366,6 @@
             <h1>EzBridge</h1>
             <p style="color:var(--muted); font-size:0.9rem; margin-bottom:25px;">Create and implement a server to your apps for free!</p>
             <button class="btn" onclick="openSetupUI()">[CLICK HERE TO BEGIN]</button>
-            <button class="btn" style="background:#ffffff !important; color:#000000 !important; font-weight:bold; margin-top:8px;" onclick="openGuestExploreSites()">Explore Sites</button>
         </div>
     </div>
 
@@ -490,7 +492,7 @@
     <div id="modal-view-script" class="overlay" style="display:none;">
         <div class="card" style="max-width: 650px;">
             <h3>View ServerScript</h3>
-            <textarea id="view-script-textarea" class="code-box" readonly rows="12" style="width:100%; height:250px; resize:none;"></textarea>
+            <textarea id="view-script-textarea" class="code-box" readonly rows="12" style="width:100%; height:250px; resize:none;" placeholder="ServerScript contents..."></textarea>
             <div style="display:flex; gap:10px; margin-top:10px;">
                 <button class="btn" onclick="copyText('view-script-textarea')">Copy Script</button>
                 <button class="btn btn-secondary" onclick="closeViewScriptModal()">Close</button>
@@ -749,24 +751,29 @@
     let currentServerScript = "";
     let whitelistedDomains = [];
     let consoleLogsCache = [];
+    let terminalBufferText = "";
 
+    // Metrics Tracking (60ms intervals, updated every 1s)
     let rxBytesAccum = 0;
     let txBytesAccum = 0;
     let currentPingVal = 60;
 
+    // Chat Sessions State
     let currentChatSession = null;
     let chatHistoryChunks = [];
     let chatTypingTimeout = null;
 
+    // See and Publish State
     let publishedSitesCache = [];
     let siteFetchChunks = [];
     let isUserHasSite = false;
+    let isGuestMode = false;
     let siteGenCooldownTimer = null;
     let generatedSiteIdVal = "";
     let userSiteDataChunks = [];
     let siteSearchDebounce = null;
-    let isGuestMode = false;
 
+    // AI Generation State
     let currentAiGenId = null;
 
     const SCRIPT_CHUNK_SIZE = 100 * 1024;
@@ -806,15 +813,14 @@
         socket.emit('eb_sync_session', { ownerId });
     });
 
-    // CORREÇÃO CRÍTICA DO CLIENT ID PARA NOVAS CONTAS
     socket.on('session_verified', (data) => {
         clearTimeout(initTimeout);
         ownerId = data.ownerId;
-        activeUserId = data.userId || ownerId; // Salva o Client ID imediatamente
         setCookie("eb_owner_id", ownerId, 365);
         document.getElementById('overlay-sync').style.display = 'none';
 
         userRole = data.role || "None";
+        activeUserId = data.userId || data.clientId || ownerId;
 
         if (data.banned) {
             document.getElementById('ban-days-text').innerText = data.banInfo.days ? `${data.banInfo.days} day(s)` : "Permanent";
@@ -831,7 +837,7 @@
             currentServerScript = data.server.serverScript || "";
             googleSub = data.server.googleSub || null;
             googleEmail = data.server.email || null;
-            activeUserId = data.server.userId || activeUserId;
+            activeUserId = data.server.userId || data.server.clientId || ownerId;
             whitelistedDomains = serverSettings.whitelistedDomains || [];
             showDashboard();
             checkUrlSiteHash();
@@ -857,7 +863,7 @@
     });
 
     socket.on('eb_user_id_regenerated', (data) => {
-        activeUserId = data.newUserId;
+        activeUserId = data.newUserId || data.userId || data.clientId;
         document.getElementById('new-userid-display').value = activeUserId;
         document.getElementById('modal-new-userid').style.display = 'flex';
     });
@@ -880,6 +886,7 @@
         alert(`UPDATE FAILED:\n${data.error}`);
     });
 
+    // AI RESPONSES
     socket.on('eb_ai_started', (data) => {
         currentAiGenId = data.id;
     });
@@ -912,6 +919,7 @@
         return cleaned.trim();
     }
 
+    // CHAT SESSION SOCKET EVENTS
     socket.on('eb_chat_history_chunk', (data) => {
         if (data.session !== currentChatSession) return;
         if (data.index === 0) chatHistoryChunks = [];
@@ -944,6 +952,7 @@
         }
     });
 
+    // SEE AND PUBLISH SOCKET EVENTS (150KB CHUNKS)
     socket.on('eb_published_sites_chunk', (data) => {
         if (data.index === 0) siteFetchChunks = [];
         siteFetchChunks.push(data.chunk);
@@ -1053,8 +1062,6 @@
         hideLoadingScreen();
         document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
 
-        activeUserId = data.userId || activeUserId || ownerId; // Define ID imediato
-
         if (data.hasServer) {
             serverKey = data.server.key;
             serverActive = data.server.active;
@@ -1063,7 +1070,7 @@
             currentServerScript = data.server.serverScript || "";
             googleSub = data.server.googleSub || googleSub;
             googleEmail = data.server.email || googleEmail;
-            activeUserId = data.server.userId || activeUserId;
+            activeUserId = data.server.userId || data.server.clientId || ownerId;
             userRole = data.role || userRole;
             whitelistedDomains = serverSettings.whitelistedDomains || [];
 
@@ -1085,9 +1092,10 @@
     }
 
     // GUEST EXPLORE SITES MODE
-    function openGuestExploreSites() {
+    function openExploreSitesGuest() {
         isGuestMode = true;
-        document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
+        document.getElementById('overlay-captcha').style.display = 'none';
+        document.getElementById('overlay-google-auth').style.display = 'none';
         openSeeAndPublishModal();
     }
 
@@ -1123,6 +1131,7 @@
         }
     }
 
+    // ASK AI ✨ FOR SITE CREATION
     function openAskAiSiteModal() {
         document.getElementById('ai-site-prompt').value = "";
         document.getElementById('ai-site-output-box').value = "";
@@ -1191,12 +1200,16 @@
 
     function cancelSiteFetch() {
         document.getElementById('overlay-fetching-sites').style.display = 'none';
+        if (isGuestMode) {
+            closeSeeAndPublishModal();
+        }
     }
 
     function closeSeeAndPublishModal() {
         if (siteSearchDebounce) clearTimeout(siteSearchDebounce);
         document.getElementById('modal-see-publish').style.display = 'none';
         if (isGuestMode) {
+            isGuestMode = false;
             document.getElementById('overlay-captcha').style.display = 'flex';
         }
     }
@@ -1207,11 +1220,11 @@
         const titleHeader = document.getElementById('create-site-title');
 
         if (isGuestMode) {
-            if (btn) btn.style.display = 'none'; // Guests can't create sites
+            if (btn) btn.style.display = 'none';
             return;
+        } else {
+            if (btn) btn.style.display = 'block';
         }
-
-        if (btn) btn.style.display = 'block';
 
         if (isUserHasSite) {
             if (btn) btn.innerText = "UPDATE SITE";
@@ -1288,30 +1301,37 @@
         socket.emit('eb_visit_site', { siteId });
     }
 
-    // CORREÇÃO: CRIAÇÃO LIMPA DE IFRAME COM SRCDOC PARA MULTIPLAYER E EXECUÇÃO INSTANTÂNEA
     function renderSiteFrame(site) {
         document.getElementById('site-viewer-title').innerText = `${site.title} (${site.id})`;
-        const container = document.getElementById('site-viewer-container');
-        container.innerHTML = ""; // Limpa qualquer iframe anterior
+        const backBtn = document.getElementById('site-viewer-back-btn');
+        if (isGuestMode) {
+            backBtn.innerText = "Return to MENU";
+        } else {
+            backBtn.innerText = "Back to EzBridge";
+        }
 
-        const iframe = document.createElement('iframe');
-        iframe.id = "site-viewer-frame";
-        iframe.setAttribute("sandbox", "allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-downloads");
-        iframe.setAttribute("allow", "autoplay; fullscreen; geolocation");
+        const iframe = document.getElementById('site-viewer-frame');
         iframe.srcdoc = site.htmlScript;
 
-        container.appendChild(iframe);
         document.getElementById('modal-site-viewer').style.display = 'flex';
     }
 
-    // CORREÇÃO: DESTRUIÇÃO TOTAL DO IFRAME AO SAIR PARA MATAR INTERVALS, NOTIFICAÇÕES E PROCESSOS
     function closeSiteViewerModal() {
-        const container = document.getElementById('site-viewer-container');
-        if (container) container.innerHTML = ""; // Destrói o iframe e mata todos os scripts
+        const iframe = document.getElementById('site-viewer-frame');
+        iframe.src = "about:blank";
+        iframe.removeAttribute('srcdoc');
+
+        const newIframe = iframe.cloneNode(true);
+        iframe.parentNode.replaceChild(newIframe, iframe);
 
         document.getElementById('modal-site-viewer').style.display = 'none';
         window.location.hash = "";
-        openSeeAndPublishModal();
+
+        if (isGuestMode) {
+            document.getElementById('overlay-captcha').style.display = 'flex';
+        } else {
+            openSeeAndPublishModal();
+        }
     }
 
     function checkUrlSiteHash() {
@@ -1865,8 +1885,8 @@
         serverKey = data.key;
         serverSettings = data.server.settings;
         serverType = data.server.serverType;
-        activeUserId = data.userId || activeUserId || ownerId; // Salva o Client ID imediatamente
         serverActive = false;
+        activeUserId = data.clientId || data.userId || (data.server ? data.server.clientId : ownerId);
         hideLoadingScreen();
         document.getElementById('overlay-setup').style.display = 'none';
         showDashboard();
@@ -2298,6 +2318,8 @@
                 const screenCenterX = canvas.width / 2;
                 const screenCenterY = canvas.height / 2;
                 aimAngle = Math.atan2(mousePos.y - screenCenterY, mousePos.x - screenCenterX);
+
+                socket.emit("RemoteEvent", { type: "player_update", data: { id: myId, x: myPos.x, y: myPos.y, angle: aimAngle, color: myColor } });
             }
 
             for (let i = bullets.length - 1; i >= 0; i--) {
@@ -2314,7 +2336,7 @@
                     for (let id in players) {
                         let p = players[id];
                         if (p.hp > 0 && Math.abs(p.x - b.x) < 25 && Math.abs(p.y - b.y) < 25) {
-                            syncHttp("apply_damage", { targetId: id, damage: b.damage });
+                            socket.emit("RemoteEvent", { type: "apply_damage", data: { targetId: id, damage: b.damage } });
                             bullets.splice(i, 1);
                             break;
                         }
