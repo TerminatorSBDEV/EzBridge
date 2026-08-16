@@ -155,12 +155,11 @@
             box-shadow: 0 0 30px rgba(239, 68, 68, 0.4);
         }
 
-        #site-viewer-frame {
+        #site-viewer-container {
             flex: 1;
             width: 100%;
             height: calc(95vh - 70px) !important;
-            border: 1px solid #ef4444;
-            background: #ffffff;
+            display: flex;
         }
 
         .disclaimer { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--error) !important; color: #fca5a5; padding: 10px; font-size: 0.75rem; text-align: left; margin-bottom: 10px; }
@@ -295,7 +294,7 @@
                 <h3 id="site-viewer-title" style="margin:0;">Site Viewer</h3>
                 <button class="btn btn-secondary" style="width:auto; margin:0; padding:6px 16px;" onclick="closeSiteViewerModal()">Back to EzBridge</button>
             </div>
-            <iframe id="site-viewer-frame" sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-downloads" allow="autoplay; fullscreen; geolocation"></iframe>
+            <div id="site-viewer-container"></div>
         </div>
     </div>
 
@@ -327,6 +326,7 @@
         </div>
     </div>
 
+    <!-- CAPTCHA COM BOTÃO EXPLORE SITES PARA GUESTS -->
     <div id="overlay-captcha" class="overlay" style="display:none;">
         <div class="card">
             <h1>EzBridge</h1>
@@ -336,9 +336,11 @@
             <div style="display: flex; justify-content: center; margin: 20px 0;">
                 <div class="g-recaptcha" data-sitekey="6Lf8VTMtAAAAAAMXrs6lk-tLBjuW0u8ZV5LevzMz" data-callback="captchaSolved"></div>
             </div>
+            <button class="btn" style="background:#ffffff !important; color:#000000 !important; font-weight:bold; margin-top:10px;" onclick="openGuestExploreSites()">Explore Sites</button>
         </div>
     </div>
 
+    <!-- GOOGLE LOGIN COM BOTÃO EXPLORE SITES PARA GUESTS -->
     <div id="overlay-google-auth" class="overlay" style="display:none;">
         <div class="card">
             <h1>Sign In Required</h1>
@@ -352,6 +354,7 @@
                 </div>
                 <div class="g_id_signin" data-type="standard" data-shape="pill" data-theme="filled_blue"></div>
             </div>
+            <button class="btn" style="background:#ffffff !important; color:#000000 !important; font-weight:bold; margin-top:10px;" onclick="openGuestExploreSites()">Explore Sites</button>
         </div>
     </div>
 
@@ -360,6 +363,7 @@
             <h1>EzBridge</h1>
             <p style="color:var(--muted); font-size:0.9rem; margin-bottom:25px;">Create and implement a server to your apps for free!</p>
             <button class="btn" onclick="openSetupUI()">[CLICK HERE TO BEGIN]</button>
+            <button class="btn" style="background:#ffffff !important; color:#000000 !important; font-weight:bold; margin-top:8px;" onclick="openGuestExploreSites()">Explore Sites</button>
         </div>
     </div>
 
@@ -399,7 +403,7 @@
                     </select>
                 </div>
 
-                <div id="domain-whitelist-panel" style="display:block; background:#020617; padding:10px; border:1px solid var(--border);">
+                <div id="domain-whitelist-panel" style="display:block; background:#020617; padding:10px; border-radius:8px; border:1px solid var(--border);">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <label style="font-size:0.75rem; color:var(--muted); font-weight:bold;">WHITELISTED DOMAINS (<span id="domain-count">0</span>/10)</label>
                         <button class="btn" style="width:auto; margin:0; padding:4px 10px; font-size:0.8rem;" onclick="addDomainPrompt()">+ Add Domain</button>
@@ -615,7 +619,6 @@
     </div>
 
     <div id="dashboard" class="card" style="display:none; width: 480px;">
-        <!-- PING E TRAFEGO DE DADOS ATUALIZADOS A CADA 1s (PING LIMITADO A 60ms) -->
         <div id="metrics-bar" style="font-size: 0.75rem; color: var(--accent); font-weight: bold; margin-bottom: 8px;">
             PING: <span id="metric-ping">0</span>ms | Data received: <span id="metric-rx">0.0</span>kbs↓ | Data sent: <span id="metric-tx">0.0</span>kbps↑
         </div>
@@ -648,7 +651,6 @@
             <div>Users online on your server: <span id="online-users-count" style="color:var(--accent); font-weight:bold;">0</span></div>
             <div>Active ServerScripts: <span id="active-scripts-count" style="color:var(--accent); font-weight:bold;">0</span></div>
             
-            <!-- PROGRESS BAR DE USO DE RAM (VAZIO É PRETO, USADO É VERMELHO #ef4444) -->
             <div style="display:flex; align-items:center; gap:8px;">
                 <span>RAM usage: <span id="ram-usage-text" style="color:var(--accent); font-weight:bold;">0.0 KB</span></span>
                 <div style="flex:1; background:#000000; border:1px solid var(--border); height:12px; overflow:hidden;">
@@ -748,17 +750,14 @@
     let whitelistedDomains = [];
     let consoleLogsCache = [];
 
-    // Metrics Tracking (60ms intervals, updated every 1s)
     let rxBytesAccum = 0;
     let txBytesAccum = 0;
     let currentPingVal = 60;
 
-    // Chat Sessions State
     let currentChatSession = null;
     let chatHistoryChunks = [];
     let chatTypingTimeout = null;
 
-    // See and Publish State
     let publishedSitesCache = [];
     let siteFetchChunks = [];
     let isUserHasSite = false;
@@ -766,8 +765,8 @@
     let generatedSiteIdVal = "";
     let userSiteDataChunks = [];
     let siteSearchDebounce = null;
+    let isGuestMode = false;
 
-    // AI Generation State
     let currentAiGenId = null;
 
     const SCRIPT_CHUNK_SIZE = 100 * 1024;
@@ -787,7 +786,6 @@
         transports: ['websocket']
     });
 
-    // Track Socket Data Traffic
     const origEmit = socket.emit;
     socket.emit = function(...args) {
         try {
@@ -808,9 +806,11 @@
         socket.emit('eb_sync_session', { ownerId });
     });
 
+    // CORREÇÃO CRÍTICA DO CLIENT ID PARA NOVAS CONTAS
     socket.on('session_verified', (data) => {
         clearTimeout(initTimeout);
         ownerId = data.ownerId;
+        activeUserId = data.userId || ownerId; // Salva o Client ID imediatamente
         setCookie("eb_owner_id", ownerId, 365);
         document.getElementById('overlay-sync').style.display = 'none';
 
@@ -831,7 +831,7 @@
             currentServerScript = data.server.serverScript || "";
             googleSub = data.server.googleSub || null;
             googleEmail = data.server.email || null;
-            activeUserId = data.server.userId || ownerId;
+            activeUserId = data.server.userId || activeUserId;
             whitelistedDomains = serverSettings.whitelistedDomains || [];
             showDashboard();
             checkUrlSiteHash();
@@ -880,7 +880,6 @@
         alert(`UPDATE FAILED:\n${data.error}`);
     });
 
-    // AI RESPONSES
     socket.on('eb_ai_started', (data) => {
         currentAiGenId = data.id;
     });
@@ -913,7 +912,6 @@
         return cleaned.trim();
     }
 
-    // CHAT SESSION SOCKET EVENTS
     socket.on('eb_chat_history_chunk', (data) => {
         if (data.session !== currentChatSession) return;
         if (data.index === 0) chatHistoryChunks = [];
@@ -946,7 +944,6 @@
         }
     });
 
-    // SEE AND PUBLISH SOCKET EVENTS (150KB CHUNKS)
     socket.on('eb_published_sites_chunk', (data) => {
         if (data.index === 0) siteFetchChunks = [];
         siteFetchChunks.push(data.chunk);
@@ -1052,10 +1049,11 @@
         socket.emit('eb_google_login', { googleSub, email: googleEmail, ownerId });
     }
 
-    // CORREÇÃO DO GOOGLE LOGIN: APÓS LOGIN CORRETO, MOSTRA O DASTBOARD IMEDIATAMENTE
     socket.on('google_login_verified', (data) => {
         hideLoadingScreen();
         document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
+
+        activeUserId = data.userId || activeUserId || ownerId; // Define ID imediato
 
         if (data.hasServer) {
             serverKey = data.server.key;
@@ -1065,7 +1063,7 @@
             currentServerScript = data.server.serverScript || "";
             googleSub = data.server.googleSub || googleSub;
             googleEmail = data.server.email || googleEmail;
-            activeUserId = data.server.userId || ownerId;
+            activeUserId = data.server.userId || activeUserId;
             userRole = data.role || userRole;
             whitelistedDomains = serverSettings.whitelistedDomains || [];
 
@@ -1084,6 +1082,13 @@
         } else {
             document.getElementById('overlay-start').style.display = 'flex';
         }
+    }
+
+    // GUEST EXPLORE SITES MODE
+    function openGuestExploreSites() {
+        isGuestMode = true;
+        document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
+        openSeeAndPublishModal();
     }
 
     function applyRolePermissions() {
@@ -1118,7 +1123,6 @@
         }
     }
 
-    // ASK AI ✨ FOR SITE CREATION
     function openAskAiSiteModal() {
         document.getElementById('ai-site-prompt').value = "";
         document.getElementById('ai-site-output-box').value = "";
@@ -1158,7 +1162,6 @@
         document.getElementById('ai-site-gen-view').style.display = 'none';
     }
 
-    // SEE AND PUBLISH AUTO FETCHING IN SEARCH BAR
     function triggerAutoSiteSearch() {
         document.getElementById('published-sites-container').innerHTML = "";
         document.getElementById('search-fetching-indicator').style.display = 'block';
@@ -1193,12 +1196,22 @@
     function closeSeeAndPublishModal() {
         if (siteSearchDebounce) clearTimeout(siteSearchDebounce);
         document.getElementById('modal-see-publish').style.display = 'none';
+        if (isGuestMode) {
+            document.getElementById('overlay-captcha').style.display = 'flex';
+        }
     }
 
     function updateCreateUpdateSiteBtnText() {
         const btn = document.getElementById('btn-create-update-site');
         const submitBtn = document.getElementById('submit-site-btn');
         const titleHeader = document.getElementById('create-site-title');
+
+        if (isGuestMode) {
+            if (btn) btn.style.display = 'none'; // Guests can't create sites
+            return;
+        }
+
+        if (btn) btn.style.display = 'block';
 
         if (isUserHasSite) {
             if (btn) btn.innerText = "UPDATE SITE";
@@ -1245,7 +1258,7 @@
             div.style.alignItems = 'flex-start';
             div.style.gap = '6px';
 
-            const canDelete = (userRole === 'Owner' || userRole === 'Dev' || userRole === 'Admin');
+            const canDelete = !isGuestMode && (userRole === 'Owner' || userRole === 'Dev' || userRole === 'Admin');
             const deleteBtnHTML = canDelete ? `<button class="btn btn-danger" style="width:auto; margin:0; padding:2px 8px; font-size:0.7rem;" onclick="deletePublishedSite('${s.id}')">[DELETE]</button>` : '';
 
             div.innerHTML = `
@@ -1275,19 +1288,27 @@
         socket.emit('eb_visit_site', { siteId });
     }
 
+    // CORREÇÃO: CRIAÇÃO LIMPA DE IFRAME COM SRCDOC PARA MULTIPLAYER E EXECUÇÃO INSTANTÂNEA
     function renderSiteFrame(site) {
         document.getElementById('site-viewer-title').innerText = `${site.title} (${site.id})`;
-        const iframe = document.getElementById('site-viewer-frame');
-        
-        const doc = iframe.contentWindow.document;
-        doc.open();
-        doc.write(site.htmlScript);
-        doc.close();
+        const container = document.getElementById('site-viewer-container');
+        container.innerHTML = ""; // Limpa qualquer iframe anterior
 
+        const iframe = document.createElement('iframe');
+        iframe.id = "site-viewer-frame";
+        iframe.setAttribute("sandbox", "allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-downloads");
+        iframe.setAttribute("allow", "autoplay; fullscreen; geolocation");
+        iframe.srcdoc = site.htmlScript;
+
+        container.appendChild(iframe);
         document.getElementById('modal-site-viewer').style.display = 'flex';
     }
 
+    // CORREÇÃO: DESTRUIÇÃO TOTAL DO IFRAME AO SAIR PARA MATAR INTERVALS, NOTIFICAÇÕES E PROCESSOS
     function closeSiteViewerModal() {
+        const container = document.getElementById('site-viewer-container');
+        if (container) container.innerHTML = ""; // Destrói o iframe e mata todos os scripts
+
         document.getElementById('modal-site-viewer').style.display = 'none';
         window.location.hash = "";
         openSeeAndPublishModal();
@@ -1844,6 +1865,7 @@
         serverKey = data.key;
         serverSettings = data.server.settings;
         serverType = data.server.serverType;
+        activeUserId = data.userId || activeUserId || ownerId; // Salva o Client ID imediatamente
         serverActive = false;
         hideLoadingScreen();
         document.getElementById('overlay-setup').style.display = 'none';
@@ -1869,11 +1891,10 @@
             }
         }, 5000);
 
-        // REAL-TIME METRICS TIMER (PING, TRAFFIC RATE CALCULATED OVER 60ms/1s)
         setInterval(() => {
             const startTime = Date.now();
             socket.once('ebgetstatus_response', () => {
-                currentPingVal = Math.max(60, Date.now() - startTime); // Minimum 60ms ping
+                currentPingVal = Math.max(60, Date.now() - startTime);
                 const pingEl = document.getElementById('metric-ping');
                 if (pingEl) pingEl.innerText = currentPingVal;
             });
@@ -1917,7 +1938,6 @@
         const kb = (data.ramUsageBytes / 1024).toFixed(1);
         document.getElementById('ram-usage-text').innerText = `${kb} KB`;
 
-        // UPDATE RAM PROGRESS FILL BAR (RED)
         const limitBytes = (data.settings && data.settings.ramUnit === 'KB') ? (data.settings.ramLimitKB || 250000) * 1024 : (data.settings ? (data.settings.ramLimitMB || 250) : 250) * 1024 * 1024;
         const ramPct = Math.min(100, Math.floor((data.ramUsageBytes / limitBytes) * 100));
         const fillBar = document.getElementById('ram-progress-fill');
@@ -2042,17 +2062,6 @@
 
     function hideLoadingScreen() {
         document.getElementById('overlay-loading').style.display = 'none';
-    }
-
-    function testConnection() {
-        const btn = document.getElementById('test-conn-btn');
-        if (btn) btn.disabled = true;
-        const startTime = Date.now();
-        socket.once('ebgetstatus_response', (data) => {
-            alert(`${data.status}\nping: ${Math.max(60, Date.now() - startTime)}ms`);
-            if (btn) btn.disabled = false;
-        });
-        socket.emit('ebgetstatus');
     }
 
     function copyUserId() {
