@@ -11,7 +11,7 @@
         :root {
             --bg: #030712;
             --panel: #0a0a0c;
-            --border: #ef4444; /* Thin Red Outline */
+            --border: #ef4444;
             --accent: #ef4444;
             --accent-glow: rgba(239, 68, 68, 0.3);
             --green: #10b981;
@@ -142,7 +142,6 @@
             padding: 8px 12px; font-size: 0.85rem; word-break: break-word;
         }
 
-        /* SITE VIEWER FULLSCREEN 5% SMALLER (95vw, 95vh) */
         #modal-site-viewer .card {
             width: 95vw !important;
             height: 95vh !important;
@@ -184,7 +183,6 @@
         </div>
     </div>
 
-    <!-- OVERLAY FETCHING SITES (150KB CHUNKS) -->
     <div id="overlay-fetching-sites" class="overlay" style="display:none;">
         <div class="card">
             <h3>Fetching sites...</h3>
@@ -196,7 +194,6 @@
         </div>
     </div>
 
-    <!-- OVERLAY FETCHING PREVIOUS SITE SETTINGS FOR UPDATE SITE -->
     <div id="overlay-fetching-site-data" class="overlay" style="display:none;">
         <div class="card">
             <h3>Fetching previous site settings...</h3>
@@ -207,7 +204,6 @@
         </div>
     </div>
 
-    <!-- MODAL SEE AND PUBLISH GUI -->
     <div id="modal-see-publish" class="overlay" style="display:none;">
         <div class="card" style="max-width: 680px; width:95%; max-height:85vh; display:flex; flex-direction:column;">
             <h3>SEE AND PUBLISH</h3>
@@ -230,7 +226,6 @@
         </div>
     </div>
 
-    <!-- MODAL CREATE / UPDATE SITE -->
     <div id="modal-create-site" class="overlay" style="display:none;">
         <div class="card" style="max-width: 580px; width:95%;">
             <h3 id="create-site-title">CREATE SITE</h3>
@@ -269,7 +264,7 @@
         </div>
     </div>
 
-    <!-- MODAL FLOATING PANEL FOR "OR ASK AI ✨" -->
+    <!-- MODAL "OR ASK AI ✨" COM SELETOR DE MODELOS E TOKENS -->
     <div id="modal-ask-ai-site" class="overlay" style="display:none;">
         <div class="card" style="max-width: 520px; width:95%;">
             <h3>What do you wanna ask AI to make?</h3>
@@ -278,11 +273,19 @@
             <div id="ai-site-input-view">
                 <div class="settings-item" style="text-align:left;">
                     <label>Prompt:</label>
-                    <textarea id="ai-site-prompt" rows="4" placeholder="Build a retro pong game with score tracking..."></textarea>
+                    <textarea id="ai-site-prompt" rows="3" placeholder="Build a retro multiplayer pong game with score tracking..."></textarea>
                 </div>
-                <div class="settings-item" style="text-align:left; margin-top:10px;">
+                <div class="settings-item" style="text-align:left; margin-top:8px;">
                     <label>Creativity: <span id="ai-creativity-val">0.7</span></label>
                     <input type="range" id="ai-site-creativity" min="0.0" max="1.0" step="0.1" value="0.7" oninput="document.getElementById('ai-creativity-val').innerText = this.value">
+                </div>
+                <div class="settings-item" style="text-align:left; margin-top:8px;">
+                    <label>Model:</label>
+                    <select id="ai-site-model-select">
+                        <option value="deepseek-coder:1.3b" selected>Deepseek Coder [DEFAULT] [RECOMMENDED]</option>
+                        <option value="llama3.2:1b">Llama 3.2</option>
+                        <option value="qwen2.5:0.5b">Qwen 2.5 [FASTER]</option>
+                    </select>
                 </div>
                 <div style="display:flex; gap:10px; margin-top:15px;">
                     <button class="btn btn-purple" onclick="startAiSiteGen()">Start</button>
@@ -291,14 +294,19 @@
             </div>
 
             <div id="ai-site-gen-view" style="display:none; text-align:left;">
-                <div style="font-size:0.8rem; font-weight:bold; color:var(--accent); margin-bottom:6px;">llama's output:</div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                    <span style="font-size:0.8rem; font-weight:bold; color:var(--accent);">AI Output:</span>
+                    <span style="font-size:0.75rem; color:var(--muted);" id="ai-gen-timer">00:00</span>
+                </div>
                 <textarea id="ai-site-output-box" class="code-box" readonly rows="10" style="width:100%; height:200px; resize:none;"></textarea>
-                <button class="btn btn-danger" onclick="stopAiSiteGen()">stop generation</button>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
+                    <span style="font-size:0.75rem; color:var(--accent);" id="ai-token-counter">Token Usage: 0/3250</span>
+                    <button class="btn btn-danger" style="width:auto; margin:0; padding:6px 16px;" onclick="stopAiSiteGen()">stop generation</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- MODAL SITE VIEWER (FULLSCREEN 5% SMALLER) -->
     <div id="modal-site-viewer" class="overlay" style="display:none;">
         <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
@@ -337,7 +345,6 @@
         </div>
     </div>
 
-    <!-- PASSO 1: CAPTCHA (COM BOTÃO EXPLORE SITES PARA GUESTS) -->
     <div id="overlay-captcha" class="overlay" style="display:none;">
         <div class="card">
             <h1>EzBridge</h1>
@@ -351,7 +358,6 @@
         </div>
     </div>
 
-    <!-- PASSO 2: GOOGLE AUTH (COM BOTÃO EXPLORE SITES PARA GUESTS) -->
     <div id="overlay-google-auth" class="overlay" style="display:none;">
         <div class="card">
             <h1>Sign In Required</h1>
@@ -413,7 +419,7 @@
                     </select>
                 </div>
 
-                <div id="domain-whitelist-panel" style="display:block; background:#020617; padding:10px; border:1px solid var(--border);">
+                <div id="domain-whitelist-panel" style="display:block; background:#020617; padding:10px; border-radius:8px; border:1px solid var(--border);">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <label style="font-size:0.75rem; color:var(--muted); font-weight:bold;">WHITELISTED DOMAINS (<span id="domain-count">0</span>/10)</label>
                         <button class="btn" style="width:auto; margin:0; padding:4px 10px; font-size:0.8rem;" onclick="addDomainPrompt()">+ Add Domain</button>
@@ -784,6 +790,8 @@
 
     // AI Generation State
     let currentAiGenId = null;
+    let aiTimerInterval = null;
+    let aiStartTime = 0;
 
     const SCRIPT_CHUNK_SIZE = 100 * 1024;
     const UNIV_CHUNK_SIZE = 50 * 1024;
@@ -911,9 +919,14 @@
         if (data.text && outBox) {
             outBox.value = data.text;
             outBox.scrollTop = outBox.scrollHeight;
+            
+            // Estimativa de tokens
+            const approxTokens = Math.min(3250, Math.floor(data.text.length / 3.8));
+            document.getElementById('ai-token-counter').innerText = `Token Usage: ${approxTokens}/3250`;
         }
 
         if (data.done) {
+            if (aiTimerInterval) clearInterval(aiTimerInterval);
             const cleanedHTML = cleanMarkdownCodeClient(outBox.value);
             document.getElementById('site-html-field').value = cleanedHTML;
             alert("AI HTML script generated and applied to your site!");
@@ -1065,6 +1078,7 @@
         socket.emit('eb_google_login', { googleSub, email: googleEmail, ownerId });
     }
 
+    // CORREÇÃO DO GOOGLE LOGIN: APÓS LOGIN CORRETO, MOSTRA O DASHBOARD IMEDIATAMENTE
     socket.on('google_login_verified', (data) => {
         hideLoadingScreen();
         document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
@@ -1099,7 +1113,6 @@
         }
     }
 
-    // GUEST EXPLORE SITES SYSTEM
     function exploreSitesAsGuest() {
         isGuestMode = true;
         document.getElementById('overlay-captcha').style.display = 'none';
@@ -1148,6 +1161,8 @@
     function openAskAiSiteModal() {
         document.getElementById('ai-site-prompt').value = "";
         document.getElementById('ai-site-output-box').value = "";
+        document.getElementById('ai-token-counter').innerText = "Token Usage: 0/3250";
+        document.getElementById('ai-gen-timer').innerText = "00:00";
         document.getElementById('ai-site-input-view').style.display = 'block';
         document.getElementById('ai-site-gen-view').style.display = 'none';
         document.getElementById('modal-ask-ai-site').style.display = 'flex';
@@ -1161,21 +1176,32 @@
     function startAiSiteGen() {
         const promptVal = document.getElementById('ai-site-prompt').value.trim();
         const tempVal = document.getElementById('ai-site-creativity').value;
+        const selectedModel = document.getElementById('ai-site-model-select').value;
 
         document.getElementById('ai-site-input-view').style.display = 'none';
         document.getElementById('ai-site-gen-view').style.display = 'block';
 
+        aiStartTime = Date.now();
+        if (aiTimerInterval) clearInterval(aiTimerInterval);
+        aiTimerInterval = setInterval(() => {
+            const elapsedSecs = Math.floor((Date.now() - aiStartTime) / 1000);
+            const m = String(Math.floor(elapsedSecs / 60)).padStart(2, '0');
+            const s = String(elapsedSecs % 60).padStart(2, '0');
+            document.getElementById('ai-gen-timer').innerText = `${m}:${s}`;
+        }, 1000);
+
         socket.emit('eb_callai_direct', {
-            model: "llama3.2:1b",
+            model: selectedModel,
             Temp: parseFloat(tempVal),
-            Mtokens: 1520,
-            Instruction: "You are an expert web developer. Output ONLY valid HTML/CSS/JS code. Do NOT include markdown code blocks, no formatting, no comments, no intros or outros.",
+            Mtokens: 3250,
+            Instruction: "You are an expert web developer. Output ONLY a single valid HTML script with no intros, outros, or comments. Do NOT include markdown blocks.",
             Prompt: promptVal || "Create a random fun creative interactive HTML website or game.",
             Streaming: true
         });
     }
 
     function stopAiSiteGen() {
+        if (aiTimerInterval) clearInterval(aiTimerInterval);
         if (currentAiGenId) {
             socket.emit('RemoteEvent', { type: "eb_ai_stop_id", data: { id: currentAiGenId } });
             currentAiGenId = null;
@@ -1204,7 +1230,6 @@
         document.getElementById('site-fetch-bar').style.width = '0%';
         document.getElementById('overlay-fetching-sites').style.display = 'flex';
 
-        // Toggle guest navigation buttons
         const btnCreateSite = document.getElementById('btn-create-update-site');
         const btnBackLogin = document.getElementById('btn-sites-back-login');
         const btnClose = document.getElementById('btn-sites-close');
@@ -1318,7 +1343,6 @@
         socket.emit('eb_visit_site', { siteId });
     }
 
-    // CORREÇÃO: RENDERIZAÇÃO LIMPA E COMPLETA ISOLADA NO IFRAME
     function renderSiteFrame(site) {
         document.getElementById('site-viewer-title').innerText = `${site.title} (${site.id})`;
         const backBtn = document.getElementById('site-viewer-back-btn');
@@ -1327,7 +1351,7 @@
         }
 
         const container = document.getElementById('site-viewer-frame-container');
-        container.innerHTML = ""; // Clear existing iframe and destroy background scripts completely
+        container.innerHTML = "";
 
         const iframe = document.createElement('iframe');
         iframe.className = 'site-frame';
@@ -1343,7 +1367,6 @@
         document.getElementById('modal-site-viewer').style.display = 'flex';
     }
 
-    // CORREÇÃO: UNLOAD TOTAL DO IFRAME AO FECHAR PARA DESTRUIR SCRIPTS E SONS EM BACKGROUND
     function closeSiteViewerModal() {
         const container = document.getElementById('site-viewer-frame-container');
         if (container) {
@@ -1351,7 +1374,7 @@
             if (iframe) {
                 try { iframe.src = 'about:blank'; } catch(e) {}
             }
-            container.innerHTML = ""; // Destroi todo o conteúdo e timers do site
+            container.innerHTML = "";
         }
 
         document.getElementById('modal-site-viewer').style.display = 'none';
@@ -1905,7 +1928,6 @@
         }
     }
 
-    // CORREÇÃO: CRIAÇÃO DO SERVIDOR ATRIBUI IMEDIATAMENTE O USER ID GERADO
     socket.on('server_created', (data) => {
         serverKey = data.key;
         serverSettings = data.server.settings;
@@ -2109,7 +2131,6 @@
         document.getElementById('overlay-loading').style.display = 'none';
     }
 
-    // CORREÇÃO: CÓPIA IMEDIATA DO USER ID COM ATRIBUIÇÃO AUTOMÁTICA
     function copyUserId() {
         const idToCopy = activeUserId || socket.clientId || ownerId;
         if (!idToCopy) return alert("User ID not generated yet!");
@@ -2633,8 +2654,6 @@
                 const screenCenterX = canvas.width / 2;
                 const screenCenterY = canvas.height / 2;
                 aimAngle = Math.atan2(mousePos.y - screenCenterY, mousePos.x - screenCenterX);
-
-                socket.emit("RemoteEvent", { type: "player_update", data: { id: myId, x: myPos.x, y: myPos.y, angle: aimAngle, color: myColor } });
             }
 
             for (let i = bullets.length - 1; i >= 0; i--) {
@@ -2651,7 +2670,7 @@
                     for (let id in players) {
                         let p = players[id];
                         if (p.hp > 0 && Math.abs(p.x - b.x) < 25 && Math.abs(p.y - b.y) < 25) {
-                            socket.emit("RemoteEvent", { type: "apply_damage", data: { targetId: id, damage: b.damage } });
+                            syncHttp("apply_damage", { targetId: id, damage: b.damage });
                             bullets.splice(i, 1);
                             break;
                         }
@@ -2906,7 +2925,7 @@ ${serverType === 'websocket' ?
 3 - APIs You Can Use
 - 'ebuserid_get' / 'eb_id_get': Send RemoteEvent type 'ebuserid_get' to get the client's permanent unique User ID (15-30 chars). Returns "This user does not have an ID." if user is not a server owner.
 - ServerScript API: Write sandboxed backend JS code (Server.on('event', fn), Server.broadcast('event', data)) to handle server-side game logic securely.
-- Server.callAI: Call local AI generation (Ollama smollm:135m, qwen2.5:0.5b, or llama3.2:1b) inside ServerScript with parameters: { model: "smollm:135m", Temp: 0, Mtokens: 28, Instruction: "...", Prompt: "...", Streaming: false }. Callback receives { id: "4-char-id", text: "generated AI message text", chunk: "newest chunk", done: boolean, error: string }. NOTE: Always display 'res.text' as the AI's generated response in the chat/UI, NOT 'res.id'! (NOTE: 'llama3.2:1b' requires the user to have a valid User ID).
+- Server.callAI: Call local AI generation (Ollama deepseek-coder:1.3b, qwen2.5:0.5b, or llama3.2:1b) inside ServerScript with parameters: { model: "deepseek-coder:1.3b", Temp: 0, Mtokens: 28, Instruction: "...", Prompt: "...", Streaming: false }. Callback receives { id: "4-char-id", text: "generated AI message text", chunk: "newest chunk", done: boolean, error: string }. NOTE: Always display 'res.text' as the AI's generated response in the chat/UI, NOT 'res.id'! (NOTE: 'deepseek-coder:1.3b' and 'llama3.2:1b' require the user to have a valid User ID on WebSockets).
 
 4 - Learn More About EzBridge
 - Max Packet Size: 192KB per packet (350KB chunk stream processing).
@@ -2955,31 +2974,22 @@ async function sendHttpEvent(type, data) {
     }
 }
 
-// --- SERVERSCRIPT LOCAL AI API (Ollama smollm:135m / qwen2.5:0.5b / llama3.2:1b) ---
-// Callable inside ServerScript on the backend:
+// --- SERVERSCRIPT LOCAL AI API (Ollama deepseek-coder:1.3b / qwen2.5:0.5b / llama3.2:1b) ---
 Server.callAI({
-    model: "smollm:135m",             // "smollm:135m", "qwen2.5:0.5b", or "llama3.2:1b"
+    model: "qwen2.5:0.5b",             // "deepseek-coder:1.3b", "qwen2.5:0.5b", or "llama3.2:1b"
     Temp: 0,                           // Temperature (0 to 2.0)
-    Mtokens: 28,                       // Max Tokens (1 to 1520)
+    Mtokens: 28,                       // Max Tokens (1 to 3250)
     Instruction: "You are a helpful assistant.", // Instruction (2 to 1000 chars)
     Prompt: "what's the capital of France?",      // Prompt (1 to 5000 chars)
     Streaming: false                  // false (returns full text) or true (0.1s updates)
 }, (res) => {
-    // CALLBACK OBJECT PARAMETERS:
-    // res.text  => The generated AI response text (RENDER THIS ON YOUR CHAT UI!)
-    // res.id    => 4-char internal tracking ID (DO NOT DISPLAY AS CHAT BODY!)
-    // res.chunk => Latest text snippet (if Streaming is true)
-    // res.done  => Boolean (true when generation finishes)
-    // res.error => Error string if failed (e.g. if user lacks User ID for llama3.2:1b)
-
     if (res.error) console.log("AI Error:", res.error);
     else console.log("AI Answer Text:", res.text, "Tracking ID:", res.id);
 });
 
-// Stop AI Generation Commands (ServerScript API):
-Server.stopAILatest();    // Stops latest active/queued AI task
-Server.stopAIAll();       // Stops all active/queued AI tasks
-Server.stopAIId("4c1a");  // Stops specific 4-char ID task`;
+Server.stopAILatest();
+Server.stopAIAll();
+Server.stopAIId("4c1a");`;
         } else {
             box.innerText = `// --- EZBRIDGE WEBSOCKET API ---
 1. CONNECT & JOIN ROOM:
@@ -2990,36 +3000,27 @@ socket.emit("join_virtual_server", { key: "${serverKey}" });
 socket.emit("RemoteEvent", { type: "player_join", data: { id: "usr_123" } });
 
 3. GET CLIENT USER ID:
-socket.emit("RemoteEvent", { type: "ebuserid_get" }); // Or "eb_id_get"
+socket.emit("RemoteEvent", { type: "ebuserid_get" });
 socket.on("RemoteEvent", (pkt) => {
     if (pkt.type === "userid_response") console.log("User ID:", pkt.userId || pkt.message);
 });
 
-// --- SERVERSCRIPT LOCAL AI API (Ollama smollm:135m / qwen2.5:0.5b / llama3.2:1b) ---
-// Callable inside ServerScript on the backend:
+// --- SERVERSCRIPT LOCAL AI API (Ollama deepseek-coder:1.3b / qwen2.5:0.5b / llama3.2:1b) ---
 Server.callAI({
-    model: "smollm:135m",             // "smollm:135m", "qwen2.5:0.5b", or "llama3.2:1b"
+    model: "deepseek-coder:1.3b",      // "deepseek-coder:1.3b", "qwen2.5:0.5b", or "llama3.2:1b"
     Temp: 0,                           // Temperature (0 to 2.0)
-    Mtokens: 28,                       // Max Tokens (1 to 1520)
+    Mtokens: 28,                       // Max Tokens (1 to 3250)
     Instruction: "You are a helpful assistant.", // Instruction (2 to 1000 chars)
     Prompt: "what's the capital of France?",      // Prompt (1 to 5000 chars)
     Streaming: false                  // false (returns full text) or true (0.1s updates)
 }, (res) => {
-    // CALLBACK OBJECT PARAMETERS:
-    // res.text  => The generated AI response text (RENDER THIS ON YOUR CHAT UI!)
-    // res.id    => 4-char internal tracking ID (DO NOT DISPLAY AS CHAT BODY!)
-    // res.chunk => Latest text snippet (if Streaming is true)
-    // res.done  => Boolean (true when generation finishes)
-    // res.error => Error string if failed (e.g. if user lacks User ID for llama3.2:1b)
-
     if (res.error) console.log("AI Error:", res.error);
     else console.log("AI Answer Text:", res.text, "Tracking ID:", res.id);
 });
 
-// Stop AI Generation Commands (ServerScript API):
-Server.stopAILatest();    // Stops latest active/queued AI task
-Server.stopAIAll();       // Stops all active/queued AI tasks
-Server.stopAIId("4c1a");  // Stops specific 4-char ID task`;
+Server.stopAILatest();
+Server.stopAIAll();
+Server.stopAIId("4c1a");`;
         }
 
         document.getElementById('modal-commands').style.display = 'flex';
