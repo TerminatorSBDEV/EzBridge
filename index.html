@@ -183,6 +183,7 @@
         </div>
     </div>
 
+    <!-- OVERLAY FETCHING SITES (150KB CHUNKS) -->
     <div id="overlay-fetching-sites" class="overlay" style="display:none;">
         <div class="card">
             <h3>Fetching sites...</h3>
@@ -194,6 +195,7 @@
         </div>
     </div>
 
+    <!-- OVERLAY FETCHING PREVIOUS SITE SETTINGS FOR UPDATE SITE -->
     <div id="overlay-fetching-site-data" class="overlay" style="display:none;">
         <div class="card">
             <h3>Fetching previous site settings...</h3>
@@ -204,6 +206,7 @@
         </div>
     </div>
 
+    <!-- MODAL SEE AND PUBLISH GUI -->
     <div id="modal-see-publish" class="overlay" style="display:none;">
         <div class="card" style="max-width: 680px; width:95%; max-height:85vh; display:flex; flex-direction:column;">
             <h3>SEE AND PUBLISH</h3>
@@ -226,6 +229,7 @@
         </div>
     </div>
 
+    <!-- MODAL CREATE / UPDATE SITE -->
     <div id="modal-create-site" class="overlay" style="display:none;">
         <div class="card" style="max-width: 580px; width:95%;">
             <h3 id="create-site-title">CREATE SITE</h3>
@@ -264,7 +268,7 @@
         </div>
     </div>
 
-    <!-- MODAL "OR ASK AI ✨" COM SELETOR DE MODELOS E TOKENS -->
+    <!-- MODAL "OR ASK AI ✨" COM SELETOR DE MODELOS ATUALIZADO -->
     <div id="modal-ask-ai-site" class="overlay" style="display:none;">
         <div class="card" style="max-width: 520px; width:95%;">
             <h3>What do you wanna ask AI to make?</h3>
@@ -273,7 +277,7 @@
             <div id="ai-site-input-view">
                 <div class="settings-item" style="text-align:left;">
                     <label>Prompt:</label>
-                    <textarea id="ai-site-prompt" rows="3" placeholder="Build a retro multiplayer pong game with score tracking..."></textarea>
+                    <textarea id="ai-site-prompt" rows="3" placeholder="Build an interactive multiplayer game with chat and canvas graphics..."></textarea>
                 </div>
                 <div class="settings-item" style="text-align:left; margin-top:8px;">
                     <label>Creativity: <span id="ai-creativity-val">0.7</span></label>
@@ -282,9 +286,10 @@
                 <div class="settings-item" style="text-align:left; margin-top:8px;">
                     <label>Model:</label>
                     <select id="ai-site-model-select">
-                        <option value="deepseek-coder:1.3b" selected>Deepseek Coder [DEFAULT] [RECOMMENDED]</option>
-                        <option value="llama3.2:1b">Llama 3.2</option>
+                        <option value="smollm2:360m">Smollm2</option>
                         <option value="qwen2.5:0.5b">Qwen 2.5 [FASTER]</option>
+                        <option value="gemma3:1b" selected>Gemma3 [Default] [Recommended]</option>
+                        <option value="llama3.2:1b">Llama 3.2</option>
                     </select>
                 </div>
                 <div style="display:flex; gap:10px; margin-top:15px;">
@@ -830,7 +835,6 @@
         socket.emit('eb_sync_session', { ownerId });
     });
 
-    // CORREÇÃO: SINCRONIZAÇÃO E ATRIBUIÇÃO IMEDIATA DO USER ID SEM PRECISAR DE REFRESH
     socket.on('session_verified', (data) => {
         clearTimeout(initTimeout);
         ownerId = data.ownerId;
@@ -920,7 +924,6 @@
             outBox.value = data.text;
             outBox.scrollTop = outBox.scrollHeight;
             
-            // Estimativa de tokens
             const approxTokens = Math.min(3250, Math.floor(data.text.length / 3.8));
             document.getElementById('ai-token-counter').innerText = `Token Usage: ${approxTokens}/3250`;
         }
@@ -1078,7 +1081,6 @@
         socket.emit('eb_google_login', { googleSub, email: googleEmail, ownerId });
     }
 
-    // CORREÇÃO DO GOOGLE LOGIN: APÓS LOGIN CORRETO, MOSTRA O DASHBOARD IMEDIATAMENTE
     socket.on('google_login_verified', (data) => {
         hideLoadingScreen();
         document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
@@ -1203,7 +1205,7 @@
     function stopAiSiteGen() {
         if (aiTimerInterval) clearInterval(aiTimerInterval);
         if (currentAiGenId) {
-            socket.emit('RemoteEvent', { type: "eb_ai_stop_id", data: { id: currentAiGenId } });
+            socket.emit('eb_ai_stop_id', { id: currentAiGenId });
             currentAiGenId = null;
         }
         document.getElementById('ai-site-input-view').style.display = 'block';
@@ -2654,6 +2656,8 @@
                 const screenCenterX = canvas.width / 2;
                 const screenCenterY = canvas.height / 2;
                 aimAngle = Math.atan2(mousePos.y - screenCenterY, mousePos.x - screenCenterX);
+
+                socket.emit("RemoteEvent", { type: "player_update", data: { id: myId, x: myPos.x, y: myPos.y, angle: aimAngle, color: myColor } });
             }
 
             for (let i = bullets.length - 1; i >= 0; i--) {
@@ -2670,7 +2674,7 @@
                     for (let id in players) {
                         let p = players[id];
                         if (p.hp > 0 && Math.abs(p.x - b.x) < 25 && Math.abs(p.y - b.y) < 25) {
-                            syncHttp("apply_damage", { targetId: id, damage: b.damage });
+                            socket.emit("RemoteEvent", { type: "apply_damage", data: { targetId: id, damage: b.damage } });
                             bullets.splice(i, 1);
                             break;
                         }
@@ -2925,7 +2929,7 @@ ${serverType === 'websocket' ?
 3 - APIs You Can Use
 - 'ebuserid_get' / 'eb_id_get': Send RemoteEvent type 'ebuserid_get' to get the client's permanent unique User ID (15-30 chars). Returns "This user does not have an ID." if user is not a server owner.
 - ServerScript API: Write sandboxed backend JS code (Server.on('event', fn), Server.broadcast('event', data)) to handle server-side game logic securely.
-- Server.callAI: Call local AI generation (Ollama deepseek-coder:1.3b, qwen2.5:0.5b, or llama3.2:1b) inside ServerScript with parameters: { model: "deepseek-coder:1.3b", Temp: 0, Mtokens: 28, Instruction: "...", Prompt: "...", Streaming: false }. Callback receives { id: "4-char-id", text: "generated AI message text", chunk: "newest chunk", done: boolean, error: string }. NOTE: Always display 'res.text' as the AI's generated response in the chat/UI, NOT 'res.id'! (NOTE: 'deepseek-coder:1.3b' and 'llama3.2:1b' require the user to have a valid User ID on WebSockets).
+- Server.callAI: Call local AI generation (Ollama smollm2:360m, qwen2.5:0.5b, gemma3:1b, or llama3.2:1b) inside ServerScript with parameters: { model: "gemma3:1b", Temp: 0, Mtokens: 28, Instruction: "...", Prompt: "...", Streaming: false }. Callback receives { id: "4-char-id", text: "generated AI message text", chunk: "newest chunk", done: boolean, error: string }. NOTE: Always display 'res.text' as the AI's generated response in the chat/UI, NOT 'res.id'! (NOTE: 'gemma3:1b' and 'llama3.2:1b' require the user to have a valid User ID on WebSockets).
 
 4 - Learn More About EzBridge
 - Max Packet Size: 192KB per packet (350KB chunk stream processing).
@@ -2974,9 +2978,9 @@ async function sendHttpEvent(type, data) {
     }
 }
 
-// --- SERVERSCRIPT LOCAL AI API (Ollama deepseek-coder:1.3b / qwen2.5:0.5b / llama3.2:1b) ---
+// --- SERVERSCRIPT LOCAL AI API (Ollama smollm2:360m / qwen2.5:0.5b) ---
 Server.callAI({
-    model: "qwen2.5:0.5b",             // "deepseek-coder:1.3b", "qwen2.5:0.5b", or "llama3.2:1b"
+    model: "qwen2.5:0.5b",             // "smollm2:360m" or "qwen2.5:0.5b"
     Temp: 0,                           // Temperature (0 to 2.0)
     Mtokens: 28,                       // Max Tokens (1 to 3250)
     Instruction: "You are a helpful assistant.", // Instruction (2 to 1000 chars)
@@ -3005,9 +3009,9 @@ socket.on("RemoteEvent", (pkt) => {
     if (pkt.type === "userid_response") console.log("User ID:", pkt.userId || pkt.message);
 });
 
-// --- SERVERSCRIPT LOCAL AI API (Ollama deepseek-coder:1.3b / qwen2.5:0.5b / llama3.2:1b) ---
+// --- SERVERSCRIPT LOCAL AI API (Ollama gemma3:1b / llama3.2:1b / smollm2:360m / qwen2.5:0.5b) ---
 Server.callAI({
-    model: "deepseek-coder:1.3b",      // "deepseek-coder:1.3b", "qwen2.5:0.5b", or "llama3.2:1b"
+    model: "gemma3:1b",               // "gemma3:1b", "llama3.2:1b", "smollm2:360m", "qwen2.5:0.5b"
     Temp: 0,                           // Temperature (0 to 2.0)
     Mtokens: 28,                       // Max Tokens (1 to 3250)
     Instruction: "You are a helpful assistant.", // Instruction (2 to 1000 chars)
