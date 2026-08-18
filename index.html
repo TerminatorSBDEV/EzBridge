@@ -38,22 +38,10 @@
             pointer-events: none; z-index: 0;
         }
 
-        #watermark-version {
-            position: fixed; bottom: 12px; left: 12px;
-            color: #ffffff; font-family: 'Courier New', Courier, monospace;
-            font-size: 0.8rem; font-weight: bold; letter-spacing: 1px;
-            z-index: 9999; pointer-events: none; text-shadow: 1px 1px 2px #000;
-        }
-
         .overlay {
             position: fixed; inset: 0; background: rgba(3, 7, 18, 0.95);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             z-index: 2000; transition: 0.3s; backdrop-filter: blur(8px);
-        }
-
-        .overlay-blur-50 {
-            backdrop-filter: blur(8px) brightness(0.5) !important;
-            background: rgba(3, 7, 18, 0.75) !important;
         }
 
         .card {
@@ -203,23 +191,24 @@
 <body>
 
     <canvas id="bg-canvas"></canvas>
-    <div id="watermark-version">EzBridge - V2.0.0</div>
 
-    <div id="modal-cooldown-warning" class="overlay overlay-blur-50" style="display:none; z-index: 3500;">
-        <div class="card" style="border-color: var(--error);">
-            <h2 style="color: var(--error);">⚠WARNING⚠</h2>
-            <p style="font-size:0.9rem; color:var(--text); line-height:1.5; margin:15px 0;">
-                This option is on cooldown and cannot be used now.
-            </p>
-            <div id="cooldown-warning-timer" style="font-size:1rem; font-weight:bold; color:var(--yellow); margin-bottom:15px;"></div>
-            <button class="btn btn-secondary" onclick="closeCooldownWarningModal()">Dismiss</button>
-        </div>
+    <div style="position:fixed; bottom:10px; left:12px; z-index:99999; color:#ffffff; font-family:'Courier New', monospace; font-size:0.75rem; font-weight:bold; letter-spacing:1px; pointer-events:none; text-shadow:0 0 4px #000;">
+        EzBridge - V2.0.0
     </div>
 
     <div id="overlay-sync" class="overlay">
         <div class="card">
             <h3>Connecting to EzBridge...</h3>
             <div style="font-size:0.8rem; color:var(--muted);">Syncing credentials and loading data.</div>
+        </div>
+    </div>
+
+    <!-- MODAL DE AVISO DE COOLDOWN COM BLUR DE 50% -->
+    <div id="modal-cooldown-warning" class="overlay" style="display:none; backdrop-filter: blur(8px) brightness(50%);">
+        <div class="card" style="border-color: var(--error);">
+            <h2 style="color: var(--error);">⚠WARNING⚠</h2>
+            <p style="font-size:0.9rem; color:#ffffff; margin:15px 0;">This option is on cooldown and cannot be used now.</p>
+            <button class="btn btn-secondary" onclick="closeCooldownWarningModal()">Dismiss</button>
         </div>
     </div>
 
@@ -304,6 +293,7 @@
         </div>
     </div>
 
+    <!-- MODAL "OR ASK AI ✨" COM SELETOR DE MODELOS ATUALIZADO -->
     <div id="modal-ask-ai-site" class="overlay" style="display:none;">
         <div class="card" style="max-width: 520px; width:95%;">
             <h3>What do you wanna ask AI to make?</h3>
@@ -644,10 +634,10 @@
             <h3>Account Settings</h3>
             <div style="display:flex; flex-direction:column; gap:10px; margin:20px 0;">
                 <button class="btn btn-secondary" onclick="accountLogout()">Logout</button>
-                <button class="btn btn-secondary" id="btn-regen-user-id" onmouseenter="handleButtonCooldownHover('btn-regen-user-id', 'regen_user_id')" onmouseleave="handleButtonCooldownLeave('btn-regen-user-id', 'Regenerate User ID')" onclick="accountRegenUserId()">Regenerate User ID</button>
+                <button class="btn btn-secondary" id="btn-regen-userid" onclick="accountRegenUserId()">Regenerate User ID</button>
                 
-                <button class="btn btn-purple" id="btn-change-username" style="display:none;" onmouseenter="handleButtonCooldownHover('btn-change-username', 'change_username')" onmouseleave="handleButtonCooldownLeave('btn-change-username', 'Change Account Username')" onclick="openChangeUsernameModal()">Change Account Username</button>
-                <button class="btn btn-purple" id="btn-change-password" style="display:none;" onmouseenter="handleButtonCooldownHover('btn-change-password', 'change_password')" onmouseleave="handleButtonCooldownLeave('btn-change-password', 'Change Account Password')" onclick="openChangePasswordModal()">Change Account Password</button>
+                <button class="btn btn-purple" id="btn-change-username" style="display:none;" onclick="openChangeUsernameModal()">Change Account Username</button>
+                <button class="btn btn-purple" id="btn-change-password" style="display:none;" onclick="openChangePasswordModal()">Change Account Password</button>
 
                 <button class="btn btn-purple" id="btn-server-mgmt" style="display:none;" onclick="openServerMgmtModal()">Server Management</button>
                 <button class="btn btn-danger" id="btn-ban-user" style="display:none;" onclick="openBanUserModal()">Ban User</button>
@@ -830,7 +820,7 @@
                 <div class="settings-item">
                     <label>1. Server Auth Key</label>
                     <div style="display:flex; gap:10px;">
-                        <button class="btn btn-secondary" id="btn-regen-server-key" style="width:auto; margin:0;" onmouseenter="handleButtonCooldownHover('btn-regen-server-key', 'regen_server_key')" onmouseleave="handleButtonCooldownLeave('btn-regen-server-key', 'Regenerate ID')" onclick="regenerateServerKeySubmit()">Regenerate ID</button>
+                        <button class="btn btn-secondary" id="btn-regen-server-key" style="width:auto; margin:0;" onclick="regenerateServerKeySubmit()">Regenerate Key</button>
                         <input type="text" id="copy-key" readonly style="flex-grow:1;">
                         <button class="btn" style="width:auto; margin:0;" onclick="copyText('copy-key')">Copy</button>
                     </div>
@@ -903,9 +893,6 @@
     let whitelistedDomains = [];
     let consoleLogsCache = [];
 
-    // Cooldown Local State Tracking
-    const activeCooldowns = {};
-
     // Lockdown State
     let isServerLockdown = false;
     let lockdownUntilTime = 0;
@@ -918,6 +905,9 @@
     let rxBytesAccum = 0;
     let txBytesAccum = 0;
     let currentPingVal = 60;
+
+    // Cooldown Hover Tracking
+    let activeCooldowns = {};
 
     // Chat Sessions State
     let currentChatSession = null;
@@ -950,6 +940,7 @@
     let isUploadingUnivScript = false;
     let isUploadingSiteScript = false;
 
+    // Canvas Background
     const canvas = document.getElementById("bg-canvas");
     const ctx = canvas.getContext("2d");
     let particles = [];
@@ -973,7 +964,6 @@
 
     function animateBackground() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
         for (let i = 0; i < particles.length; i++) {
             let p = particles[i];
             p.x += p.vx;
@@ -1082,50 +1072,8 @@
     });
 
     socket.on('eb_cooldown_error', (data) => {
-        hideLoadingScreen();
-        setCooldownTimer(data.action, data.cooldownMs);
-        showCooldownWarningModal(data.cooldownMs);
+        showCooldownWarningModal(data.action, data.remMs);
     });
-
-    function setCooldownTimer(action, ms) {
-        activeCooldowns[action] = Date.now() + ms;
-    }
-
-    function showCooldownWarningModal(ms) {
-        const modal = document.getElementById('modal-cooldown-warning');
-        const timerEl = document.getElementById('cooldown-warning-timer');
-        modal.style.display = 'flex';
-
-        let targetTime = Date.now() + ms;
-        function updateTimer() {
-            const rem = Math.max(0, targetTime - Date.now());
-            const hrs = String(Math.floor(rem / 3600000)).padStart(2, '0');
-            const mins = String(Math.floor((rem % 3600000) / 60000)).padStart(2, '0');
-            const secs = String(Math.floor((rem % 60000) / 1000)).padStart(2, '0');
-            timerEl.innerText = `${hrs}:${mins}:${secs} remaining`;
-        }
-        updateTimer();
-    }
-
-    function closeCooldownWarningModal() {
-        document.getElementById('modal-cooldown-warning').style.display = 'none';
-    }
-
-    function handleButtonCooldownHover(btnId, actionKey) {
-        if (activeCooldowns[actionKey] && Date.now() < activeCooldowns[actionKey]) {
-            const btn = document.getElementById(btnId);
-            const rem = Math.max(0, activeCooldowns[actionKey] - Date.now());
-            const hrs = String(Math.floor(rem / 3600000)).padStart(2, '0');
-            const mins = String(Math.floor((rem % 3600000) / 60000)).padStart(2, '0');
-            const secs = String(Math.floor((rem % 60000) / 1000)).padStart(2, '0');
-            btn.innerText = `In Cooldown: ${hrs}:${mins}:${secs}`;
-        }
-    }
-
-    function handleButtonCooldownLeave(btnId, originalText) {
-        const btn = document.getElementById(btnId);
-        btn.innerText = originalText;
-    }
 
     socket.on('eb_console_update', (data) => {
         if (data.logs) {
@@ -1207,7 +1155,6 @@
         if (data.text && outBox) {
             outBox.value = data.text;
             outBox.scrollTop = outBox.scrollHeight;
-            
             const approxTokens = Math.min(3250, Math.floor(data.text.length / 3.8));
             document.getElementById('ai-token-counter').innerText = `Token Usage: ${approxTokens}/3250`;
         }
@@ -1352,6 +1299,14 @@
             renderSiteFrame(data.site);
         }
     });
+
+    function showCooldownWarningModal(actionName, remMs) {
+        document.getElementById('modal-cooldown-warning').style.display = 'flex';
+    }
+
+    function closeCooldownWarningModal() {
+        document.getElementById('modal-cooldown-warning').style.display = 'none';
+    }
 
     function handleGoogleLogin(response) {
         const base64Url = response.credential.split('.')[1];
@@ -1555,9 +1510,7 @@
     }
 
     function regenerateServerKeySubmit() {
-        if (confirm("Regenerate Server Auth Key? The old key will be deleted.")) {
-            socket.emit('eb_regen_server_key', { key: serverKey, ownerId, googleSub });
-        }
+        socket.emit('eb_regen_server_key', { key: serverKey, ownerId, googleSub });
     }
 
     function openServerStorageModal() {
@@ -1902,14 +1855,10 @@
     }
 
     function generateSiteIdSubmit() {
-        if (activeCooldowns['generate_site_id'] && Date.now() < activeCooldowns['generate_site_id']) {
-            return showCooldownWarningModal(activeCooldowns['generate_site_id'] - Date.now());
-        }
         socket.emit('eb_generate_site_id', { key: serverKey, ownerId, googleSub });
     }
 
     function startSiteIdGenCooldown(seconds) {
-        setCooldownTimer('generate_site_id', seconds * 1000);
         const btn = document.getElementById('btn-gen-site-id');
         btn.disabled = true;
         btn.style.background = "#10b981 !important";
@@ -2144,9 +2093,6 @@
     }
 
     function accountRegenUserId() {
-        if (activeCooldowns['regen_user_id'] && Date.now() < activeCooldowns['regen_user_id']) {
-            return showCooldownWarningModal(activeCooldowns['regen_user_id'] - Date.now());
-        }
         socket.emit('eb_regen_user_id', { key: serverKey, ownerId, googleSub });
         closeAccountSettingsModal();
     }
@@ -3260,876 +3206,6 @@
         loop();
     <\/script>
 </body>
-</html>` : 
-`<!-- Test Your Guns - Client Script -->
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Test Your Guns</title>
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"><\/script>
-    <style>
-        body { margin: 0; background: #0f172a; color: #fff; font-family: sans-serif; overflow: hidden; user-select: none; }
-        canvas { display: block; background: #1e293b; }
-        #ui { position: absolute; top: 10px; left: 10px; pointer-events: none; font-weight: bold; font-size: 1.2rem; text-shadow: 1px 1px 2px #000; }
-        #joystick { position: absolute; bottom: 40px; left: 40px; width: 120px; height: 120px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; display: none; touch-action: none; }
-        #stick { position: absolute; top: 35px; left: 35px; width: 50px; height: 50px; background: rgba(255,255,255,0.4); border-radius: 50%; pointer-events: none; }
-    </style>
-</head>
-<body>
-    <div id="ui">Health: <span id="hp">100</span> | Status: <span id="status">Connecting...</span></div>
-    <div id="joystick"><div id="stick"></div></div>
-    <canvas id="gameCanvas"></canvas>
-
-    <script>
-        const canvas = document.getElementById("gameCanvas");
-        const ctx = canvas.getContext("2d");
-
-        function resize() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        window.addEventListener("resize", resize);
-        resize();
-
-        const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-        if (isMobile) {
-            document.getElementById("joystick").style.display = "block";
-        }
-
-        const link = "${PUBLIC_TUNNEL_URL}";
-        const key = "${serverKey}";
-        const socket = io(link, { auth: { token: "default_key" } });
-
-        let myId = Math.random().toString(36).substring(2, 7);
-        let myColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
-        let myPos = { x: Math.random() * 1500, y: Math.random() * 1500 };
-        let myHp = 100;
-        let isDead = false;
-        let lastShot = 0;
-        let aimAngle = 0;
-
-        const keys = { w: false, a: false, s: false, d: false };
-        let players = {};
-        let bullets = [];
-
-        let joyActive = false;
-        let joyVector = { x: 0, y: 0 };
-
-        socket.on("connect", () => {
-            socket.emit("join_virtual_server", { key });
-        });
-
-        socket.on("joined_successfully", () => {
-            document.getElementById("status").innerText = "Connected";
-            socket.emit("RemoteEvent", { type: "player_join", data: { id: myId, color: myColor, x: myPos.x, y: myPos.y } });
-        });
-
-        socket.on("RemoteEvent", (pkt) => {
-            if (pkt.type === "state_update") {
-                const serverPlayers = pkt.data.players;
-                for (let id in serverPlayers) {
-                    if (id === myId) {
-                        myHp = serverPlayers[id].hp;
-                        document.getElementById("hp").innerText = myHp;
-                        if (myHp <= 0 && !isDead) {
-                            isDead = true;
-                            setTimeout(() => {
-                                isDead = false;
-                                myPos = { x: Math.random() * 1500, y: Math.random() * 1500 };
-                                socket.emit("RemoteEvent", { type: "respawn", data: { id: myId, x: myPos.x, y: myPos.y } });
-                            }, 3000);
-                        }
-                    } else {
-                        players[id] = serverPlayers[id];
-                    }
-                }
-            } else if (pkt.type === "spawn_bullet") {
-                if (pkt.data.shooterId !== myId) {
-                    bullets.push(pkt.data);
-                }
-            }
-        });
-
-        window.addEventListener("keydown", (e) => {
-            if (e.key.toLowerCase() === 'w') keys.w = true;
-            if (e.key.toLowerCase() === 'a') keys.a = true;
-            if (e.key.toLowerCase() === 's') keys.s = true;
-            if (e.key.toLowerCase() === 'd') keys.d = true;
-        });
-
-        window.addEventListener("keyup", (e) => {
-            if (e.key.toLowerCase() === 'w') keys.w = false;
-            if (e.key.toLowerCase() === 'a') keys.a = false;
-            if (e.key.toLowerCase() === 's') keys.s = false;
-            if (e.key.toLowerCase() === 'd') keys.d = false;
-        });
-
-        let mousePos = { x: canvas.width / 2, y: canvas.height / 2 };
-        window.addEventListener("mousemove", (e) => {
-            mousePos.x = e.clientX;
-            mousePos.y = e.clientY;
-        });
-
-        window.addEventListener("mousedown", (e) => {
-            if (e.button === 2 && !isDead) {
-                shoot();
-            }
-        });
-        window.addEventListener("contextmenu", (e) => e.preventDefault());
-
-        const joystickEl = document.getElementById("joystick");
-        const stickEl = document.getElementById("stick");
-        let joyCenter = { x: 0, y: 0 };
-
-        joystickEl.addEventListener("touchstart", (e) => {
-            joyActive = true;
-            const rect = joystickEl.getBoundingClientRect();
-            joyCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-        });
-
-        window.addEventListener("touchmove", (e) => {
-            if (!joyActive) return;
-            const touch = e.touches[0];
-            const dx = touch.clientX - joyCenter.x;
-            const dy = touch.clientY - joyCenter.y;
-            const dist = Math.min(50, Math.hypot(dx, dy));
-            const angle = Math.atan2(dy, dx);
-
-            joyVector.x = Math.cos(angle) * (dist / 50);
-            joyVector.y = Math.sin(angle) * (dist / 50);
-
-            stickEl.style.transform = \`translate(\${Math.cos(angle)*dist}px, \${Math.sin(angle)*dist}px)\`;
-        });
-
-        window.addEventListener("touchend", (e) => {
-            if (joyActive) {
-                joyActive = false;
-                joyVector = { x: 0, y: 0 };
-                stickEl.style.transform = \`translate(0px, 0px)\`;
-            }
-        });
-
-        window.addEventListener("touchstart", (e) => {
-            if (isDead) return;
-            const touch = e.touches[0];
-            if (touch.clientX > 180 || touch.clientY < canvas.height - 180) {
-                mousePos.x = touch.clientX;
-                mousePos.y = touch.clientY;
-                shoot();
-            }
-        });
-
-        function shoot() {
-            const now = Date.now();
-            if (now - lastShot < 200) return;
-            lastShot = now;
-
-            const bullet = {
-                x: myPos.x,
-                y: myPos.y,
-                vx: Math.cos(aimAngle) * 12,
-                vy: Math.sin(aimAngle) * 12,
-                damage: 13,
-                shooterId: myId
-            };
-
-            bullets.push(bullet);
-            socket.emit("RemoteEvent", { type: "fire_bullet", data: bullet });
-        }
-
-        function update() {
-            if (!isDead) {
-                let speed = 4;
-                if (isMobile) {
-                    myPos.x += joyVector.x * speed;
-                    myPos.y += joyVector.y * speed;
-                } else {
-                    if (keys.w) myPos.y -= speed;
-                    if (keys.s) myPos.y += speed;
-                    if (keys.a) myPos.x -= speed;
-                    if (keys.d) myPos.x += speed;
-                }
-
-                myPos.x = Math.max(0, Math.min(3000, myPos.x));
-                myPos.y = Math.max(0, Math.min(3000, myPos.y));
-
-                const screenCenterX = canvas.width / 2;
-                const screenCenterY = canvas.height / 2;
-                aimAngle = Math.atan2(mousePos.y - screenCenterY, mousePos.x - screenCenterX);
-
-                socket.emit("RemoteEvent", { type: "player_update", data: { id: myId, x: myPos.x, y: myPos.y, angle: aimAngle, color: myColor } });
-            }
-
-            for (let i = bullets.length - 1; i >= 0; i--) {
-                let b = bullets[i];
-                b.x += b.vx;
-                b.y += b.vy;
-
-                if (b.x < 0 || b.x > 3000 || b.y < 0 || b.y > 3000) {
-                    bullets.splice(i, 1);
-                    continue;
-                }
-
-                if (b.shooterId === myId) {
-                    for (let id in players) {
-                        let p = players[id];
-                        if (p.hp > 0 && Math.abs(p.x - b.x) < 25 && Math.abs(p.y - b.y) < 25) {
-                            socket.emit("RemoteEvent", { type: "apply_damage", data: { targetId: id, damage: b.damage } });
-                            bullets.splice(i, 1);
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            ctx.save();
-            if (!isDead) {
-                ctx.translate(canvas.width / 2 - myPos.x, canvas.height / 2 - myPos.y);
-            }
-
-            ctx.strokeStyle = "#475569";
-            ctx.lineWidth = 4;
-            ctx.strokeRect(0, 0, 3000, 3000);
-
-            if (!isDead) {
-                ctx.save();
-                ctx.translate(myPos.x, myPos.y);
-                ctx.fillStyle = myColor;
-                ctx.fillRect(-20, -20, 40, 40);
-
-                ctx.fillStyle = "#ef4444";
-                ctx.fillRect(-20, -32, 40, 6);
-                ctx.fillStyle = "#22c55e";
-                ctx.fillRect(-20, -32, 40 * (myHp / 100), 6);
-
-                ctx.rotate(aimAngle);
-                ctx.fillStyle = "#94a3b8";
-                ctx.fillRect(0, -6, 30, 12);
-                ctx.restore();
-            }
-
-            for (let id in players) {
-                let p = players[id];
-                if (p.hp <= 0) continue;
-
-                ctx.save();
-                ctx.translate(p.x, p.y);
-                ctx.fillStyle = p.color || '#fff';
-                ctx.fillRect(-20, -20, 40, 40);
-
-                ctx.fillStyle = "#ef4444";
-                ctx.fillRect(-20, -32, 40, 6);
-                ctx.fillStyle = "#22c55e";
-                ctx.fillRect(-20, -32, 40 * (p.hp / 100), 6);
-
-                ctx.rotate(p.angle);
-                ctx.fillStyle = "#94a3b8";
-                ctx.fillRect(0, -6, 30, 12);
-                ctx.restore();
-            }
-
-            ctx.fillStyle = "#facc15";
-            bullets.forEach(b => {
-                ctx.beginPath();
-                ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
-                ctx.fill();
-            });
-
-            ctx.restore();
-        }
-
-        function loop() {
-            update();
-            draw();
-            requestAnimationFrame(loop);
-        }
-        loop();
-    <\/script>
-</body>
-</html>` : 
-`<!-- Test Your Guns - Client Script -->
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Test Your Guns</title>
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"><\/script>
-    <style>
-        body { margin: 0; background: #0f172a; color: #fff; font-family: sans-serif; overflow: hidden; user-select: none; }
-        canvas { display: block; background: #1e293b; }
-        #ui { position: absolute; top: 10px; left: 10px; pointer-events: none; font-weight: bold; font-size: 1.2rem; text-shadow: 1px 1px 2px #000; }
-        #joystick { position: absolute; bottom: 40px; left: 40px; width: 120px; height: 120px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; display: none; touch-action: none; }
-        #stick { position: absolute; top: 35px; left: 35px; width: 50px; height: 50px; background: rgba(255,255,255,0.4); border-radius: 50%; pointer-events: none; }
-    </style>
-</head>
-<body>
-    <div id="ui">Health: <span id="hp">100</span> | Status: <span id="status">Connecting...</span></div>
-    <div id="joystick"><div id="stick"></div></div>
-    <canvas id="gameCanvas"></canvas>
-
-    <script>
-        const canvas = document.getElementById("gameCanvas");
-        const ctx = canvas.getContext("2d");
-
-        function resize() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        window.addEventListener("resize", resize);
-        resize();
-
-        const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-        if (isMobile) {
-            document.getElementById("joystick").style.display = "block";
-        }
-
-        const link = "${PUBLIC_TUNNEL_URL}";
-        const key = "${serverKey}";
-        const socket = io(link, { auth: { token: "default_key" } });
-
-        let myId = Math.random().toString(36).substring(2, 7);
-        let myColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
-        let myPos = { x: Math.random() * 1500, y: Math.random() * 1500 };
-        let myHp = 100;
-        let isDead = false;
-        let lastShot = 0;
-        let aimAngle = 0;
-
-        const keys = { w: false, a: false, s: false, d: false };
-        let players = {};
-        let bullets = [];
-
-        let joyActive = false;
-        let joyVector = { x: 0, y: 0 };
-
-        socket.on("connect", () => {
-            socket.emit("join_virtual_server", { key });
-        });
-
-        socket.on("joined_successfully", () => {
-            document.getElementById("status").innerText = "Connected";
-            socket.emit("RemoteEvent", { type: "player_join", data: { id: myId, color: myColor, x: myPos.x, y: myPos.y } });
-        });
-
-        socket.on("RemoteEvent", (pkt) => {
-            if (pkt.type === "state_update") {
-                const serverPlayers = pkt.data.players;
-                for (let id in serverPlayers) {
-                    if (id === myId) {
-                        myHp = serverPlayers[id].hp;
-                        document.getElementById("hp").innerText = myHp;
-                        if (myHp <= 0 && !isDead) {
-                            isDead = true;
-                            setTimeout(() => {
-                                isDead = false;
-                                myPos = { x: Math.random() * 1500, y: Math.random() * 1500 };
-                                socket.emit("RemoteEvent", { type: "respawn", data: { id: myId, x: myPos.x, y: myPos.y } });
-                            }, 3000);
-                        }
-                    } else {
-                        players[id] = serverPlayers[id];
-                    }
-                }
-            } else if (pkt.type === "spawn_bullet") {
-                if (pkt.data.shooterId !== myId) {
-                    bullets.push(pkt.data);
-                }
-            }
-        });
-
-        window.addEventListener("keydown", (e) => {
-            if (e.key.toLowerCase() === 'w') keys.w = true;
-            if (e.key.toLowerCase() === 'a') keys.a = true;
-            if (e.key.toLowerCase() === 's') keys.s = true;
-            if (e.key.toLowerCase() === 'd') keys.d = true;
-        });
-
-        window.addEventListener("keyup", (e) => {
-            if (e.key.toLowerCase() === 'w') keys.w = false;
-            if (e.key.toLowerCase() === 'a') keys.a = false;
-            if (e.key.toLowerCase() === 's') keys.s = false;
-            if (e.key.toLowerCase() === 'd') keys.d = false;
-        });
-
-        let mousePos = { x: canvas.width / 2, y: canvas.height / 2 };
-        window.addEventListener("mousemove", (e) => {
-            mousePos.x = e.clientX;
-            mousePos.y = e.clientY;
-        });
-
-        window.addEventListener("mousedown", (e) => {
-            if (e.button === 2 && !isDead) {
-                shoot();
-            }
-        });
-        window.addEventListener("contextmenu", (e) => e.preventDefault());
-
-        const joystickEl = document.getElementById("joystick");
-        const stickEl = document.getElementById("stick");
-        let joyCenter = { x: 0, y: 0 };
-
-        joystickEl.addEventListener("touchstart", (e) => {
-            joyActive = true;
-            const rect = joystickEl.getBoundingClientRect();
-            joyCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-        });
-
-        window.addEventListener("touchmove", (e) => {
-            if (!joyActive) return;
-            const touch = e.touches[0];
-            const dx = touch.clientX - joyCenter.x;
-            const dy = touch.clientY - joyCenter.y;
-            const dist = Math.min(50, Math.hypot(dx, dy));
-            const angle = Math.atan2(dy, dx);
-
-            joyVector.x = Math.cos(angle) * (dist / 50);
-            joyVector.y = Math.sin(angle) * (dist / 50);
-
-            stickEl.style.transform = \`translate(\${Math.cos(angle)*dist}px, \${Math.sin(angle)*dist}px)\`;
-        });
-
-        window.addEventListener("touchend", (e) => {
-            if (joyActive) {
-                joyActive = false;
-                joyVector = { x: 0, y: 0 };
-                stickEl.style.transform = \`translate(0px, 0px)\`;
-            }
-        });
-
-        window.addEventListener("touchstart", (e) => {
-            if (isDead) return;
-            const touch = e.touches[0];
-            if (touch.clientX > 180 || touch.clientY < canvas.height - 180) {
-                mousePos.x = touch.clientX;
-                mousePos.y = touch.clientY;
-                shoot();
-            }
-        });
-
-        function shoot() {
-            const now = Date.now();
-            if (now - lastShot < 200) return;
-            lastShot = now;
-
-            const bullet = {
-                x: myPos.x,
-                y: myPos.y,
-                vx: Math.cos(aimAngle) * 12,
-                vy: Math.sin(aimAngle) * 12,
-                damage: 13,
-                shooterId: myId
-            };
-
-            bullets.push(bullet);
-            socket.emit("RemoteEvent", { type: "fire_bullet", data: bullet });
-        }
-
-        function update() {
-            if (!isDead) {
-                let speed = 4;
-                if (isMobile) {
-                    myPos.x += joyVector.x * speed;
-                    myPos.y += joyVector.y * speed;
-                } else {
-                    if (keys.w) myPos.y -= speed;
-                    if (keys.s) myPos.y += speed;
-                    if (keys.a) myPos.x -= speed;
-                    if (keys.d) myPos.x += speed;
-                }
-
-                myPos.x = Math.max(0, Math.min(3000, myPos.x));
-                myPos.y = Math.max(0, Math.min(3000, myPos.y));
-
-                const screenCenterX = canvas.width / 2;
-                const screenCenterY = canvas.height / 2;
-                aimAngle = Math.atan2(mousePos.y - screenCenterY, mousePos.x - screenCenterX);
-
-                socket.emit("RemoteEvent", { type: "player_update", data: { id: myId, x: myPos.x, y: myPos.y, angle: aimAngle, color: myColor } });
-            }
-
-            for (let i = bullets.length - 1; i >= 0; i--) {
-                let b = bullets[i];
-                b.x += b.vx;
-                b.y += b.vy;
-
-                if (b.x < 0 || b.x > 3000 || b.y < 0 || b.y > 3000) {
-                    bullets.splice(i, 1);
-                    continue;
-                }
-
-                if (b.shooterId === myId) {
-                    for (let id in players) {
-                        let p = players[id];
-                        if (p.hp > 0 && Math.abs(p.x - b.x) < 25 && Math.abs(p.y - b.y) < 25) {
-                            socket.emit("RemoteEvent", { type: "apply_damage", data: { targetId: id, damage: b.damage } });
-                            bullets.splice(i, 1);
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            ctx.save();
-            if (!isDead) {
-                ctx.translate(canvas.width / 2 - myPos.x, canvas.height / 2 - myPos.y);
-            }
-
-            ctx.strokeStyle = "#475569";
-            ctx.lineWidth = 4;
-            ctx.strokeRect(0, 0, 3000, 3000);
-
-            if (!isDead) {
-                ctx.save();
-                ctx.translate(myPos.x, myPos.y);
-                ctx.fillStyle = myColor;
-                ctx.fillRect(-20, -20, 40, 40);
-
-                ctx.fillStyle = "#ef4444";
-                ctx.fillRect(-20, -32, 40, 6);
-                ctx.fillStyle = "#22c55e";
-                ctx.fillRect(-20, -32, 40 * (myHp / 100), 6);
-
-                ctx.rotate(aimAngle);
-                ctx.fillStyle = "#94a3b8";
-                ctx.fillRect(0, -6, 30, 12);
-                ctx.restore();
-            }
-
-            for (let id in players) {
-                let p = players[id];
-                if (p.hp <= 0) continue;
-
-                ctx.save();
-                ctx.translate(p.x, p.y);
-                ctx.fillStyle = p.color || '#fff';
-                ctx.fillRect(-20, -20, 40, 40);
-
-                ctx.fillStyle = "#ef4444";
-                ctx.fillRect(-20, -32, 40, 6);
-                ctx.fillStyle = "#22c55e";
-                ctx.fillRect(-20, -32, 40 * (p.hp / 100), 6);
-
-                ctx.rotate(p.angle);
-                ctx.fillStyle = "#94a3b8";
-                ctx.fillRect(0, -6, 30, 12);
-                ctx.restore();
-            }
-
-            ctx.fillStyle = "#facc15";
-            bullets.forEach(b => {
-                ctx.beginPath();
-                ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
-                ctx.fill();
-            });
-
-            ctx.restore();
-        }
-
-        function loop() {
-            update();
-            draw();
-            requestAnimationFrame(loop);
-        }
-        loop();
-    <\/script>
-</body>
-</html>` : 
-`<!-- Test Your Guns - Client Script -->
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Test Your Guns</title>
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"><\/script>
-    <style>
-        body { margin: 0; background: #0f172a; color: #fff; font-family: sans-serif; overflow: hidden; user-select: none; }
-        canvas { display: block; background: #1e293b; }
-        #ui { position: absolute; top: 10px; left: 10px; pointer-events: none; font-weight: bold; font-size: 1.2rem; text-shadow: 1px 1px 2px #000; }
-        #joystick { position: absolute; bottom: 40px; left: 40px; width: 120px; height: 120px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; display: none; touch-action: none; }
-        #stick { position: absolute; top: 35px; left: 35px; width: 50px; height: 50px; background: rgba(255,255,255,0.4); border-radius: 50%; pointer-events: none; }
-    </style>
-</head>
-<body>
-    <div id="ui">Health: <span id="hp">100</span> | Status: <span id="status">Connecting...</span></div>
-    <div id="joystick"><div id="stick"></div></div>
-    <canvas id="gameCanvas"></canvas>
-
-    <script>
-        const canvas = document.getElementById("gameCanvas");
-        const ctx = canvas.getContext("2d");
-
-        function resize() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        window.addEventListener("resize", resize);
-        resize();
-
-        const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-        if (isMobile) {
-            document.getElementById("joystick").style.display = "block";
-        }
-
-        const link = "${PUBLIC_TUNNEL_URL}";
-        const key = "${serverKey}";
-        const socket = io(link, { auth: { token: "default_key" } });
-
-        let myId = Math.random().toString(36).substring(2, 7);
-        let myColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
-        let myPos = { x: Math.random() * 1500, y: Math.random() * 1500 };
-        let myHp = 100;
-        let isDead = false;
-        let lastShot = 0;
-        let aimAngle = 0;
-
-        const keys = { w: false, a: false, s: false, d: false };
-        let players = {};
-        let bullets = [];
-
-        let joyActive = false;
-        let joyVector = { x: 0, y: 0 };
-
-        socket.on("connect", () => {
-            socket.emit("join_virtual_server", { key });
-        });
-
-        socket.on("joined_successfully", () => {
-            document.getElementById("status").innerText = "Connected";
-            socket.emit("RemoteEvent", { type: "player_join", data: { id: myId, color: myColor, x: myPos.x, y: myPos.y } });
-        });
-
-        socket.on("RemoteEvent", (pkt) => {
-            if (pkt.type === "state_update") {
-                const serverPlayers = pkt.data.players;
-                for (let id in serverPlayers) {
-                    if (id === myId) {
-                        myHp = serverPlayers[id].hp;
-                        document.getElementById("hp").innerText = myHp;
-                        if (myHp <= 0 && !isDead) {
-                            isDead = true;
-                            setTimeout(() => {
-                                isDead = false;
-                                myPos = { x: Math.random() * 1500, y: Math.random() * 1500 };
-                                socket.emit("RemoteEvent", { type: "respawn", data: { id: myId, x: myPos.x, y: myPos.y } });
-                            }, 3000);
-                        }
-                    } else {
-                        players[id] = serverPlayers[id];
-                    }
-                }
-            } else if (pkt.type === "spawn_bullet") {
-                if (pkt.data.shooterId !== myId) {
-                    bullets.push(pkt.data);
-                }
-            }
-        });
-
-        window.addEventListener("keydown", (e) => {
-            if (e.key.toLowerCase() === 'w') keys.w = true;
-            if (e.key.toLowerCase() === 'a') keys.a = true;
-            if (e.key.toLowerCase() === 's') keys.s = true;
-            if (e.key.toLowerCase() === 'd') keys.d = true;
-        });
-
-        window.addEventListener("keyup", (e) => {
-            if (e.key.toLowerCase() === 'w') keys.w = false;
-            if (e.key.toLowerCase() === 'a') keys.a = false;
-            if (e.key.toLowerCase() === 's') keys.s = false;
-            if (e.key.toLowerCase() === 'd') keys.d = false;
-        });
-
-        let mousePos = { x: canvas.width / 2, y: canvas.height / 2 };
-        window.addEventListener("mousemove", (e) => {
-            mousePos.x = e.clientX;
-            mousePos.y = e.clientY;
-        });
-
-        window.addEventListener("mousedown", (e) => {
-            if (e.button === 2 && !isDead) {
-                shoot();
-            }
-        });
-        window.addEventListener("contextmenu", (e) => e.preventDefault());
-
-        const joystickEl = document.getElementById("joystick");
-        const stickEl = document.getElementById("stick");
-        let joyCenter = { x: 0, y: 0 };
-
-        joystickEl.addEventListener("touchstart", (e) => {
-            joyActive = true;
-            const rect = joystickEl.getBoundingClientRect();
-            joyCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-        });
-
-        window.addEventListener("touchmove", (e) => {
-            if (!joyActive) return;
-            const touch = e.touches[0];
-            const dx = touch.clientX - joyCenter.x;
-            const dy = touch.clientY - joyCenter.y;
-            const dist = Math.min(50, Math.hypot(dx, dy));
-            const angle = Math.atan2(dy, dx);
-
-            joyVector.x = Math.cos(angle) * (dist / 50);
-            joyVector.y = Math.sin(angle) * (dist / 50);
-
-            stickEl.style.transform = \`translate(\${Math.cos(angle)*dist}px, \${Math.sin(angle)*dist}px)\`;
-        });
-
-        window.addEventListener("touchend", (e) => {
-            if (joyActive) {
-                joyActive = false;
-                joyVector = { x: 0, y: 0 };
-                stickEl.style.transform = \`translate(0px, 0px)\`;
-            }
-        });
-
-        window.addEventListener("touchstart", (e) => {
-            if (isDead) return;
-            const touch = e.touches[0];
-            if (touch.clientX > 180 || touch.clientY < canvas.height - 180) {
-                mousePos.x = touch.clientX;
-                mousePos.y = touch.clientY;
-                shoot();
-            }
-        });
-
-        function shoot() {
-            const now = Date.now();
-            if (now - lastShot < 200) return;
-            lastShot = now;
-
-            const bullet = {
-                x: myPos.x,
-                y: myPos.y,
-                vx: Math.cos(aimAngle) * 12,
-                vy: Math.sin(aimAngle) * 12,
-                damage: 13,
-                shooterId: myId
-            };
-
-            bullets.push(bullet);
-            socket.emit("RemoteEvent", { type: "fire_bullet", data: bullet });
-        }
-
-        function update() {
-            if (!isDead) {
-                let speed = 4;
-                if (isMobile) {
-                    myPos.x += joyVector.x * speed;
-                    myPos.y += joyVector.y * speed;
-                } else {
-                    if (keys.w) myPos.y -= speed;
-                    if (keys.s) myPos.y += speed;
-                    if (keys.a) myPos.x -= speed;
-                    if (keys.d) myPos.x += speed;
-                }
-
-                myPos.x = Math.max(0, Math.min(3000, myPos.x));
-                myPos.y = Math.max(0, Math.min(3000, myPos.y));
-
-                const screenCenterX = canvas.width / 2;
-                const screenCenterY = canvas.height / 2;
-                aimAngle = Math.atan2(mousePos.y - screenCenterY, mousePos.x - screenCenterX);
-
-                socket.emit("RemoteEvent", { type: "player_update", data: { id: myId, x: myPos.x, y: myPos.y, angle: aimAngle, color: myColor } });
-            }
-
-            for (let i = bullets.length - 1; i >= 0; i--) {
-                let b = bullets[i];
-                b.x += b.vx;
-                b.y += b.vy;
-
-                if (b.x < 0 || b.x > 3000 || b.y < 0 || b.y > 3000) {
-                    bullets.splice(i, 1);
-                    continue;
-                }
-
-                if (b.shooterId === myId) {
-                    for (let id in players) {
-                        let p = players[id];
-                        if (p.hp > 0 && Math.abs(p.x - b.x) < 25 && Math.abs(p.y - b.y) < 25) {
-                            socket.emit("RemoteEvent", { type: "apply_damage", data: { targetId: id, damage: b.damage } });
-                            bullets.splice(i, 1);
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            ctx.save();
-            if (!isDead) {
-                ctx.translate(canvas.width / 2 - myPos.x, canvas.height / 2 - myPos.y);
-            }
-
-            ctx.strokeStyle = "#475569";
-            ctx.lineWidth = 4;
-            ctx.strokeRect(0, 0, 3000, 3000);
-
-            if (!isDead) {
-                ctx.save();
-                ctx.translate(myPos.x, myPos.y);
-                ctx.fillStyle = myColor;
-                ctx.fillRect(-20, -20, 40, 40);
-
-                ctx.fillStyle = "#ef4444";
-                ctx.fillRect(-20, -32, 40, 6);
-                ctx.fillStyle = "#22c55e";
-                ctx.fillRect(-20, -32, 40 * (myHp / 100), 6);
-
-                ctx.rotate(aimAngle);
-                ctx.fillStyle = "#94a3b8";
-                ctx.fillRect(0, -6, 30, 12);
-                ctx.restore();
-            }
-
-            for (let id in players) {
-                let p = players[id];
-                if (p.hp <= 0) continue;
-
-                ctx.save();
-                ctx.translate(p.x, p.y);
-                ctx.fillStyle = p.color || '#fff';
-                ctx.fillRect(-20, -20, 40, 40);
-
-                ctx.fillStyle = "#ef4444";
-                ctx.fillRect(-20, -32, 40, 6);
-                ctx.fillStyle = "#22c55e";
-                ctx.fillRect(-20, -32, 40 * (p.hp / 100), 6);
-
-                ctx.rotate(p.angle);
-                ctx.fillStyle = "#94a3b8";
-                ctx.fillRect(0, -6, 30, 12);
-                ctx.restore();
-            }
-
-            ctx.fillStyle = "#facc15";
-            bullets.forEach(b => {
-                ctx.beginPath();
-                ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
-                ctx.fill();
-            });
-
-            ctx.restore();
-        }
-
-        function loop() {
-            update();
-            draw();
-            requestAnimationFrame(loop);
-        }
-        loop();
-    <\/script>
-</body>
 </html>`;
 
         const serverCode = 
@@ -4227,7 +3303,11 @@ setInterval(() => {
                 if (res.ok) {
                     const json = await res.json();
                     if (json.events && Array.isArray(json.events)) {
-                        json.events.forEach(handleServerEvent);
+                        json.events.forEach(evt => {
+                            if (evt.type === 'send_message_reply' || evt.type === 'get_messages_reply') {
+                                renderChat(evt.data.messages);
+                            }
+                        });
                     }
                 }
             } catch(e) {}
@@ -4304,7 +3384,10 @@ ${serverType === 'websocket' ?
 
 3 - APIs You Can Use
 - 'ebuserid_get' / 'eb_id_get': Send RemoteEvent type 'ebuserid_get' to get the client's permanent unique User ID (15-30 chars). Returns "This user does not have an ID." if user is not a server owner.
-- Server.storage API: Server.storage.get(), Server.storage.set(data), Server.storage.getUsageBytes() allows up to 100MB of persistent storage.
+- Server.storage API:
+  * Server.storage.set(data) - Save up to 100MB of persistent server data.
+  * Server.storage.get() - Retrieve stored server data.
+  * Server.storage.getUsageBytes() - Get current storage usage in bytes.
 - ServerScript API: Write sandboxed backend JS code (Server.on('event', fn), Server.broadcast('event', data)) to handle server-side game logic securely.
 - Server.callAI: Call local AI generation (Ollama smollm2:360m, qwen2.5:0.5b, gemma3:1b, or llama3.2:1b) inside ServerScript with parameters: { model: "gemma3:1b", Temp: 0, Mtokens: 28, Instruction: "...", Prompt: "...", Streaming: false }. Callback receives { id: "4-char-id", text: "generated AI message text", chunk: "newest chunk", done: boolean, error: string }. NOTE: Always display 'res.text' as the AI's generated response in the chat/UI, NOT 'res.id'! (NOTE: 'gemma3:1b' and 'llama3.2:1b' require the user to have a valid User ID on WebSockets).
 
@@ -4355,10 +3438,10 @@ async function sendHttpEvent(type, data) {
     }
 }
 
-// --- SERVERSCRIPT STORAGE API (100MB Persistent Server Storage) ---
-Server.storage.get();          // Returns stored data string (up to 100MB)
-Server.storage.set(content);   // Saves and stores data to disk (auto-chopped if > 100MB)
-Server.storage.getUsageBytes();// Returns total bytes currently stored
+// --- SERVERSCRIPT 100MB DEDICATED STORAGE API ---
+// Server.storage.set("any string or JSON data up to 100MB");
+// const storedData = Server.storage.get();
+// const usedBytes = Server.storage.getUsageBytes();
 
 // --- SERVERSCRIPT LOCAL AI API (Ollama smollm2:360m / qwen2.5:0.5b) ---
 Server.callAI({
@@ -4391,10 +3474,10 @@ socket.on("RemoteEvent", (pkt) => {
     if (pkt.type === "userid_response") console.log("User ID:", pkt.userId || pkt.message);
 });
 
-// --- SERVERSCRIPT STORAGE API (100MB Persistent Server Storage) ---
-Server.storage.get();          // Returns stored data string (up to 100MB)
-Server.storage.set(content);   // Saves and stores data to disk (auto-chopped if > 100MB)
-Server.storage.getUsageBytes();// Returns total bytes currently stored
+// --- SERVERSCRIPT 100MB DEDICATED STORAGE API ---
+// Server.storage.set("any string or JSON data up to 100MB");
+// const storedData = Server.storage.get();
+// const usedBytes = Server.storage.getUsageBytes();
 
 // --- SERVERSCRIPT LOCAL AI API (Ollama gemma3:1b / llama3.2:1b / smollm2:360m / qwen2.5:0.5b) ---
 Server.callAI({
