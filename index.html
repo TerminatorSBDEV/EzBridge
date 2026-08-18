@@ -26,10 +26,16 @@
         }
 
         body, html {
-            margin: 0; padding: 0; height: 100%;
+            margin: 0; padding: 0; height: 100%; width: 100%;
             background-color: var(--bg); color: var(--text);
             font-family: 'Segoe UI', system-ui, sans-serif;
             display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+        }
+
+        #bg-canvas {
+            position: fixed; inset: 0; width: 100vw; height: 100vh;
+            z-index: 0; pointer-events: none;
         }
 
         .overlay {
@@ -42,7 +48,7 @@
             background: var(--panel); border: 1px solid var(--border) !important; padding: 30px;
             width: 90%; max-width: 480px; text-align: center;
             box-shadow: 0 0 20px var(--accent-glow);
-            position: relative;
+            position: relative; z-index: 10;
         }
 
         h1, h2, h3 { color: var(--accent); margin-top: 0; letter-spacing: 1px; }
@@ -85,8 +91,9 @@
             border: 1px solid var(--border) !important; font-size: 0.85rem; font-weight: bold;
             display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 15px;
         }
-        .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--error); }
+        .dot { width: 8px; height: 8px; background: var(--error); }
         .dot.online { background: var(--green); box-shadow: 0 0 10px var(--green); }
+        .dot.lockdown { background: var(--yellow); box-shadow: 0 0 10px var(--yellow); }
 
         .progress-container {
             width: 100%; background: #020617; border: 1px solid var(--border) !important;
@@ -125,12 +132,8 @@
             color: #fff !important; padding: 12px; font-weight: bold; cursor: pointer;
             transition: transform 0.2s, background 0.2s; text-align: center;
         }
-        .session-btn:hover {
-            background: rgba(239, 68, 68, 0.5) !important;
-        }
-        .session-btn-list:hover .session-btn:not(:hover) {
-            transform: scale(0.96);
-        }
+        .session-btn:hover { background: rgba(239, 68, 68, 0.5) !important; }
+        .session-btn-list:hover .session-btn:not(:hover) { transform: scale(0.96); }
 
         .chat-bubble-box {
             background: #020617; border: 1px solid var(--border);
@@ -143,38 +146,27 @@
         }
 
         #modal-site-viewer .card {
-            width: 95vw !important;
-            height: 95vh !important;
-            max-width: 95vw !important;
-            max-height: 95vh !important;
-            padding: 15px;
-            display: flex; flex-direction: column;
-            background: #000000 !important;
-            border: 2px solid #ef4444 !important;
+            width: 95vw !important; height: 95vh !important;
+            max-width: 95vw !important; max-height: 95vh !important;
+            padding: 15px; display: flex; flex-direction: column;
+            background: #000000 !important; border: 2px solid #ef4444 !important;
             box-shadow: 0 0 30px rgba(239, 68, 68, 0.4);
         }
 
         #site-viewer-frame-container {
-            flex: 1;
-            width: 100%;
-            height: calc(95vh - 70px) !important;
-            border: 1px solid #ef4444;
-            background: #ffffff;
-            overflow: hidden;
-            position: relative;
+            flex: 1; width: 100%; height: calc(95vh - 70px) !important;
+            border: 1px solid #ef4444; background: #ffffff;
+            overflow: hidden; position: relative;
         }
 
-        iframe.site-frame {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: block;
-        }
-
+        iframe.site-frame { width: 100%; height: 100%; border: none; display: block; }
         .disclaimer { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--error) !important; color: #fca5a5; padding: 10px; font-size: 0.75rem; text-align: left; margin-bottom: 10px; }
+        .validation-msg { font-size: 0.75rem; margin-top: 4px; text-align: left; }
     </style>
 </head>
 <body>
+
+    <canvas id="bg-canvas"></canvas>
 
     <div id="overlay-sync" class="overlay">
         <div class="card">
@@ -183,7 +175,95 @@
         </div>
     </div>
 
-    <!-- OVERLAY FETCHING SITES (150KB CHUNKS) -->
+    <!-- OVERLAY CAPTCHA -->
+    <div id="overlay-captcha" class="overlay" style="display:none;">
+        <div class="card">
+            <h1>EzBridge</h1>
+            <p style="font-size:0.85rem; color:var(--muted); line-height:1.5;">
+                Please solve the puzzle below to continue.
+            </p>
+            <div style="display: flex; justify-content: center; margin: 20px 0;">
+                <div class="g-recaptcha" data-sitekey="6Lf8VTMtAAAAAAMXrs6lk-tLBjuW0u8ZV5LevzMz" data-callback="captchaSolved"></div>
+            </div>
+            <button class="btn" style="background:#ffffff !important; color:#000000 !important; font-weight:bold; margin-top:10px;" onclick="exploreSitesAsGuest()">Explore Sites</button>
+        </div>
+    </div>
+
+    <!-- OVERLAY AUTH OPTIONS (GOOGLE OU EZBRIDGE) -->
+    <div id="overlay-google-auth" class="overlay" style="display:none;">
+        <div class="card">
+            <h1>Sign In Required</h1>
+            <p style="font-size:0.85rem; color:var(--muted); line-height:1.5; margin-bottom:20px;">
+                Choose how you want to sign in to EzBridge.
+            </p>
+            
+            <div style="display:flex; flex-direction:column; gap:12px; align-items:center; margin-bottom:15px;">
+                <div id="g_id_onload"
+                     data-client_id="596211651893-5vddbq1vee4uv9oq26vqmcu807umlaqt.apps.googleusercontent.com"
+                     data-callback="handleGoogleLogin">
+                </div>
+                <div class="g_id_signin" data-type="standard" data-shape="pill" data-theme="filled_blue"></div>
+
+                <div style="font-size:0.85rem; font-weight:bold; color:var(--muted); margin: 4px 0;">OR</div>
+
+                <button class="btn btn-danger" style="width:240px; margin:0;" onclick="openEzBridgeAuthModal()">Use EzBridge</button>
+            </div>
+
+            <button class="btn" style="background:#ffffff !important; color:#000000 !important; font-weight:bold; margin-top:10px;" onclick="exploreSitesAsGuest()">Explore Sites</button>
+        </div>
+    </div>
+
+    <!-- MODAL EZBRIDGE AUTH -->
+    <div id="modal-ezbridge-auth" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 440px;">
+            <div id="ez-auth-choice-view">
+                <h3>What would you like to do?</h3>
+                <div style="display:flex; gap:10px; margin: 20px 0;">
+                    <button class="btn" onclick="showEzSignupForm()">Sign up (New here)</button>
+                    <button class="btn btn-secondary" onclick="showEzLoginForm()">Log in (Been here before)</button>
+                </div>
+                <button class="btn btn-secondary" onclick="closeEzBridgeAuthModal()">Cancel</button>
+            </div>
+
+            <div id="ez-signup-view" style="display:none;">
+                <h3>EzBridge Sign Up</h3>
+                <div class="settings-grid" style="max-height:none;">
+                    <div class="settings-item">
+                        <label>Your username: (10 char min, 30 max, spaces/letters/numbers)</label>
+                        <input type="text" id="ez-signup-user" maxlength="30" oninput="handleUsernameInput(this.value, false)">
+                        <div id="signup-user-status" class="validation-msg"></div>
+                    </div>
+                    <div class="settings-item">
+                        <label>Your password: (8 char min, 30 max)</label>
+                        <input type="password" id="ez-signup-pass" maxlength="30" oninput="handlePasswordInput(this.value)">
+                        <div id="signup-pass-status" class="validation-msg"></div>
+                    </div>
+                </div>
+                <button class="btn" onclick="submitEzSignup()">Create a new account</button>
+                <button class="btn btn-secondary" onclick="backToEzAuthChoice()">Back</button>
+            </div>
+
+            <div id="ez-login-view" style="display:none;">
+                <h3>EzBridge Log In</h3>
+                <div class="settings-grid" style="max-height:none;">
+                    <div class="settings-item">
+                        <label>Username</label>
+                        <input type="text" id="ez-login-user" maxlength="30" oninput="handleUsernameInput(this.value, true)">
+                        <div id="login-user-status" class="validation-msg"></div>
+                    </div>
+                    <div class="settings-item">
+                        <label>Password</label>
+                        <input type="password" id="ez-login-pass" maxlength="30" oninput="handlePasswordInput(this.value)">
+                        <div id="login-pass-status" class="validation-msg"></div>
+                    </div>
+                </div>
+                <button class="btn" onclick="submitEzLogin()">Log in</button>
+                <button class="btn btn-secondary" onclick="backToEzAuthChoice()">Back</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- OVERLAY FETCHING SITES -->
     <div id="overlay-fetching-sites" class="overlay" style="display:none;">
         <div class="card">
             <h3>Fetching sites...</h3>
@@ -191,11 +271,11 @@
                 <div id="site-fetch-bar" class="progress-bar"></div>
                 <div class="progress-text"><span id="site-fetch-pct">0</span>%</div>
             </div>
-            <button class="btn btn-secondary" onclick="cancelSiteFetch()">[CANCEL]</button>
+            <button class="btn btn-secondary" onclick="cancelSiteFetch()">Cancel</button>
         </div>
     </div>
 
-    <!-- OVERLAY FETCHING PREVIOUS SITE SETTINGS FOR UPDATE SITE -->
+    <!-- OVERLAY FETCHING PREVIOUS SITE SETTINGS -->
     <div id="overlay-fetching-site-data" class="overlay" style="display:none;">
         <div class="card">
             <h3>Fetching previous site settings...</h3>
@@ -220,7 +300,6 @@
             </div>
 
             <div id="search-fetching-indicator" style="display:none; color:var(--accent); font-size:0.85rem; font-weight:bold; margin:10px 0;">Fetching sites...</div>
-
             <div id="published-sites-container" class="settings-grid" style="flex:1; max-height:none;"></div>
 
             <button class="btn btn-purple" id="btn-create-update-site" style="margin-top:10px;" onclick="handleCreateOrUpdateSiteClick()">Create site</button>
@@ -268,7 +347,7 @@
         </div>
     </div>
 
-    <!-- MODAL "OR ASK AI ✨" COM SELETOR DE MODELOS ATUALIZADO -->
+    <!-- MODAL OR ASK AI -->
     <div id="modal-ask-ai-site" class="overlay" style="display:none;">
         <div class="card" style="max-width: 520px; width:95%;">
             <h3>What do you wanna ask AI to make?</h3>
@@ -312,6 +391,7 @@
         </div>
     </div>
 
+    <!-- MODAL SITE VIEWER -->
     <div id="modal-site-viewer" class="overlay" style="display:none;">
         <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
@@ -322,6 +402,7 @@
         </div>
     </div>
 
+    <!-- OVERLAYS DE ERRO E STATUS -->
     <div id="overlay-banned-app" class="overlay" style="display:none;">
         <div class="card" style="border-color: var(--error);">
             <h1 style="color: var(--error);">BANNED FROM EZBRIDGE</h1>
@@ -329,7 +410,7 @@
                 You are banned from EzBridge.<br>
                 Days remaining: <span id="ban-days-text" style="color:#fff; font-weight:bold;">-</span>
             </p>
-            <button class="btn btn-secondary" onclick="copyUserId()">[Copy UserID]</button>
+            <button class="btn btn-secondary" onclick="copyUserId()">Copy UserID</button>
         </div>
     </div>
 
@@ -350,70 +431,30 @@
         </div>
     </div>
 
-    <div id="overlay-captcha" class="overlay" style="display:none;">
-        <div class="card">
-            <h1>EzBridge</h1>
-            <p style="font-size:0.85rem; color:var(--muted); line-height:1.5;">
-                Please solve the puzzle below to continue.
-            </p>
-            <div style="display: flex; justify-content: center; margin: 20px 0;">
-                <div class="g-recaptcha" data-sitekey="6Lf8VTMtAAAAAAMXrs6lk-tLBjuW0u8ZV5LevzMz" data-callback="captchaSolved"></div>
-            </div>
-            <button class="btn" style="background:#ffffff !important; color:#000000 !important; font-weight:bold; margin-top:10px;" onclick="exploreSitesAsGuest()">Explore Sites</button>
-        </div>
-    </div>
-
-    <div id="overlay-google-auth" class="overlay" style="display:none;">
-        <div class="card">
-            <h1>Sign In Required</h1>
-            <p style="font-size:0.85rem; color:var(--muted); line-height:1.5; margin-bottom:20px;">
-                You must sign in or register with Google before creating a new virtual server.
-            </p>
-            <div style="display:flex; justify-content:center; margin-bottom:15px;">
-                <div id="g_id_onload"
-                     data-client_id="596211651893-5vddbq1vee4uv9oq26vqmcu807umlaqt.apps.googleusercontent.com"
-                     data-callback="handleGoogleLogin">
-                </div>
-                <div class="g_id_signin" data-type="standard" data-shape="pill" data-theme="filled_blue"></div>
-            </div>
-            <button class="btn" style="background:#ffffff !important; color:#000000 !important; font-weight:bold; margin-top:10px;" onclick="exploreSitesAsGuest()">Explore Sites</button>
-        </div>
-    </div>
-
     <div id="overlay-start" class="overlay" style="display:none;">
         <div class="card">
             <h1>EzBridge</h1>
             <p style="color:var(--muted); font-size:0.9rem; margin-bottom:25px;">Create and implement a server to your apps for free!</p>
-            <button class="btn" onclick="openSetupUI()">[CLICK HERE TO BEGIN]</button>
+            <button class="btn" onclick="openSetupUI()">CLICK HERE TO BEGIN</button>
         </div>
     </div>
 
+    <!-- OVERLAY SETUP / UPDATE SERVER -->
     <div id="overlay-setup" class="overlay" style="display:none;">
         <div class="card" style="max-width: 520px;">
             <h2 id="setup-title">Setup Your Server</h2>
             <div class="settings-grid">
                 <div class="settings-item">
                     <label>Server Type</label>
-                    <select id="cfg-server-type" onchange="toggleServerTypeUI()">
+                    <select id="cfg-server-type">
                         <option value="websocket" selected>Websocket (Real-Time)</option>
                         <option value="http">HTTP (REST APIs)</option>
                     </select>
                 </div>
 
                 <div class="settings-item">
-                    <label>Server RAM Limit (MAX 250MB)</label>
-                    <div style="display:flex; gap:8px;">
-                        <input type="number" id="cfg-ram-val" value="250" max="250" style="flex:1;">
-                        <select id="cfg-ram-unit" style="width:80px;">
-                            <option value="MB" selected>MB</option>
-                            <option value="KB">KB</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="settings-item" id="max-users-group">
-                    <label>Max Users Per Instance (1 - 100)</label>
-                    <input type="number" id="cfg-max-users" value="20" min="1" max="100">
+                    <label>Server Target Ping: <span id="ping-display-val">60</span>ms</label>
+                    <input type="range" id="cfg-target-ping" min="60" max="1000" step="10" value="60" oninput="document.getElementById('ping-display-val').innerText = this.value">
                 </div>
 
                 <div class="settings-item">
@@ -424,7 +465,7 @@
                     </select>
                 </div>
 
-                <div id="domain-whitelist-panel" style="display:block; background:#020617; padding:10px; border-radius:8px; border:1px solid var(--border);">
+                <div id="domain-whitelist-panel" style="display:block; background:#020617; padding:10px; border:1px solid var(--border);">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <label style="font-size:0.75rem; color:var(--muted); font-weight:bold;">WHITELISTED DOMAINS (<span id="domain-count">0</span>/10)</label>
                         <button class="btn" style="width:auto; margin:0; padding:4px 10px; font-size:0.8rem;" onclick="addDomainPrompt()">+ Add Domain</button>
@@ -432,20 +473,15 @@
                     <div id="domain-list" class="domain-list"></div>
                 </div>
 
-                <div style="display:flex; gap:8px; align-items:center;">
-                    <button class="btn btn-secondary" style="flex:1;" type="button" onclick="openScriptEditorModal()">[Create ServerScript (REQUIRED)]</button>
-                    <select id="cfg-script-lifecycle" style="width:120px; background:#020617; color:#fff; border:1px solid var(--border); padding:10px;">
-                        <option value="permanent" selected>Permanent</option>
-                        <option value="temporary">Temporary</option>
-                    </select>
-                </div>
+                <button class="btn btn-secondary" type="button" onclick="openScriptEditorModal()">Create ServerScript (REQUIRED)</button>
             </div>
 
-            <button class="btn" id="setup-action-btn" onclick="createServerSubmit()">[CREATE SERVER]</button>
+            <button class="btn" id="setup-action-btn" onclick="createServerSubmit()">CREATE SERVER</button>
             <button class="btn btn-secondary" onclick="closeSetupUI()">Cancel</button>
         </div>
     </div>
 
+    <!-- MODAL SERVERSCRIPT EDITOR -->
     <div id="modal-script" class="overlay" style="display:none;">
         <div class="card" style="max-width: 650px;">
             <h3>ServerScript Editor (REQUIRED)</h3>
@@ -464,17 +500,25 @@
         </div>
     </div>
 
+    <!-- MODAL CONSOLE & STORAGE -->
     <div id="modal-console" class="overlay" style="display:none;">
         <div class="card" style="max-width: 600px;">
-            <h3>Server Console Logs</h3>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3 id="console-modal-title" style="margin:0;">Server Console Logs</h3>
+                <button class="btn btn-purple" id="btn-toggle-storage-view" style="width:auto; margin:0; padding:6px 14px;" onclick="toggleConsoleStorageView()">See Storage</button>
+            </div>
+            
             <div id="console-logs-display" class="console-box"></div>
+            <textarea id="console-storage-display" class="code-box" readonly rows="12" style="display:none; height:260px;"></textarea>
+
             <div style="display:flex; gap:10px;">
-                <button class="btn" onclick="copyConsoleLogs()">[Copy Logs]</button>
+                <button class="btn" id="btn-copy-console" onclick="copyConsoleLogs()">Copy Logs</button>
                 <button class="btn btn-secondary" onclick="closeConsoleModal()">Close</button>
             </div>
         </div>
     </div>
 
+    <!-- MODAL CHOOSE CHAT SESSION -->
     <div id="modal-choose-session" class="overlay" style="display:none;">
         <div class="card" style="max-width: 420px;">
             <h3>Choose a session</h3>
@@ -494,6 +538,7 @@
         </div>
     </div>
 
+    <!-- MODAL CHAT ROOM -->
     <div id="modal-chat-room" class="overlay" style="display:none;">
         <div class="card" style="max-width: 500px; width:95%; max-height:85vh; display:flex; flex-direction:column;">
             <h3 id="chat-session-title">Session S. 1</h3>
@@ -508,9 +553,11 @@
         </div>
     </div>
 
+    <!-- MODAL VIEW SCRIPT POPUP -->
     <div id="modal-view-script" class="overlay" style="display:none;">
         <div class="card" style="max-width: 650px;">
             <h3>View ServerScript</h3>
+            <div id="view-script-loading" style="display:none; color:var(--accent); font-size:0.85rem; margin:10px 0;">Loading script chunks... <span id="view-script-pct">0</span>%</div>
             <textarea id="view-script-textarea" class="code-box" readonly rows="12" style="width:100%; height:250px; resize:none;"></textarea>
             <div style="display:flex; gap:10px; margin-top:10px;">
                 <button class="btn" onclick="copyText('view-script-textarea')">Copy Script</button>
@@ -519,29 +566,68 @@
         </div>
     </div>
 
+    <!-- MODAL ACCOUNT SETTINGS -->
     <div id="modal-account-settings" class="overlay" style="display:none;">
         <div class="card" style="max-width: 440px;">
             <h3>Account Settings</h3>
             <div style="display:flex; flex-direction:column; gap:10px; margin:20px 0;">
-                <button class="btn btn-secondary" onclick="accountLogout()">[Logout]</button>
-                <button class="btn btn-secondary" onclick="accountRegenUserId()">[Regenerate User ID]</button>
+                <button class="btn btn-secondary" onclick="accountLogout()">Logout</button>
+                <button class="btn btn-secondary" onclick="accountRegenUserId()">Regenerate User ID</button>
                 
+                <div id="ez-native-account-actions" style="display:none; display:flex; flex-direction:column; gap:10px;">
+                    <button class="btn btn-secondary" onclick="openChangeUsernameModal()">Change Account Username</button>
+                    <button class="btn btn-secondary" onclick="openChangePasswordModal()">Change Account Password</button>
+                </div>
+
                 <button class="btn btn-purple" id="btn-server-mgmt" style="display:none;" onclick="openServerMgmtModal()">Server Management</button>
                 <button class="btn btn-danger" id="btn-ban-user" style="display:none;" onclick="openBanUserModal()">Ban User</button>
                 <button class="btn btn-purple" id="btn-role-mgr" style="display:none;" onclick="openRoleManagerModal()">Role Manager</button>
                 
-                <button class="btn btn-danger" onclick="openDeleteAccountConfirmModal()">[DELETE ACCOUNT AND DATA]</button>
+                <button class="btn btn-danger" onclick="openDeleteAccountConfirmModal()">DELETE ACCOUNT AND DATA</button>
             </div>
             <button class="btn btn-secondary" onclick="closeAccountSettingsModal()">Close</button>
         </div>
     </div>
 
+    <!-- MODALS PARA MUDAR USERNAME/PASSWORD EZBRIDGE -->
+    <div id="modal-change-user" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 440px;">
+            <h3>Change Username</h3>
+            <div class="settings-grid" style="max-height:none;">
+                <div class="settings-item">
+                    <label>New Username (10-30 chars, letters/numbers/spaces)</label>
+                    <input type="text" id="change-user-input" maxlength="30">
+                </div>
+            </div>
+            <button class="btn" onclick="submitChangeUsername()">Update Username</button>
+            <button class="btn btn-secondary" onclick="closeChangeUsernameModal()">Cancel</button>
+        </div>
+    </div>
+
+    <div id="modal-change-pass" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 440px;">
+            <h3>Change Password</h3>
+            <div class="settings-grid" style="max-height:none;">
+                <div class="settings-item">
+                    <label>Current Password</label>
+                    <input type="password" id="change-pass-curr" maxlength="30">
+                </div>
+                <div class="settings-item">
+                    <label>New Password (8-30 chars)</label>
+                    <input type="password" id="change-pass-new" maxlength="30">
+                </div>
+            </div>
+            <button class="btn" onclick="submitChangePassword()">Update Password</button>
+            <button class="btn btn-secondary" onclick="closeChangePasswordModal()">Cancel</button>
+        </div>
+    </div>
+
+    <!-- UNIVERSAL SERVER PANEL (OWNER ONLY) -->
     <div id="modal-universal-panel" class="overlay" style="display:none;">
         <div class="card" style="max-width: 460px;">
             <h3>Universal Server Panel</h3>
             <div style="display:flex; flex-direction:column; gap:10px; margin:20px 0;">
                 <button class="btn btn-purple" onclick="openUpdateUnivServerModal()">Update univserver</button>
-                <button class="btn btn-secondary" onclick="restartNodeAndCloudflare()">restart node and generate new cloudflare ID</button>
                 <button class="btn btn-secondary" onclick="restartNodeOnly()">restart node</button>
             </div>
             <button class="btn btn-secondary" onclick="closeUniversalPanelModal()">Close</button>
@@ -639,7 +725,14 @@
         </div>
     </div>
 
+    <!-- DASHBOARD -->
     <div id="dashboard" class="card" style="display:none; width: 480px;">
+        <div id="lockdown-banner" style="display:none; background:rgba(234, 179, 8, 0.15); border:1px solid var(--yellow); padding:10px; margin-bottom:12px; font-size:0.75rem; color:#fef08a; text-align:left;">
+            <div style="font-weight:bold; color:var(--yellow); margin-bottom:4px;">⚠YOUR SERVER HAS EXCEEDED IT'S RAM LIMIT⚠</div>
+            <div>- your server has been temporarily disabled because it has exceeded the Ram limit, do not worry, your server will return back after a certain amount of time. You can still edit and manage it, but won't be able to communicate with it.</div>
+            <div style="font-weight:bold; font-size:0.9rem; margin-top:6px;" id="lockdown-timer-text">0:00 Left</div>
+        </div>
+
         <div id="metrics-bar" style="font-size: 0.75rem; color: var(--accent); font-weight: bold; margin-bottom: 8px;">
             PING: <span id="metric-ping">60</span>ms | Data received: <span id="metric-rx">0.0</span>kbs↓ | Data sent: <span id="metric-tx">0.0</span>kbps↑
         </div>
@@ -678,32 +771,38 @@
                     <div id="ram-progress-fill" style="width:0%; height:100%; background:#ef4444; transition:width 0.2s;"></div>
                 </div>
             </div>
+
+            <div>Storage usage: <span id="storage-usage-text" style="color:var(--accent); font-weight:bold;">0.00mb</span> / 100mb</div>
         </div>
 
         <div class="dashboard-row">
-            <button class="btn" style="flex: 1;" onclick="toggleServerState()">[Start/Stop Server]</button>
+            <button class="btn" style="flex: 1;" onclick="toggleServerState()">Start/Stop Server</button>
             <button class="btn btn-purple" style="width: 90px;" onclick="openConsoleModal()">Console</button>
             <button class="btn btn-secondary" style="width: 50px;" onclick="openEditSettings()">⚙</button>
         </div>
         <div class="dashboard-row">
-            <button class="btn btn-secondary" style="flex: 1;" onclick="openHowToUse()">[How to Use]</button>
+            <button class="btn btn-secondary" style="flex: 1;" onclick="openHowToUse()">How to Use</button>
         </div>
 
         <button class="btn" style="background:#ffffff !important; color:#000000 !important; font-weight:bold; margin-top:15px;" onclick="openSeeAndPublishModal()">SEE AND PUBLISH</button>
     </div>
 
+    <!-- MODAL HOW TO USE COM REGEN SERVER KEY -->
     <div id="modal-howto" class="overlay" style="display:none;">
         <div class="card" style="max-width: 600px;">
             <h3 style="margin-bottom:15px;">How to Connect Your Server</h3>
             <div style="text-align:left;">
-                <button class="btn btn-purple" style="margin-bottom:15px;" onclick="copyAIPrompt()">[Copy AI Prompt]</button>
+                <button class="btn btn-purple" style="margin-bottom:15px;" onclick="copyAIPrompt()">Copy AI Prompt</button>
+                
                 <div class="settings-item">
                     <label>1. Server Auth Key</label>
-                    <div style="display:flex; gap:10px;">
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn btn-danger" style="width:auto; margin:0; padding:6px 12px; font-size:0.75rem;" onclick="requestRegenServerKey()">Regenerate ID</button>
                         <input type="text" id="copy-key" readonly style="flex-grow:1;">
                         <button class="btn" style="width:auto; margin:0;" onclick="copyText('copy-key')">Copy</button>
                     </div>
                 </div>
+
                 <div class="settings-item" style="margin-top:10px;">
                     <label>2. Current Cloudflare Link</label>
                     <div style="display:flex; gap:10px;">
@@ -712,8 +811,8 @@
                     </div>
                 </div>
                 <div style="display:flex; gap:10px; margin-top:15px;">
-                    <button class="btn btn-secondary" style="flex:1;" onclick="openCommandsModal()">[API Commands]</button>
-                    <button class="btn" style="flex:1;" onclick="openGameCode()">[View Game Example]</button>
+                    <button class="btn btn-secondary" style="flex:1;" onclick="openCommandsModal()">API Commands</button>
+                    <button class="btn btn-secondary" style="flex:1;" onclick="openGameCode()">View Game Example</button>
                 </div>
             </div>
             <button class="btn btn-secondary" style="margin-top:15px;" onclick="closeHowToUse()">Close</button>
@@ -761,6 +860,7 @@
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
     let googleEmail = null;
+    let ezUsername = null;
     let activeUserId = "";
     let userRole = "None";
     let serverKey = "";
@@ -771,20 +871,18 @@
     let whitelistedDomains = [];
     let consoleLogsCache = [];
 
-    // Guest Mode Exploration
     let isGuestMode = false;
+    let isConsoleStorageView = false;
+    let storagePollInterval = null;
 
-    // Metrics Tracking (60ms intervals, updated every 1s)
     let rxBytesAccum = 0;
     let txBytesAccum = 0;
     let currentPingVal = 60;
 
-    // Chat Sessions State
     let currentChatSession = null;
     let chatHistoryChunks = [];
     let chatTypingTimeout = null;
 
-    // See and Publish State
     let publishedSitesCache = [];
     let siteFetchChunks = [];
     let isUserHasSite = false;
@@ -793,10 +891,11 @@
     let userSiteDataChunks = [];
     let siteSearchDebounce = null;
 
-    // AI Generation State
     let currentAiGenId = null;
     let aiTimerInterval = null;
     let aiStartTime = 0;
+
+    let viewScriptChunks = [];
 
     const SCRIPT_CHUNK_SIZE = 100 * 1024;
     const UNIV_CHUNK_SIZE = 50 * 1024;
@@ -804,6 +903,58 @@
     let isUploadingScript = false;
     let isUploadingUnivScript = false;
     let isUploadingSiteScript = false;
+
+    // --- ANIMATED RED NEURAL NETWORK BACKGROUND CANVAS ---
+    const bgCanvas = document.getElementById('bg-canvas');
+    const bgCtx = bgCanvas.getContext('2d');
+    let particles = [];
+
+    function resizeBgCanvas() {
+        bgCanvas.width = window.innerWidth;
+        bgCanvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeBgCanvas);
+    resizeBgCanvas();
+
+    for (let i = 0; i < 45; i++) {
+        particles.push({
+            x: Math.random() * bgCanvas.width,
+            y: Math.random() * bgCanvas.height,
+            vx: (Math.random() - 0.5) * 0.8,
+            vy: (Math.random() - 0.5) * 0.8,
+            radius: Math.random() * 1.5 + 1
+        });
+    }
+
+    function animateBg() {
+        bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+        for (let i = 0; i < particles.length; i++) {
+            let p = particles[i];
+            p.x += p.vx; p.y += p.vy;
+            if (p.x < 0 || p.x > bgCanvas.width) p.vx *= -1;
+            if (p.y < 0 || p.y > bgCanvas.height) p.vy *= -1;
+
+            bgCtx.beginPath();
+            bgCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            bgCtx.fillStyle = 'rgba(239, 68, 68, 0.6)';
+            bgCtx.fill();
+
+            for (let j = i + 1; j < particles.length; j++) {
+                let p2 = particles[j];
+                let dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+                if (dist < 130) {
+                    bgCtx.beginPath();
+                    bgCtx.moveTo(p.x, p.y);
+                    bgCtx.lineTo(p2.x, p2.y);
+                    bgCtx.strokeStyle = `rgba(239, 68, 68, ${0.35 * (1 - dist / 130)})`;
+                    bgCtx.lineWidth = 0.75;
+                    bgCtx.stroke();
+                }
+            }
+        }
+        requestAnimationFrame(animateBg);
+    }
+    animateBg();
 
     const initTimeout = setTimeout(() => {
         document.getElementById('overlay-sync').style.display = 'none';
@@ -855,10 +1006,11 @@
             serverKey = data.server.key;
             serverActive = data.server.active;
             serverType = data.server.serverType || "websocket";
-            serverSettings = data.server.settings;
+            serverSettings = data.server.settings || {};
             currentServerScript = data.server.serverScript || "";
             googleSub = data.server.googleSub || null;
             googleEmail = data.server.email || null;
+            ezUsername = data.server.username || null;
             activeUserId = data.server.userId || activeUserId;
             whitelistedDomains = serverSettings.whitelistedDomains || [];
             showDashboard();
@@ -888,6 +1040,12 @@
         activeUserId = data.newUserId;
         document.getElementById('new-userid-display').value = activeUserId;
         document.getElementById('modal-new-userid').style.display = 'flex';
+    });
+
+    socket.on('eb_server_key_regenerated', (data) => {
+        serverKey = data.newServerKey;
+        document.getElementById('copy-key').value = serverKey;
+        alert("Server Key successfully regenerated!");
     });
 
     socket.on('eb_account_deleted', () => {
@@ -923,7 +1081,6 @@
         if (data.text && outBox) {
             outBox.value = data.text;
             outBox.scrollTop = outBox.scrollHeight;
-            
             const approxTokens = Math.min(3250, Math.floor(data.text.length / 3.8));
             document.getElementById('ai-token-counter').innerText = `Token Usage: ${approxTokens}/3250`;
         }
@@ -1069,6 +1226,155 @@
         }
     });
 
+    // CHUNKED STORAGE STREAMING
+    let storageChunks = [];
+    socket.on('eb_server_storage_chunk', (data) => {
+        if (data.index === 0) storageChunks = [];
+        storageChunks.push(data.chunk);
+        if (storageChunks.length === data.total) {
+            document.getElementById('console-storage-display').value = storageChunks.join('');
+        }
+    });
+
+    // CHUNKED SERVERSCRIPT STREAMING FOR MANAGEMENT
+    socket.on('eb_serverscript_chunk_response', (data) => {
+        if (data.index === 0) viewScriptChunks = [];
+        viewScriptChunks.push(data.chunk);
+        const pct = Math.floor(((data.index + 1) / data.total) * 100);
+        const pctEl = document.getElementById('view-script-pct');
+        if (pctEl) pctEl.innerText = pct;
+
+        if (viewScriptChunks.length === data.total) {
+            document.getElementById('view-script-loading').style.display = 'none';
+            document.getElementById('view-script-textarea').value = viewScriptChunks.join('');
+        }
+    });
+
+    // --- NATIVE EZBRIDGE AUTHENTICATION LOGIC ---
+    function openEzBridgeAuthModal() {
+        document.getElementById('overlay-google-auth').style.display = 'none';
+        document.getElementById('ez-auth-choice-view').style.display = 'block';
+        document.getElementById('ez-signup-view').style.display = 'none';
+        document.getElementById('ez-login-view').style.display = 'none';
+        document.getElementById('modal-ezbridge-auth').style.display = 'flex';
+    }
+
+    function closeEzBridgeAuthModal() {
+        document.getElementById('modal-ezbridge-auth').style.display = 'none';
+        document.getElementById('overlay-google-auth').style.display = 'flex';
+    }
+
+    function backToEzAuthChoice() {
+        document.getElementById('ez-auth-choice-view').style.display = 'block';
+        document.getElementById('ez-signup-view').style.display = 'none';
+        document.getElementById('ez-login-view').style.display = 'none';
+    }
+
+    function showEzSignupForm() {
+        document.getElementById('ez-auth-choice-view').style.display = 'none';
+        document.getElementById('ez-signup-view').style.display = 'block';
+        document.getElementById('signup-user-status').innerHTML = '';
+        document.getElementById('signup-pass-status').innerHTML = '';
+    }
+
+    function showEzLoginForm() {
+        document.getElementById('ez-auth-choice-view').style.display = 'none';
+        document.getElementById('ez-login-view').style.display = 'block';
+        document.getElementById('login-user-status').innerHTML = '';
+        document.getElementById('login-pass-status').innerHTML = '';
+    }
+
+    let valUserDebounce = null;
+    function handleUsernameInput(val, isLogin) {
+        const statusEl = document.getElementById(isLogin ? 'login-user-status' : 'signup-user-status');
+        statusEl.innerHTML = `<span style="color:#ffffff;">*Checking..*</span>`;
+
+        if (valUserDebounce) clearTimeout(valUserDebounce);
+        valUserDebounce = setTimeout(() => {
+            socket.emit('eb_validate_username', { username: val, isLoginMode: isLogin });
+        }, 200);
+    }
+
+    socket.on('eb_validate_username_response', (data) => {
+        const statusEl = document.getElementById(data.isLoginMode ? 'login-user-status' : 'signup-user-status');
+        if (!statusEl) return;
+
+        if (!data.validLength || !data.validChars || (data.isLoginMode && !data.exists)) {
+            let html = `<div style="color:var(--error); line-height:1.4;">*Incorrect chars. Please make sure they meet these requirements*<br>`;
+            html += `1 - has more than 0 chars<br>`;
+            html += `2 - has less than 30 chars (min 10)<br>`;
+            html += `3 - does not have unsupported symbols<br>`;
+            if (data.isLoginMode) {
+                html += `4 - make sure the Username exists</div>`;
+            } else {
+                html += `</div>`;
+            }
+            statusEl.innerHTML = html;
+        } else if (data.isLoginMode && data.exists) {
+            statusEl.innerHTML = `<div style="color:var(--green);">*Great, the Username ${escapeHtml(data.username)} exists in EzBridge.*</div>`;
+        } else {
+            statusEl.innerHTML = `<div style="color:var(--green);">*Username is available!*</div>`;
+        }
+    });
+
+    function handlePasswordInput(val) {
+        socket.emit('eb_validate_password', { password: val });
+    }
+
+    socket.on('eb_validate_password_response', (data) => {
+        const sEl1 = document.getElementById('signup-pass-status');
+        const sEl2 = document.getElementById('login-pass-status');
+        const targetEl = (document.getElementById('ez-signup-view').style.display !== 'none') ? sEl1 : sEl2;
+
+        if (!targetEl) return;
+        if (!data.validChars) {
+            targetEl.innerHTML = `<div style="color:var(--error);">*Unsupported characters in password.*</div>`;
+        } else {
+            targetEl.innerHTML = '';
+        }
+    });
+
+    function submitEzSignup() {
+        const user = document.getElementById('ez-signup-user').value.trim();
+        const pass = document.getElementById('ez-signup-pass').value.trim();
+        showLoadingScreen("Wait, EzBridge wants to make sure your information and data are secure..");
+        socket.emit('eb_auth_signup', { username: user, password: pass });
+    }
+
+    function submitEzLogin() {
+        const user = document.getElementById('ez-login-user').value.trim();
+        const pass = document.getElementById('ez-login-pass').value.trim();
+        showLoadingScreen("Wait, EzBridge wants to make sure your information and data are secure..");
+        socket.emit('eb_auth_login', { username: user, password: pass });
+    }
+
+    socket.on('eb_auth_success', (data) => {
+        hideLoadingScreen();
+        document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
+
+        ownerId = data.ownerId;
+        activeUserId = data.userId;
+        ezUsername = data.username;
+        setCookie("eb_owner_id", ownerId, 365);
+
+        if (data.hasServer && data.server) {
+            serverKey = data.server.key;
+            serverActive = data.server.active;
+            serverType = data.server.serverType || "websocket";
+            serverSettings = data.server.settings || {};
+            currentServerScript = data.server.serverScript || "";
+            activeUserId = data.server.userId || activeUserId;
+            userRole = data.role || "None";
+            whitelistedDomains = serverSettings.whitelistedDomains || [];
+
+            applyRolePermissions();
+            showDashboard();
+            checkUrlSiteHash();
+        } else {
+            openSetupUI();
+        }
+    });
+
     function handleGoogleLogin(response) {
         const base64Url = response.credential.split('.')[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -1089,7 +1395,7 @@
             serverKey = data.server.key;
             serverActive = data.server.active;
             serverType = data.server.serverType || "websocket";
-            serverSettings = data.server.settings;
+            serverSettings = data.server.settings || {};
             currentServerScript = data.server.serverScript || "";
             googleSub = data.server.googleSub || googleSub;
             googleEmail = data.server.email || googleEmail;
@@ -1108,7 +1414,7 @@
 
     function captchaSolved() {
         document.getElementById('overlay-captcha').style.display = 'none';
-        if (!googleSub) {
+        if (!googleSub && !ezUsername) {
             document.getElementById('overlay-google-auth').style.display = 'flex';
         } else {
             document.getElementById('overlay-start').style.display = 'flex';
@@ -1255,9 +1561,7 @@
 
     function cancelSiteFetch() {
         document.getElementById('overlay-fetching-sites').style.display = 'none';
-        if (isGuestMode) {
-            returnToLoginFromSites();
-        }
+        if (isGuestMode) returnToLoginFromSites();
     }
 
     function closeSeeAndPublishModal() {
@@ -1316,17 +1620,17 @@
             div.style.gap = '6px';
 
             const canDelete = (userRole === 'Owner' || userRole === 'Dev' || userRole === 'Admin');
-            const deleteBtnHTML = canDelete ? `<button class="btn btn-danger" style="width:auto; margin:0; padding:2px 8px; font-size:0.7rem;" onclick="deletePublishedSite('${s.id}')">[DELETE]</button>` : '';
+            const deleteBtnHTML = canDelete ? `<button class="btn btn-danger" style="width:auto; margin:0; padding:2px 8px; font-size:0.7rem;" onclick="deletePublishedSite('${s.id}')">DELETE</button>` : '';
 
             div.innerHTML = `
                 <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
-                    <span><b>${escapeHtml(s.title)}</b> <button class="btn-secondary" style="padding:2px 6px; font-size:0.65rem;" onclick="copyTextValue('${s.id}')">[COPY ID]</button> by <b>${escapeHtml(s.ownerUserId)}</b></span>
+                    <span><b>${escapeHtml(s.title)}</b> <button class="btn-secondary" style="padding:2px 6px; font-size:0.65rem;" onclick="copyTextValue('${s.id}')">COPY ID</button> by <b>${escapeHtml(s.ownerUserId)}</b></span>
                     ${deleteBtnHTML}
                 </div>
                 <div style="font-size:0.75rem; color:var(--muted);">
                     Latest update: ${s.dateStr || '0/0/0'} | <b>${s.onlineCount || 0}</b> people online in it! | visits: <b>${s.visits || 0}</b>
                 </div>
-                <button class="btn" style="width:auto; margin:0; padding:4px 14px; font-size:0.8rem;" onclick="accessSite('${s.id}')">[access]</button>
+                <button class="btn" style="width:auto; margin:0; padding:4px 14px; font-size:0.8rem;" onclick="accessSite('${s.id}')">access</button>
             `;
             container.appendChild(div);
         });
@@ -1562,7 +1866,7 @@
         else if (msg.role === 'Admin') roleTagHTML = `<span class="role-tag role-admin">ADMIN</span>`;
 
         const canCopyId = (userRole === 'Owner' || userRole === 'Dev' || userRole === 'Admin');
-        const copyBtnHTML = canCopyId ? `<button class="btn-secondary" style="padding:2px 6px; font-size:0.65rem; margin-left:6px;" onclick="copyTextValue('${msg.userId}')">[Copy ID]</button>` : '';
+        const copyBtnHTML = canCopyId ? `<button class="btn-secondary" style="padding:2px 6px; font-size:0.65rem; margin-left:6px;" onclick="copyTextValue('${msg.userId}')">Copy ID</button>` : '';
 
         bubble.innerHTML = `
             <div style="font-size:0.75rem; font-weight:bold; color:var(--accent); margin-bottom:4px;">
@@ -1634,13 +1938,6 @@
         }
     });
 
-    function restartNodeAndCloudflare() {
-        if (confirm("Restart Node server and generate a new Cloudflare Link?")) {
-            socket.emit('eb_terminal_input', { text: '/r all' });
-            closeUniversalPanelModal();
-        }
-    }
-
     function restartNodeOnly() {
         if (confirm("Restart Node server only?")) {
             socket.emit('eb_restart_node_only', { ownerId, googleSub });
@@ -1650,10 +1947,46 @@
 
     function openAccountSettingsModal() {
         applyRolePermissions();
+        const ezActions = document.getElementById('ez-native-account-actions');
+        if (ezUsername) {
+            ezActions.style.display = 'flex';
+        } else {
+            ezActions.style.display = 'none';
+        }
         document.getElementById('modal-account-settings').style.display = 'flex';
     }
     function closeAccountSettingsModal() {
         document.getElementById('modal-account-settings').style.display = 'none';
+    }
+
+    function openChangeUsernameModal() {
+        closeAccountSettingsModal();
+        document.getElementById('change-user-input').value = "";
+        document.getElementById('modal-change-user').style.display = 'flex';
+    }
+    function closeChangeUsernameModal() {
+        document.getElementById('modal-change-user').style.display = 'none';
+    }
+    function submitChangeUsername() {
+        const newU = document.getElementById('change-user-input').value.trim();
+        socket.emit('eb_change_username', { newUsername: newU });
+        closeChangeUsernameModal();
+    }
+
+    function openChangePasswordModal() {
+        closeAccountSettingsModal();
+        document.getElementById('change-pass-curr').value = "";
+        document.getElementById('change-pass-new').value = "";
+        document.getElementById('modal-change-pass').style.display = 'flex';
+    }
+    function closeChangePasswordModal() {
+        document.getElementById('modal-change-pass').style.display = 'none';
+    }
+    function submitChangePassword() {
+        const currP = document.getElementById('change-pass-curr').value.trim();
+        const newP = document.getElementById('change-pass-new').value.trim();
+        socket.emit('eb_change_password', { currentPassword: currP, newPassword: newP });
+        closeChangePasswordModal();
     }
 
     function accountLogout() {
@@ -1665,6 +1998,12 @@
     function accountRegenUserId() {
         socket.emit('eb_regen_user_id', { key: serverKey, ownerId, googleSub });
         closeAccountSettingsModal();
+    }
+
+    function requestRegenServerKey() {
+        if (confirm("Regenerate Server Key? The old key will be deleted and you will need to wait 24 hours to regenerate again.")) {
+            socket.emit('eb_regen_server_key', { key: serverKey, ownerId, googleSub });
+        }
     }
 
     function closeNewUserIdModal() {
@@ -1752,20 +2091,24 @@
             div.innerHTML = `
                 <div><b>${sv.clientId}'s server</b> status: <span style="color:${sv.active ? 'var(--green)':'var(--error)'}">${sv.active ? 'ONLINE':'OFFLINE'}</span> - RAM usage: ${kb}kb</div>
                 <div style="font-size:0.75rem; color:var(--muted);">
-                    settings: Type: ${sv.serverType.toUpperCase()} - Max ram: ${sv.ramLimitMB}mb - 
-                    ServerScript <button class="btn btn-secondary" style="width:auto; margin:0; padding:2px 8px; font-size:0.75rem;" onclick="openViewScriptModal(decodeURIComponent('${encodeURIComponent(sv.serverScript)}'))">Look Script</button> - 
-                    Email: ${sv.email} - Auth Key: ${sv.key}
+                    settings: Type: ${sv.serverType.toUpperCase()} - 
+                    ServerScript <button class="btn btn-secondary" style="width:auto; margin:0; padding:2px 8px; font-size:0.75rem;" onclick="openChunkedScriptModal('${sv.key}')">Look Script</button> - 
+                    Email/User: ${sv.email || sv.username || 'EzBridge User'} - Auth Key: ${sv.key}
                 </div>
-                <button class="btn btn-danger" style="width:auto; margin:0; padding:4px 10px; font-size:0.75rem;" onclick="shutdownServer('${sv.key}')">[SHUTDOWN]</button>
+                <button class="btn btn-danger" style="width:auto; margin:0; padding:4px 10px; font-size:0.75rem;" onclick="shutdownServer('${sv.key}')">SHUTDOWN</button>
             `;
             container.appendChild(div);
         });
     });
 
-    function openViewScriptModal(scriptText) {
-        document.getElementById('view-script-textarea').value = scriptText;
-        document.getElementById('modal-view-script').style.display = 'flex';
+    function openChunkedScriptModal(targetKey) {
+        document.getElementById('view-script-textarea').value = "";
+        document.getElementById('view-script-pct').innerText = "0";
+        document.getElementById('view-script-loading').style.display = "block";
+        document.getElementById('modal-view-script').style.display = "flex";
+        socket.emit('eb_get_serverscript_chunked', { targetKey });
     }
+
     function closeViewScriptModal() {
         document.getElementById('modal-view-script').style.display = 'none';
     }
@@ -1773,11 +2116,6 @@
     function shutdownServer(targetKey) {
         socket.emit('eb_shutdown_server', { targetKey, ownerId, googleSub });
         setTimeout(fetchServerMgmtList, 500);
-    }
-
-    function toggleServerTypeUI() {
-        const type = document.getElementById('cfg-server-type').value;
-        document.getElementById('max-users-group').style.display = (type === 'websocket') ? 'flex' : 'none';
     }
 
     function toggleDomainWhitelistUI() {
@@ -1902,19 +2240,14 @@
             return alert("TO CREATE/UPDATE A SERVER, NOW IT REQUIRES AT LEAST 1 CHAR INSIDE SERVERSCRIPT!");
         }
 
-        if (!serverKey && !googleSub) {
-            return alert("GOOGLE SIGN-IN IS REQUIRED TO CREATE A NEW SERVER! Please sign in with Google first.");
+        if (!serverKey && !googleSub && !ezUsername) {
+            return alert("SIGN-IN IS REQUIRED TO CREATE A NEW SERVER!");
         }
 
-        const ramVal = parseInt(document.getElementById('cfg-ram-val').value) || 250;
-        const ramUnit = document.getElementById('cfg-ram-unit').value;
+        const targetPing = parseInt(document.getElementById('cfg-target-ping').value) || 60;
 
         const settings = {
-            ramLimitMB: ramUnit === 'MB' ? Math.min(250, ramVal) : Math.max(1, Math.floor(Math.min(250000, ramVal) / 1024)),
-            ramLimitKB: ramUnit === 'KB' ? Math.min(250000, ramVal) : Math.min(250, ramVal) * 1024,
-            ramUnit: ramUnit,
-            maxUsers: parseInt(document.getElementById('cfg-max-users').value) || 20,
-            scriptLifecycle: document.getElementById('cfg-script-lifecycle').value,
+            serverTargetPing: Math.max(60, Math.min(1000, targetPing)),
             allowPrivate: document.getElementById('cfg-private').value === 'true',
             whitelistedDomains: whitelistedDomains
         };
@@ -1924,9 +2257,9 @@
         showLoadingScreen("Creating/Updating your server.. wait while your client does its job.");
 
         if (serverKey) {
-            socket.emit('eb_save_settings', { key: serverKey, ownerId, googleSub, settings, serverType: type, serverScript: currentServerScript });
+            socket.emit('eb_save_settings', { key: serverKey, ownerId, googleSub, username: ezUsername, settings, serverType: type, serverScript: currentServerScript });
         } else {
-            socket.emit('eb_create_server', { ownerId, googleSub, email: googleEmail, settings, serverType: type, serverScript: currentServerScript });
+            socket.emit('eb_create_server', { ownerId, googleSub, email: googleEmail, username: ezUsername, settings, serverType: type, serverScript: currentServerScript });
         }
     }
 
@@ -1987,12 +2320,10 @@
         const emailBox = document.getElementById('account-email-display');
         const emailText = document.getElementById('user-email-text');
 
-        if (googleSub || googleEmail) {
+        if (googleSub || googleEmail || ezUsername) {
             container.style.display = 'none';
-            if (googleEmail) {
-                emailText.innerText = googleEmail;
-                emailBox.style.display = 'flex';
-            }
+            emailText.innerText = ezUsername ? ezUsername : googleEmail;
+            emailBox.style.display = 'flex';
         } else {
             container.style.display = 'block';
             emailBox.style.display = 'none';
@@ -2007,34 +2338,52 @@
         const kb = (data.ramUsageBytes / 1024).toFixed(1);
         document.getElementById('ram-usage-text').innerText = `${kb} KB`;
 
-        const limitBytes = (data.settings && data.settings.ramUnit === 'KB') ? (data.settings.ramLimitKB || 250000) * 1024 : (data.settings ? (data.settings.ramLimitMB || 250) : 250) * 1024 * 1024;
+        const limitBytes = 250 * 1024 * 1024;
         const ramPct = Math.min(100, Math.floor((data.ramUsageBytes / limitBytes) * 100));
         const fillBar = document.getElementById('ram-progress-fill');
         if (fillBar) fillBar.style.width = `${ramPct}%`;
 
-        if (data.email) {
-            googleEmail = data.email;
-            updateDashboardGoogleBtn();
+        document.getElementById('storage-usage-text').innerText = `${data.storageUsageMB || '0.00'}mb`;
+
+        // CHECK LOCKDOWN STATE
+        const lockdownBanner = document.getElementById('lockdown-banner');
+        if (data.isLockdown) {
+            lockdownBanner.style.display = 'block';
+            const remM = Math.floor(data.lockdownRemainingSecs / 60);
+            const remS = String(data.lockdownRemainingSecs % 60).padStart(2, '0');
+            document.getElementById('lockdown-timer-text').innerText = `${remM}:${remS} Left`;
+        } else {
+            lockdownBanner.style.display = 'none';
         }
 
-        updateStatusDisplay();
+        if (data.username) ezUsername = data.username;
+        if (data.email) googleEmail = data.email;
+        updateDashboardGoogleBtn();
+        updateStatusDisplay(data.isLockdown);
     });
 
     function toggleServerState() {
         serverActive = !serverActive;
-        socket.emit('eb_toggle_server', { key: serverKey, ownerId, googleSub, state: serverActive });
+        socket.emit('eb_toggle_server', { key: serverKey, ownerId, googleSub, username: ezUsername, state: serverActive });
         updateStatusDisplay();
     }
 
-    function updateStatusDisplay() {
+    function updateStatusDisplay(isLockdown) {
         const dot = document.getElementById('server-dot');
         const text = document.getElementById('server-status-text');
-        if (serverActive) {
+
+        dot.classList.remove('online', 'lockdown');
+        if (isLockdown) {
+            dot.classList.add('lockdown');
+            text.innerText = "Lockdown";
+            text.style.color = "var(--yellow)";
+        } else if (serverActive) {
             dot.classList.add('online');
             text.innerText = "ONLINE";
+            text.style.color = "var(--green)";
         } else {
-            dot.classList.remove('online');
             text.innerText = "OFFLINE";
+            text.style.color = "var(--error)";
         }
     }
 
@@ -2044,7 +2393,41 @@
     }
 
     function closeConsoleModal() {
+        if (storagePollInterval) clearInterval(storagePollInterval);
+        isConsoleStorageView = false;
         document.getElementById('modal-console').style.display = 'none';
+    }
+
+    function toggleConsoleStorageView() {
+        const logBox = document.getElementById('console-logs-display');
+        const storageBox = document.getElementById('console-storage-display');
+        const toggleBtn = document.getElementById('btn-toggle-storage-view');
+        const titleEl = document.getElementById('console-modal-title');
+        const copyBtn = document.getElementById('btn-copy-console');
+
+        isConsoleStorageView = !isConsoleStorageView;
+        if (isConsoleStorageView) {
+            logBox.style.display = 'none';
+            storageBox.style.display = 'block';
+            toggleBtn.innerText = "See Logs";
+            titleEl.innerText = "Server Storage (100MB max)";
+            copyBtn.innerText = "Copy Storage";
+
+            socket.emit('eb_get_server_storage', { key: serverKey, ownerId, googleSub });
+            if (storagePollInterval) clearInterval(storagePollInterval);
+            storagePollInterval = setInterval(() => {
+                if (isConsoleStorageView && document.getElementById('modal-console').style.display !== 'none') {
+                    socket.emit('eb_get_server_storage', { key: serverKey, ownerId, googleSub });
+                }
+            }, 5000);
+        } else {
+            logBox.style.display = 'flex';
+            storageBox.style.display = 'none';
+            toggleBtn.innerText = "See Storage";
+            titleEl.innerText = "Server Console Logs";
+            copyBtn.innerText = "Copy Logs";
+            if (storagePollInterval) clearInterval(storagePollInterval);
+        }
     }
 
     function renderConsoleLogs() {
@@ -2060,9 +2443,13 @@
     }
 
     function copyConsoleLogs() {
-        const text = consoleLogsCache.map(l => l.text).join('\n');
-        navigator.clipboard.writeText(text);
-        alert("Console logs copied to clipboard!");
+        if (isConsoleStorageView) {
+            copyText('console-storage-display');
+        } else {
+            const text = consoleLogsCache.map(l => l.text).join('\n');
+            navigator.clipboard.writeText(text);
+            alert("Console logs copied to clipboard!");
+        }
     }
 
     function openEditSettings() {
@@ -2076,7 +2463,7 @@
                 document.getElementById('dashboard').style.display = 'none';
                 document.getElementById('overlay-setup').style.display = 'flex';
                 document.getElementById('setup-title').innerText = "Update Server";
-                document.getElementById('setup-action-btn').innerText = "[UPDATE SERVER]";
+                document.getElementById('setup-action-btn').innerText = "UPDATE SERVER";
             }
         }, 3000);
 
@@ -2087,14 +2474,14 @@
 
             if (data.success) {
                 serverType = data.serverType;
-                serverSettings = data.settings;
+                serverSettings = data.settings || {};
                 currentServerScript = data.serverScript;
                 populateSettingsForm(serverType, serverSettings, currentServerScript);
 
                 document.getElementById('dashboard').style.display = 'none';
                 document.getElementById('overlay-setup').style.display = 'flex';
                 document.getElementById('setup-title').innerText = "Update Server";
-                document.getElementById('setup-action-btn').innerText = "[UPDATE SERVER]";
+                document.getElementById('setup-action-btn').innerText = "UPDATE SERVER";
             } else {
                 alert(data.error || "Failed to sync settings from server.");
             }
@@ -2105,21 +2492,11 @@
 
     function populateSettingsForm(type, settings, script) {
         document.getElementById('cfg-server-type').value = type;
-        
-        if (settings.ramUnit === 'KB') {
-            document.getElementById('cfg-ram-val').value = Math.min(250000, settings.ramLimitKB || 250000);
-            document.getElementById('cfg-ram-unit').value = 'KB';
-        } else {
-            document.getElementById('cfg-ram-val').value = Math.min(250, settings.ramLimitMB || 250);
-            document.getElementById('cfg-ram-unit').value = 'MB';
-        }
-
-        document.getElementById('cfg-max-users').value = settings.maxUsers || 20;
-        document.getElementById('cfg-script-lifecycle').value = settings.scriptLifecycle || 'permanent';
+        document.getElementById('cfg-target-ping').value = settings.serverTargetPing || 60;
+        document.getElementById('ping-display-val').innerText = settings.serverTargetPing || 60;
         document.getElementById('cfg-private').value = String(settings.allowPrivate);
         document.getElementById('script-editor').value = script;
 
-        toggleServerTypeUI();
         toggleDomainWhitelistUI();
         renderDomains();
     }
@@ -2656,8 +3033,6 @@
                 const screenCenterX = canvas.width / 2;
                 const screenCenterY = canvas.height / 2;
                 aimAngle = Math.atan2(mousePos.y - screenCenterY, mousePos.x - screenCenterX);
-
-                socket.emit("RemoteEvent", { type: "player_update", data: { id: myId, x: myPos.x, y: myPos.y, angle: aimAngle, color: myColor } });
             }
 
             for (let i = bullets.length - 1; i >= 0; i--) {
@@ -2674,7 +3049,7 @@
                     for (let id in players) {
                         let p = players[id];
                         if (p.hp > 0 && Math.abs(p.x - b.x) < 25 && Math.abs(p.y - b.y) < 25) {
-                            socket.emit("RemoteEvent", { type: "apply_damage", data: { targetId: id, damage: b.damage } });
+                            syncHttp("apply_damage", { targetId: id, damage: b.damage });
                             bullets.splice(i, 1);
                             break;
                         }
@@ -2880,25 +3255,26 @@ setInterval(() => {
 
         const httpChatServerCode = 
 `// --- EzBridge HTTP State-Based Chat ServerScript ---
-if (!Server.state.messages) {
-    Server.state.messages = [];
-}
+Server.storage.edit({ messages: [] });
 
 Server.on('send_message', (evt) => {
+    let storage = Server.storage.get();
+    let data = typeof storage === 'string' && storage ? JSON.parse(storage) : { messages: [] };
     if (evt.data && evt.data.text) {
-        Server.state.messages.push({
+        data.messages.push({
             sender: evt.data.sender || 'Guest',
             text: evt.data.text
         });
-        if (Server.state.messages.length > 50) {
-            Server.state.messages.shift();
-        }
+        if (data.messages.length > 50) data.messages.shift();
+        Server.storage.edit(data);
     }
-    evt.reply({ messages: Server.state.messages });
+    evt.reply({ messages: data.messages });
 });
 
 Server.on('get_messages', (evt) => {
-    evt.reply({ messages: Server.state.messages });
+    let storage = Server.storage.get();
+    let data = typeof storage === 'string' && storage ? JSON.parse(storage) : { messages: [] };
+    evt.reply({ messages: data.messages });
 });`;
 
         return { clientCode, serverCode, httpChatClientCode, httpChatServerCode };
@@ -2928,14 +3304,14 @@ ${serverType === 'websocket' ?
 
 3 - APIs You Can Use
 - 'ebuserid_get' / 'eb_id_get': Send RemoteEvent type 'ebuserid_get' to get the client's permanent unique User ID (15-30 chars). Returns "This user does not have an ID." if user is not a server owner.
-- ServerScript API: Write sandboxed backend JS code (Server.on('event', fn), Server.broadcast('event', data)) to handle server-side game logic securely.
-- Server.callAI: Call local AI generation (Ollama smollm2:360m, qwen2.5:0.5b, gemma3:1b, or llama3.2:1b) inside ServerScript with parameters: { model: "gemma3:1b", Temp: 0, Mtokens: 28, Instruction: "...", Prompt: "...", Streaming: false }. Callback receives { id: "4-char-id", text: "generated AI message text", chunk: "newest chunk", done: boolean, error: string }. NOTE: Always display 'res.text' as the AI's generated response in the chat/UI, NOT 'res.id'! (NOTE: 'gemma3:1b' and 'llama3.2:1b' require the user to have a valid User ID on WebSockets).
+- ServerScript Storage API: Server.storage.edit(data) / Server.storage.get() allows up to 100MB of persistent server-side storage.
+- Server.callAI: Call local AI generation (Ollama smollm2:360m, qwen2.5:0.5b, gemma3:1b, or llama3.2:1b) inside ServerScript with parameters: { model: "gemma3:1b", Temp: 0, Mtokens: 28, Instruction: "...", Prompt: "...", Streaming: false }. Callback receives { id: "4-char-id", text: "generated AI message text", chunk: "newest chunk", done: boolean, error: string }. NOTE: Always display 'res.text' as the AI's generated response in the chat/UI, NOT 'res.id'!
 
 4 - Learn More About EzBridge
 - Max Packet Size: 192KB per packet (350KB chunk stream processing).
-- Request Limit: Up to 60 requests/sec (more than 60 reqs/s or 200kbps triggers 5-min IP and client ratelimit).
-- Server Memory: Configured at ${serverSettings.ramLimitMB || 250}MB.
-- Instance Scaling: Automatic room instancing per ${serverSettings.maxUsers || 20} max users.
+- Server Memory: 250MB fixed RAM limit with automatic Lockdown protection.
+- Storage: 100MB server-side data capacity.
+- Inactivity Sleep: ServerScript sleeps after 5 minutes of client inactivity.
 
 that's all you needed to know, now, you can start.
 
@@ -2944,10 +3320,7 @@ here are some examples so you understand more about making online apps:
 ${clientCode}
 
 2 - serverscript
-${serverCode}
-
-as you can see, the client calculates its movement, gun and actions, then these actions and etc are sent to the server, the server sees who sent it (because the client has a temporary id on its ram, so the server knows who sent it) and broadcasts this remote to everyone.
-like, let's just say the player jumped, the server sees it "let me see who just jumped.." and tells everyone "Hey everyone! the player just jumped!". and because this is client-sided, exploiters can teleport their character, get superspeed and invisibility, you can solve this by instead, making the server calculate the actions from everyone OR a anticheat that detects if a player is moving faster than expected, then teleport the player back to where he was. But only add anticheats unless the user said "moving and actions are client-sided".`;
+${serverCode}`;
 
         navigator.clipboard.writeText(promptText);
         alert("AI Prompt copied to clipboard! Paste it into your AI chat.");
@@ -2978,14 +3351,18 @@ async function sendHttpEvent(type, data) {
     }
 }
 
+// --- SERVERSCRIPT STORAGE API (100MB max) ---
+Server.storage.edit({ score: 100 });
+const savedData = Server.storage.get();
+
 // --- SERVERSCRIPT LOCAL AI API (Ollama smollm2:360m / qwen2.5:0.5b) ---
 Server.callAI({
-    model: "qwen2.5:0.5b",             // "smollm2:360m" or "qwen2.5:0.5b"
-    Temp: 0,                           // Temperature (0 to 2.0)
-    Mtokens: 28,                       // Max Tokens (1 to 3250)
-    Instruction: "You are a helpful assistant.", // Instruction (2 to 1000 chars)
-    Prompt: "what's the capital of France?",      // Prompt (1 to 5000 chars)
-    Streaming: false                  // false (returns full text) or true (0.1s updates)
+    model: "qwen2.5:0.5b",
+    Temp: 0,
+    Mtokens: 28,
+    Instruction: "You are a helpful assistant.",
+    Prompt: "what's the capital of France?",
+    Streaming: false
 }, (res) => {
     if (res.error) console.log("AI Error:", res.error);
     else console.log("AI Answer Text:", res.text, "Tracking ID:", res.id);
@@ -3009,14 +3386,18 @@ socket.on("RemoteEvent", (pkt) => {
     if (pkt.type === "userid_response") console.log("User ID:", pkt.userId || pkt.message);
 });
 
+// --- SERVERSCRIPT STORAGE API (100MB max) ---
+Server.storage.edit({ score: 100 });
+const savedData = Server.storage.get();
+
 // --- SERVERSCRIPT LOCAL AI API (Ollama gemma3:1b / llama3.2:1b / smollm2:360m / qwen2.5:0.5b) ---
 Server.callAI({
-    model: "gemma3:1b",               // "gemma3:1b", "llama3.2:1b", "smollm2:360m", "qwen2.5:0.5b"
-    Temp: 0,                           // Temperature (0 to 2.0)
-    Mtokens: 28,                       // Max Tokens (1 to 3250)
-    Instruction: "You are a helpful assistant.", // Instruction (2 to 1000 chars)
-    Prompt: "what's the capital of France?",      // Prompt (1 to 5000 chars)
-    Streaming: false                  // false (returns full text) or true (0.1s updates)
+    model: "gemma3:1b",
+    Temp: 0,
+    Mtokens: 28,
+    Instruction: "You are a helpful assistant.",
+    Prompt: "what's the capital of France?",
+    Streaming: false
 }, (res) => {
     if (res.error) console.log("AI Error:", res.error);
     else console.log("AI Answer Text:", res.text, "Tracking ID:", res.id);
