@@ -16,6 +16,7 @@
             --accent-glow: rgba(239, 68, 68, 0.3);
             --green: #10b981;
             --yellow: #eab308;
+            --orange: #f97316;
             --text: #ffffff;
             --muted: #94a3b8;
             --error: #ef4444;
@@ -91,9 +92,10 @@
             border: 1px solid var(--border) !important; font-size: 0.85rem; font-weight: bold;
             display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 15px;
         }
-        .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--error); }
+        .dot { width: 8px; height: 8px; border-radius: 50% !important; background: var(--error); }
         .dot.online { background: var(--green); box-shadow: 0 0 10px var(--green); }
         .dot.lockdown { background: var(--yellow); box-shadow: 0 0 10px var(--yellow); }
+        .dot.sleeping { background: var(--orange); box-shadow: 0 0 10px var(--orange); }
 
         .progress-container {
             width: 100%; background: #020617; border: 1px solid var(--border) !important;
@@ -185,6 +187,37 @@
             text-align: left; margin-bottom: 12px; line-height: 1.4;
         }
 
+        /* AVATAR & COINS UI */
+        .avatar-btn {
+            width: 32px; height: 32px; border-radius: 50% !important;
+            background: #cbd5e1; border: 1px solid var(--border);
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            overflow: hidden; padding: 0; position: relative;
+        }
+        .avatar-img {
+            width: 100%; height: 100%; border-radius: 50% !important; object-fit: cover;
+        }
+        .default-avatar-donut {
+            width: 100%; height: 100%; border-radius: 50% !important; background: #94a3b8;
+            display: flex; align-items: center; justify-content: center; position: relative;
+        }
+        .donut-head {
+            width: 12px; height: 12px; border-radius: 50% !important; background: #0f172a;
+            position: absolute; top: 5px;
+        }
+        .donut-body {
+            width: 22px; height: 14px; border-radius: 12px 12px 0 0 !important; background: #0f172a;
+            position: absolute; bottom: -2px;
+        }
+
+        .coin-icon {
+            width: 22px; height: 22px; border-radius: 50% !important;
+            background: #eab308; border: 2px solid rgba(0,0,0,0.3);
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 0.65rem; font-weight: 900; color: #ffffff;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.6); vertical-align: middle;
+        }
+
         .disclaimer { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--error) !important; color: #fca5a5; padding: 10px; font-size: 0.75rem; text-align: left; margin-bottom: 10px; }
     </style>
 </head>
@@ -193,7 +226,7 @@
     <canvas id="bg-canvas"></canvas>
 
     <div style="position:fixed; bottom:10px; left:12px; z-index:99999; color:#ffffff; font-family:'Courier New', monospace; font-size:0.75rem; font-weight:bold; letter-spacing:1px; pointer-events:none; text-shadow:0 0 4px #000;">
-        EzBridge - V2.0.0
+        EzBridge - V2.1.0
     </div>
 
     <div id="overlay-sync" class="overlay">
@@ -203,12 +236,97 @@
         </div>
     </div>
 
-    <!-- MODAL DE AVISO DE COOLDOWN COM BLUR DE 50% -->
-    <div id="modal-cooldown-warning" class="overlay" style="display:none; backdrop-filter: blur(8px) brightness(50%);">
+    <!-- COOLDOWN WARNING MODAL -->
+    <div id="modal-cooldown-warning" class="overlay" style="display:none; backdrop-filter: blur(8px) brightness(50%); z-index: 999999;">
         <div class="card" style="border-color: var(--error);">
             <h2 style="color: var(--error);">⚠WARNING⚠</h2>
             <p style="font-size:0.9rem; color:#ffffff; margin:15px 0;">This option is on cooldown and cannot be used now.</p>
+            <div style="font-weight:bold; color:var(--accent); margin-bottom:15px;" id="cooldown-warning-time">00:00:00</div>
             <button class="btn btn-secondary" onclick="closeCooldownWarningModal()">Dismiss</button>
+        </div>
+    </div>
+
+    <!-- DAILY REWARDS POPUP -->
+    <div id="modal-daily-rewards" class="overlay" style="display:none; z-index: 999990;">
+        <div class="card" style="max-width: 440px;">
+            <h3>DAILY REWARDS | <span id="daily-streak-badge" style="color:var(--orange);">🔥 1</span></h3>
+            <div style="font-size: 2.2rem; font-weight:bold; color:var(--yellow); margin:15px 0;">
+                <span id="daily-reward-coins">5</span> <span class="coin-icon" style="width:32px; height:32px; font-size:0.9rem;">EZ</span>
+            </div>
+            <p style="font-size:0.85rem; color:#ffffff; line-height:1.5;">
+                Congratulations! you got <span id="daily-reward-coins-txt">5</span> EzCoins for entering EzBridge. Join more frequently and your rewards will significantly increase, so don't break your streak!
+            </p>
+            <button class="btn btn-purple" style="font-size:1.05rem; padding:14px;" onclick="claimDailyRewardSubmit()">-> Collect Reward <-</button>
+            <div style="font-size:0.75rem; color:var(--muted); margin-top:10px;">Server's timezone: <span id="daily-server-time">00:00 UTC - 0/0/0</span></div>
+            <div style="font-size:0.7rem; color:var(--muted); margin-top:4px;">- miss one day and your streak returns to 0.</div>
+        </div>
+    </div>
+
+    <!-- SHOPPING MENU MODAL -->
+    <div id="modal-shop" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 520px; max-height:85vh; display:flex; flex-direction:column;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="margin:0;">Shopping Menu</h3>
+                <div style="font-size:0.85rem; font-weight:bold;"><span class="coin-icon">EZ</span> <span id="shop-user-coins">50</span> EzCoins</div>
+            </div>
+            <p style="font-size:0.75rem; color:var(--muted); text-align:left; margin:8px 0;">V-Batteries</p>
+            <div class="settings-grid" style="flex:1;">
+                <div class="domain-item"><span>50mb+ V-Battery | 25 EzCoins</span><button class="btn btn-purple" style="width:auto; margin:0; padding:4px 12px;" onclick="buyBatteryProduct('bat_50')">Buy</button></div>
+                <div class="domain-item"><span>100mb+ V-Battery | 50 EzCoins</span><button class="btn btn-purple" style="width:auto; margin:0; padding:4px 12px;" onclick="buyBatteryProduct('bat_100')">Buy</button></div>
+                <div class="domain-item"><span>200mb+ V-Battery | 100 EzCoins</span><button class="btn btn-purple" style="width:auto; margin:0; padding:4px 12px;" onclick="buyBatteryProduct('bat_200')">Buy</button></div>
+                <div class="domain-item"><span>350mb+ V-Battery | 150 EzCoins</span><button class="btn btn-purple" style="width:auto; margin:0; padding:4px 12px;" onclick="buyBatteryProduct('bat_350')">Buy</button></div>
+                <div class="domain-item"><span>500mb+ V-Battery | 250 EzCoins</span><button class="btn btn-purple" style="width:auto; margin:0; padding:4px 12px;" onclick="buyBatteryProduct('bat_500')">Buy</button></div>
+                <div class="domain-item"><span>750mb+ V-Battery | 375 EzCoins</span><button class="btn btn-purple" style="width:auto; margin:0; padding:4px 12px;" onclick="buyBatteryProduct('bat_750')">Buy</button></div>
+                <div class="domain-item"><span>1000mb+ V-Battery | 500 EzCoins</span><button class="btn btn-purple" style="width:auto; margin:0; padding:4px 12px;" onclick="buyBatteryProduct('bat_1000')">Buy</button></div>
+            </div>
+            <button class="btn btn-secondary" style="margin-top:10px;" onclick="closeShopModal()">Close</button>
+        </div>
+    </div>
+
+    <!-- PROFILE CUSTOMIZATION LOADING -->
+    <div id="overlay-profile-loading" class="overlay" style="display:none;">
+        <div class="card">
+            <h3>Loading Profile, wait...</h3>
+            <div style="font-size:0.8rem; color:var(--muted); margin:12px 0;">loaded <span id="profile-load-curr">0.0</span>mb out of <span id="profile-load-total">0.0</span>mb packets.</div>
+            <button class="btn btn-secondary" onclick="cancelProfileLoad()">Cancel</button>
+        </div>
+    </div>
+
+    <!-- PROFILE CUSTOMIZATION MODAL -->
+    <div id="modal-profile" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 460px;">
+            <h3>Customize your profile</h3>
+            <div class="settings-grid" style="max-height:none;">
+                <div class="settings-item">
+                    <label>Profile Picture (Image lower than 500kb):</label>
+                    <input type="file" id="profile-pfp-input" accept="image/*" onchange="handlePfpFileSelect(this)">
+                </div>
+                <div class="settings-item">
+                    <label>Display name (min 3 - max 20 chars):</label>
+                    <input type="text" id="profile-name-input" maxlength="20" placeholder="Display name">
+                </div>
+            </div>
+            <button class="btn btn-purple" onclick="submitProfileUpdate()">Update Profile</button>
+            <button class="btn btn-secondary" onclick="closeProfileModal()">Cancel</button>
+        </div>
+    </div>
+
+    <!-- SET USER COINS (OWNER TOOL) -->
+    <div id="modal-owner-set-coins" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 440px;">
+            <h3>Set User Coins (Owner Tool)</h3>
+            <div class="settings-grid" style="max-height:none;">
+                <div class="settings-item">
+                    <label>Paste Target User ID:</label>
+                    <input type="text" id="owner-coins-target-id" placeholder="User ID">
+                </div>
+                <div class="settings-item">
+                    <label>Amount of EzCoins:</label>
+                    <input type="number" id="owner-coins-val" placeholder="50">
+                </div>
+            </div>
+            <button class="btn btn-purple" onclick="submitOwnerSetCoins()">Set</button>
+            <button class="btn btn-secondary" onclick="closeOwnerSetCoinsModal()">Cancel</button>
         </div>
     </div>
 
@@ -293,7 +411,6 @@
         </div>
     </div>
 
-    <!-- MODAL "OR ASK AI ✨" COM SELETOR DE MODELOS ATUALIZADO -->
     <div id="modal-ask-ai-site" class="overlay" style="display:none;">
         <div class="card" style="max-width: 520px; width:95%;">
             <h3>What do you wanna ask AI to make?</h3>
@@ -654,6 +771,7 @@
             <h3>Universal Server Panel</h3>
             <div style="display:flex; flex-direction:column; gap:10px; margin:20px 0;">
                 <button class="btn btn-purple" onclick="openUpdateUnivServerModal()">Update univserver</button>
+                <button class="btn btn-purple" onclick="openOwnerSetCoinsModal()">Set User Coins</button>
                 <button class="btn btn-secondary" onclick="restartNodeOnly()">restart node</button>
             </div>
             <button class="btn btn-secondary" onclick="closeUniversalPanelModal()">Close</button>
@@ -758,8 +876,31 @@
             <div style="font-weight:bold; margin-top:6px; color:#fff;" id="lockdown-countdown-text">0:00 Left</div>
         </div>
 
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 4px;">
+            <!-- TOP-LEFT: AVATAR CUSTOMIZATION BUTTON -->
+            <button class="avatar-btn" id="dashboard-pfp-btn" title="Customize profile" onclick="openProfileModal()">
+                <div class="default-avatar-donut" id="donut-avatar-view"><div class="donut-head"></div><div class="donut-body"></div></div>
+                <img id="custom-avatar-view" class="avatar-img" style="display:none;">
+            </button>
+
+            <!-- TOP-RIGHT: COINS COUNTER & SHOP BUTTON -->
+            <div style="display:flex; align-items:center; gap:8px;">
+                <button class="btn-icon" title="Shopping Menu" onclick="openShopModal()" style="padding:2px 8px; font-size:0.85rem;">🛒</button>
+                <div style="font-size:0.85rem; font-weight:bold;"><span class="coin-icon">EZ</span> <span id="dashboard-coins-count">50</span></div>
+            </div>
+        </div>
+
         <div id="metrics-bar" style="font-size: 0.75rem; color: var(--accent); font-weight: bold; margin-bottom: 8px;">
             PING: <span id="metric-ping">60</span>ms | Data received: <span id="metric-rx">0.0</span>kbs↓ | Data sent: <span id="metric-tx">0.0</span>kbps↑
+        </div>
+
+        <!-- GREEN V-BATTERY PROGRESS BAR -->
+        <div style="margin-bottom:12px; text-align:left;">
+            <div style="font-size:0.75rem; color:var(--muted); font-weight:bold; margin-bottom:3px;">V-Battery left:</div>
+            <div class="progress-container" style="height:18px; margin:0; background:#020617; border-color:var(--green) !important;">
+                <div id="battery-progress-fill" class="progress-bar" style="background:var(--green); width:4%;"></div>
+                <div class="progress-text" style="color:#ffffff; font-size:0.7rem;"><span id="battery-curr-val">1000.0</span>mb | 25000mb</div>
+            </div>
         </div>
 
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
@@ -893,6 +1034,12 @@
     let whitelistedDomains = [];
     let consoleLogsCache = [];
 
+    // Profile & Currency
+    let currentProfile = { displayName: "User_123456789", pfpData: "default" };
+    let currentCoins = 50;
+    let currentBatteryMb = 1000;
+    let stagedPfpBase64 = null;
+
     // Lockdown State
     let isServerLockdown = false;
     let lockdownUntilTime = 0;
@@ -906,8 +1053,8 @@
     let txBytesAccum = 0;
     let currentPingVal = 60;
 
-    // Cooldown Hover Tracking
-    let activeCooldowns = {};
+    // Cooldown Warnings
+    let cooldownTimerCountdown = null;
 
     // Chat Sessions State
     let currentChatSession = null;
@@ -1033,6 +1180,9 @@
         userRole = data.role || "None";
         activeUserId = data.userId || data.ownerId;
 
+        if (data.profile) updateLocalProfileUI(data.profile);
+        if (data.coins !== undefined) updateCoinsDisplay(data.coins);
+
         if (data.banned) {
             document.getElementById('ban-days-text').innerText = data.banInfo.days ? `${data.banInfo.days} day(s)` : "Permanent";
             document.getElementById('overlay-banned-app').style.display = 'flex';
@@ -1054,9 +1204,11 @@
             
             isServerLockdown = Boolean(data.server.isLockdown);
             lockdownUntilTime = data.server.ramStats ? data.server.ramStats.lockdownUntil : 0;
+            if (data.server.battery !== undefined) updateBatteryDisplay(data.server.battery);
 
             showDashboard();
             checkUrlSiteHash();
+            socket.emit('eb_check_daily_reward');
         } else {
             document.getElementById('overlay-captcha').style.display = 'flex';
         }
@@ -1138,6 +1290,44 @@
         lockdownUntilTime = data.lockdownUntil;
         serverActive = false;
         updateStatusDisplay();
+    });
+
+    socket.on('eb_server_battery_depleted', () => {
+        serverActive = false;
+        updateBatteryDisplay(0);
+        updateStatusDisplay();
+    });
+
+    // DAILY REWARDS
+    socket.on('eb_daily_reward_available', (data) => {
+        document.getElementById('daily-streak-badge').innerText = `🔥 ${data.streak}`;
+        document.getElementById('daily-reward-coins').innerText = data.reward;
+        document.getElementById('daily-reward-coins-txt').innerText = data.reward;
+        document.getElementById('daily-server-time').innerText = data.serverTime;
+        document.getElementById('modal-daily-rewards').style.display = 'flex';
+    });
+
+    function claimDailyRewardSubmit() {
+        document.getElementById('modal-daily-rewards').style.display = 'none';
+        socket.emit('eb_claim_daily_reward');
+    }
+
+    // SHOP SUCCESS / ERROR
+    socket.on('eb_shop_success', (data) => {
+        updateBatteryDisplay(data.newBattery);
+        updateCoinsDisplay(data.newCoins);
+        alert(`${data.productName} Purchased sucessfully!`);
+    });
+
+    socket.on('eb_shop_error', (data) => {
+        alert(data.error);
+    });
+
+    // PROFILE UPDATE RESPONSE
+    socket.on('eb_profile_update_success', (data) => {
+        updateLocalProfileUI(data.profile);
+        closeProfileModal();
+        alert("Your profile has been changed.");
     });
 
     socket.on('eb_ai_started', (data) => {
@@ -1301,11 +1491,129 @@
     });
 
     function showCooldownWarningModal(actionName, remMs) {
+        if (cooldownTimerCountdown) clearInterval(cooldownTimerCountdown);
+        let remSeconds = Math.ceil(remMs / 1000);
+
+        function updateWarnText() {
+            const h = String(Math.floor(remSeconds / 3600)).padStart(2, '0');
+            const m = String(Math.floor((remSeconds % 3600) / 60)).padStart(2, '0');
+            const s = String(remSeconds % 60).padStart(2, '0');
+            document.getElementById('cooldown-warning-time').innerText = `${h}:${m}:${s}`;
+        }
+        updateWarnText();
+
+        cooldownTimerCountdown = setInterval(() => {
+            remSeconds--;
+            if (remSeconds <= 0) {
+                clearInterval(cooldownTimerCountdown);
+                closeCooldownWarningModal();
+            } else {
+                updateWarnText();
+            }
+        }, 1000);
+
         document.getElementById('modal-cooldown-warning').style.display = 'flex';
     }
 
     function closeCooldownWarningModal() {
+        if (cooldownTimerCountdown) clearInterval(cooldownTimerCountdown);
         document.getElementById('modal-cooldown-warning').style.display = 'none';
+    }
+
+    // PROFILE CUSTOMIZATION FUNCTIONS
+    function openProfileModal() {
+        document.getElementById('profile-name-input').value = currentProfile.displayName || "";
+        document.getElementById('modal-profile').style.display = 'flex';
+    }
+    function closeProfileModal() {
+        document.getElementById('modal-profile').style.display = 'none';
+    }
+    function handlePfpFileSelect(input) {
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            if (file.size > 500 * 1024) {
+                alert("Profile picture must be lower than 500kb!");
+                input.value = "";
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (e) => { stagedPfpBase64 = e.target.result; };
+            reader.readAsDataURL(file);
+        }
+    }
+    function submitProfileUpdate() {
+        const nameVal = document.getElementById('profile-name-input').value.trim();
+        const pfpDataToSend = stagedPfpBase64 || currentProfile.pfpData || "default";
+
+        const totalChunks = Math.max(1, Math.ceil(pfpDataToSend.length / (192 * 1024)));
+        for (let i = 0; i < totalChunks; i++) {
+            const chunk = pfpDataToSend.slice(i * 192 * 1024, (i + 1) * 192 * 1024);
+            socket.emit('eb_upload_profile_chunk', {
+                index: i,
+                total: totalChunks,
+                chunk: chunk,
+                displayName: nameVal
+            });
+        }
+    }
+    function updateLocalProfileUI(profile) {
+        currentProfile = profile;
+        const customImg = document.getElementById('custom-avatar-view');
+        const donutView = document.getElementById('donut-avatar-view');
+        if (profile.pfpData && profile.pfpData !== "default") {
+            customImg.src = profile.pfpData;
+            customImg.style.display = 'block';
+            donutView.style.display = 'none';
+        } else {
+            customImg.style.display = 'none';
+            donutView.style.display = 'flex';
+        }
+    }
+
+    // COINS & SHOP
+    function openShopModal() {
+        document.getElementById('shop-user-coins').innerText = currentCoins;
+        document.getElementById('modal-shop').style.display = 'flex';
+    }
+    function closeShopModal() {
+        document.getElementById('modal-shop').style.display = 'none';
+    }
+    function buyBatteryProduct(itemId) {
+        socket.emit('eb_buy_battery', { itemId: itemId, serverKey: serverKey });
+    }
+    function updateCoinsDisplay(coins) {
+        currentCoins = coins;
+        const dashCoins = document.getElementById('dashboard-coins-count');
+        const shopCoins = document.getElementById('shop-user-coins');
+        if (dashCoins) dashCoins.innerText = coins;
+        if (shopCoins) shopCoins.innerText = coins;
+    }
+    function updateBatteryDisplay(batteryMb) {
+        currentBatteryMb = batteryMb;
+        const valEl = document.getElementById('battery-curr-val');
+        const fillEl = document.getElementById('battery-progress-fill');
+        if (valEl) valEl.innerText = batteryMb.toFixed(1);
+        if (fillEl) {
+            const pct = Math.min(100, Math.max(0, (batteryMb / 25000) * 100));
+            fillEl.style.width = `${pct}%`;
+        }
+    }
+
+    // OWNER SET COINS
+    function openOwnerSetCoinsModal() {
+        closeUniversalPanelModal();
+        document.getElementById('owner-coins-target-id').value = "";
+        document.getElementById('owner-coins-val').value = "50";
+        document.getElementById('modal-owner-set-coins').style.display = 'flex';
+    }
+    function closeOwnerSetCoinsModal() {
+        document.getElementById('modal-owner-set-coins').style.display = 'none';
+    }
+    function submitOwnerSetCoins() {
+        const targetId = document.getElementById('owner-coins-target-id').value.trim();
+        const amount = parseFloat(document.getElementById('owner-coins-val').value) || 50;
+        socket.emit('eb_owner_set_coins', { targetUserId: targetId, amount: amount });
+        closeOwnerSetCoinsModal();
     }
 
     function handleGoogleLogin(response) {
@@ -1337,9 +1645,13 @@
             userRole = data.role || userRole;
             whitelistedDomains = serverSettings.whitelistedDomains || [];
 
+            if (data.profile) updateLocalProfileUI(data.profile);
+            if (data.coins !== undefined) updateCoinsDisplay(data.coins);
+
             applyRolePermissions();
             showDashboard();
             checkUrlSiteHash();
+            socket.emit('eb_check_daily_reward');
         } else {
             activeUserId = data.userId || ownerId;
             openSetupUI();
@@ -1464,6 +1776,7 @@
         activeUserId = data.userId;
         ezbridgeUsername = data.username;
         setCookie("eb_owner_id", ownerId, 365);
+        if (data.coins !== undefined) updateCoinsDisplay(data.coins);
 
         if (data.hasServer && data.server) {
             serverKey = data.server.key;
@@ -1474,6 +1787,7 @@
             whitelistedDomains = serverSettings.whitelistedDomains || [];
             showDashboard();
             checkUrlSiteHash();
+            socket.emit('eb_check_daily_reward');
         } else {
             openSetupUI();
         }
@@ -1595,21 +1909,6 @@
         } else {
             tag.innerHTML = "";
         }
-    }
-
-    function openAskAiSiteModal() {
-        document.getElementById('ai-site-prompt').value = "";
-        document.getElementById('ai-site-output-box').value = "";
-        document.getElementById('ai-token-counter').innerText = "Token Usage: 0/3250";
-        document.getElementById('ai-gen-timer').innerText = "00:00";
-        document.getElementById('ai-site-input-view').style.display = 'block';
-        document.getElementById('ai-site-gen-view').style.display = 'none';
-        document.getElementById('modal-ask-ai-site').style.display = 'flex';
-    }
-
-    function closeAskAiSiteModal() {
-        stopAiSiteGen();
-        document.getElementById('modal-ask-ai-site').style.display = 'none';
     }
 
     function startAiSiteGen() {
@@ -2001,9 +2300,11 @@
         const canCopyId = (userRole === 'Owner' || userRole === 'Dev' || userRole === 'Admin');
         const copyBtnHTML = canCopyId ? `<button class="btn-secondary" style="padding:2px 6px; font-size:0.65rem; margin-left:6px;" onclick="copyTextValue('${msg.userId}')">Copy ID</button>` : '';
 
+        const pfpHTML = (msg.pfpData && msg.pfpData !== "default") ? `<img src="${msg.pfpData}" style="width:18px; height:18px; border-radius:50% !important; vertical-align:middle; margin-right:4px;">` : `<span class="coin-icon" style="width:18px; height:18px; font-size:0.55rem; margin-right:4px; border-radius:50% !important;">👤</span>`;
+
         bubble.innerHTML = `
-            <div style="font-size:0.75rem; font-weight:bold; color:var(--accent); margin-bottom:4px;">
-                ${escapeHtml(msg.userId || 'Guest')} ${roleTagHTML} ${copyBtnHTML}
+            <div style="font-size:0.75rem; font-weight:bold; color:var(--accent); margin-bottom:4px; display:flex; align-items:center;">
+                ${pfpHTML} <span>${escapeHtml(msg.displayName || msg.userId || 'Guest')}</span> ${roleTagHTML} ${copyBtnHTML}
             </div>
             <div>${escapeHtml(msg.text)}</div>
         `;
@@ -2449,6 +2750,8 @@
 
         isServerLockdown = Boolean(data.isLockdown);
         lockdownUntilTime = data.lockdownUntil || 0;
+        if (data.battery !== undefined) updateBatteryDisplay(data.battery);
+        if (data.coins !== undefined) updateCoinsDisplay(data.coins);
 
         if (data.email) googleEmail = data.email;
         if (data.ezbridgeUsername) ezbridgeUsername = data.ezbridgeUsername;
@@ -2491,6 +2794,10 @@
                     updateStatusDisplay();
                 }
             }, 1000);
+        } else if (currentBatteryMb <= 0) {
+            dot.className = 'dot sleeping';
+            text.innerText = "Sleeping";
+            banner.style.display = 'none';
         } else {
             if (lockdownInterval) clearInterval(lockdownInterval);
             banner.style.display = 'none';
@@ -3389,11 +3696,11 @@ ${serverType === 'websocket' ?
   * Server.storage.get() - Retrieve stored server data.
   * Server.storage.getUsageBytes() - Get current storage usage in bytes.
 - ServerScript API: Write sandboxed backend JS code (Server.on('event', fn), Server.broadcast('event', data)) to handle server-side game logic securely.
-- Server.callAI: Call local AI generation (Ollama smollm2:360m, qwen2.5:0.5b, gemma3:1b, or llama3.2:1b) inside ServerScript with parameters: { model: "gemma3:1b", Temp: 0, Mtokens: 28, Instruction: "...", Prompt: "...", Streaming: false }. Callback receives { id: "4-char-id", text: "generated AI message text", chunk: "newest chunk", done: boolean, error: string }. NOTE: Always display 'res.text' as the AI's generated response in the chat/UI, NOT 'res.id'! (NOTE: 'gemma3:1b' and 'llama3.2:1b' require the user to have a valid User ID on WebSockets).
+- Server.eb_callai: Call local AI generation (Ollama smollm2:360m, qwen2.5:0.5b, gemma3:1b, or llama3.2:1b) inside ServerScript with parameters: { model: "gemma3:1b", Temp: 0, Mtokens: 28, Instruction: "...", Prompt: "...", Streaming: false }. Callback receives { id: "4-char-id", text: "generated AI message text", chunk: "newest chunk", done: boolean, error: string }. NOTE: Always display 'res.text' as the AI's generated response in the chat/UI, NOT 'res.id'! (NOTE: 'gemma3:1b' and 'llama3.2:1b' require the user to have a valid User ID on WebSockets).
 
 4 - Learn More About EzBridge
-- Max Packet Size: 192KB per packet (350KB chunk stream processing).
-- Request Limit: Up to 60 requests/sec (more than 60 reqs/s or 200kbps triggers 5-min IP and client ratelimit).
+- Max Packet Size: 10MB per packet.
+- Request Limit: Up to 60 requests/sec.
 - Server Memory: Configured at 250MB.
 - Server Target Ping: Configurable between 60ms and 1000ms.
 
@@ -3422,7 +3729,10 @@ like, let's just say the player jumped, the server sees it "let me see who just 
 1. GET STATUS:
 GET ${PUBLIC_TUNNEL_URL}/getstatus
 
-2. SEND REMOTE EVENT & LISTEN TO RESPONSES:
+2. GET CLIENT PROFILE:
+GET ${PUBLIC_TUNNEL_URL}/eb_profile_get_{clientid}
+
+3. SEND REMOTE EVENT & LISTEN TO RESPONSES:
 async function sendHttpEvent(type, data) {
     const res = await fetch("${PUBLIC_TUNNEL_URL}/remote", {
         method: "POST",
@@ -3444,7 +3754,7 @@ async function sendHttpEvent(type, data) {
 // const usedBytes = Server.storage.getUsageBytes();
 
 // --- SERVERSCRIPT LOCAL AI API (Ollama smollm2:360m / qwen2.5:0.5b) ---
-Server.callAI({
+Server.eb_callai({
     model: "qwen2.5:0.5b",             // "smollm2:360m" or "qwen2.5:0.5b"
     Temp: 0,                           // Temperature (0 to 2.0)
     Mtokens: 28,                       // Max Tokens (1 to 3250)
@@ -3465,10 +3775,18 @@ Server.stopAIId("4c1a");`;
 const socket = io("${PUBLIC_TUNNEL_URL}", { auth: { token: "default_key" } });
 socket.emit("join_virtual_server", { key: "${serverKey}" });
 
-2. SEND REMOTE EVENT:
+2. GET CLIENT PROFILE:
+socket.emit("RemoteEvent", { type: "eb_profile_get_{clientid}" });
+socket.on("RemoteEvent", (pkt) => {
+    if (pkt.type === "eb_profile_response_{clientid}") {
+        console.log("Display Name:", pkt.data.displayName, "PFP:", pkt.data.pfpData);
+    }
+});
+
+3. SEND REMOTE EVENT:
 socket.emit("RemoteEvent", { type: "player_join", data: { id: "usr_123" } });
 
-3. GET CLIENT USER ID:
+4. GET CLIENT USER ID:
 socket.emit("RemoteEvent", { type: "ebuserid_get" });
 socket.on("RemoteEvent", (pkt) => {
     if (pkt.type === "userid_response") console.log("User ID:", pkt.userId || pkt.message);
@@ -3480,7 +3798,7 @@ socket.on("RemoteEvent", (pkt) => {
 // const usedBytes = Server.storage.getUsageBytes();
 
 // --- SERVERSCRIPT LOCAL AI API (Ollama gemma3:1b / llama3.2:1b / smollm2:360m / qwen2.5:0.5b) ---
-Server.callAI({
+Server.eb_callai({
     model: "gemma3:1b",
     Temp: 0,
     Mtokens: 28,
