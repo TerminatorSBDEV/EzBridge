@@ -235,7 +235,7 @@
         </div>
     </div>
 
-    <!-- MODAL DE AVISO DE COOLDOWN COM BLUR DE 50% -->
+    <!-- COOLDOWN WARNING MODAL -->
     <div id="modal-cooldown-warning" class="overlay" style="display:none; backdrop-filter: blur(8px) brightness(50%); z-index: 999999;">
         <div class="card" style="border-color: var(--error);">
             <h2 style="color: var(--error);">⚠WARNING⚠</h2>
@@ -1161,7 +1161,13 @@
         socket.emit('eb_sync_session', { ownerId });
     });
 
-    function applyFullAuthState(data) {
+    function applyFullAuthState(data, isNewLogin) {
+        if (isNewLogin) {
+            setCookie("eb_owner_id", data.ownerId, 365);
+            window.location.reload();
+            return;
+        }
+
         hideLoadingScreen();
         document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
 
@@ -1200,7 +1206,7 @@
             document.getElementById('daily-streak-badge').innerText = `🔥 ${data.dailyReward.streak}`;
             document.getElementById('daily-reward-coins').innerText = data.dailyReward.pendingReward;
             document.getElementById('daily-reward-coins-txt').innerText = data.dailyReward.pendingReward;
-            if (data.serverTime) document.getElementById('daily-server-time').innerText = data.serverTime;
+            if (data.dailyReward.serverTime) document.getElementById('daily-server-time').innerText = data.dailyReward.serverTime;
             document.getElementById('modal-daily-rewards').style.display = 'flex';
         }
     }
@@ -1217,29 +1223,26 @@
         }
 
         if (data.hasServer) {
-            applyFullAuthState(data);
+            applyFullAuthState(data, false);
         } else {
             activeUserId = data.userId || data.ownerId;
+            if (data.profile) updateLocalProfileUI(data.profile);
+            if (data.coins !== undefined) updateCoinsDisplay(data.coins);
             document.getElementById('overlay-captcha').style.display = 'flex';
         }
     });
 
     socket.on('google_login_verified', (data) => {
-        if (data.isExistingAccount) {
-            setCookie("eb_owner_id", data.ownerId, 365);
-            window.location.reload();
-            return;
-        }
-        applyFullAuthState(data);
+        applyFullAuthState(data, true);
     });
 
     socket.on('eb_ezbridge_auth_success', (data) => {
-        if (data.isExistingAccount) {
-            setCookie("eb_owner_id", data.ownerId, 365);
-            window.location.reload();
-            return;
-        }
-        applyFullAuthState(data);
+        applyFullAuthState(data, true);
+    });
+
+    socket.on('server_created', (data) => {
+        setCookie("eb_owner_id", ownerId, 365);
+        window.location.reload();
     });
 
     socket.on('server_error', (data) => {
@@ -1330,7 +1333,7 @@
         document.getElementById('daily-streak-badge').innerText = `🔥 ${data.streak}`;
         document.getElementById('daily-reward-coins').innerText = data.reward;
         document.getElementById('daily-reward-coins-txt').innerText = data.reward;
-        if (data.serverTime) document.getElementById('daily-server-time').innerText = data.serverTime;
+        document.getElementById('daily-server-time').innerText = data.serverTime;
         document.getElementById('modal-daily-rewards').style.display = 'flex';
     });
 
@@ -1648,6 +1651,44 @@
         googleEmail = payload.email;
 
         socket.emit('eb_google_login', { googleSub, email: googleEmail, ownerId });
+    }
+
+    function openEzBridgeAuthChoice() {
+        document.getElementById('overlay-google-auth').style.display = 'none';
+        document.getElementById('modal-ezbridge-auth-choice').style.display = 'flex';
+    }
+
+    function closeEzBridgeAuthChoice() {
+        document.getElementById('modal-ezbridge-auth-choice').style.display = 'none';
+        document.getElementById('overlay-google-auth').style.display = 'flex';
+    }
+
+    function openEzBridgeSignUp() {
+        document.getElementById('modal-ezbridge-auth-choice').style.display = 'none';
+        document.getElementById('eb-signup-user').value = "";
+        document.getElementById('eb-signup-pass').value = "";
+        document.getElementById('eb-signup-user-status').innerText = "";
+        document.getElementById('eb-signup-pass-status').innerText = "";
+        document.getElementById('modal-ezbridge-signup').style.display = 'flex';
+    }
+
+    function closeEzBridgeSignUp() {
+        document.getElementById('modal-ezbridge-signup').style.display = 'none';
+        openEzBridgeAuthChoice();
+    }
+
+    function openEzBridgeLogIn() {
+        document.getElementById('modal-ezbridge-auth-choice').style.display = 'none';
+        document.getElementById('eb-login-user').value = "";
+        document.getElementById('eb-login-pass').value = "";
+        document.getElementById('eb-login-user-status').innerText = "";
+        document.getElementById('eb-login-pass-status').innerText = "";
+        document.getElementById('modal-ezbridge-login').style.display = 'flex';
+    }
+
+    function closeEzBridgeLogIn() {
+        document.getElementById('modal-ezbridge-login').style.display = 'none';
+        openEzBridgeAuthChoice();
     }
 
     function handleEzBridgeFieldValidate(mode, field) {
@@ -2004,7 +2045,7 @@
             const canDelete = (userRole === 'Owner' || userRole === 'Dev' || userRole === 'Admin');
             const deleteBtnHTML = canDelete ? `<button class="btn btn-danger" style="width:auto; margin:0; padding:2px 8px; font-size:0.7rem;" onclick="deletePublishedSite('${s.id}')">DELETE</button>` : '';
 
-            const pfpHTML = (s.ownerPfpData && s.ownerPfpData !== "default") ? `<img src="${s.ownerPfpData}" style="width:16px; height:16px; border-radius:50% !important; vertical-align:middle; margin-left:4px;">` : `<span class="coin-icon" style="width:16px; height:16px; font-size:0.5rem; margin-left:4px; border-radius:50% !important;">👤</span>`;
+            const pfpHTML = (s.ownerPfpData && s.ownerPfpData !== "default") ? `<img src="${s.ownerPfpData}" style="width:18px; height:18px; border-radius:50% !important; vertical-align:middle; margin-left:4px; object-fit:cover;">` : `<span class="coin-icon" style="width:18px; height:18px; font-size:0.55rem; margin-left:4px; border-radius:50% !important;">👤</span>`;
 
             div.innerHTML = `
                 <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
@@ -2621,17 +2662,6 @@
             socket.emit('eb_create_server', { ownerId, googleSub, ezbridgeUsername, email: googleEmail, settings, serverType: type, serverScript: currentServerScript });
         }
     }
-
-    socket.on('server_created', (data) => {
-        serverKey = data.key;
-        serverSettings = data.server.settings;
-        serverType = data.server.serverType;
-        serverActive = false;
-        activeUserId = data.userId || data.server.clientId || ownerId;
-        hideLoadingScreen();
-        document.getElementById('overlay-setup').style.display = 'none';
-        showDashboard();
-    });
 
     socket.on('settings_saved', () => {
         serverActive = false;
@@ -3573,7 +3603,11 @@ setInterval(() => {
                 if (res.ok) {
                     const json = await res.json();
                     if (json.events && Array.isArray(json.events)) {
-                        json.events.forEach(handleServerEvent);
+                        json.events.forEach(evt => {
+                            if (evt.type === 'send_message_reply' || evt.type === 'get_messages_reply') {
+                                renderChat(evt.data.messages);
+                            }
+                        });
                     }
                 }
             } catch(e) {}
@@ -3721,9 +3755,9 @@ async function sendHttpEvent(type, data) {
 
 // --- SERVERSCRIPT LOCAL AI API (Ollama smollm2:360m / qwen2.5:0.5b) ---
 Server.eb_callai({
-    model: "qwen2.5:0.5b",             // "smollm2:360m" or "qwen2.5:0.5b"
-    Temp: 0,                           // Temperature (0 to 2.0)
-    Mtokens: 28,                       // Max Tokens (1 to 3250)
+    model: "qwen2.5:0.5b",
+    Temp: 0,
+    Mtokens: 28,
     Instruction: "You are a helpful assistant.",
     Prompt: "what's the capital of France?",
     Streaming: false
