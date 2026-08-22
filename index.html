@@ -225,7 +225,7 @@
     <canvas id="bg-canvas"></canvas>
 
     <div style="position:fixed; bottom:10px; left:12px; z-index:99999; color:#ffffff; font-family:'Courier New', monospace; font-size:0.75rem; font-weight:bold; letter-spacing:1px; pointer-events:none; text-shadow:0 0 4px #000;">
-        EzBridge - V2.1.1
+        EzBridge - V2.1.2
     </div>
 
     <div id="overlay-sync" class="overlay">
@@ -235,6 +235,7 @@
         </div>
     </div>
 
+    <!-- MODAL DE AVISO DE COOLDOWN COM BLUR DE 50% -->
     <div id="modal-cooldown-warning" class="overlay" style="display:none; backdrop-filter: blur(8px) brightness(50%); z-index: 999999;">
         <div class="card" style="border-color: var(--error);">
             <h2 style="color: var(--error);">⚠WARNING⚠</h2>
@@ -244,6 +245,7 @@
         </div>
     </div>
 
+    <!-- DAILY REWARDS POPUP -->
     <div id="modal-daily-rewards" class="overlay" style="display:none; z-index: 999990;">
         <div class="card" style="max-width: 440px;">
             <h3>DAILY REWARDS | <span id="daily-streak-badge" style="color:var(--orange);">🔥 1</span></h3>
@@ -254,11 +256,12 @@
                 Congratulations! you got <span id="daily-reward-coins-txt">5</span> EzCoins for entering EzBridge, Join more frequently and your rewards will significantly increase, so don't break your streak!
             </p>
             <button class="btn btn-purple" style="font-size:1.05rem; padding:14px;" onclick="claimDailyRewardSubmit()">-> Collect Reward <-</button>
-            <div style="font-size:0.75rem; color:var(--muted); margin-top:10px;">Server's timezone: <span id="daily-server-time">00:00 UTC - 0/0/0</span></div>
+            <div style="font-size:0.75rem; color:var(--muted); margin-top:10px;">Server's timezone: <span id="daily-server-time">00:00 - 0/0/0</span></div>
             <div style="font-size:0.7rem; color:var(--muted); margin-top:4px;">- miss one day and your streak returns to 0, the higher the streak, the higher your rewards can be.</div>
         </div>
     </div>
 
+    <!-- SHOPPING MENU MODAL -->
     <div id="modal-shop" class="overlay" style="display:none;">
         <div class="card" style="max-width: 520px; max-height:85vh; display:flex; flex-direction:column;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -279,6 +282,7 @@
         </div>
     </div>
 
+    <!-- PROFILE CUSTOMIZATION LOADING -->
     <div id="overlay-profile-loading" class="overlay" style="display:none;">
         <div class="card">
             <h3>Loading Profile, wait...</h3>
@@ -287,6 +291,7 @@
         </div>
     </div>
 
+    <!-- PROFILE CUSTOMIZATION MODAL -->
     <div id="modal-profile" class="overlay" style="display:none;">
         <div class="card" style="max-width: 460px;">
             <h3>Customize your profile</h3>
@@ -305,6 +310,7 @@
         </div>
     </div>
 
+    <!-- SET USER COINS (OWNER TOOL) -->
     <div id="modal-owner-set-coins" class="overlay" style="display:none;">
         <div class="card" style="max-width: 440px;">
             <h3>Set User Coins (Owner Tool)</h3>
@@ -1194,6 +1200,7 @@
             document.getElementById('daily-streak-badge').innerText = `🔥 ${data.dailyReward.streak}`;
             document.getElementById('daily-reward-coins').innerText = data.dailyReward.pendingReward;
             document.getElementById('daily-reward-coins-txt').innerText = data.dailyReward.pendingReward;
+            if (data.serverTime) document.getElementById('daily-server-time').innerText = data.serverTime;
             document.getElementById('modal-daily-rewards').style.display = 'flex';
         }
     }
@@ -1218,10 +1225,20 @@
     });
 
     socket.on('google_login_verified', (data) => {
+        if (data.isExistingAccount) {
+            setCookie("eb_owner_id", data.ownerId, 365);
+            window.location.reload();
+            return;
+        }
         applyFullAuthState(data);
     });
 
     socket.on('eb_ezbridge_auth_success', (data) => {
+        if (data.isExistingAccount) {
+            setCookie("eb_owner_id", data.ownerId, 365);
+            window.location.reload();
+            return;
+        }
         applyFullAuthState(data);
     });
 
@@ -1313,7 +1330,7 @@
         document.getElementById('daily-streak-badge').innerText = `🔥 ${data.streak}`;
         document.getElementById('daily-reward-coins').innerText = data.reward;
         document.getElementById('daily-reward-coins-txt').innerText = data.reward;
-        document.getElementById('daily-server-time').innerText = data.serverTime;
+        if (data.serverTime) document.getElementById('daily-server-time').innerText = data.serverTime;
         document.getElementById('modal-daily-rewards').style.display = 'flex';
     });
 
@@ -1631,44 +1648,6 @@
         googleEmail = payload.email;
 
         socket.emit('eb_google_login', { googleSub, email: googleEmail, ownerId });
-    }
-
-    function openEzBridgeAuthChoice() {
-        document.getElementById('overlay-google-auth').style.display = 'none';
-        document.getElementById('modal-ezbridge-auth-choice').style.display = 'flex';
-    }
-
-    function closeEzBridgeAuthChoice() {
-        document.getElementById('modal-ezbridge-auth-choice').style.display = 'none';
-        document.getElementById('overlay-google-auth').style.display = 'flex';
-    }
-
-    function openEzBridgeSignUp() {
-        document.getElementById('modal-ezbridge-auth-choice').style.display = 'none';
-        document.getElementById('eb-signup-user').value = "";
-        document.getElementById('eb-signup-pass').value = "";
-        document.getElementById('eb-signup-user-status').innerText = "";
-        document.getElementById('eb-signup-pass-status').innerText = "";
-        document.getElementById('modal-ezbridge-signup').style.display = 'flex';
-    }
-
-    function closeEzBridgeSignUp() {
-        document.getElementById('modal-ezbridge-signup').style.display = 'none';
-        openEzBridgeAuthChoice();
-    }
-
-    function openEzBridgeLogIn() {
-        document.getElementById('modal-ezbridge-auth-choice').style.display = 'none';
-        document.getElementById('eb-login-user').value = "";
-        document.getElementById('eb-login-pass').value = "";
-        document.getElementById('eb-login-user-status').innerText = "";
-        document.getElementById('eb-login-pass-status').innerText = "";
-        document.getElementById('modal-ezbridge-login').style.display = 'flex';
-    }
-
-    function closeEzBridgeLogIn() {
-        document.getElementById('modal-ezbridge-login').style.display = 'none';
-        openEzBridgeAuthChoice();
     }
 
     function handleEzBridgeFieldValidate(mode, field) {
@@ -3594,11 +3573,7 @@ setInterval(() => {
                 if (res.ok) {
                     const json = await res.json();
                     if (json.events && Array.isArray(json.events)) {
-                        json.events.forEach(evt => {
-                            if (evt.type === 'send_message_reply' || evt.type === 'get_messages_reply') {
-                                renderChat(evt.data.messages);
-                            }
-                        });
+                        json.events.forEach(handleServerEvent);
                     }
                 }
             } catch(e) {}
