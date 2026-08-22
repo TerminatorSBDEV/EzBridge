@@ -1018,7 +1018,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://perry-roberts-voted-processing.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://rows-will-prospects-media.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
@@ -1333,7 +1333,7 @@
         document.getElementById('daily-streak-badge').innerText = `🔥 ${data.streak}`;
         document.getElementById('daily-reward-coins').innerText = data.reward;
         document.getElementById('daily-reward-coins-txt').innerText = data.reward;
-        document.getElementById('daily-server-time').innerText = data.serverTime;
+        if (data.serverTime) document.getElementById('daily-server-time').innerText = data.serverTime;
         document.getElementById('modal-daily-rewards').style.display = 'flex';
     });
 
@@ -2302,7 +2302,7 @@
         const canCopyId = (userRole === 'Owner' || userRole === 'Dev' || userRole === 'Admin');
         const copyBtnHTML = canCopyId ? `<button class="btn-secondary" style="padding:2px 6px; font-size:0.65rem; margin-left:6px;" onclick="copyTextValue('${msg.userId}')">Copy ID</button>` : '';
 
-        const pfpHTML = (msg.pfpData && msg.pfpData !== "default") ? `<img src="${msg.pfpData}" style="width:18px; height:18px; border-radius:50% !important; vertical-align:middle; margin-right:4px;">` : `<span class="coin-icon" style="width:18px; height:18px; font-size:0.55rem; margin-right:4px; border-radius:50% !important;">👤</span>`;
+        const pfpHTML = (msg.pfpData && msg.pfpData !== "default") ? `<img src="${msg.pfpData}" style="width:18px; height:18px; border-radius:50% !important; vertical-align:middle; margin-right:4px; object-fit:cover;">` : `<span class="coin-icon" style="width:18px; height:18px; font-size:0.55rem; margin-right:4px; border-radius:50% !important;">👤</span>`;
 
         bubble.innerHTML = `
             <div style="font-size:0.75rem; font-weight:bold; color:var(--accent); margin-bottom:4px; display:flex; align-items:center;">
