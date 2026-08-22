@@ -235,7 +235,6 @@
         </div>
     </div>
 
-    <!-- COOLDOWN WARNING MODAL -->
     <div id="modal-cooldown-warning" class="overlay" style="display:none; backdrop-filter: blur(8px) brightness(50%); z-index: 999999;">
         <div class="card" style="border-color: var(--error);">
             <h2 style="color: var(--error);">⚠WARNING⚠</h2>
@@ -245,7 +244,6 @@
         </div>
     </div>
 
-    <!-- DAILY REWARDS POPUP -->
     <div id="modal-daily-rewards" class="overlay" style="display:none; z-index: 999990;">
         <div class="card" style="max-width: 440px;">
             <h3>DAILY REWARDS | <span id="daily-streak-badge" style="color:var(--orange);">🔥 1</span></h3>
@@ -261,7 +259,6 @@
         </div>
     </div>
 
-    <!-- SHOPPING MENU MODAL -->
     <div id="modal-shop" class="overlay" style="display:none;">
         <div class="card" style="max-width: 520px; max-height:85vh; display:flex; flex-direction:column;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -282,7 +279,6 @@
         </div>
     </div>
 
-    <!-- PROFILE CUSTOMIZATION LOADING -->
     <div id="overlay-profile-loading" class="overlay" style="display:none;">
         <div class="card">
             <h3>Loading Profile, wait...</h3>
@@ -291,7 +287,6 @@
         </div>
     </div>
 
-    <!-- PROFILE CUSTOMIZATION MODAL -->
     <div id="modal-profile" class="overlay" style="display:none;">
         <div class="card" style="max-width: 460px;">
             <h3>Customize your profile</h3>
@@ -310,7 +305,6 @@
         </div>
     </div>
 
-    <!-- SET USER COINS (OWNER TOOL) -->
     <div id="modal-owner-set-coins" class="overlay" style="display:none;">
         <div class="card" style="max-width: 440px;">
             <h3>Set User Coins (Owner Tool)</h3>
@@ -1164,7 +1158,7 @@
     function applyFullAuthState(data, isNewLogin) {
         if (isNewLogin) {
             setCookie("eb_owner_id", data.ownerId, 365);
-            window.location.reload();
+            socket.emit('eb_auth_cookie_saved');
             return;
         }
 
@@ -1211,6 +1205,12 @@
         }
     }
 
+    socket.on('eb_auth_reload_confirmed', () => {
+        setTimeout(() => {
+            window.location.reload();
+        }, 500);
+    });
+
     socket.on('session_verified', (data) => {
         clearTimeout(initTimeout);
         document.getElementById('overlay-sync').style.display = 'none';
@@ -1242,7 +1242,9 @@
 
     socket.on('server_created', (data) => {
         setCookie("eb_owner_id", ownerId, 365);
-        window.location.reload();
+        setTimeout(() => {
+            window.location.reload();
+        }, 500);
     });
 
     socket.on('server_error', (data) => {
@@ -2045,7 +2047,7 @@
             const canDelete = (userRole === 'Owner' || userRole === 'Dev' || userRole === 'Admin');
             const deleteBtnHTML = canDelete ? `<button class="btn btn-danger" style="width:auto; margin:0; padding:2px 8px; font-size:0.7rem;" onclick="deletePublishedSite('${s.id}')">DELETE</button>` : '';
 
-            const pfpHTML = (s.ownerPfpData && s.ownerPfpData !== "default") ? `<img src="${s.ownerPfpData}" style="width:16px; height:16px; border-radius:50% !important; vertical-align:middle; margin-left:4px; object-fit:cover;">` : `<span class="coin-icon" style="width:16px; height:16px; font-size:0.5rem; margin-left:4px; border-radius:50% !important;">👤</span>`;
+            const pfpHTML = (s.ownerPfpData && s.ownerPfpData !== "default") ? `<img src="${s.ownerPfpData}" style="width:18px; height:18px; border-radius:50% !important; vertical-align:middle; margin-left:4px; object-fit:cover;">` : `<span class="coin-icon" style="width:18px; height:18px; font-size:0.55rem; margin-left:4px; border-radius:50% !important;">👤</span>`;
 
             div.innerHTML = `
                 <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
@@ -2663,13 +2665,6 @@
         }
     }
 
-    socket.on('settings_saved', () => {
-        serverActive = false;
-        hideLoadingScreen();
-        document.getElementById('overlay-setup').style.display = 'none';
-        showDashboard();
-    });
-
     function showDashboard() {
         document.getElementById('dashboard').style.display = 'block';
         updateDashboardGoogleBtn();
@@ -2724,34 +2719,6 @@
             emailBox.style.display = 'none';
         }
     }
-
-    socket.on('eb_heartbeat_response', (data) => {
-        serverActive = data.active;
-        document.getElementById('online-users-count').innerText = data.users;
-        document.getElementById('active-scripts-count').innerText = data.activeScripts;
-
-        const kb = (data.ramUsageBytes / 1024).toFixed(1);
-        document.getElementById('ram-usage-text').innerText = `${kb} KB`;
-
-        const storageMb = ((data.storageBytes || 0) / (1024 * 1024)).toFixed(1);
-        document.getElementById('storage-usage-text').innerText = `${storageMb} MB`;
-
-        const limitBytes = 250 * 1024 * 1024;
-        const ramPct = Math.min(100, Math.floor((data.ramUsageBytes / limitBytes) * 100));
-        const fillBar = document.getElementById('ram-progress-fill');
-        if (fillBar) fillBar.style.width = `${ramPct}%`;
-
-        isServerLockdown = Boolean(data.isLockdown);
-        lockdownUntilTime = data.lockdownUntil || 0;
-        if (data.battery !== undefined) updateBatteryDisplay(data.battery);
-        if (data.coins !== undefined) updateCoinsDisplay(data.coins);
-
-        if (data.email) googleEmail = data.email;
-        if (data.ezbridgeUsername) ezbridgeUsername = data.ezbridgeUsername;
-        updateDashboardGoogleBtn();
-
-        updateStatusDisplay();
-    });
 
     function toggleServerState() {
         if (isServerLockdown) {
@@ -3412,6 +3379,8 @@
                 const screenCenterX = canvas.width / 2;
                 const screenCenterY = canvas.height / 2;
                 aimAngle = Math.atan2(mousePos.y - screenCenterY, mousePos.x - screenCenterX);
+
+                socket.emit("RemoteEvent", { type: "player_update", data: { id: myId, x: myPos.x, y: myPos.y, angle: aimAngle, color: myColor } });
             }
 
             for (let i = bullets.length - 1; i >= 0; i--) {
