@@ -216,6 +216,8 @@
             font-size: 0.65rem; font-weight: 900; color: #ffffff;
             text-shadow: 1px 1px 1px rgba(0,0,0,0.6); vertical-align: middle;
         }
+
+        .disclaimer { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--error) !important; color: #fca5a5; padding: 10px; font-size: 0.75rem; text-align: left; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -233,7 +235,6 @@
         </div>
     </div>
 
-    <!-- MODAL DE AVISO DE COOLDOWN COM BLUR DE 50% -->
     <div id="modal-cooldown-warning" class="overlay" style="display:none; backdrop-filter: blur(8px) brightness(50%); z-index: 999999;">
         <div class="card" style="border-color: var(--error);">
             <h2 style="color: var(--error);">⚠WARNING⚠</h2>
@@ -243,7 +244,6 @@
         </div>
     </div>
 
-    <!-- DAILY REWARDS POPUP -->
     <div id="modal-daily-rewards" class="overlay" style="display:none; z-index: 999990;">
         <div class="card" style="max-width: 440px;">
             <h3>DAILY REWARDS | <span id="daily-streak-badge" style="color:var(--orange);">🔥 1</span></h3>
@@ -255,11 +255,10 @@
             </p>
             <button class="btn btn-purple" style="font-size:1.05rem; padding:14px;" onclick="claimDailyRewardSubmit()">-> Collect Reward <-</button>
             <div style="font-size:0.75rem; color:var(--muted); margin-top:10px;">Server's timezone: <span id="daily-server-time">00:00 UTC - 0/0/0</span></div>
-            <div style="font-size:0.7rem; color:var(--muted); margin-top:4px;">- miss one day and your streak returns to 0.</div>
+            <div style="font-size:0.7rem; color:var(--muted); margin-top:4px;">- miss one day and your streak returns to 0, the higher the streak, the higher your rewards can be.</div>
         </div>
     </div>
 
-    <!-- SHOPPING MENU MODAL -->
     <div id="modal-shop" class="overlay" style="display:none;">
         <div class="card" style="max-width: 520px; max-height:85vh; display:flex; flex-direction:column;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -280,7 +279,6 @@
         </div>
     </div>
 
-    <!-- PROFILE CUSTOMIZATION LOADING -->
     <div id="overlay-profile-loading" class="overlay" style="display:none;">
         <div class="card">
             <h3>Loading Profile, wait...</h3>
@@ -289,7 +287,6 @@
         </div>
     </div>
 
-    <!-- PROFILE CUSTOMIZATION MODAL -->
     <div id="modal-profile" class="overlay" style="display:none;">
         <div class="card" style="max-width: 460px;">
             <h3>Customize your profile</h3>
@@ -308,7 +305,6 @@
         </div>
     </div>
 
-    <!-- SET USER COINS (OWNER TOOL) -->
     <div id="modal-owner-set-coins" class="overlay" style="display:none;">
         <div class="card" style="max-width: 440px;">
             <h3>Set User Coins (Owner Tool)</h3>
@@ -381,7 +377,7 @@
                 <div class="settings-item">
                     <label>HTML Script (at least 100 chars, max 20MB)</label>
                     <textarea id="site-html-field" rows="8" style="height:150px;" placeholder="<!DOCTYPE html>..."></textarea>
-                    <button class="btn btn-purple" style="margin-top:4px; font-size:0.8rem; padding:8px;" onclick="openAskAiSiteModal()">Or ask AI ✨</button>
+                    <button class="btn btn-purple" type="button" style="margin-top:4px; font-size:0.8rem; padding:8px;" onclick="openAskAiSiteModal()">Or ask AI ✨</button>
                 </div>
                 <div class="settings-item">
                     <label>Visibility</label>
@@ -580,8 +576,8 @@
             <h3>Change Account Username</h3>
             <div class="settings-grid" style="max-height:none;">
                 <div class="settings-item">
-                    <label>New Username:</label>
-                    <input type="text" id="change-user-val" placeholder="10-30 chars, letters/numbers/spaces">
+                    <label>New Username (10-30 chars, letters/numbers/spaces):</label>
+                    <input type="text" id="change-user-val" placeholder="New username">
                 </div>
             </div>
             <button class="btn btn-purple" onclick="submitChangeUsername()">Update Username</button>
@@ -598,8 +594,8 @@
                     <input type="password" id="change-pass-current" placeholder="Current password">
                 </div>
                 <div class="settings-item">
-                    <label>New Password:</label>
-                    <input type="password" id="change-pass-new" placeholder="8-30 chars, supported symbols">
+                    <label>New Password (8-30 chars, supported symbols):</label>
+                    <input type="password" id="change-pass-new" placeholder="New password">
                 </div>
             </div>
             <button class="btn btn-purple" onclick="submitChangePassword()">Update Password</button>
@@ -690,8 +686,11 @@
 
     <div id="modal-server-storage" class="overlay" style="display:none;">
         <div class="card" style="max-width: 650px; width:95%; max-height:85vh; display:flex; flex-direction:column;">
-            <h3>Server 100MB Storage Data</h3>
-            <div style="font-size:0.75rem; color:var(--accent); margin-bottom:6px;">Storage Usage: <span id="storage-modal-usage">0.0 MB</span> / 100 MB</div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <h3 style="margin:0;">Server 100MB Storage Data</h3>
+                <button class="btn" style="width:auto; margin:0; padding:4px 10px; font-size:0.75rem; background:#ffffff !important; color:#000000 !important;" onclick="wipeServerStorageSubmit()">WIPE DATA</button>
+            </div>
+            <div style="font-size:0.75rem; color:var(--accent); margin-bottom:6px; text-align:left;">Storage Usage: <span id="storage-modal-usage">0.0 MB</span> / 100 MB</div>
             <textarea id="server-storage-display" class="code-box" readonly rows="12" style="flex:1; width:100%; resize:none;"></textarea>
             <div style="display:flex; gap:10px; margin-top:10px;">
                 <button class="btn" onclick="copyText('server-storage-display')">Copy Storage Content</button>
@@ -736,7 +735,7 @@
     <div id="modal-view-script" class="overlay" style="display:none;">
         <div class="card" style="max-width: 650px;">
             <h3>View ServerScript</h3>
-            <textarea id="view-script-textarea" class="code-box" readonly rows="12" style="width:100%; height:250px; resize:none;"></textarea>
+            <textarea id="view-script-textarea" class="code-box" readonly rows="12" style="width:100%; height:250px; resize:none;" placeholder="Loading script chunks..."></textarea>
             <div style="display:flex; gap:10px; margin-top:10px;">
                 <button class="btn" onclick="copyText('view-script-textarea')">Copy Script</button>
                 <button class="btn btn-secondary" onclick="closeViewScriptModal()">Close</button>
@@ -1634,6 +1633,44 @@
         socket.emit('eb_google_login', { googleSub, email: googleEmail, ownerId });
     }
 
+    function openEzBridgeAuthChoice() {
+        document.getElementById('overlay-google-auth').style.display = 'none';
+        document.getElementById('modal-ezbridge-auth-choice').style.display = 'flex';
+    }
+
+    function closeEzBridgeAuthChoice() {
+        document.getElementById('modal-ezbridge-auth-choice').style.display = 'none';
+        document.getElementById('overlay-google-auth').style.display = 'flex';
+    }
+
+    function openEzBridgeSignUp() {
+        document.getElementById('modal-ezbridge-auth-choice').style.display = 'none';
+        document.getElementById('eb-signup-user').value = "";
+        document.getElementById('eb-signup-pass').value = "";
+        document.getElementById('eb-signup-user-status').innerText = "";
+        document.getElementById('eb-signup-pass-status').innerText = "";
+        document.getElementById('modal-ezbridge-signup').style.display = 'flex';
+    }
+
+    function closeEzBridgeSignUp() {
+        document.getElementById('modal-ezbridge-signup').style.display = 'none';
+        openEzBridgeAuthChoice();
+    }
+
+    function openEzBridgeLogIn() {
+        document.getElementById('modal-ezbridge-auth-choice').style.display = 'none';
+        document.getElementById('eb-login-user').value = "";
+        document.getElementById('eb-login-pass').value = "";
+        document.getElementById('eb-login-user-status').innerText = "";
+        document.getElementById('eb-login-pass-status').innerText = "";
+        document.getElementById('modal-ezbridge-login').style.display = 'flex';
+    }
+
+    function closeEzBridgeLogIn() {
+        document.getElementById('modal-ezbridge-login').style.display = 'none';
+        openEzBridgeAuthChoice();
+    }
+
     function handleEzBridgeFieldValidate(mode, field) {
         if (field === 'user') {
             const userVal = document.getElementById(`eb-${mode}-user`).value;
@@ -1758,6 +1795,12 @@
     function closeServerStorageModal() {
         if (serverStoragePollInterval) clearInterval(serverStoragePollInterval);
         document.getElementById('modal-server-storage').style.display = 'none';
+    }
+
+    function wipeServerStorageSubmit() {
+        if (confirm("Are you sure you want to WIPE the entire server storage? This cannot be undone.")) {
+            socket.emit('eb_storage_wipe', { key: serverKey, ownerId, googleSub });
+        }
     }
 
     function captchaSolved() {
@@ -1982,9 +2025,11 @@
             const canDelete = (userRole === 'Owner' || userRole === 'Dev' || userRole === 'Admin');
             const deleteBtnHTML = canDelete ? `<button class="btn btn-danger" style="width:auto; margin:0; padding:2px 8px; font-size:0.7rem;" onclick="deletePublishedSite('${s.id}')">DELETE</button>` : '';
 
+            const pfpHTML = (s.ownerPfpData && s.ownerPfpData !== "default") ? `<img src="${s.ownerPfpData}" style="width:16px; height:16px; border-radius:50% !important; vertical-align:middle; margin-left:4px;">` : `<span class="coin-icon" style="width:16px; height:16px; font-size:0.5rem; margin-left:4px; border-radius:50% !important;">👤</span>`;
+
             div.innerHTML = `
                 <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
-                    <span><b>${escapeHtml(s.title)}</b> <button class="btn-secondary" style="padding:2px 6px; font-size:0.65rem;" onclick="copyTextValue('${s.id}')">COPY ID</button> by <b>${escapeHtml(s.ownerUserId)}</b></span>
+                    <span><b>${escapeHtml(s.title)}</b> <button class="btn-secondary" style="padding:2px 6px; font-size:0.65rem;" onclick="copyTextValue('${s.id}')">COPY ID</button> by <b>${escapeHtml(s.ownerDisplayName || s.ownerUserId)}</b> ${pfpHTML}</span>
                     ${deleteBtnHTML}
                 </div>
                 <div style="font-size:0.75rem; color:var(--muted);">
@@ -2434,6 +2479,8 @@
 
     function requestServerScriptChunks(targetKey) {
         serverScriptChunks = [];
+        document.getElementById('view-script-textarea').value = "Loading script chunks...";
+        document.getElementById('modal-view-script').style.display = 'flex';
         socket.emit('eb_get_serverscript_chunks', { targetKey });
     }
 
@@ -3750,9 +3797,9 @@ socket.on("RemoteEvent", (pkt) => {
 
 // --- SERVERSCRIPT LOCAL AI API (Ollama gemma3:1b / llama3.2:1b / smollm2:360m / qwen2.5:0.5b) ---
 Server.eb_callai({
-    model: "gemma3:1b",               // "gemma3:1b", "llama3.2:1b", "smollm2:360m", "qwen2.5:0.5b"
-    Temp: 0,                           // Temperature (0 to 2.0)
-    Mtokens: 28,                       // Max Tokens (1 to 3250)
+    model: "gemma3:1b",
+    Temp: 0,
+    Mtokens: 28,
     Instruction: "You are a helpful assistant.",
     Prompt: "what's the capital of France?",
     Streaming: false
