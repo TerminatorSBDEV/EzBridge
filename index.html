@@ -1333,7 +1333,7 @@
         document.getElementById('daily-streak-badge').innerText = `🔥 ${data.streak}`;
         document.getElementById('daily-reward-coins').innerText = data.reward;
         document.getElementById('daily-reward-coins-txt').innerText = data.reward;
-        if (data.serverTime) document.getElementById('daily-server-time').innerText = data.serverTime;
+        document.getElementById('daily-server-time').innerText = data.serverTime;
         document.getElementById('modal-daily-rewards').style.display = 'flex';
     });
 
@@ -2045,7 +2045,7 @@
             const canDelete = (userRole === 'Owner' || userRole === 'Dev' || userRole === 'Admin');
             const deleteBtnHTML = canDelete ? `<button class="btn btn-danger" style="width:auto; margin:0; padding:2px 8px; font-size:0.7rem;" onclick="deletePublishedSite('${s.id}')">DELETE</button>` : '';
 
-            const pfpHTML = (s.ownerPfpData && s.ownerPfpData !== "default") ? `<img src="${s.ownerPfpData}" style="width:18px; height:18px; border-radius:50% !important; vertical-align:middle; margin-left:4px; object-fit:cover;">` : `<span class="coin-icon" style="width:18px; height:18px; font-size:0.55rem; margin-left:4px; border-radius:50% !important;">👤</span>`;
+            const pfpHTML = (s.ownerPfpData && s.ownerPfpData !== "default") ? `<img src="${s.ownerPfpData}" style="width:16px; height:16px; border-radius:50% !important; vertical-align:middle; margin-left:4px; object-fit:cover;">` : `<span class="coin-icon" style="width:16px; height:16px; font-size:0.5rem; margin-left:4px; border-radius:50% !important;">👤</span>`;
 
             div.innerHTML = `
                 <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
@@ -3412,8 +3412,6 @@
                 const screenCenterX = canvas.width / 2;
                 const screenCenterY = canvas.height / 2;
                 aimAngle = Math.atan2(mousePos.y - screenCenterY, mousePos.x - screenCenterX);
-
-                socket.emit("RemoteEvent", { type: "player_update", data: { id: myId, x: myPos.x, y: myPos.y, angle: aimAngle, color: myColor } });
             }
 
             for (let i = bullets.length - 1; i >= 0; i--) {
@@ -3755,9 +3753,9 @@ async function sendHttpEvent(type, data) {
 
 // --- SERVERSCRIPT LOCAL AI API (Ollama smollm2:360m / qwen2.5:0.5b) ---
 Server.eb_callai({
-    model: "qwen2.5:0.5b",
-    Temp: 0,
-    Mtokens: 28,
+    model: "qwen2.5:0.5b",             // "smollm2:360m" or "qwen2.5:0.5b"
+    Temp: 0,                           // Temperature (0 to 2.0)
+    Mtokens: 28,                       // Max Tokens (1 to 3250)
     Instruction: "You are a helpful assistant.",
     Prompt: "what's the capital of France?",
     Streaming: false
