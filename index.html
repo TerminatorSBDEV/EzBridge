@@ -1043,6 +1043,8 @@
     let whitelistedDomains = [];
     let consoleLogsCache = [];
 
+    let isCaptchaTagged = false;
+
     let currentProfile = { displayName: "User_123456789", pfpData: "default" };
     let currentCoins = 50;
     let currentBatteryMb = 500;
@@ -1177,7 +1179,7 @@
             socket.emit('eb_auth_cookie_saved');
             setTimeout(() => {
                 window.location.reload();
-            }, 500);
+            }, 1000);
             return;
         }
 
@@ -1228,7 +1230,7 @@
     socket.on('eb_auth_reload_confirmed', () => {
         setTimeout(() => {
             window.location.reload();
-        }, 500);
+        }, 1000);
     });
 
     socket.on('session_verified', (data) => {
@@ -1275,7 +1277,7 @@
 
         setTimeout(() => {
             window.location.reload();
-        }, 500);
+        }, 1000);
     });
 
     socket.on('settings_saved', () => {
@@ -1288,7 +1290,11 @@
     socket.on('server_error', (data) => {
         hideLoadingScreen();
         document.getElementById('overlay-ezbridge-logging').style.display = 'none';
-        alert(data.error);
+        if (data.title) {
+            alert(`${data.title}\n${data.error}`);
+        } else {
+            alert(data.error);
+        }
     });
 
     socket.on('eb_action_success', (data) => {
@@ -1500,7 +1506,7 @@
         }
 
         if (data.index === 0) userSiteDataChunks = [];
-        userSiteDataChunks.push(data.chunk);
+        userSiteDataChunks.push(data.chunkPiece || data.chunk);
 
         const pct = Math.floor(((data.index + 1) / data.total) * 100);
         document.getElementById('site-data-pct').innerText = pct;
@@ -1683,6 +1689,10 @@
     }
 
     function handleGoogleLogin(response) {
+        if (!isCaptchaTagged) {
+            return alert("⚠Request rejected⚠\nYou must verify yourself to prove you're not a bot.");
+        }
+
         const base64Url = response.credential.split('.')[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
         const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
@@ -1792,6 +1802,9 @@
     });
 
     function submitEzBridgeSignUp() {
+        if (!isCaptchaTagged) {
+            return alert("⚠Request rejected⚠\nYou must verify yourself to prove you're not a bot.");
+        }
         const username = document.getElementById('eb-signup-user').value.trim();
         const password = document.getElementById('eb-signup-pass').value;
         showLoadingScreen("Wait, EzBridge wants to make sure your information and data are secure..");
@@ -1799,6 +1812,9 @@
     }
 
     function submitEzBridgeLogIn() {
+        if (!isCaptchaTagged) {
+            return alert("⚠Request rejected⚠\nYou must verify yourself to prove you're not a bot.");
+        }
         const username = document.getElementById('eb-login-user').value.trim();
         const password = document.getElementById('eb-login-pass').value;
         document.getElementById('modal-ezbridge-login').style.display = 'none';
@@ -1867,6 +1883,8 @@
     }
 
     function captchaSolved() {
+        socket.emit('eb_verify_captcha');
+        isCaptchaTagged = true;
         document.getElementById('overlay-captcha').style.display = 'none';
         if (!googleSub && !ezbridgeUsername) {
             document.getElementById('overlay-google-auth').style.display = 'flex';
