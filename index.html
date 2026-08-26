@@ -485,11 +485,10 @@
         </div>
     </div>
 
-    <!-- ON-TOP LOADING OVERLAY (Z-INDEX 3000) -->
-    <div id="overlay-loading" class="overlay" style="display:none; z-index:3000;">
+    <div id="overlay-loading" class="overlay" style="display:none; z-index:2500;">
         <div class="card">
             <h3 id="loading-msg">Processing request...</h3>
-            <div style="font-size:0.8rem; color:var(--muted);">Creating/Updating your server.. wait while your client does its job.</div>
+            <div id="loading-submsg" style="font-size:0.8rem; color:var(--muted);">Creating/Updating your server.. wait while your client does its job.</div>
         </div>
     </div>
 
@@ -1019,7 +1018,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://rows-will-prospects-media.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://seeks-ventures-cordless-optimize.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
@@ -1162,16 +1161,7 @@
         socket.emit('eb_sync_session', { ownerId });
     });
 
-    function applyFullAuthState(data, isNewLogin) {
-        if (isNewLogin) {
-            setCookie("eb_owner_id", data.ownerId, 365);
-            socket.emit('eb_auth_cookie_saved');
-            setTimeout(() => {
-                window.location.reload();
-            }, 500);
-            return;
-        }
-
+    function applyFullAuthState(data) {
         hideLoadingScreen();
         document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
 
@@ -1215,12 +1205,6 @@
         }
     }
 
-    socket.on('eb_auth_reload_confirmed', () => {
-        setTimeout(() => {
-            window.location.reload();
-        }, 500);
-    });
-
     socket.on('session_verified', (data) => {
         clearTimeout(initTimeout);
         document.getElementById('overlay-sync').style.display = 'none';
@@ -1233,10 +1217,9 @@
         }
 
         if (data.hasServer) {
-            applyFullAuthState(data, false);
+            applyFullAuthState(data);
         } else {
             activeUserId = data.userId || data.ownerId;
-            if (data.username) ezbridgeUsername = data.username;
             if (data.profile) updateLocalProfileUI(data.profile);
             if (data.coins !== undefined) updateCoinsDisplay(data.coins);
             document.getElementById('overlay-captcha').style.display = 'flex';
@@ -1244,30 +1227,30 @@
     });
 
     socket.on('google_login_verified', (data) => {
-        applyFullAuthState(data, true);
+        applyFullAuthState(data);
     });
 
     socket.on('eb_ezbridge_auth_success', (data) => {
-        applyFullAuthState(data, true);
+        applyFullAuthState(data);
     });
 
     socket.on('server_created', (data) => {
-        hideLoadingScreen();
-        document.getElementById('overlay-setup').style.display = 'none';
         serverKey = data.key;
         serverSettings = data.server.settings;
         serverType = data.server.serverType;
         serverActive = false;
         activeUserId = data.userId || data.server.clientId || ownerId;
-        setCookie("eb_owner_id", ownerId, 365);
+        hideLoadingScreen();
+        document.getElementById('overlay-setup').style.display = 'none';
         showDashboard();
+
         socket.emit('eb_check_daily_reward');
     });
 
-    socket.on('settings_saved', (data) => {
+    socket.on('settings_saved', () => {
+        serverActive = false;
         hideLoadingScreen();
         document.getElementById('overlay-setup').style.display = 'none';
-        serverActive = false;
         showDashboard();
     });
 
@@ -1676,7 +1659,7 @@
         googleSub = payload.sub;
         googleEmail = payload.email;
 
-        showLoadingScreen("Wait, the server is logging you into the inserted account.");
+        showLoadingScreen("Wait, the server is logging you into the inserted account.", "Safely gathering account information and data...");
         socket.emit('eb_google_login', { googleSub, email: googleEmail, ownerId });
     }
 
@@ -1779,14 +1762,14 @@
     function submitEzBridgeSignUp() {
         const username = document.getElementById('eb-signup-user').value.trim();
         const password = document.getElementById('eb-signup-pass').value;
-        showLoadingScreen("Wait, EzBridge wants to make sure your information and data are secure..");
+        showLoadingScreen("Wait, EzBridge wants to make sure your information and data are secure..", "Creating your account securely...");
         socket.emit('eb_ezbridge_signup', { username, password });
     }
 
     function submitEzBridgeLogIn() {
         const username = document.getElementById('eb-login-user').value.trim();
         const password = document.getElementById('eb-login-pass').value;
-        showLoadingScreen("Wait, the server is logging you into the inserted account.");
+        showLoadingScreen("Wait, the server is logging you into the inserted account.", "Safely gathering account information and data...");
         socket.emit('eb_ezbridge_login', { username, password });
     }
 
@@ -2681,7 +2664,7 @@
 
         const type = document.getElementById('cfg-server-type').value;
 
-        showLoadingScreen("Creating/Updating your server.. wait while your client does its job.");
+        showLoadingScreen("Creating/Updating your server.. wait while your client does its job.", "Applying server configuration...");
 
         if (serverKey) {
             socket.emit('eb_save_settings', { key: serverKey, ownerId, googleSub, ezbridgeUsername, settings, serverType: type, serverScript: currentServerScript });
@@ -2690,190 +2673,9 @@
         }
     }
 
-    function showDashboard() {
-        document.getElementById('dashboard').style.display = 'block';
-        updateDashboardGoogleBtn();
-        applyRolePermissions();
-        updateStatusDisplay();
-
-        setInterval(() => {
-            if (serverKey) {
-                socket.emit('eb_heartbeat', { key: serverKey, ownerId });
-            }
-        }, 5000);
-
-        setInterval(() => {
-            const startTime = Date.now();
-            socket.once('ebgetstatus_response', () => {
-                currentPingVal = Math.max(60, Date.now() - startTime);
-                const pingEl = document.getElementById('metric-ping');
-                if (pingEl) pingEl.innerText = currentPingVal;
-            });
-            socket.emit('ebgetstatus');
-
-            const rxKbps = ((rxBytesAccum * 8) / 1024).toFixed(1);
-            const txKbps = ((txBytesAccum * 8) / 1024).toFixed(1);
-
-            const rxEl = document.getElementById('metric-rx');
-            const txEl = document.getElementById('metric-tx');
-            if (rxEl) rxEl.innerText = rxKbps;
-            if (txEl) txEl.innerText = txKbps;
-
-            rxBytesAccum = 0;
-            txBytesAccum = 0;
-        }, 1000);
-    }
-
-    function updateDashboardGoogleBtn() {
-        const container = document.getElementById('dashboard-google-container');
-        const emailBox = document.getElementById('account-email-display');
-        const emailText = document.getElementById('user-email-text');
-
-        if (ezbridgeUsername) {
-            container.style.display = 'none';
-            emailText.innerText = ezbridgeUsername;
-            emailBox.style.display = 'flex';
-        } else if (googleSub || googleEmail) {
-            container.style.display = 'none';
-            if (googleEmail) {
-                emailText.innerText = googleEmail;
-                emailBox.style.display = 'flex';
-            }
-        } else {
-            container.style.display = 'block';
-            emailBox.style.display = 'none';
-        }
-    }
-
-    function toggleServerState() {
-        if (isServerLockdown) {
-            return alert("Server is currently in RAM lockdown and cannot be started!");
-        }
-        serverActive = !serverActive;
-        socket.emit('eb_toggle_server', { key: serverKey, ownerId, googleSub, state: serverActive });
-        updateStatusDisplay();
-    }
-
-    function updateStatusDisplay() {
-        const dot = document.getElementById('server-dot');
-        const text = document.getElementById('server-status-text');
-        const banner = document.getElementById('lockdown-banner-display');
-
-        if (isServerLockdown) {
-            dot.className = 'dot lockdown';
-            text.innerText = "Lockdown";
-            banner.style.display = 'block';
-
-            if (lockdownInterval) clearInterval(lockdownInterval);
-            lockdownInterval = setInterval(() => {
-                const now = Date.now();
-                const remMs = Math.max(0, lockdownUntilTime - now);
-                const mins = Math.floor(remMs / 60000);
-                const secs = String(Math.floor((remMs % 60000) / 1000)).padStart(2, '0');
-                document.getElementById('lockdown-countdown-text').innerText = `${mins}:${secs} Left`;
-
-                if (remMs <= 0) {
-                    clearInterval(lockdownInterval);
-                    isServerLockdown = false;
-                    banner.style.display = 'none';
-                    updateStatusDisplay();
-                }
-            }, 1000);
-        } else if (currentBatteryMb <= 0) {
-            dot.className = 'dot sleeping';
-            text.innerText = "Sleeping";
-            banner.style.display = 'none';
-        } else {
-            if (lockdownInterval) clearInterval(lockdownInterval);
-            banner.style.display = 'none';
-            if (serverActive) {
-                dot.className = 'dot online';
-                text.innerText = "ONLINE";
-            } else {
-                dot.className = 'dot';
-                text.innerText = "OFFLINE";
-            }
-        }
-    }
-
-    function openConsoleModal() {
-        document.getElementById('modal-console').style.display = 'flex';
-        socket.emit('eb_get_console_logs', { key: serverKey, ownerId, googleSub });
-    }
-
-    function closeConsoleModal() {
-        document.getElementById('modal-console').style.display = 'none';
-    }
-
-    function renderConsoleLogs() {
-        const box = document.getElementById('console-logs-display');
-        box.innerHTML = "";
-        consoleLogsCache.forEach(log => {
-            const div = document.createElement('div');
-            div.className = `log-${log.color || 'white'}`;
-            div.innerText = log.text;
-            box.appendChild(div);
-        });
-        box.scrollTop = box.scrollHeight;
-    }
-
-    function copyConsoleLogs() {
-        const text = consoleLogsCache.map(l => l.text).join('\n');
-        navigator.clipboard.writeText(text);
-        alert("Console logs copied to clipboard!");
-    }
-
-    function openEditSettings() {
-        showLoadingScreen("Wait, we are gathering your previous server changes and synchronizing them here.");
-        
-        let responded = false;
-        const fallbackTimeout = setTimeout(() => {
-            if (!responded) {
-                hideLoadingScreen();
-                populateSettingsForm(serverType, serverSettings, currentServerScript);
-                document.getElementById('dashboard').style.display = 'none';
-                document.getElementById('overlay-setup').style.display = 'flex';
-                document.getElementById('setup-title').innerText = "Update Server";
-                document.getElementById('setup-action-btn').innerText = "UPDATE SERVER";
-            }
-        }, 3000);
-
-        socket.once('eb_server_changes_response', (data) => {
-            responded = true;
-            clearTimeout(fallbackTimeout);
-            hideLoadingScreen();
-
-            if (data.success) {
-                serverType = data.serverType;
-                serverSettings = data.settings;
-                currentServerScript = data.serverScript;
-                populateSettingsForm(serverType, serverSettings, currentServerScript);
-
-                document.getElementById('dashboard').style.display = 'none';
-                document.getElementById('overlay-setup').style.display = 'flex';
-                document.getElementById('setup-title').innerText = "Update Server";
-                document.getElementById('setup-action-btn').innerText = "UPDATE SERVER";
-            } else {
-                alert(data.error || "Failed to sync settings from server.");
-            }
-        });
-
-        socket.emit('eb_get_server_changes', { key: serverKey, ownerId, googleSub });
-    }
-
-    function populateSettingsForm(type, settings, script) {
-        document.getElementById('cfg-server-type').value = type;
-        document.getElementById('cfg-target-ping').value = settings.targetPing || 60;
-        document.getElementById('cfg-target-ping-val').innerText = settings.targetPing || 60;
-        document.getElementById('cfg-private').value = String(settings.allowPrivate);
-        document.getElementById('script-editor').value = script;
-
-        toggleDomainWhitelistUI();
-        renderDomains();
-    }
-
-    function showLoadingScreen(msg) {
-        document.getElementById('loading-msg').innerText = msg;
+    function showLoadingScreen(title, submsg) {
+        document.getElementById('loading-msg').innerText = title || "Processing request...";
+        document.getElementById('loading-submsg').innerText = submsg || "Creating/Updating your server.. wait while your client does its job.";
         document.getElementById('overlay-loading').style.display = 'flex';
     }
 
@@ -3747,9 +3549,9 @@ async function sendHttpEvent(type, data) {
 
 // --- SERVERSCRIPT LOCAL AI API (Ollama smollm2:360m / qwen2.5:0.5b) ---
 Server.eb_callai({
-    model: "qwen2.5:0.5b",             // "smollm2:360m" or "qwen2.5:0.5b"
-    Temp: 0,                           // Temperature (0 to 2.0)
-    Mtokens: 28,                       // Max Tokens (1 to 3250)
+    model: "qwen2.5:0.5b",
+    Temp: 0,
+    Mtokens: 28,
     Instruction: "You are a helpful assistant.",
     Prompt: "what's the capital of France?",
     Streaming: false
@@ -3774,7 +3576,6 @@ socket.on("RemoteEvent", (pkt) => {
     if (pkt.type === "eb_profile_response_{clientid}") {
         console.log("Player Name:", pkt.data.displayName);
         console.log("Avatar base64 image:", pkt.data.pfpData);
-        // Render in player nametag:
         document.getElementById("playerName").innerText = pkt.data.displayName;
         if (pkt.data.pfpData && pkt.data.pfpData !== "default") {
             document.getElementById("playerAvatar").src = pkt.data.pfpData;
