@@ -216,6 +216,8 @@
             font-size: 0.65rem; font-weight: 900; color: #ffffff;
             text-shadow: 1px 1px 1px rgba(0,0,0,0.6); vertical-align: middle;
         }
+
+        .disclaimer { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--error) !important; color: #fca5a5; padding: 10px; font-size: 0.75rem; text-align: left; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -483,7 +485,8 @@
         </div>
     </div>
 
-    <div id="overlay-loading" class="overlay" style="display:none;">
+    <!-- ON-TOP LOADING OVERLAY (Z-INDEX 3000) -->
+    <div id="overlay-loading" class="overlay" style="display:none; z-index:3000;">
         <div class="card">
             <h3 id="loading-msg">Processing request...</h3>
             <div style="font-size:0.8rem; color:var(--muted);">Creating/Updating your server.. wait while your client does its job.</div>
@@ -896,8 +899,8 @@
         <div style="margin-bottom:12px; text-align:left;">
             <div style="font-size:0.75rem; color:var(--muted); font-weight:bold; margin-bottom:3px;">V-Battery left:</div>
             <div class="progress-container" style="height:18px; margin:0; background:#020617; border-color:var(--green) !important;">
-                <div id="battery-progress-fill" class="progress-bar" style="background:var(--green); width:4%;"></div>
-                <div class="progress-text" style="color:#ffffff; font-size:0.7rem;"><span id="battery-curr-val">1000.0</span>mb | 25000mb</div>
+                <div id="battery-progress-fill" class="progress-bar" style="background:var(--green); width:2%;"></div>
+                <div class="progress-text" style="color:#ffffff; font-size:0.7rem;"><span id="battery-curr-val">500.0</span>mb | 25000mb</div>
             </div>
         </div>
 
@@ -1016,7 +1019,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://seeks-ventures-cordless-optimize.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://rows-will-prospects-media.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
@@ -1034,7 +1037,7 @@
 
     let currentProfile = { displayName: "User_123456789", pfpData: "default" };
     let currentCoins = 50;
-    let currentBatteryMb = 1000;
+    let currentBatteryMb = 500;
     let stagedPfpBase64 = null;
 
     let isServerLockdown = false;
@@ -1233,6 +1236,7 @@
             applyFullAuthState(data, false);
         } else {
             activeUserId = data.userId || data.ownerId;
+            if (data.username) ezbridgeUsername = data.username;
             if (data.profile) updateLocalProfileUI(data.profile);
             if (data.coins !== undefined) updateCoinsDisplay(data.coins);
             document.getElementById('overlay-captcha').style.display = 'flex';
@@ -1248,10 +1252,23 @@
     });
 
     socket.on('server_created', (data) => {
+        hideLoadingScreen();
+        document.getElementById('overlay-setup').style.display = 'none';
+        serverKey = data.key;
+        serverSettings = data.server.settings;
+        serverType = data.server.serverType;
+        serverActive = false;
+        activeUserId = data.userId || data.server.clientId || ownerId;
         setCookie("eb_owner_id", ownerId, 365);
-        setTimeout(() => {
-            window.location.reload();
-        }, 500);
+        showDashboard();
+        socket.emit('eb_check_daily_reward');
+    });
+
+    socket.on('settings_saved', (data) => {
+        hideLoadingScreen();
+        document.getElementById('overlay-setup').style.display = 'none';
+        serverActive = false;
+        showDashboard();
     });
 
     socket.on('server_error', (data) => {
@@ -1659,6 +1676,7 @@
         googleSub = payload.sub;
         googleEmail = payload.email;
 
+        showLoadingScreen("Wait, the server is logging you into the inserted account.");
         socket.emit('eb_google_login', { googleSub, email: googleEmail, ownerId });
     }
 
@@ -1768,7 +1786,7 @@
     function submitEzBridgeLogIn() {
         const username = document.getElementById('eb-login-user').value.trim();
         const password = document.getElementById('eb-login-pass').value;
-        showLoadingScreen("Wait, EzBridge wants to make sure your information and data are secure..");
+        showLoadingScreen("Wait, the server is logging you into the inserted account.");
         socket.emit('eb_ezbridge_login', { username, password });
     }
 
@@ -3386,6 +3404,8 @@
                 const screenCenterX = canvas.width / 2;
                 const screenCenterY = canvas.height / 2;
                 aimAngle = Math.atan2(mousePos.y - screenCenterY, mousePos.x - screenCenterX);
+
+                socket.emit("RemoteEvent", { type: "player_update", data: { id: myId, x: myPos.x, y: myPos.y, angle: aimAngle, color: myColor } });
             }
 
             for (let i = bullets.length - 1; i >= 0; i--) {
