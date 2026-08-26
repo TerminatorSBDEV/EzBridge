@@ -216,6 +216,8 @@
             font-size: 0.65rem; font-weight: 900; color: #ffffff;
             text-shadow: 1px 1px 1px rgba(0,0,0,0.6); vertical-align: middle;
         }
+
+        .disclaimer { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--error) !important; color: #fca5a5; padding: 10px; font-size: 0.75rem; text-align: left; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -483,10 +485,19 @@
         </div>
     </div>
 
-    <div id="overlay-loading" class="overlay" style="display:none;">
+    <!-- ONTOP LOADING OVERLAY -->
+    <div id="overlay-loading" class="overlay" style="display:none; z-index:3000;">
         <div class="card">
             <h3 id="loading-msg">Processing request...</h3>
             <div style="font-size:0.8rem; color:var(--muted);">Creating/Updating your server.. wait while your client does its job.</div>
+        </div>
+    </div>
+
+    <!-- RED LOGGING OVERLAY -->
+    <div id="overlay-ezbridge-logging" class="overlay" style="display:none; z-index:3000;">
+        <div class="card" style="border-color: var(--error);">
+            <h3 style="color: var(--error);">Wait, the server is logging you into the inserted account.</h3>
+            <div style="font-size:0.8rem; color:var(--muted); margin-top:8px;">Safely synchronizing account data, coins, server and profile...</div>
         </div>
     </div>
 
@@ -615,7 +626,7 @@
         </div>
     </div>
 
-    <div id="overlay-setup" class="overlay" style="display:none;">
+    <div id="overlay-setup" class="overlay" style="display:none; z-index:2000;">
         <div class="card" style="max-width: 520px;">
             <h2 id="setup-title">Setup Your Server</h2>
             <div class="settings-grid">
@@ -658,7 +669,7 @@
         </div>
     </div>
 
-    <div id="modal-script" class="overlay" style="display:none;">
+    <div id="modal-script" class="overlay" style="display:none; z-index:2200;">
         <div class="card" style="max-width: 650px;">
             <h3>ServerScript Editor (REQUIRED)</h3>
             <p style="font-size:0.8rem; color:var(--muted);">At least 1 character is strictly required for the server to operate.</p>
@@ -896,8 +907,8 @@
         <div style="margin-bottom:12px; text-align:left;">
             <div style="font-size:0.75rem; color:var(--muted); font-weight:bold; margin-bottom:3px;">V-Battery left:</div>
             <div class="progress-container" style="height:18px; margin:0; background:#020617; border-color:var(--green) !important;">
-                <div id="battery-progress-fill" class="progress-bar" style="background:var(--green); width:4%;"></div>
-                <div class="progress-text" style="color:#ffffff; font-size:0.7rem;"><span id="battery-curr-val">1000.0</span>mb | 25000mb</div>
+                <div id="battery-progress-fill" class="progress-bar" style="background:var(--green); width:2%;"></div>
+                <div class="progress-text" style="color:#ffffff; font-size:0.7rem;"><span id="battery-curr-val">500.0</span>mb | 25000mb</div>
             </div>
         </div>
 
@@ -1034,7 +1045,7 @@
 
     let currentProfile = { displayName: "User_123456789", pfpData: "default" };
     let currentCoins = 50;
-    let currentBatteryMb = 1000;
+    let currentBatteryMb = 500;
     let stagedPfpBase64 = null;
 
     let isServerLockdown = false;
@@ -1042,6 +1053,7 @@
     let lockdownInterval = null;
 
     let isGuestMode = false;
+    let pendingDailyRewardForNewServer = null;
 
     let rxBytesAccum = 0;
     let txBytesAccum = 0;
@@ -1170,6 +1182,7 @@
         }
 
         hideLoadingScreen();
+        document.getElementById('overlay-ezbridge-logging').style.display = 'none';
         document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
 
         ownerId = data.ownerId;
@@ -1233,6 +1246,7 @@
             applyFullAuthState(data, false);
         } else {
             activeUserId = data.userId || data.ownerId;
+            if (data.username) ezbridgeUsername = data.username;
             if (data.profile) updateLocalProfileUI(data.profile);
             if (data.coins !== undefined) updateCoinsDisplay(data.coins);
             document.getElementById('overlay-captcha').style.display = 'flex';
@@ -1244,18 +1258,36 @@
     });
 
     socket.on('eb_ezbridge_auth_success', (data) => {
+        document.getElementById('overlay-ezbridge-logging').style.display = 'none';
         applyFullAuthState(data, true);
     });
 
     socket.on('server_created', (data) => {
+        hideLoadingScreen();
+        document.getElementById('overlay-setup').style.display = 'none';
+        serverKey = data.key;
+        serverSettings = data.server.settings;
+        serverType = data.server.serverType;
+        serverActive = false;
+        activeUserId = data.userId || data.server.clientId || ownerId;
         setCookie("eb_owner_id", ownerId, 365);
+        showDashboard();
+
         setTimeout(() => {
             window.location.reload();
         }, 500);
     });
 
+    socket.on('settings_saved', () => {
+        serverActive = false;
+        hideLoadingScreen();
+        document.getElementById('overlay-setup').style.display = 'none';
+        showDashboard();
+    });
+
     socket.on('server_error', (data) => {
         hideLoadingScreen();
+        document.getElementById('overlay-ezbridge-logging').style.display = 'none';
         alert(data.error);
     });
 
@@ -1659,6 +1691,7 @@
         googleSub = payload.sub;
         googleEmail = payload.email;
 
+        showLoadingScreen("Wait, the server is logging you into the inserted account.");
         socket.emit('eb_google_login', { googleSub, email: googleEmail, ownerId });
     }
 
@@ -1768,7 +1801,8 @@
     function submitEzBridgeLogIn() {
         const username = document.getElementById('eb-login-user').value.trim();
         const password = document.getElementById('eb-login-pass').value;
-        showLoadingScreen("Wait, EzBridge wants to make sure your information and data are secure..");
+        document.getElementById('modal-ezbridge-login').style.display = 'none';
+        document.getElementById('overlay-ezbridge-logging').style.display = 'flex';
         socket.emit('eb_ezbridge_login', { username, password });
     }
 
@@ -2311,7 +2345,7 @@
         const canCopyId = (userRole === 'Owner' || userRole === 'Dev' || userRole === 'Admin');
         const copyBtnHTML = canCopyId ? `<button class="btn-secondary" style="padding:2px 6px; font-size:0.65rem; margin-left:6px;" onclick="copyTextValue('${msg.userId}')">Copy ID</button>` : '';
 
-        const pfpHTML = (msg.pfpData && msg.pfpData !== "default") ? `<img src="${msg.pfpData}" style="width:18px; height:18px; border-radius:50% !important; vertical-align:middle; margin-right:4px;">` : `<span class="coin-icon" style="width:18px; height:18px; font-size:0.55rem; margin-right:4px; border-radius:50% !important;">👤</span>`;
+        const pfpHTML = (msg.pfpData && msg.pfpData !== "default") ? `<img src="${msg.pfpData}" style="width:18px; height:18px; border-radius:50% !important; vertical-align:middle; margin-right:4px; object-fit:cover;">` : `<span class="coin-icon" style="width:18px; height:18px; font-size:0.55rem; margin-right:4px; border-radius:50% !important;">👤</span>`;
 
         bubble.innerHTML = `
             <div style="font-size:0.75rem; font-weight:bold; color:var(--accent); margin-bottom:4px; display:flex; align-items:center;">
@@ -3386,6 +3420,8 @@
                 const screenCenterX = canvas.width / 2;
                 const screenCenterY = canvas.height / 2;
                 aimAngle = Math.atan2(mousePos.y - screenCenterY, mousePos.x - screenCenterX);
+
+                socket.emit("RemoteEvent", { type: "player_update", data: { id: myId, x: myPos.x, y: myPos.y, angle: aimAngle, color: myColor } });
             }
 
             for (let i = bullets.length - 1; i >= 0; i--) {
@@ -3727,9 +3763,9 @@ async function sendHttpEvent(type, data) {
 
 // --- SERVERSCRIPT LOCAL AI API (Ollama smollm2:360m / qwen2.5:0.5b) ---
 Server.eb_callai({
-    model: "qwen2.5:0.5b",             // "smollm2:360m" or "qwen2.5:0.5b"
-    Temp: 0,                           // Temperature (0 to 2.0)
-    Mtokens: 28,                       // Max Tokens (1 to 3250)
+    model: "qwen2.5:0.5b",
+    Temp: 0,
+    Mtokens: 28,
     Instruction: "You are a helpful assistant.",
     Prompt: "what's the capital of France?",
     Streaming: false
