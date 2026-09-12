@@ -1027,7 +1027,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://always-pensions-ser-shut.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://awards-lift-phase-elizabeth.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
@@ -1261,7 +1261,20 @@
 
     socket.on('eb_ezbridge_auth_success', (data) => {
         document.getElementById('overlay-ezbridge-logging').style.display = 'none';
-        applyFullAuthState(data, true);
+        if (!data.hasServer) {
+            pendingDailyRewardForNewServer = data.dailyReward;
+            hideLoadingScreen();
+            document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
+            ownerId = data.ownerId;
+            activeUserId = data.userId;
+            ezbridgeUsername = data.username;
+            setCookie("eb_owner_id", ownerId, 365);
+            if (data.profile) updateLocalProfileUI(data.profile);
+            if (data.coins !== undefined) updateCoinsDisplay(data.coins);
+            openSetupUI();
+        } else {
+            applyFullAuthState(data, true);
+        }
     });
 
     socket.on('server_created', (data) => {
@@ -1274,6 +1287,15 @@
         activeUserId = data.userId || data.server.clientId || ownerId;
         setCookie("eb_owner_id", ownerId, 365);
         showDashboard();
+
+        if (pendingDailyRewardForNewServer && pendingDailyRewardForNewServer.pendingReward) {
+            document.getElementById('daily-streak-badge').innerText = `🔥 ${pendingDailyRewardForNewServer.streak}`;
+            document.getElementById('daily-reward-coins').innerText = pendingDailyRewardForNewServer.pendingReward;
+            document.getElementById('daily-reward-coins-txt').innerText = pendingDailyRewardForNewServer.pendingReward;
+            if (pendingDailyRewardForNewServer.serverTime) document.getElementById('daily-server-time').innerText = pendingDailyRewardForNewServer.serverTime;
+            document.getElementById('modal-daily-rewards').style.display = 'flex';
+            pendingDailyRewardForNewServer = null;
+        }
 
         setTimeout(() => {
             window.location.reload();
@@ -2783,34 +2805,6 @@
         }
     }
 
-    socket.on('eb_heartbeat_response', (data) => {
-        serverActive = data.active;
-        document.getElementById('online-users-count').innerText = data.users;
-        document.getElementById('active-scripts-count').innerText = data.activeScripts;
-
-        const kb = (data.ramUsageBytes / 1024).toFixed(1);
-        document.getElementById('ram-usage-text').innerText = `${kb} KB`;
-
-        const storageMb = ((data.storageBytes || 0) / (1024 * 1024)).toFixed(1);
-        document.getElementById('storage-usage-text').innerText = `${storageMb} MB`;
-
-        const limitBytes = 250 * 1024 * 1024;
-        const ramPct = Math.min(100, Math.floor((data.ramUsageBytes / limitBytes) * 100));
-        const fillBar = document.getElementById('ram-progress-fill');
-        if (fillBar) fillBar.style.width = `${ramPct}%`;
-
-        isServerLockdown = Boolean(data.isLockdown);
-        lockdownUntilTime = data.lockdownUntil || 0;
-        if (data.battery !== undefined) updateBatteryDisplay(data.battery);
-        if (data.coins !== undefined) updateCoinsDisplay(data.coins);
-
-        if (data.email) googleEmail = data.email;
-        if (data.ezbridgeUsername) ezbridgeUsername = data.ezbridgeUsername;
-        updateDashboardGoogleBtn();
-
-        updateStatusDisplay();
-    });
-
     function toggleServerState() {
         if (isServerLockdown) {
             return alert("Server is currently in RAM lockdown and cannot be started!");
@@ -3661,7 +3655,11 @@ setInterval(() => {
                 if (res.ok) {
                     const json = await res.json();
                     if (json.events && Array.isArray(json.events)) {
-                        json.events.forEach(handleServerEvent);
+                        json.events.forEach(evt => {
+                            if (evt.type === 'send_message_reply' || evt.type === 'get_messages_reply') {
+                                renderChat(evt.data.messages);
+                            }
+                        });
                     }
                 }
             } catch(e) {}
