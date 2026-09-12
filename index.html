@@ -1027,7 +1027,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://scheme-supplier-cotton-commission.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://always-pensions-ser-shut.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
@@ -2690,6 +2690,10 @@
     }
 
     function createServerSubmit() {
+        if (!isCaptchaTagged) {
+            return alert("⚠Request rejected⚠\nYou must verify yourself to prove you're not a bot.");
+        }
+
         const editorText = document.getElementById('script-editor').value;
         if (editorText && editorText.trim().length > 0) {
             currentServerScript = editorText;
@@ -2778,6 +2782,34 @@
             emailBox.style.display = 'none';
         }
     }
+
+    socket.on('eb_heartbeat_response', (data) => {
+        serverActive = data.active;
+        document.getElementById('online-users-count').innerText = data.users;
+        document.getElementById('active-scripts-count').innerText = data.activeScripts;
+
+        const kb = (data.ramUsageBytes / 1024).toFixed(1);
+        document.getElementById('ram-usage-text').innerText = `${kb} KB`;
+
+        const storageMb = ((data.storageBytes || 0) / (1024 * 1024)).toFixed(1);
+        document.getElementById('storage-usage-text').innerText = `${storageMb} MB`;
+
+        const limitBytes = 250 * 1024 * 1024;
+        const ramPct = Math.min(100, Math.floor((data.ramUsageBytes / limitBytes) * 100));
+        const fillBar = document.getElementById('ram-progress-fill');
+        if (fillBar) fillBar.style.width = `${ramPct}%`;
+
+        isServerLockdown = Boolean(data.isLockdown);
+        lockdownUntilTime = data.lockdownUntil || 0;
+        if (data.battery !== undefined) updateBatteryDisplay(data.battery);
+        if (data.coins !== undefined) updateCoinsDisplay(data.coins);
+
+        if (data.email) googleEmail = data.email;
+        if (data.ezbridgeUsername) ezbridgeUsername = data.ezbridgeUsername;
+        updateDashboardGoogleBtn();
+
+        updateStatusDisplay();
+    });
 
     function toggleServerState() {
         if (isServerLockdown) {
@@ -3629,11 +3661,7 @@ setInterval(() => {
                 if (res.ok) {
                     const json = await res.json();
                     if (json.events && Array.isArray(json.events)) {
-                        json.events.forEach(evt => {
-                            if (evt.type === 'send_message_reply' || evt.type === 'get_messages_reply') {
-                                renderChat(evt.data.messages);
-                            }
-                        });
+                        json.events.forEach(handleServerEvent);
                     }
                 }
             } catch(e) {}
@@ -3781,9 +3809,9 @@ async function sendHttpEvent(type, data) {
 
 // --- SERVERSCRIPT LOCAL AI API (Ollama smollm2:360m / qwen2.5:0.5b) ---
 Server.eb_callai({
-    model: "qwen2.5:0.5b",
-    Temp: 0,
-    Mtokens: 28,
+    model: "qwen2.5:0.5b",             // "smollm2:360m" or "qwen2.5:0.5b"
+    Temp: 0,                           // Temperature (0 to 2.0)
+    Mtokens: 28,                       // Max Tokens (1 to 3250)
     Instruction: "You are a helpful assistant.",
     Prompt: "what's the capital of France?",
     Streaming: false
