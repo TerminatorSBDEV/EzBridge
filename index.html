@@ -1027,7 +1027,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://linked-numeric-prior-wherever.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://workshop-laid-cabin-male.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
@@ -1176,7 +1176,13 @@
     function applyFullAuthState(data, isNewLogin) {
         if (isNewLogin) {
             setCookie("eb_owner_id", data.ownerId, 365);
-            socket.emit('eb_verify_cookie_cache', { ownerId: data.ownerId });
+            isCaptchaTagged = true;
+            const verifiedCookie = getCookie("eb_owner_id");
+            if (verifiedCookie === data.ownerId) {
+                socket.emit('eb_verify_cookie_cache', { ownerId: verifiedCookie });
+            } else {
+                window.location.reload();
+            }
             return;
         }
 
@@ -1225,7 +1231,17 @@
         }
     }
 
-    socket.on('eb_cookie_verified_reload', () => {
+    socket.on('eb_cookie_cache_verified', (data) => {
+        if (data.valid && data.shouldRefresh) {
+            hideLoadingScreen();
+            document.getElementById('overlay-ezbridge-logging').style.display = 'none';
+            setTimeout(() => {
+                window.location.reload();
+            }, 500);
+        }
+    });
+
+    socket.on('eb_auth_reload_confirmed', () => {
         setTimeout(() => {
             window.location.reload();
         }, 500);
@@ -1249,6 +1265,7 @@
             if (data.username) ezbridgeUsername = data.username;
             if (data.profile) updateLocalProfileUI(data.profile);
             if (data.coins !== undefined) updateCoinsDisplay(data.coins);
+            if (ownerId && (data.username || data.userId)) isCaptchaTagged = true;
             document.getElementById('overlay-captcha').style.display = 'flex';
         }
     });
@@ -1298,7 +1315,7 @@
 
         setTimeout(() => {
             window.location.reload();
-        }, 1000);
+        }, 500);
     });
 
     socket.on('settings_saved', () => {
