@@ -235,7 +235,6 @@
         </div>
     </div>
 
-    <!-- COOLDOWN WARNING MODAL -->
     <div id="modal-cooldown-warning" class="overlay" style="display:none; backdrop-filter: blur(8px) brightness(50%); z-index: 999999;">
         <div class="card" style="border-color: var(--error);">
             <h2 style="color: var(--error);">⚠WARNING⚠</h2>
@@ -245,7 +244,6 @@
         </div>
     </div>
 
-    <!-- DAILY REWARDS POPUP -->
     <div id="modal-daily-rewards" class="overlay" style="display:none; z-index: 999990;">
         <div class="card" style="max-width: 440px;">
             <h3>DAILY REWARDS | <span id="daily-streak-badge" style="color:var(--orange);">🔥 1</span></h3>
@@ -261,7 +259,6 @@
         </div>
     </div>
 
-    <!-- SHOPPING MENU MODAL -->
     <div id="modal-shop" class="overlay" style="display:none;">
         <div class="card" style="max-width: 520px; max-height:85vh; display:flex; flex-direction:column;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -282,7 +279,6 @@
         </div>
     </div>
 
-    <!-- PROFILE CUSTOMIZATION LOADING -->
     <div id="overlay-profile-loading" class="overlay" style="display:none;">
         <div class="card">
             <h3>Loading Profile, wait...</h3>
@@ -291,7 +287,6 @@
         </div>
     </div>
 
-    <!-- PROFILE CUSTOMIZATION MODAL -->
     <div id="modal-profile" class="overlay" style="display:none;">
         <div class="card" style="max-width: 460px;">
             <h3>Customize your profile</h3>
@@ -310,7 +305,6 @@
         </div>
     </div>
 
-    <!-- SET USER COINS (OWNER TOOL) -->
     <div id="modal-owner-set-coins" class="overlay" style="display:none;">
         <div class="card" style="max-width: 440px;">
             <h3>Set User Coins (Owner Tool)</h3>
@@ -1191,6 +1185,7 @@
         activeUserId = data.userId || data.ownerId;
         userRole = data.role || "None";
         setCookie("eb_owner_id", ownerId, 365);
+        isCaptchaTagged = true;
 
         if (data.username) ezbridgeUsername = data.username;
         if (data.profile) updateLocalProfileUI(data.profile);
@@ -1269,6 +1264,7 @@
             activeUserId = data.userId;
             ezbridgeUsername = data.username;
             setCookie("eb_owner_id", ownerId, 365);
+            isCaptchaTagged = true;
             if (data.profile) updateLocalProfileUI(data.profile);
             if (data.coins !== undefined) updateCoinsDisplay(data.coins);
             openSetupUI();
@@ -2385,7 +2381,7 @@
         const canCopyId = (userRole === 'Owner' || userRole === 'Dev' || userRole === 'Admin');
         const copyBtnHTML = canCopyId ? `<button class="btn-secondary" style="padding:2px 6px; font-size:0.65rem; margin-left:6px;" onclick="copyTextValue('${msg.userId}')">Copy ID</button>` : '';
 
-        const pfpHTML = (msg.pfpData && msg.pfpData !== "default") ? `<img src="${msg.pfpData}" style="width:18px; height:18px; border-radius:50% !important; vertical-align:middle; margin-right:4px; object-fit:cover;">` : `<span class="coin-icon" style="width:18px; height:18px; font-size:0.55rem; margin-right:4px; border-radius:50% !important;">👤</span>`;
+        const pfpHTML = (msg.pfpData && msg.pfpData !== "default") ? `<img src="${msg.pfpData}" style="width:18px; height:18px; border-radius:50% !important; vertical-align:middle; margin-right:4px;">` : `<span class="coin-icon" style="width:18px; height:18px; font-size:0.55rem; margin-right:4px; border-radius:50% !important;">👤</span>`;
 
         bubble.innerHTML = `
             <div style="font-size:0.75rem; font-weight:bold; color:var(--accent); margin-bottom:4px; display:flex; align-items:center;">
@@ -2712,7 +2708,7 @@
     }
 
     function createServerSubmit() {
-        if (!isCaptchaTagged) {
+        if (!isCaptchaTagged && !ezbridgeUsername && !googleSub) {
             return alert("⚠Request rejected⚠\nYou must verify yourself to prove you're not a bot.");
         }
 
@@ -2755,6 +2751,10 @@
         updateDashboardGoogleBtn();
         applyRolePermissions();
         updateStatusDisplay();
+
+        if (serverKey) {
+            socket.emit('eb_heartbeat', { key: serverKey, ownerId });
+        }
 
         setInterval(() => {
             if (serverKey) {
