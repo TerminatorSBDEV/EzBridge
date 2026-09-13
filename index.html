@@ -1027,7 +1027,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://linked-numeric-prior-wherever.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://awards-lift-phase-elizabeth.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
@@ -1176,10 +1176,7 @@
     function applyFullAuthState(data, isNewLogin) {
         if (isNewLogin) {
             setCookie("eb_owner_id", data.ownerId, 365);
-            socket.emit('eb_auth_cookie_saved');
-            setTimeout(() => {
-                window.location.reload();
-            }, 1000);
+            socket.emit('eb_verify_cookie_cache', { ownerId: data.ownerId });
             return;
         }
 
@@ -1228,10 +1225,10 @@
         }
     }
 
-    socket.on('eb_auth_reload_confirmed', () => {
+    socket.on('eb_cookie_verified_reload', () => {
         setTimeout(() => {
             window.location.reload();
-        }, 1000);
+        }, 500);
     });
 
     socket.on('session_verified', (data) => {
@@ -3470,6 +3467,8 @@
                 const screenCenterX = canvas.width / 2;
                 const screenCenterY = canvas.height / 2;
                 aimAngle = Math.atan2(mousePos.y - screenCenterY, mousePos.x - screenCenterX);
+
+                socket.emit("RemoteEvent", { type: "player_update", data: { id: myId, x: myPos.x, y: myPos.y, angle: aimAngle, color: myColor } });
             }
 
             for (let i = bullets.length - 1; i >= 0; i--) {
@@ -3811,9 +3810,9 @@ async function sendHttpEvent(type, data) {
 
 // --- SERVERSCRIPT LOCAL AI API (Ollama smollm2:360m / qwen2.5:0.5b) ---
 Server.eb_callai({
-    model: "qwen2.5:0.5b",             // "smollm2:360m" or "qwen2.5:0.5b"
-    Temp: 0,                           // Temperature (0 to 2.0)
-    Mtokens: 28,                       // Max Tokens (1 to 3250)
+    model: "qwen2.5:0.5b",
+    Temp: 0,
+    Mtokens: 28,
     Instruction: "You are a helpful assistant.",
     Prompt: "what's the capital of France?",
     Streaming: false
