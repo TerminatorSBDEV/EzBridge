@@ -235,6 +235,7 @@
         </div>
     </div>
 
+    <!-- COOLDOWN WARNING MODAL -->
     <div id="modal-cooldown-warning" class="overlay" style="display:none; backdrop-filter: blur(8px) brightness(50%); z-index: 999999;">
         <div class="card" style="border-color: var(--error);">
             <h2 style="color: var(--error);">⚠WARNING⚠</h2>
@@ -244,6 +245,7 @@
         </div>
     </div>
 
+    <!-- DAILY REWARDS POPUP -->
     <div id="modal-daily-rewards" class="overlay" style="display:none; z-index: 999990;">
         <div class="card" style="max-width: 440px;">
             <h3>DAILY REWARDS | <span id="daily-streak-badge" style="color:var(--orange);">🔥 1</span></h3>
@@ -259,6 +261,7 @@
         </div>
     </div>
 
+    <!-- SHOPPING MENU MODAL -->
     <div id="modal-shop" class="overlay" style="display:none;">
         <div class="card" style="max-width: 520px; max-height:85vh; display:flex; flex-direction:column;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -279,6 +282,7 @@
         </div>
     </div>
 
+    <!-- PROFILE CUSTOMIZATION LOADING -->
     <div id="overlay-profile-loading" class="overlay" style="display:none;">
         <div class="card">
             <h3>Loading Profile, wait...</h3>
@@ -287,6 +291,7 @@
         </div>
     </div>
 
+    <!-- PROFILE CUSTOMIZATION MODAL -->
     <div id="modal-profile" class="overlay" style="display:none;">
         <div class="card" style="max-width: 460px;">
             <h3>Customize your profile</h3>
@@ -305,6 +310,7 @@
         </div>
     </div>
 
+    <!-- SET USER COINS (OWNER TOOL) -->
     <div id="modal-owner-set-coins" class="overlay" style="display:none;">
         <div class="card" style="max-width: 440px;">
             <h3>Set User Coins (Owner Tool)</h3>
@@ -411,6 +417,7 @@
         </div>
     </div>
 
+    <!-- MODAL "OR ASK AI ✨" -->
     <div id="modal-ask-ai-site" class="overlay" style="display:none; z-index:2100;">
         <div class="card" style="max-width: 520px; width:95%;">
             <h3>What do you wanna ask AI to make?</h3>
@@ -485,6 +492,7 @@
         </div>
     </div>
 
+    <!-- ONTOP LOADING OVERLAY -->
     <div id="overlay-loading" class="overlay" style="display:none; z-index:3000;">
         <div class="card">
             <h3 id="loading-msg">Processing request...</h3>
@@ -492,6 +500,7 @@
         </div>
     </div>
 
+    <!-- RED LOGGING OVERLAY -->
     <div id="overlay-ezbridge-logging" class="overlay" style="display:none; z-index:3000;">
         <div class="card" style="border-color: var(--error);">
             <h3 style="color: var(--error);">Wait, the server is logging you into the inserted account.</h3>
@@ -1043,7 +1052,7 @@
     let serverKey = "";
     let serverActive = false;
     let isServerSleeping = false;
-    let sleepReason = "";
+    let serverSleepReason = null;
     let serverType = "websocket";
     let serverSettings = {};
     let currentServerScript = "";
@@ -1209,9 +1218,9 @@
 
         if (data.hasServer && data.server) {
             serverKey = data.server.key;
-            serverActive = Boolean(data.server.active);
+            serverActive = data.server.active;
             isServerSleeping = Boolean(data.server.isSleeping);
-            sleepReason = data.server.sleepReason || "";
+            serverSleepReason = data.server.sleepReason || null;
             serverType = data.server.serverType || "websocket";
             serverSettings = data.server.settings;
             currentServerScript = data.server.serverScript || "";
@@ -1310,7 +1319,7 @@
         serverType = data.server.serverType;
         serverActive = false;
         isServerSleeping = false;
-        sleepReason = "";
+        serverSleepReason = null;
         activeUserId = data.userId || data.server.clientId || ownerId;
         setCookie("eb_owner_id", ownerId, 365);
         showDashboard();
@@ -1336,9 +1345,9 @@
     });
 
     socket.on('server_state_changed', (data) => {
-        serverActive = Boolean(data.active);
+        serverActive = data.active;
         isServerSleeping = Boolean(data.isSleeping);
-        sleepReason = data.sleepReason || "";
+        serverSleepReason = data.sleepReason || null;
         updateStatusDisplay();
     });
 
@@ -1428,16 +1437,17 @@
     socket.on('eb_server_battery_depleted', () => {
         serverActive = false;
         isServerSleeping = true;
-        sleepReason = "Insufficient V-Battery";
+        serverSleepReason = "Insufficient V-Battery";
         updateBatteryDisplay(0);
         updateStatusDisplay();
     });
 
     socket.on('eb_heartbeat_response', (data) => {
-        serverActive = Boolean(data.active);
+        serverActive = data.active;
         isServerSleeping = Boolean(data.isSleeping);
-        sleepReason = data.sleepReason || "";
+        serverSleepReason = data.sleepReason || null;
         updateStatusDisplay();
+
         document.getElementById('online-users-count').innerText = data.users !== undefined ? data.users : 0;
         document.getElementById('active-scripts-count').innerText = data.activeScripts !== undefined ? data.activeScripts : 0;
         
@@ -2624,14 +2634,7 @@
             div.style.alignItems = 'flex-start';
             div.style.gap = '6px';
 
-            let statusText = `<span style="color:var(--error)">OFFLINE</span>`;
-            if (sv.isLockdown) {
-                statusText = `<span style="color:var(--yellow)">LOCKDOWN</span>`;
-            } else if (sv.isSleeping) {
-                statusText = `<span style="color:var(--orange)">SLEEPING (${sv.sleepReason || 'Configuring'})</span>`;
-            } else if (sv.active) {
-                statusText = `<span style="color:var(--green)">ONLINE</span>`;
-            }
+            const statusText = sv.isLockdown ? `<span style="color:var(--yellow)">LOCKDOWN</span>` : (sv.isSleeping ? `<span style="color:var(--orange)">SLEEPING (${sv.sleepReason || 'Configuring'})</span>` : (sv.active ? `<span style="color:var(--green)">ONLINE</span>` : `<span style="color:var(--error)">OFFLINE</span>`));
 
             div.innerHTML = `
                 <div><b>${sv.clientId}'s server</b> status: ${statusText} - RAM usage: ${kb}kb / 250mb</div>
@@ -2880,7 +2883,7 @@
             return alert("Server is currently in RAM lockdown and cannot be started!");
         }
         if (isServerSleeping) {
-            return alert(`Server is sleeping: ${sleepReason || 'Configuring'}`);
+            return alert(`Server is sleeping: ${serverSleepReason || 'Configuring'}`);
         }
         serverActive = !serverActive;
         socket.emit('eb_toggle_server', { key: serverKey, ownerId, googleSub, state: serverActive });
@@ -2912,13 +2915,9 @@
                     updateStatusDisplay();
                 }
             }, 1000);
-        } else if (isServerSleeping) {
+        } else if (isServerSleeping || currentBatteryMb <= 0) {
             dot.className = 'dot sleeping';
-            text.innerText = sleepReason ? `SLEEPING (${sleepReason})` : "SLEEPING";
-            banner.style.display = 'none';
-        } else if (currentBatteryMb <= 0) {
-            dot.className = 'dot sleeping';
-            text.innerText = "Sleeping (Insufficient V-Battery)";
+            text.innerText = serverSleepReason ? `Sleeping (${serverSleepReason})` : "Sleeping";
             banner.style.display = 'none';
         } else {
             if (lockdownInterval) clearInterval(lockdownInterval);
@@ -3212,14 +3211,14 @@
             joyVector.x = Math.cos(angle) * (dist / 50);
             joyVector.y = Math.sin(angle) * (dist / 50);
 
-            stickEl.style.transform = `translate(${Math.cos(angle)*dist}px, ${Math.sin(angle)*dist}px)`;
+            stickEl.style.transform = \`translate(\${Math.cos(angle)*dist}px, \${Math.sin(angle)*dist}px)\`;
         });
 
         window.addEventListener("touchend", (e) => {
             if (joyActive) {
                 joyActive = false;
                 joyVector = { x: 0, y: 0 };
-                stickEl.style.transform = `translate(0px, 0px)`;
+                stickEl.style.transform = \`translate(0px, 0px)\`;
             }
         });
 
@@ -3266,7 +3265,7 @@
                 ctx.fillStyle = "#ffffff";
                 ctx.font = "bold 14px sans-serif";
                 ctx.textAlign = "center";
-                ctx.fillText(`Coins: ${myScore}`, myPos.x, myPos.y - 30);
+                ctx.fillText(\`Coins: \${myScore}\`, myPos.x, myPos.y - 30);
             }
 
             for (let id in players) {
@@ -3280,7 +3279,7 @@
                 ctx.fillStyle = "#ffffff";
                 ctx.font = "bold 14px sans-serif";
                 ctx.textAlign = "center";
-                ctx.fillText(`Coins: ${p.score || 0}`, p.x, p.y - 30);
+                ctx.fillText(\`Coins: \${p.score || 0}\`, p.x, p.y - 30);
             }
 
             ctx.fillStyle = "#facc15";
@@ -3746,9 +3745,9 @@ async function sendHttpEvent(type, data) {
 
 // --- SERVERSCRIPT LOCAL AI API (Ollama smollm2:360m / qwen2.5:0.5b) ---
 Server.eb_callai({
-    model: "qwen2.5:0.5b",             // "smollm2:360m" or "qwen2.5:0.5b"
-    Temp: 0,                           // Temperature (0 to 2.0)
-    Mtokens: 28,                       // Max Tokens (1 to 3250)
+    model: "qwen2.5:0.5b",
+    Temp: 0,
+    Mtokens: 28,
     Instruction: "You are a helpful assistant.",
     Prompt: "what's the capital of France?",
     Streaming: false
