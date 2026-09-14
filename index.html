@@ -235,7 +235,6 @@
         </div>
     </div>
 
-    <!-- COOLDOWN WARNING MODAL -->
     <div id="modal-cooldown-warning" class="overlay" style="display:none; backdrop-filter: blur(8px) brightness(50%); z-index: 999999;">
         <div class="card" style="border-color: var(--error);">
             <h2 style="color: var(--error);">⚠WARNING⚠</h2>
@@ -245,7 +244,6 @@
         </div>
     </div>
 
-    <!-- DAILY REWARDS POPUP -->
     <div id="modal-daily-rewards" class="overlay" style="display:none; z-index: 999990;">
         <div class="card" style="max-width: 440px;">
             <h3>DAILY REWARDS | <span id="daily-streak-badge" style="color:var(--orange);">🔥 1</span></h3>
@@ -261,7 +259,6 @@
         </div>
     </div>
 
-    <!-- SHOPPING MENU MODAL -->
     <div id="modal-shop" class="overlay" style="display:none;">
         <div class="card" style="max-width: 520px; max-height:85vh; display:flex; flex-direction:column;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -282,7 +279,6 @@
         </div>
     </div>
 
-    <!-- PROFILE CUSTOMIZATION LOADING -->
     <div id="overlay-profile-loading" class="overlay" style="display:none;">
         <div class="card">
             <h3>Loading Profile, wait...</h3>
@@ -291,7 +287,6 @@
         </div>
     </div>
 
-    <!-- PROFILE CUSTOMIZATION MODAL -->
     <div id="modal-profile" class="overlay" style="display:none;">
         <div class="card" style="max-width: 460px;">
             <h3>Customize your profile</h3>
@@ -310,7 +305,6 @@
         </div>
     </div>
 
-    <!-- SET USER COINS (OWNER TOOL) -->
     <div id="modal-owner-set-coins" class="overlay" style="display:none;">
         <div class="card" style="max-width: 440px;">
             <h3>Set User Coins (Owner Tool)</h3>
@@ -417,7 +411,6 @@
         </div>
     </div>
 
-    <!-- MODAL "OR ASK AI ✨" -->
     <div id="modal-ask-ai-site" class="overlay" style="display:none; z-index:2100;">
         <div class="card" style="max-width: 520px; width:95%;">
             <h3>What do you wanna ask AI to make?</h3>
@@ -492,7 +485,6 @@
         </div>
     </div>
 
-    <!-- ONTOP LOADING OVERLAY -->
     <div id="overlay-loading" class="overlay" style="display:none; z-index:3000;">
         <div class="card">
             <h3 id="loading-msg">Processing request...</h3>
@@ -500,7 +492,6 @@
         </div>
     </div>
 
-    <!-- RED LOGGING OVERLAY -->
     <div id="overlay-ezbridge-logging" class="overlay" style="display:none; z-index:3000;">
         <div class="card" style="border-color: var(--error);">
             <h3 style="color: var(--error);">Wait, the server is logging you into the inserted account.</h3>
@@ -1051,8 +1042,8 @@
     let userRole = "None";
     let serverKey = "";
     let serverActive = false;
-    let isSleeping = false;
-    let sleepReason = null;
+    let isServerSleeping = false;
+    let sleepReason = "";
     let serverType = "websocket";
     let serverSettings = {};
     let currentServerScript = "";
@@ -1218,9 +1209,9 @@
 
         if (data.hasServer && data.server) {
             serverKey = data.server.key;
-            serverActive = data.server.active;
-            isSleeping = Boolean(data.server.isSleeping);
-            sleepReason = data.server.sleepReason || null;
+            serverActive = Boolean(data.server.active);
+            isServerSleeping = Boolean(data.server.isSleeping);
+            sleepReason = data.server.sleepReason || "";
             serverType = data.server.serverType || "websocket";
             serverSettings = data.server.settings;
             currentServerScript = data.server.serverScript || "";
@@ -1318,8 +1309,8 @@
         serverSettings = data.server.settings;
         serverType = data.server.serverType;
         serverActive = false;
-        isSleeping = false;
-        sleepReason = null;
+        isServerSleeping = false;
+        sleepReason = "";
         activeUserId = data.userId || data.server.clientId || ownerId;
         setCookie("eb_owner_id", ownerId, 365);
         showDashboard();
@@ -1338,30 +1329,16 @@
         }, 500);
     });
 
-    socket.on('settings_saved', (data) => {
+    socket.on('settings_saved', () => {
         hideLoadingScreen();
         document.getElementById('overlay-setup').style.display = 'none';
-        if (data && data.isSleeping) {
-            isSleeping = true;
-            sleepReason = data.sleepReason || "Configuring";
-        }
-        updateStatusDisplay();
         showDashboard();
     });
 
-    socket.on('server_sleep_state', (data) => {
-        isSleeping = Boolean(data.isSleeping);
-        sleepReason = data.reason || null;
-        if (data.active !== undefined) serverActive = data.active;
-        updateStatusDisplay();
-    });
-
     socket.on('server_state_changed', (data) => {
-        serverActive = data.active;
-        if (serverActive) {
-            isSleeping = false;
-            sleepReason = null;
-        }
+        serverActive = Boolean(data.active);
+        isServerSleeping = Boolean(data.isSleeping);
+        sleepReason = data.sleepReason || "";
         updateStatusDisplay();
     });
 
@@ -1450,16 +1427,16 @@
 
     socket.on('eb_server_battery_depleted', () => {
         serverActive = false;
-        isSleeping = true;
+        isServerSleeping = true;
         sleepReason = "Insufficient V-Battery";
         updateBatteryDisplay(0);
         updateStatusDisplay();
     });
 
     socket.on('eb_heartbeat_response', (data) => {
-        serverActive = data.active;
-        isSleeping = Boolean(data.isSleeping);
-        sleepReason = data.sleepReason || null;
+        serverActive = Boolean(data.active);
+        isServerSleeping = Boolean(data.isSleeping);
+        sleepReason = data.sleepReason || "";
         updateStatusDisplay();
         document.getElementById('online-users-count').innerText = data.users !== undefined ? data.users : 0;
         document.getElementById('active-scripts-count').innerText = data.activeScripts !== undefined ? data.activeScripts : 0;
@@ -2647,7 +2624,14 @@
             div.style.alignItems = 'flex-start';
             div.style.gap = '6px';
 
-            const statusText = sv.isLockdown ? `<span style="color:var(--yellow)">LOCKDOWN</span>` : (sv.active ? `<span style="color:var(--green)">ONLINE</span>` : `<span style="color:var(--error)">OFFLINE</span>`);
+            let statusText = `<span style="color:var(--error)">OFFLINE</span>`;
+            if (sv.isLockdown) {
+                statusText = `<span style="color:var(--yellow)">LOCKDOWN</span>`;
+            } else if (sv.isSleeping) {
+                statusText = `<span style="color:var(--orange)">SLEEPING (${sv.sleepReason || 'Configuring'})</span>`;
+            } else if (sv.active) {
+                statusText = `<span style="color:var(--green)">ONLINE</span>`;
+            }
 
             div.innerHTML = `
                 <div><b>${sv.clientId}'s server</b> status: ${statusText} - RAM usage: ${kb}kb / 250mb</div>
@@ -2895,8 +2879,8 @@
         if (isServerLockdown) {
             return alert("Server is currently in RAM lockdown and cannot be started!");
         }
-        if (isSleeping) {
-            return alert(`Server is currently sleeping (${sleepReason || 'Standby'}).`);
+        if (isServerSleeping) {
+            return alert(`Server is sleeping: ${sleepReason || 'Configuring'}`);
         }
         serverActive = !serverActive;
         socket.emit('eb_toggle_server', { key: serverKey, ownerId, googleSub, state: serverActive });
@@ -2928,9 +2912,13 @@
                     updateStatusDisplay();
                 }
             }, 1000);
-        } else if (isSleeping || currentBatteryMb <= 0) {
+        } else if (isServerSleeping) {
             dot.className = 'dot sleeping';
-            text.innerText = sleepReason ? `Sleeping (${sleepReason})` : "Sleeping";
+            text.innerText = sleepReason ? `SLEEPING (${sleepReason})` : "SLEEPING";
+            banner.style.display = 'none';
+        } else if (currentBatteryMb <= 0) {
+            dot.className = 'dot sleeping';
+            text.innerText = "Sleeping (Insufficient V-Battery)";
             banner.style.display = 'none';
         } else {
             if (lockdownInterval) clearInterval(lockdownInterval);
@@ -3224,14 +3212,14 @@
             joyVector.x = Math.cos(angle) * (dist / 50);
             joyVector.y = Math.sin(angle) * (dist / 50);
 
-            stickEl.style.transform = \`translate(\${Math.cos(angle)*dist}px, \${Math.sin(angle)*dist}px)\`;
+            stickEl.style.transform = `translate(${Math.cos(angle)*dist}px, ${Math.sin(angle)*dist}px)`;
         });
 
         window.addEventListener("touchend", (e) => {
             if (joyActive) {
                 joyActive = false;
                 joyVector = { x: 0, y: 0 };
-                stickEl.style.transform = \`translate(0px, 0px)\`;
+                stickEl.style.transform = `translate(0px, 0px)`;
             }
         });
 
@@ -3278,7 +3266,7 @@
                 ctx.fillStyle = "#ffffff";
                 ctx.font = "bold 14px sans-serif";
                 ctx.textAlign = "center";
-                ctx.fillText(\`Coins: \${myScore}\`, myPos.x, myPos.y - 30);
+                ctx.fillText(`Coins: ${myScore}`, myPos.x, myPos.y - 30);
             }
 
             for (let id in players) {
@@ -3292,7 +3280,7 @@
                 ctx.fillStyle = "#ffffff";
                 ctx.font = "bold 14px sans-serif";
                 ctx.textAlign = "center";
-                ctx.fillText(\`Coins: \${p.score || 0}\`, p.x, p.y - 30);
+                ctx.fillText(`Coins: ${p.score || 0}`, p.x, p.y - 30);
             }
 
             ctx.fillStyle = "#facc15";
