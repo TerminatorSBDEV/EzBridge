@@ -1051,6 +1051,8 @@
     let userRole = "None";
     let serverKey = "";
     let serverActive = false;
+    let isSleeping = false;
+    let sleepReason = null;
     let serverType = "websocket";
     let serverSettings = {};
     let currentServerScript = "";
@@ -1217,6 +1219,8 @@
         if (data.hasServer && data.server) {
             serverKey = data.server.key;
             serverActive = data.server.active;
+            isSleeping = Boolean(data.server.isSleeping);
+            sleepReason = data.server.sleepReason || null;
             serverType = data.server.serverType || "websocket";
             serverSettings = data.server.settings;
             currentServerScript = data.server.serverScript || "";
@@ -1314,6 +1318,8 @@
         serverSettings = data.server.settings;
         serverType = data.server.serverType;
         serverActive = false;
+        isSleeping = false;
+        sleepReason = null;
         activeUserId = data.userId || data.server.clientId || ownerId;
         setCookie("eb_owner_id", ownerId, 365);
         showDashboard();
@@ -1332,11 +1338,31 @@
         }, 500);
     });
 
-    socket.on('settings_saved', () => {
-        serverActive = false;
+    socket.on('settings_saved', (data) => {
         hideLoadingScreen();
         document.getElementById('overlay-setup').style.display = 'none';
+        if (data && data.isSleeping) {
+            isSleeping = true;
+            sleepReason = data.sleepReason || "Configuring";
+        }
+        updateStatusDisplay();
         showDashboard();
+    });
+
+    socket.on('server_sleep_state', (data) => {
+        isSleeping = Boolean(data.isSleeping);
+        sleepReason = data.reason || null;
+        if (data.active !== undefined) serverActive = data.active;
+        updateStatusDisplay();
+    });
+
+    socket.on('server_state_changed', (data) => {
+        serverActive = data.active;
+        if (serverActive) {
+            isSleeping = false;
+            sleepReason = null;
+        }
+        updateStatusDisplay();
     });
 
     socket.on('server_error', (data) => {
@@ -1424,12 +1450,16 @@
 
     socket.on('eb_server_battery_depleted', () => {
         serverActive = false;
+        isSleeping = true;
+        sleepReason = "Insufficient V-Battery";
         updateBatteryDisplay(0);
         updateStatusDisplay();
     });
 
     socket.on('eb_heartbeat_response', (data) => {
         serverActive = data.active;
+        isSleeping = Boolean(data.isSleeping);
+        sleepReason = data.sleepReason || null;
         updateStatusDisplay();
         document.getElementById('online-users-count').innerText = data.users !== undefined ? data.users : 0;
         document.getElementById('active-scripts-count').innerText = data.activeScripts !== undefined ? data.activeScripts : 0;
@@ -2865,6 +2895,9 @@
         if (isServerLockdown) {
             return alert("Server is currently in RAM lockdown and cannot be started!");
         }
+        if (isSleeping) {
+            return alert(`Server is currently sleeping (${sleepReason || 'Standby'}).`);
+        }
         serverActive = !serverActive;
         socket.emit('eb_toggle_server', { key: serverKey, ownerId, googleSub, state: serverActive });
         updateStatusDisplay();
@@ -2895,9 +2928,9 @@
                     updateStatusDisplay();
                 }
             }, 1000);
-        } else if (currentBatteryMb <= 0) {
+        } else if (isSleeping || currentBatteryMb <= 0) {
             dot.className = 'dot sleeping';
-            text.innerText = "Sleeping";
+            text.innerText = sleepReason ? `Sleeping (${sleepReason})` : "Sleeping";
             banner.style.display = 'none';
         } else {
             if (lockdownInterval) clearInterval(lockdownInterval);
