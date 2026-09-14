@@ -3827,9 +3827,9 @@ async function sendHttpEvent(type, data) {
 
 // --- SERVERSCRIPT LOCAL AI API (Ollama smollm2:360m / qwen2.5:0.5b) ---
 Server.eb_callai({
-    model: "qwen2.5:0.5b",
-    Temp: 0,
-    Mtokens: 28,
+    model: "qwen2.5:0.5b",             // "smollm2:360m" or "qwen2.5:0.5b"
+    Temp: 0,                           // Temperature (0 to 2.0)
+    Mtokens: 28,                       // Max Tokens (1 to 3250)
     Instruction: "You are a helpful assistant.",
     Prompt: "what's the capital of France?",
     Streaming: false
