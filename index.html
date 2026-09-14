@@ -393,6 +393,13 @@
                     </select>
                 </div>
                 <div class="settings-item">
+                    <label>Auto update tunnel</label>
+                    <select id="site-auto-tunnel-field">
+                        <option value="true" selected>Yes - Automatically replace tunnel link on new tunnel generation</option>
+                        <option value="false">No - Keep custom/current link</option>
+                    </select>
+                </div>
+                <div class="settings-item">
                     <label>Generate Site ID</label>
                     <button id="btn-gen-site-id" class="btn btn-secondary" onclick="generateSiteIdSubmit()">Generate site ID</button>
                 </div>
@@ -1001,33 +1008,40 @@
 
     <div id="modal-code" class="overlay" style="display:none;">
         <div class="card" style="max-width: 750px; max-height: 85vh; display: flex; flex-direction: column; overflow-y: auto;">
-            <h3>Test Your Guns Code Example</h3>
+            <h3>Code Examples</h3>
             <div id="http-disclaimer" class="disclaimer" style="display:none;">
                 DISCLAIMER: it's recommended that the client should have a temporary identifier so your scripts and projects know who's sending them, its optional.
             </div>
-            <div style="text-align:left; font-size:0.8rem; font-weight:bold; color:var(--accent);">HTML Client Script:</div>
+            
+            <div style="text-align:left; font-size:0.85rem; font-weight:bold; color:var(--accent);">1. Multiplayer Coin Collector (New Example) - Client HTML:</div>
+            <textarea id="example-coin-client" class="code-box" readonly rows="8" style="width:100%; height:160px; border:none; resize:none;"></textarea>
+
+            <div style="text-align:left; font-size:0.85rem; font-weight:bold; color:var(--accent); margin-top:10px;">1. Multiplayer Coin Collector - ServerScript:</div>
+            <textarea id="example-coin-server" class="code-box" readonly rows="8" style="width:100%; height:160px; border:none; resize:none;"></textarea>
+
+            <div style="text-align:left; font-size:0.85rem; font-weight:bold; color:var(--accent); margin-top:14px; border-top:1px solid var(--border); padding-top:10px;">2. Test Your Guns - Client Script:</div>
             <textarea id="example-code-client" class="code-box" readonly rows="8" style="width:100%; height:160px; border:none; resize:none;"></textarea>
             
-            <div style="text-align:left; font-size:0.8rem; font-weight:bold; color:var(--accent); margin-top:10px;">ServerScript (Backend Game Engine):</div>
+            <div style="text-align:left; font-size:0.85rem; font-weight:bold; color:var(--accent); margin-top:10px;">2. Test Your Guns - ServerScript:</div>
             <textarea id="example-code-server" class="code-box" readonly rows="8" style="width:100%; height:160px; border:none; resize:none;"></textarea>
 
-            <div id="http-extra-example-container" style="display:none; margin-top:12px; border-top:1px solid var(--border); padding-top:10px;">
-                <div style="text-align:left; font-size:0.8rem; font-weight:bold; color:var(--accent);">HTTP State-Based Global Chat - Client Script:</div>
+            <div id="http-extra-example-container" style="display:none; margin-top:14px; border-top:1px solid var(--border); padding-top:10px;">
+                <div style="text-align:left; font-size:0.85rem; font-weight:bold; color:var(--accent);">3. HTTP State-Based Global Chat - Client Script:</div>
                 <textarea id="example-http-chat-client" class="code-box" readonly rows="8" style="width:100%; height:160px; border:none; resize:none;"></textarea>
 
-                <div style="text-align:left; font-size:0.8rem; font-weight:bold; color:var(--accent); margin-top:6px;">HTTP State-Based Global Chat - ServerScript:</div>
+                <div style="text-align:left; font-size:0.85rem; font-weight:bold; color:var(--accent); margin-top:6px;">3. HTTP State-Based Global Chat - ServerScript:</div>
                 <textarea id="example-http-chat-server" class="code-box" readonly rows="8" style="width:100%; height:160px; border:none; resize:none;"></textarea>
             </div>
 
             <div style="display:flex; gap:10px; margin-top:10px;">
-                <button class="btn" onclick="copyText('example-code-client')">Copy Client HTML</button>
+                <button class="btn" onclick="copyText('example-coin-client')">Copy Coin Collector Client</button>
                 <button class="btn btn-secondary" onclick="closeGameCode()">Back</button>
             </div>
         </div>
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://describing-omaha-among-treat.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://awards-lift-phase-elizabeth.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
@@ -1414,6 +1428,25 @@
         updateStatusDisplay();
     });
 
+    socket.on('eb_heartbeat_response', (data) => {
+        serverActive = data.active;
+        updateStatusDisplay();
+        document.getElementById('online-users-count').innerText = data.users !== undefined ? data.users : 0;
+        document.getElementById('active-scripts-count').innerText = data.activeScripts !== undefined ? data.activeScripts : 0;
+        
+        const kb = ((data.ramUsageBytes || 0) / 1024).toFixed(1);
+        document.getElementById('ram-usage-text').innerText = `${kb} KB`;
+        
+        const ramPct = Math.min(100, Math.floor(((data.ramUsageBytes || 0) / (250 * 1024 * 1024)) * 100));
+        document.getElementById('ram-progress-fill').style.width = `${ramPct}%`;
+
+        const storageMb = ((data.storageBytes || 0) / (1024 * 1024)).toFixed(1);
+        document.getElementById('storage-usage-text').innerText = `${storageMb} MB`;
+
+        if (data.battery !== undefined) updateBatteryDisplay(data.battery);
+        if (data.coins !== undefined) updateCoinsDisplay(data.coins);
+    });
+
     socket.on('eb_daily_reward_available', (data) => {
         document.getElementById('daily-streak-badge').innerText = `🔥 ${data.streak}`;
         document.getElementById('daily-reward-coins').innerText = data.reward;
@@ -1560,6 +1593,7 @@
                 document.getElementById('site-title-field').value = parsed.site.title || "";
                 document.getElementById('site-html-field').value = parsed.site.htmlScript || "";
                 document.getElementById('site-vis-field').value = parsed.site.visibility || "public";
+                document.getElementById('site-auto-tunnel-field').value = String(parsed.site.autoUpdateTunnel !== false);
                 generatedSiteIdVal = parsed.site.id || "";
 
                 if (parsed.remCooldownMs > 0) {
@@ -2287,6 +2321,7 @@
         const title = document.getElementById('site-title-field').value.trim();
         const htmlScript = document.getElementById('site-html-field').value;
         const visibility = document.getElementById('site-vis-field').value;
+        const autoUpdateTunnel = document.getElementById('site-auto-tunnel-field').value === 'true';
 
         if (!title || title.length < 2 || title.length > 20 || !/^[a-zA-Z0-9 ]+$/.test(title)) {
             return alert("Title must be between 2 and 20 characters with NO symbols!");
@@ -2304,10 +2339,10 @@
         isUploadingSiteScript = true;
         document.getElementById('site-upload-progress').style.display = 'block';
 
-        sendSiteChunk(0, totalChunks, htmlScript, title, visibility, generatedSiteIdVal);
+        sendSiteChunk(0, totalChunks, htmlScript, title, visibility, generatedSiteIdVal, autoUpdateTunnel);
     }
 
-    function sendSiteChunk(index, total, fullScript, title, visibility, siteId) {
+    function sendSiteChunk(index, total, fullScript, title, visibility, siteId, autoUpdateTunnel) {
         if (!isUploadingSiteScript) return;
         const start = index * SITE_CHUNK_SIZE;
         const end = Math.min(start + SITE_CHUNK_SIZE, fullScript.length);
@@ -2318,6 +2353,7 @@
             siteId: siteId,
             title: title,
             visibility: visibility,
+            autoUpdateTunnel: autoUpdateTunnel,
             key: serverKey,
             ownerId, googleSub
         });
@@ -2401,7 +2437,7 @@
         const canCopyId = (userRole === 'Owner' || userRole === 'Dev' || userRole === 'Admin');
         const copyBtnHTML = canCopyId ? `<button class="btn-secondary" style="padding:2px 6px; font-size:0.65rem; margin-left:6px;" onclick="copyTextValue('${msg.userId}')">Copy ID</button>` : '';
 
-        const pfpHTML = (msg.pfpData && msg.pfpData !== "default") ? `<img src="${msg.pfpData}" style="width:18px; height:18px; border-radius:50% !important; vertical-align:middle; margin-right:4px; object-fit:cover;">` : `<span class="coin-icon" style="width:18px; height:18px; font-size:0.55rem; margin-right:4px; border-radius:50% !important;">👤</span>`;
+        const pfpHTML = (msg.pfpData && msg.pfpData !== "default") ? `<img src="${msg.pfpData}" style="width:18px; height:18px; border-radius:50% !important; vertical-align:middle; margin-right:4px;">` : `<span class="coin-icon" style="width:18px; height:18px; font-size:0.55rem; margin-right:4px; border-radius:50% !important;">👤</span>`;
 
         bubble.innerHTML = `
             <div style="font-size:0.75rem; font-weight:bold; color:var(--accent); margin-bottom:4px; display:flex; align-items:center;">
@@ -2979,22 +3015,30 @@
     function getGameExamples() {
         const isHttp = serverType === 'http';
 
-        const clientCode = isHttp ? 
-`<!-- Test Your Guns - Complete HTTP Client Script -->
+        const coinClientCode = isHttp ? 
+`<!-- EzBridge Multiplayer Coin Collector (HTTP) -->
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Test Your Guns (HTTP)</title>
+    <title>EzBridge Multiplayer Coin Collector</title>
     <style>
         body { margin: 0; background: #0f172a; color: #fff; font-family: sans-serif; overflow: hidden; user-select: none; }
         canvas { display: block; background: #1e293b; }
         #ui { position: absolute; top: 10px; left: 10px; pointer-events: none; font-weight: bold; font-size: 1.2rem; text-shadow: 1px 1px 2px #000; }
+        #toggle-container { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); padding: 8px 12px; border-radius: 8px; font-family: sans-serif; font-weight: bold; font-size: 0.9rem; z-index: 10; }
+        #toggle-container label { cursor: pointer; display: flex; align-items: center; gap: 8px; }
         #joystick { position: absolute; bottom: 40px; left: 40px; width: 120px; height: 120px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; display: none; touch-action: none; }
         #stick { position: absolute; top: 35px; left: 35px; width: 50px; height: 50px; background: rgba(255,255,255,0.4); border-radius: 50%; pointer-events: none; }
     </style>
 </head>
 <body>
-    <div id="ui">Health: <span id="hp">100</span> | Mode: <span id="status">HTTP REST</span></div>
+    <div id="ui">Score: <span id="score">0</span> | Mode: <span id="status">HTTP REST</span></div>
+    <div id="toggle-container">
+        <label>
+            <input type="checkbox" id="serverCharToggle">
+            Serversided character test
+        </label>
+    </div>
     <div id="joystick"><div id="stick"></div></div>
     <canvas id="gameCanvas"></canvas>
 
@@ -3017,30 +3061,48 @@
         const link = "${PUBLIC_TUNNEL_URL}/remote";
         const key = "${serverKey}";
 
-        let myId = Math.random().toString(36).substring(2, 7);
+        let myId = Math.random().toString(36).substring(2, 6);
         let myColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
-        let myPos = { x: Math.random() * 1500, y: Math.random() * 1500 };
-        let myHp = 100;
-        let isDead = false;
-        let lastShot = 0;
-        let aimAngle = 0;
+        let myPos = { x: Math.random() * 2000, y: Math.random() * 2000 };
+        let myScore = 0;
+
+        let isServerSided = false;
+        let isClientCharDeleted = false;
 
         const keys = { w: false, a: false, s: false, d: false };
         let players = {};
-        let bullets = [];
+        let coins = [];
 
         let joyActive = false;
         let joyVector = { x: 0, y: 0 };
 
-        let isHttpBusy = false;
         async function syncHttp(eventType, customData) {
-            if (isHttpBusy && !customData) return;
-            isHttpBusy = true;
             try {
-                const payload = customData ? { type: eventType, data: customData } : {
-                    type: "player_update",
-                    data: { id: myId, x: myPos.x, y: myPos.y, angle: aimAngle, color: myColor }
-                };
+                let payload;
+                if (customData) {
+                    payload = { type: eventType, data: customData };
+                } else if (isServerSided) {
+                    let moveX = 0;
+                    let moveY = 0;
+                    if (isMobile) {
+                        moveX = joyVector.x;
+                        moveY = joyVector.y;
+                    } else {
+                        if (keys.w) moveY -= 1;
+                        if (keys.s) moveY += 1;
+                        if (keys.a) moveX -= 1;
+                        if (keys.d) moveX += 1;
+                    }
+                    payload = {
+                        type: "server_char_input",
+                        data: { id: myId, moveX: moveX, moveY: moveY }
+                    };
+                } else {
+                    payload = {
+                        type: "player_update",
+                        data: { id: myId, x: myPos.x, y: myPos.y, color: myColor }
+                    };
+                }
 
                 const res = await fetch(link, {
                     method: "POST",
@@ -3055,31 +3117,26 @@
                     }
                 }
             } catch(e) {}
-            isHttpBusy = false;
         }
 
         function handleServerEvent(pkt) {
             if (pkt.type === "state_update") {
                 const serverPlayers = pkt.data.players;
+                coins = pkt.data.coins || [];
                 for (let id in serverPlayers) {
                     if (id === myId) {
-                        myHp = serverPlayers[id].hp;
-                        document.getElementById("hp").innerText = myHp;
-                        if (myHp <= 0 && !isDead) {
-                            isDead = true;
-                            setTimeout(() => {
-                                isDead = false;
-                                myPos = { x: Math.random() * 1500, y: Math.random() * 1500 };
-                                syncHttp("respawn", { id: myId, x: myPos.x, y: myPos.y });
-                            }, 3000);
+                        myScore = serverPlayers[id].score;
+                        document.getElementById("score").innerText = myScore;
+                        if (isServerSided) {
+                            myPos.x = serverPlayers[id].x;
+                            myPos.y = serverPlayers[id].y;
                         }
-                    } else {
-                        players[id] = serverPlayers[id];
                     }
+                    players[id] = serverPlayers[id];
                 }
-            } else if (pkt.type === "spawn_bullet") {
-                if (pkt.data.shooterId !== myId) {
-                    bullets.push(pkt.data);
+            } else if (pkt.type === "server_char_created") {
+                if (pkt.data.clientId === myId) {
+                    isClientCharDeleted = true;
                 }
             }
         }
@@ -3087,8 +3144,17 @@
         syncHttp("player_join", { id: myId, color: myColor, x: myPos.x, y: myPos.y });
 
         setInterval(() => {
-            if (!isDead) syncHttp();
-        }, 60);
+            syncHttp();
+        }, 16);
+
+        document.getElementById("serverCharToggle").addEventListener("change", (e) => {
+            isServerSided = e.target.checked;
+            if (isServerSided) {
+                syncHttp("create_server_char", { name: myId });
+            } else {
+                isClientCharDeleted = false;
+            }
+        });
 
         window.addEventListener("keydown", (e) => {
             if (e.key.toLowerCase() === 'w') keys.w = true;
@@ -3103,19 +3169,6 @@
             if (e.key.toLowerCase() === 's') keys.s = false;
             if (e.key.toLowerCase() === 'd') keys.d = false;
         });
-
-        let mousePos = { x: canvas.width / 2, y: canvas.height / 2 };
-        window.addEventListener("mousemove", (e) => {
-            mousePos.x = e.clientX;
-            mousePos.y = e.clientY;
-        });
-
-        window.addEventListener("mousedown", (e) => {
-            if (e.button === 2 && !isDead) {
-                shoot();
-            }
-        });
-        window.addEventListener("contextmenu", (e) => e.preventDefault());
 
         const joystickEl = document.getElementById("joystick");
         const stickEl = document.getElementById("stick");
@@ -3149,37 +3202,9 @@
             }
         });
 
-        window.addEventListener("touchstart", (e) => {
-            if (isDead) return;
-            const touch = e.touches[0];
-            if (touch.clientX > 180 || touch.clientY < canvas.height - 180) {
-                mousePos.x = touch.clientX;
-                mousePos.y = touch.clientY;
-                shoot();
-            }
-        });
-
-        function shoot() {
-            const now = Date.now();
-            if (now - lastShot < 200) return;
-            lastShot = now;
-
-            const bullet = {
-                x: myPos.x,
-                y: myPos.y,
-                vx: Math.cos(aimAngle) * 12,
-                vy: Math.sin(aimAngle) * 12,
-                damage: 13,
-                shooterId: myId
-            };
-
-            bullets.push(bullet);
-            syncHttp("fire_bullet", bullet);
-        }
-
         function update() {
-            if (!isDead) {
-                let speed = 4;
+            if (!isServerSided) {
+                let speed = 5;
                 if (isMobile) {
                     myPos.x += joyVector.x * speed;
                     myPos.y += joyVector.y * speed;
@@ -3190,34 +3215,14 @@
                     if (keys.d) myPos.x += speed;
                 }
 
-                myPos.x = Math.max(0, Math.min(3000, myPos.x));
-                myPos.y = Math.max(0, Math.min(3000, myPos.y));
+                myPos.x = Math.max(0, Math.min(2000, myPos.x));
+                myPos.y = Math.max(0, Math.min(2000, myPos.y));
 
-                const screenCenterX = canvas.width / 2;
-                const screenCenterY = canvas.height / 2;
-                aimAngle = Math.atan2(mousePos.y - screenCenterY, mousePos.x - screenCenterX);
-            }
-
-            for (let i = bullets.length - 1; i >= 0; i--) {
-                let b = bullets[i];
-                b.x += b.vx;
-                b.y += b.vy;
-
-                if (b.x < 0 || b.x > 3000 || b.y < 0 || b.y > 3000) {
-                    bullets.splice(i, 1);
-                    continue;
-                }
-
-                if (b.shooterId === myId) {
-                    for (let id in players) {
-                        let p = players[id];
-                        if (p.hp > 0 && Math.abs(p.x - b.x) < 25 && Math.abs(p.y - b.y) < 25) {
-                            syncHttp("apply_damage", { targetId: id, damage: b.damage });
-                            bullets.splice(i, 1);
-                            break;
-                        }
+                coins.forEach(coin => {
+                    if (Math.hypot(coin.x - myPos.x, coin.y - myPos.y) < 25) {
+                        syncHttp("collect_coin", { playerId: myId, coinId: coin.id });
                     }
-                }
+                });
             }
         }
 
@@ -3225,55 +3230,42 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             ctx.save();
-            if (!isDead) {
-                ctx.translate(canvas.width / 2 - myPos.x, canvas.height / 2 - myPos.y);
-            }
+            ctx.translate(canvas.width / 2 - myPos.x, canvas.height / 2 - myPos.y);
 
             ctx.strokeStyle = "#475569";
             ctx.lineWidth = 4;
-            ctx.strokeRect(0, 0, 3000, 3000);
+            ctx.strokeRect(0, 0, 2000, 2000);
 
-            if (!isDead) {
-                ctx.save();
-                ctx.translate(myPos.x, myPos.y);
+            if (!isClientCharDeleted) {
                 ctx.fillStyle = myColor;
-                ctx.fillRect(-20, -20, 40, 40);
+                ctx.beginPath();
+                ctx.arc(myPos.x, myPos.y, 20, 0, Math.PI * 2);
+                ctx.fill();
 
-                ctx.fillStyle = "#ef4444";
-                ctx.fillRect(-20, -32, 40, 6);
-                ctx.fillStyle = "#22c55e";
-                ctx.fillRect(-20, -32, 40 * (myHp / 100), 6);
-
-                ctx.rotate(aimAngle);
-                ctx.fillStyle = "#94a3b8";
-                ctx.fillRect(0, -6, 30, 12);
-                ctx.restore();
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "bold 14px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText(\`Coins: \${myScore}\`, myPos.x, myPos.y - 30);
             }
 
             for (let id in players) {
+                if (id === myId && !isClientCharDeleted) continue;
                 let p = players[id];
-                if (p.hp <= 0) continue;
-
-                ctx.save();
-                ctx.translate(p.x, p.y);
                 ctx.fillStyle = p.color || '#fff';
-                ctx.fillRect(-20, -20, 40, 40);
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 20, 0, Math.PI * 2);
+                ctx.fill();
 
-                ctx.fillStyle = "#ef4444";
-                ctx.fillRect(-20, -32, 40, 6);
-                ctx.fillStyle = "#22c55e";
-                ctx.fillRect(-20, -32, 40 * (p.hp / 100), 6);
-
-                ctx.rotate(p.angle);
-                ctx.fillStyle = "#94a3b8";
-                ctx.fillRect(0, -6, 30, 12);
-                ctx.restore();
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "bold 14px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText(\`Coins: \${p.score || 0}\`, p.x, p.y - 30);
             }
 
             ctx.fillStyle = "#facc15";
-            bullets.forEach(b => {
+            coins.forEach(c => {
                 ctx.beginPath();
-                ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
+                ctx.arc(c.x, c.y, 10, 0, Math.PI * 2);
                 ctx.fill();
             });
 
@@ -3289,22 +3281,30 @@
     <\/script>
 </body>
 </html>` : 
-`<!-- Test Your Guns - Client Script -->
+`<!-- EzBridge Multiplayer Coin Collector (WebSocket) -->
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Test Your Guns</title>
+    <title>EzBridge Multiplayer Coin Collector (WebSocket)</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"><\/script>
     <style>
         body { margin: 0; background: #0f172a; color: #fff; font-family: sans-serif; overflow: hidden; user-select: none; }
         canvas { display: block; background: #1e293b; }
         #ui { position: absolute; top: 10px; left: 10px; pointer-events: none; font-weight: bold; font-size: 1.2rem; text-shadow: 1px 1px 2px #000; }
+        #toggle-container { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); padding: 8px 12px; border-radius: 8px; font-family: sans-serif; font-weight: bold; font-size: 0.9rem; z-index: 10; }
+        #toggle-container label { cursor: pointer; display: flex; align-items: center; gap: 8px; }
         #joystick { position: absolute; bottom: 40px; left: 40px; width: 120px; height: 120px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; display: none; touch-action: none; }
         #stick { position: absolute; top: 35px; left: 35px; width: 50px; height: 50px; background: rgba(255,255,255,0.4); border-radius: 50%; pointer-events: none; }
     </style>
 </head>
 <body>
-    <div id="ui">Health: <span id="hp">100</span> | Status: <span id="status">Connecting...</span></div>
+    <div id="ui">Score: <span id="score">0</span> | Status: <span id="status">Connecting...</span></div>
+    <div id="toggle-container">
+        <label>
+            <input type="checkbox" id="serverCharToggle">
+            Serversided character test
+        </label>
+    </div>
     <div id="joystick"><div id="stick"></div></div>
     <canvas id="gameCanvas"></canvas>
 
@@ -3328,17 +3328,17 @@
         const key = "${serverKey}";
         const socket = io(link, { auth: { token: "default_key" } });
 
-        let myId = Math.random().toString(36).substring(2, 7);
+        let myId = Math.random().toString(36).substring(2, 6);
         let myColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
-        let myPos = { x: Math.random() * 1500, y: Math.random() * 1500 };
-        let myHp = 100;
-        let isDead = false;
-        let lastShot = 0;
-        let aimAngle = 0;
+        let myPos = { x: Math.random() * 2000, y: Math.random() * 2000 };
+        let myScore = 0;
+
+        let isServerSided = false;
+        let isClientCharDeleted = false;
 
         const keys = { w: false, a: false, s: false, d: false };
         let players = {};
-        let bullets = [];
+        let coins = [];
 
         let joyActive = false;
         let joyVector = { x: 0, y: 0 };
@@ -3353,28 +3353,41 @@
         });
 
         socket.on("RemoteEvent", (pkt) => {
+            handleServerEvent(pkt);
+        });
+
+        function sendRemote(eventType, customData) {
+            socket.emit("RemoteEvent", { type: eventType, data: customData });
+        }
+
+        function handleServerEvent(pkt) {
             if (pkt.type === "state_update") {
                 const serverPlayers = pkt.data.players;
+                coins = pkt.data.coins || [];
                 for (let id in serverPlayers) {
                     if (id === myId) {
-                        myHp = serverPlayers[id].hp;
-                        document.getElementById("hp").innerText = myHp;
-                        if (myHp <= 0 && !isDead) {
-                            isDead = true;
-                            setTimeout(() => {
-                                isDead = false;
-                                myPos = { x: Math.random() * 1500, y: Math.random() * 1500 };
-                                socket.emit("RemoteEvent", { type: "respawn", data: { id: myId, x: myPos.x, y: myPos.y } });
-                            }, 3000);
+                        myScore = serverPlayers[id].score;
+                        document.getElementById("score").innerText = myScore;
+                        if (isServerSided) {
+                            myPos.x = serverPlayers[id].x;
+                            myPos.y = serverPlayers[id].y;
                         }
-                    } else {
-                        players[id] = serverPlayers[id];
                     }
+                    players[id] = serverPlayers[id];
                 }
-            } else if (pkt.type === "spawn_bullet") {
-                if (pkt.data.shooterId !== myId) {
-                    bullets.push(pkt.data);
+            } else if (pkt.type === "server_char_created") {
+                if (pkt.data.clientId === myId) {
+                    isClientCharDeleted = true;
                 }
+            }
+        }
+
+        document.getElementById("serverCharToggle").addEventListener("change", (e) => {
+            isServerSided = e.target.checked;
+            if (isServerSided) {
+                sendRemote("create_server_char", { name: myId });
+            } else {
+                isClientCharDeleted = false;
             }
         });
 
@@ -3391,19 +3404,6 @@
             if (e.key.toLowerCase() === 's') keys.s = false;
             if (e.key.toLowerCase() === 'd') keys.d = false;
         });
-
-        let mousePos = { x: canvas.width / 2, y: canvas.height / 2 };
-        window.addEventListener("mousemove", (e) => {
-            mousePos.x = e.clientX;
-            mousePos.y = e.clientY;
-        });
-
-        window.addEventListener("mousedown", (e) => {
-            if (e.button === 2 && !isDead) {
-                shoot();
-            }
-        });
-        window.addEventListener("contextmenu", (e) => e.preventDefault());
 
         const joystickEl = document.getElementById("joystick");
         const stickEl = document.getElementById("stick");
@@ -3437,37 +3437,22 @@
             }
         });
 
-        window.addEventListener("touchstart", (e) => {
-            if (isDead) return;
-            const touch = e.touches[0];
-            if (touch.clientX > 180 || touch.clientY < canvas.height - 180) {
-                mousePos.x = touch.clientX;
-                mousePos.y = touch.clientY;
-                shoot();
-            }
-        });
-
-        function shoot() {
-            const now = Date.now();
-            if (now - lastShot < 200) return;
-            lastShot = now;
-
-            const bullet = {
-                x: myPos.x,
-                y: myPos.y,
-                vx: Math.cos(aimAngle) * 12,
-                vy: Math.sin(aimAngle) * 12,
-                damage: 13,
-                shooterId: myId
-            };
-
-            bullets.push(bullet);
-            socket.emit("RemoteEvent", { type: "fire_bullet", data: bullet });
-        }
-
         function update() {
-            if (!isDead) {
-                let speed = 4;
+            if (isServerSided) {
+                let moveX = 0;
+                let moveY = 0;
+                if (isMobile) {
+                    moveX = joyVector.x;
+                    moveY = joyVector.y;
+                } else {
+                    if (keys.w) moveY -= 1;
+                    if (keys.s) moveY += 1;
+                    if (keys.a) moveX -= 1;
+                    if (keys.d) moveX += 1;
+                }
+                sendRemote("server_char_input", { id: myId, moveX: moveX, moveY: moveY });
+            } else {
+                let speed = 5;
                 if (isMobile) {
                     myPos.x += joyVector.x * speed;
                     myPos.y += joyVector.y * speed;
@@ -3478,36 +3463,16 @@
                     if (keys.d) myPos.x += speed;
                 }
 
-                myPos.x = Math.max(0, Math.min(3000, myPos.x));
-                myPos.y = Math.max(0, Math.min(3000, myPos.y));
+                myPos.x = Math.max(0, Math.min(2000, myPos.x));
+                myPos.y = Math.max(0, Math.min(2000, myPos.y));
 
-                const screenCenterX = canvas.width / 2;
-                const screenCenterY = canvas.height / 2;
-                aimAngle = Math.atan2(mousePos.y - screenCenterY, mousePos.x - screenCenterX);
+                sendRemote("player_update", { id: myId, x: myPos.x, y: myPos.y, color: myColor });
 
-                socket.emit("RemoteEvent", { type: "player_update", data: { id: myId, x: myPos.x, y: myPos.y, angle: aimAngle, color: myColor } });
-            }
-
-            for (let i = bullets.length - 1; i >= 0; i--) {
-                let b = bullets[i];
-                b.x += b.vx;
-                b.y += b.vy;
-
-                if (b.x < 0 || b.x > 3000 || b.y < 0 || b.y > 3000) {
-                    bullets.splice(i, 1);
-                    continue;
-                }
-
-                if (b.shooterId === myId) {
-                    for (let id in players) {
-                        let p = players[id];
-                        if (p.hp > 0 && Math.abs(p.x - b.x) < 25 && Math.abs(p.y - b.y) < 25) {
-                            socket.emit("RemoteEvent", { type: "apply_damage", data: { targetId: id, damage: b.damage } });
-                            bullets.splice(i, 1);
-                            break;
-                        }
+                coins.forEach(coin => {
+                    if (Math.hypot(coin.x - myPos.x, coin.y - myPos.y) < 25) {
+                        sendRemote("collect_coin", { playerId: myId, coinId: coin.id });
                     }
-                }
+                });
             }
         }
 
@@ -3515,55 +3480,42 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             ctx.save();
-            if (!isDead) {
-                ctx.translate(canvas.width / 2 - myPos.x, canvas.height / 2 - myPos.y);
-            }
+            ctx.translate(canvas.width / 2 - myPos.x, canvas.height / 2 - myPos.y);
 
             ctx.strokeStyle = "#475569";
             ctx.lineWidth = 4;
-            ctx.strokeRect(0, 0, 3000, 3000);
+            ctx.strokeRect(0, 0, 2000, 2000);
 
-            if (!isDead) {
-                ctx.save();
-                ctx.translate(myPos.x, myPos.y);
+            if (!isClientCharDeleted) {
                 ctx.fillStyle = myColor;
-                ctx.fillRect(-20, -20, 40, 40);
+                ctx.beginPath();
+                ctx.arc(myPos.x, myPos.y, 20, 0, Math.PI * 2);
+                ctx.fill();
 
-                ctx.fillStyle = "#ef4444";
-                ctx.fillRect(-20, -32, 40, 6);
-                ctx.fillStyle = "#22c55e";
-                ctx.fillRect(-20, -32, 40 * (myHp / 100), 6);
-
-                ctx.rotate(aimAngle);
-                ctx.fillStyle = "#94a3b8";
-                ctx.fillRect(0, -6, 30, 12);
-                ctx.restore();
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "bold 14px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText(\`Coins: \${myScore}\`, myPos.x, myPos.y - 30);
             }
 
             for (let id in players) {
+                if (id === myId && !isClientCharDeleted) continue;
                 let p = players[id];
-                if (p.hp <= 0) continue;
-
-                ctx.save();
-                ctx.translate(p.x, p.y);
                 ctx.fillStyle = p.color || '#fff';
-                ctx.fillRect(-20, -20, 40, 40);
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 20, 0, Math.PI * 2);
+                ctx.fill();
 
-                ctx.fillStyle = "#ef4444";
-                ctx.fillRect(-20, -32, 40, 6);
-                ctx.fillStyle = "#22c55e";
-                ctx.fillRect(-20, -32, 40 * (p.hp / 100), 6);
-
-                ctx.rotate(p.angle);
-                ctx.fillStyle = "#94a3b8";
-                ctx.fillRect(0, -6, 30, 12);
-                ctx.restore();
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "bold 14px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText(\`Coins: \${p.score || 0}\`, p.x, p.y - 30);
             }
 
             ctx.fillStyle = "#facc15";
-            bullets.forEach(b => {
+            coins.forEach(c => {
                 ctx.beginPath();
-                ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
+                ctx.arc(c.x, c.y, 10, 0, Math.PI * 2);
                 ctx.fill();
             });
 
@@ -3580,160 +3532,108 @@
 </body>
 </html>`;
 
-        const serverCode = 
-`// --- ServerScript Backend Game Engine (Mandatory ServerScript) ---
+        const coinServerCode = 
+`// --- EzBridge Multiplayer Coin Collector (ServerScript) ---
 let players = {};
+let coins = [];
+
+function spawnCoin() {
+    if (coins.length < 15) {
+        coins.push({
+            id: Math.random().toString(36).substring(2, 7),
+            x: Math.random() * 2000,
+            y: Math.random() * 2000
+        });
+    }
+}
+
+for (let i = 0; i < 10; i++) {
+    spawnCoin();
+}
 
 Server.on('player_join', (evt) => {
     const id = evt.data.id;
     players[id] = {
         id: id,
-        x: evt.data.x || 1500,
-        y: evt.data.y || 1500,
+        x: evt.data.x || 1000,
+        y: evt.data.y || 1000,
         color: evt.data.color || '#ffffff',
-        angle: 0,
-        hp: 100
+        score: 0,
+        isServerSide: false
     };
 });
 
 Server.on('player_update', (evt) => {
     const data = evt.data;
-    if (players[data.id]) {
+    if (players[data.id] && !players[data.id].isServerSide) {
         players[data.id].x = data.x;
         players[data.id].y = data.y;
-        players[data.id].angle = data.angle;
         players[data.id].color = data.color;
     }
 });
 
-Server.on('fire_bullet', (evt) => {
-    Server.broadcast('spawn_bullet', evt.data);
+Server.on('create_server_char', (evt) => {
+    const id = evt.data.name;
+    const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+    const randomX = Math.random() * 2000;
+    const randomY = Math.random() * 2000;
+
+    players[id] = {
+        id: id,
+        x: randomX,
+        y: randomY,
+        color: randomColor,
+        score: players[id] ? players[id].score : 0,
+        isServerSide: true
+    };
+
+    Server.broadcast('server_char_created', { clientId: id });
 });
 
-Server.on('apply_damage', (evt) => {
-    const { targetId, damage } = evt.data;
-    if (players[targetId]) {
-        players[targetId].hp = Math.max(0, players[targetId].hp - damage);
+Server.on('server_char_input', (evt) => {
+    const { id, moveX, moveY } = evt.data;
+    if (players[id] && players[id].isServerSide) {
+        let speed = 5;
+        players[id].x += moveX * speed;
+        players[id].y += moveY * speed;
+
+        players[id].x = Math.max(0, Math.min(2000, players[id].x));
+        players[id].y = Math.max(0, Math.min(2000, players[id].y));
+
+        coins.forEach(coin => {
+            if (Math.hypot(coin.x - players[id].x, coin.y - players[id].y) < 25) {
+                const coinIdx = coins.findIndex(c => c.id === coin.id);
+                if (coinIdx !== -1) {
+                    coins.splice(coinIdx, 1);
+                    players[id].score += 1;
+                    spawnCoin();
+                }
+            }
+        });
     }
 });
 
-Server.on('respawn', (evt) => {
-    const id = evt.data.id;
-    if (players[id]) {
-        players[id].hp = 100;
-        players[id].x = evt.data.x;
-        players[id].y = evt.data.y;
+Server.on('collect_coin', (evt) => {
+    const { playerId, coinId } = evt.data;
+    const coinIdx = coins.findIndex(c => c.id === coinId);
+    if (coinIdx !== -1) {
+        coins.splice(coinIdx, 1);
+        if (players[playerId]) {
+            players[playerId].score += 1;
+        }
+        spawnCoin();
     }
 });
 
 setInterval(() => {
-    Server.broadcast('state_update', { players });
+    Server.broadcast('state_update', { players, coins });
 }, 1000 / 30);`;
 
-        const httpChatClientCode = 
-`<!-- EzBridge HTTP Global Chat Client -->
-<!DOCTYPE html>
-<html>
-<head>
-    <title>HTTP Global Chat</title>
-    <style>
-        body { background: #0f172a; color: #fff; font-family: sans-serif; padding: 20px; }
-        #chat { height: 200px; overflow-y: auto; background: #1e293b; padding: 10px; border-radius: 8px; }
-        input { width: 70%; padding: 8px; }
-        button { padding: 8px 16px; background: #06b6d4; border: none; font-weight: bold; cursor: pointer; }
-    </style>
-</head>
-<body>
-    <h2>HTTP Global Chat</h2>
-    <div id="chat"></div>
-    <br>
-    <input type="text" id="msgInput" placeholder="Type a message...">
-    <button onclick="sendMsg()">Send</button>
-
-    <script>
-        const link = "${PUBLIC_TUNNEL_URL}/remote";
-        const key = "${serverKey}";
-        const mySender = "Guest_" + Math.floor(Math.random() * 8999 + 1000);
-        let pendingText = null;
-        let isSyncing = false;
-
-        async function httpSync() {
-            if (isSyncing) return;
-            isSyncing = true;
-            try {
-                const payload = pendingText ? 
-                    { type: "send_message", data: { sender: mySender, text: pendingText } } :
-                    { type: "get_messages", data: {} };
-                pendingText = null;
-
-                const res = await fetch(link, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json", "auth-token": key },
-                    body: JSON.stringify(payload)
-                });
-
-                if (res.ok) {
-                    const json = await res.json();
-                    if (json.events && Array.isArray(json.events)) {
-                        json.events.forEach(evt => {
-                            if (evt.type === 'send_message_reply' || evt.type === 'get_messages_reply') {
-                                renderChat(evt.data.messages);
-                            }
-                        });
-                    }
-                }
-            } catch(e) {}
-            isSyncing = false;
-        }
-
-        function sendMsg() {
-            const input = document.getElementById('msgInput');
-            if (input.value.trim()) {
-                pendingText = input.value.trim();
-                input.value = "";
-                httpSync();
-            }
-        }
-
-        function renderChat(messages) {
-            const box = document.getElementById('chat');
-            box.innerHTML = messages.map(m => \`<div><b>\${m.sender}:</b> \${m.text}</div>\`).join('');
-            box.scrollTop = box.scrollHeight;
-        }
-
-        setInterval(httpSync, 60);
-    <\/script>
-</body>
-</html>`;
-
-        const httpChatServerCode = 
-`// --- EzBridge HTTP State-Based Chat ServerScript ---
-if (!Server.state.messages) {
-    Server.state.messages = [];
-}
-
-Server.on('send_message', (evt) => {
-    if (evt.data && evt.data.text) {
-        Server.state.messages.push({
-            sender: evt.data.sender || 'Guest',
-            text: evt.data.text
-        });
-        if (Server.state.messages.length > 50) {
-            Server.state.messages.shift();
-        }
-    }
-    evt.reply({ messages: Server.state.messages });
-});
-
-Server.on('get_messages', (evt) => {
-    evt.reply({ messages: Server.state.messages });
-});`;
-
-        return { clientCode, serverCode, httpChatClientCode, httpChatServerCode };
+        return { coinClientCode, coinServerCode, clientCode: coinClientCode, serverCode: coinServerCode };
     }
 
     function copyAIPrompt() {
-        const { clientCode, serverCode } = getGameExamples();
+        const { coinClientCode, coinServerCode } = getGameExamples();
         const promptText = `*How to implement EzBridge's universal server on your online project*
 EzBridge server is a universal server that is also free and can be used to make multiplayer and online apps, if you want to implement it on your project, please follow these steps:
 
@@ -3770,14 +3670,12 @@ ${serverType === 'websocket' ?
 - Server Memory: Configured at 250MB.
 - Server Target Ping: Configurable between 60ms and 1000ms.
 
-that's all you needed to know, now, you can start.
-
 here are some examples so you understand more about making online apps:
-1 - html script
-${clientCode}
+1 - html script (Coin Collector Example)
+${coinClientCode}
 
-2 - serverscript
-${serverCode}`;
+2 - serverscript (Coin Collector Example)
+${coinServerCode}`;
 
         navigator.clipboard.writeText(promptText);
         alert("AI Prompt copied to clipboard! Paste it into your AI chat.");
@@ -3904,15 +3802,12 @@ Server.stopAIId("4c1a");`;
         document.getElementById('http-disclaimer').style.display = isHttp ? 'block' : 'none';
         document.getElementById('http-extra-example-container').style.display = isHttp ? 'block' : 'none';
 
-        const { clientCode, serverCode, httpChatClientCode, httpChatServerCode } = getGameExamples();
+        const { coinClientCode, coinServerCode } = getGameExamples();
 
-        document.getElementById('example-code-client').value = clientCode;
-        document.getElementById('example-code-server').value = serverCode;
-
-        if (isHttp) {
-            document.getElementById('example-http-chat-client').value = httpChatClientCode;
-            document.getElementById('example-http-chat-server').value = httpChatServerCode;
-        }
+        document.getElementById('example-coin-client').value = coinClientCode;
+        document.getElementById('example-coin-server').value = coinServerCode;
+        document.getElementById('example-code-client').value = coinClientCode;
+        document.getElementById('example-code-server').value = coinServerCode;
 
         document.getElementById('modal-code').style.display = 'flex';
     }
