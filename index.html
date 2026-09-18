@@ -1,3 +1,51 @@
+Added in this update:
+
+1.  Python Terminal in Server Console: Added a green Python Terminal button next
+    to Copy Logs that opens a dedicated interactive terminal modal with black
+    background, white text, and typing cursor, supporting /r, /exe, /clear, and
+    /v module inspection with real-time log streaming.
+2.  Code Editor Line Numbers: Added real-time synchronized line numbers to the
+    ServerScript editor and Create/Update site HTML code areas.
+3.  Assets Manager (/assets/): Added an Assets button next to the linked email
+    on the dashboard that navigates to /assets/, rendering uploaded images and
+    custom audio play controls. Included complete asset upload and edit modals
+    in 150KB chunk streaming, validation for images (JPG, JPEG, PNG <= 5MB) and
+    audios (MP3, OGG, WAV <= 20MB), and client-side memory caching via
+    eb_asset_get_{assetid}.
+4.  Three-Field EzBridge Signup & Email Verification Modal: Added the required
+    email input field to registration, accompanied by the 6-character
+    verification code modal with a 30:00 expiration countdown and a 30-second
+    cooldown on the resend button.
+5.  2FA Code Login Modal: Added the verification code entry pop-up for users
+    logging into accounts that have email verification enabled.
+6.  Email Link Obligation Modal: Accounts logged in without a linked email are
+    presented with an email linking and verification flow.
+7.  Account Setting Toggle: Added a toggle in Account Settings for email
+    verification on login, enabled by default.
+8.  URL Routing & Navigation Guards: Integrated changeurl client routing
+    supporting /main/, /login/, /sites/, /site/{SITEID}, /chat/, /chat/s{1-10},
+    /assets/, and /assets/edit/{assetid}, complete with red-bordered overlay
+    notifications for directory redirection, missing directories, and
+    access-denied paths.
+9.  API Commands Color Tagging & Asset API Docs: Categorized all APIs in yellow
+    tags (CLIENT-SIDED API, SERVER-SIDED API, CLIENT AND SERVER API) and added
+    complete usage documentation for eb_asset_get_{assetid}.
+
+Changed in this update:
+
+1.  Look ServerScript Modal Layering: Raised z-index of modal-view-script
+    to 3500 so it appears on top of Server Management without requiring the
+    management modal to be closed first.
+2.  Tunnel URL: Updated PUBLIC_TUNNEL_URL to
+    https://shelf-basically-procurement-poetry.trycloudflare.com.
+3.  Chat Profile Resolution: Chat bubbles now dynamically resolve and update
+    profile pictures and display names for message senders using live profile
+    data.
+4.  V-Battery Purchase Guard: Added client-side rejection when battery is
+    already at or above 25000 MB.
+
+Removed in this update: No features or script sections were removed.
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -66,6 +114,8 @@
         .btn-secondary:hover { background: rgba(239, 68, 68, 0.2) !important; }
         .btn-purple { background: rgba(139, 92, 246, 0.1) !important; border: 1px solid #8b5cf6 !important; color: #ffffff !important; }
         .btn-purple:hover { background: rgba(139, 92, 246, 0.3) !important; }
+        .btn-green { background: rgba(16, 185, 129, 0.15) !important; border: 1px solid #10b981 !important; color: #ffffff !important; }
+        .btn-green:hover { background: rgba(16, 185, 129, 0.35) !important; }
         .btn-danger { background: rgba(239, 68, 68, 0.2) !important; border: 1px solid var(--error) !important; color: #ffffff !important; }
         .btn-icon { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 6px 12px; cursor: pointer; font-size: 1rem; }
         .btn-icon:hover { border-color: var(--accent); color: var(--accent); }
@@ -112,6 +162,18 @@
             color: #f8fafc !important;
             padding: 12px; border: 1px solid var(--border) !important;
             font-family: monospace; font-size: 0.8rem; margin: 10px 0; overflow-x: auto; white-space: pre; text-align: left;
+        }
+
+        .editor-container {
+            display: flex; border: 1px solid var(--border); background: #020617; margin: 10px 0; height: 250px;
+        }
+        .editor-line-numbers {
+            width: 40px; background: #010409; color: #64748b; font-family: monospace; font-size: 0.8rem;
+            padding: 10px 4px; text-align: right; user-select: none; border-right: 1px solid #1e293b; overflow: hidden; white-space: pre;
+        }
+        .editor-textarea {
+            flex: 1; background: transparent !important; color: #f8fafc !important; border: none !important;
+            padding: 10px; font-family: monospace; font-size: 0.8rem; outline: none; resize: none; overflow: auto; white-space: pre;
         }
 
         .console-box {
@@ -218,6 +280,10 @@
         }
 
         .disclaimer { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--error) !important; color: #fca5a5; padding: 10px; font-size: 0.75rem; text-align: left; margin-bottom: 10px; }
+
+        .api-tag-yellow {
+            color: #eab308; font-weight: 900; font-size: 0.8rem; margin-top: 8px; display: block;
+        }
     </style>
 </head>
 <body>
@@ -232,6 +298,15 @@
         <div class="card">
             <h3>Connecting to EzBridge...</h3>
             <div style="font-size:0.8rem; color:var(--muted);">Syncing credentials and loading data.</div>
+        </div>
+    </div>
+
+    <!-- ROUTING NOTIFICATION MODAL -->
+    <div id="modal-route-notice" class="overlay" style="display:none; z-index:999999;">
+        <div class="card" style="border: 2px solid #ef4444 !important; max-width: 440px;">
+            <h3 id="route-notice-title" style="color: var(--accent);">Routing Notice</h3>
+            <p id="route-notice-desc" style="font-size:0.9rem; color:#ffffff; margin:15px 0; white-space:pre-line; line-height:1.4;"></p>
+            <div id="route-notice-actions" style="display:flex; gap:10px;"></div>
         </div>
     </div>
 
@@ -382,7 +457,10 @@
                 </div>
                 <div class="settings-item">
                     <label>HTML Script (at least 100 chars, max 20MB)</label>
-                    <textarea id="site-html-field" rows="8" style="height:150px;" placeholder="<!DOCTYPE html>..."></textarea>
+                    <div class="editor-container" id="container-site-html">
+                        <div class="editor-line-numbers" id="lines-site-html">1</div>
+                        <textarea class="editor-textarea" id="site-html-field" placeholder="<!DOCTYPE html>..."></textarea>
+                    </div>
                     <button class="btn btn-purple" type="button" style="margin-top:4px; font-size:0.8rem; padding:8px;" onclick="openAskAiSiteModal()">Or ask AI ✨</button>
                 </div>
                 <div class="settings-item">
@@ -553,6 +631,7 @@
         </div>
     </div>
 
+    <!-- SIGN UP 3 FIELDS (USER, PASS, EMAIL) -->
     <div id="modal-ezbridge-signup" class="overlay" style="display:none;">
         <div class="card" style="max-width: 460px;">
             <h3>EzBridge Sign Up</h3>
@@ -567,9 +646,45 @@
                     <input type="password" id="eb-signup-pass" placeholder="8-30 chars, supported symbols" oninput="handleEzBridgeFieldValidate('signup', 'pass')">
                     <div id="eb-signup-pass-status" style="font-size:0.75rem; text-align:left; min-height:16px;"></div>
                 </div>
+                <div class="settings-item">
+                    <label>Your email (REQUIRED):</label>
+                    <input type="email" id="eb-signup-email" placeholder="example@gmail.com">
+                </div>
             </div>
-            <button class="btn btn-purple" id="btn-submit-signup" onclick="submitEzBridgeSignUp()">Create a new account</button>
+            <button class="btn btn-purple" id="btn-submit-signup" onclick="submitEzBridgeSignUpRequest()">Create a new account</button>
             <button class="btn btn-secondary" onclick="closeEzBridgeSignUp()">Cancel</button>
+        </div>
+    </div>
+
+    <!-- 6 CHAR VERIFICATION POPUP (FOR SIGNUP & 2FA LOGIN) -->
+    <div id="modal-verify-code" class="overlay" style="display:none; z-index:3200;">
+        <div class="card" style="max-width: 440px;">
+            <h3>Enter the generated 6-chars code</h3>
+            <p style="font-size:0.8rem; color:var(--muted); line-height:1.4;">
+                A code was sent to your provided email, please check your SPAM or inbox and search for a ezbridge bot, there is your generated code.
+            </p>
+            <div style="font-size:0.85rem; font-weight:bold; color:var(--accent); margin-bottom:8px;" id="verify-timer-text">(Expires in 30:00)</div>
+            <input type="text" id="verify-code-input" maxlength="6" placeholder="6-digit code" style="text-align:center; font-size:1.3rem; letter-spacing:4px; text-transform:uppercase; font-weight:bold; width:100%; box-sizing:border-box;">
+            
+            <button id="btn-resend-code" style="display:none; opacity:0.7; transform:scale(0.8); background:transparent; border:none; color:var(--muted); text-decoration:underline; cursor:pointer; margin:8px auto; font-size:0.75rem;" onclick="resendVerificationCode()">i didn't receive the email</button>
+
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <button class="btn btn-purple" onclick="submitCodeVerification()">Validate</button>
+                <button class="btn btn-secondary" onclick="closeVerifyCodeModal()">Go back</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- OBLIGATE LINK EMAIL MODAL -->
+    <div id="modal-link-email" class="overlay" style="display:none; z-index:3300;">
+        <div class="card" style="max-width: 440px;">
+            <h3>Link Email Required</h3>
+            <p style="font-size:0.8rem; color:var(--muted);">Your account does not have an email linked yet. Please enter a valid email to secure your account.</p>
+            <div class="settings-item" style="text-align:left; margin:15px 0;">
+                <label>Email:</label>
+                <input type="email" id="link-email-input" placeholder="example@gmail.com">
+            </div>
+            <button class="btn btn-purple" onclick="submitLinkEmailRequest()">Send verification code</button>
         </div>
     </div>
 
@@ -680,7 +795,10 @@
         <div class="card" style="max-width: 650px;">
             <h3>ServerScript Editor (REQUIRED)</h3>
             <p style="font-size:0.8rem; color:var(--muted);">At least 1 character is strictly required for the server to operate.</p>
-            <textarea id="script-editor" class="code-box" rows="12" style="width:100%; height:250px; resize:none;" placeholder="// ServerScript is mandatory!&#10;Server.on('player_update', (evt) => {&#10;    Server.broadcast('state_update', evt.data);&#10;});"></textarea>
+            <div class="editor-container" id="container-server-script">
+                <div class="editor-line-numbers" id="lines-server-script">1</div>
+                <textarea class="editor-textarea" id="script-editor" placeholder="// ServerScript is mandatory!&#10;Server.on('player_update', (evt) => {&#10;    Server.broadcast('state_update', evt.data);&#10;});"></textarea>
+            </div>
             
             <div id="script-upload-progress" class="progress-container" style="display:none;">
                 <div id="script-progress-bar" class="progress-bar"></div>
@@ -699,9 +817,38 @@
             <h3>Server Console Logs</h3>
             <div id="console-logs-display" class="console-box"></div>
             <div style="display:flex; gap:10px;">
-                <button class="btn" onclick="copyConsoleLogs()">Copy Logs</button>
-                <button class="btn btn-purple" onclick="openServerStorageModal()">See Storage</button>
-                <button class="btn btn-secondary" onclick="closeConsoleModal()">Close</button>
+                <button class="btn btn-green" style="flex:1;" onclick="openPythonTerminalModal()">Python Terminal</button>
+                <button class="btn" style="flex:1;" onclick="copyConsoleLogs()">Copy Logs</button>
+                <button class="btn btn-purple" style="flex:1;" onclick="openServerStorageModal()">See Storage</button>
+                <button class="btn btn-secondary" style="flex:1;" onclick="closeConsoleModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ISOLATED PYTHON TERMINAL MODAL -->
+    <div id="modal-python-terminal" class="overlay" style="display:none; z-index:2700;">
+        <div class="card" style="max-width: 700px; width:95%; height:85vh; display:flex; flex-direction:column; background:#000000; border:2px solid var(--green) !important;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <h3 style="margin:0; color:var(--green);">>_ Python Server Terminal</h3>
+                <button class="btn btn-secondary" style="width:auto; margin:0; padding:4px 12px;" onclick="closePythonTerminalModal()">Close</button>
+            </div>
+            <div id="python-term-box" style="flex:1; background:#000000; color:#ffffff; font-family:monospace; font-size:0.85rem; text-align:left; padding:10px; overflow-y:auto; border:1px solid #1e293b; white-space:pre-wrap; cursor:text;" onclick="focusPythonInput()"></div>
+            <div style="display:flex; align-items:center; background:#020617; border:1px solid #1e293b; margin-top:8px; padding:4px 8px;">
+                <span style="color:var(--green); font-weight:bold; margin-right:6px;">></span>
+                <input type="text" id="python-term-input" style="flex:1; background:transparent; border:none; color:#ffffff; font-family:monospace; font-size:0.85rem; outline:none;" placeholder="Type /exe (press enter to paste script), /r, /clear, /v [module]...">
+                <button class="btn btn-green" style="width:auto; margin:0; padding:4px 14px; font-size:0.8rem;" onclick="sendPythonCommand()">Run</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PYTHON EXECUTE MODAL (FOR PASTING SCRIPT) -->
+    <div id="modal-python-exe" class="overlay" style="display:none; z-index:2800;">
+        <div class="card" style="max-width: 600px;">
+            <h3 style="color:var(--green);">Paste Python Script to Execute</h3>
+            <textarea id="python-exe-code" class="code-box" rows="10" style="width:100%; height:200px; resize:none;" placeholder="# Paste your safe python script here..."></textarea>
+            <div style="display:flex; gap:10px; margin-top:10px;">
+                <button class="btn btn-green" onclick="submitPythonExecution()">Execute</button>
+                <button class="btn btn-secondary" onclick="closePythonExeModal()">Cancel</button>
             </div>
         </div>
     </div>
@@ -717,6 +864,47 @@
             <div style="display:flex; gap:10px; margin-top:10px;">
                 <button class="btn" onclick="copyText('server-storage-display')">Copy Storage Content</button>
                 <button class="btn btn-secondary" onclick="closeServerStorageModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ASSETS MANAGER MODAL -->
+    <div id="modal-assets" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 680px; width:95%; max-height:85vh; display:flex; flex-direction:column;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <h3 style="margin:0;">Assets</h3>
+                <button class="btn btn-purple" style="width:auto; margin:0; padding:6px 14px; font-size:0.8rem;" onclick="openAssetUploadModal(false)">Upload</button>
+            </div>
+            <div id="assets-list-container" class="settings-grid" style="flex:1; max-height:none;"></div>
+            <button class="btn btn-secondary" style="margin-top:10px;" onclick="closeAssetsModal()">Close</button>
+        </div>
+    </div>
+
+    <!-- ASSET UPLOAD / EDIT MODAL -->
+    <div id="modal-asset-edit" class="overlay" style="display:none; z-index:2400;">
+        <div class="card" style="max-width: 500px; width:95%;">
+            <h3 id="asset-modal-title">asset</h3>
+            <div id="asset-preview-box" style="margin:10px 0; max-height:160px; display:flex; align-items:center; justify-content:center; background:#020617; border:1px solid var(--border); padding:10px;">
+                <span style="color:var(--muted); font-size:0.8rem;">No asset preview</span>
+            </div>
+            <div class="settings-grid" style="max-height:none;">
+                <div class="settings-item">
+                    <label>Asset name: (min 2 chars, less than 20)</label>
+                    <input type="text" id="asset-name-field" maxlength="19" placeholder="Asset name">
+                </div>
+                <div class="settings-item">
+                    <label>Asset: (MP3, OGG, WAV &lt; 20MB | JPG, JPEG, PNG &lt; 5MB)</label>
+                    <input type="file" id="asset-file-input" accept="image/jpeg,image/png,audio/mpeg,audio/ogg,audio/wav" onchange="handleAssetFileSelect(this)">
+                </div>
+            </div>
+            <div id="asset-upload-progress" class="progress-container" style="display:none; margin-top:10px;">
+                <div id="asset-progress-bar" class="progress-bar"></div>
+                <div class="progress-text">Uploading: <span id="asset-progress-val">0</span>%</div>
+            </div>
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <button class="btn btn-purple" id="asset-submit-btn" onclick="submitAssetUploadOrEdit()">Apply changes</button>
+                <button class="btn btn-danger" id="asset-delete-btn" style="display:none;" onclick="deleteCurrentAsset()">Delete Asset</button>
+                <button class="btn btn-secondary" onclick="closeAssetEditModal()">Cancel</button>
             </div>
         </div>
     </div>
@@ -754,7 +942,8 @@
         </div>
     </div>
 
-    <div id="modal-view-script" class="overlay" style="display:none;">
+    <!-- LOOK SERVERSCRIPT MODAL WITH HIGHER Z-INDEX (3500) TO POP UP ON TOP -->
+    <div id="modal-view-script" class="overlay" style="display:none; z-index:3500;">
         <div class="card" style="max-width: 650px;">
             <h3>View ServerScript</h3>
             <textarea id="view-script-textarea" class="code-box" readonly rows="12" style="width:100%; height:250px; resize:none;" placeholder="Loading script chunks..."></textarea>
@@ -774,6 +963,11 @@
                 
                 <button class="btn btn-purple" id="btn-change-username" style="display:none;" onclick="openChangeUsernameModal()">Change Account Username</button>
                 <button class="btn btn-purple" id="btn-change-password" style="display:none;" onclick="openChangePasswordModal()">Change Account Password</button>
+
+                <div id="login-verify-toggle-panel" style="display:none; background:#020617; border:1px solid var(--border); padding:10px; text-align:left;">
+                    <label style="font-size:0.75rem; color:var(--muted); font-weight:bold;">logging requires email verification (6 chars code):</label>
+                    <button class="btn btn-purple" id="btn-toggle-login-verify" style="margin-top:6px; padding:6px;" onclick="toggleLoginVerificationState()">Enabled</button>
+                </div>
 
                 <button class="btn btn-purple" id="btn-server-mgmt" style="display:none;" onclick="openServerMgmtModal()">Server Management</button>
                 <button class="btn btn-danger" id="btn-ban-user" style="display:none;" onclick="openBanUserModal()">Ban User</button>
@@ -801,7 +995,10 @@
         <div class="card" style="max-width: 650px;">
             <h3>Update Universal Server Script</h3>
             <p style="font-size:0.8rem; color:var(--muted);">Paste the new univserver.js code below. Tested for 5s before switching over.</p>
-            <textarea id="univserver-script-editor" class="code-box" rows="12" style="width:100%; height:220px; resize:none;" placeholder="// Paste new univserver.js here..."></textarea>
+            <div class="editor-container" id="container-univ-script">
+                <div class="editor-line-numbers" id="lines-univ-script">1</div>
+                <textarea class="editor-textarea" id="univserver-script-editor" placeholder="// Paste new univserver.js here..."></textarea>
+            </div>
             
             <div id="univ-upload-progress" class="progress-container" style="display:none;">
                 <div id="univ-progress-bar" class="progress-bar"></div>
@@ -925,7 +1122,7 @@
                 <span id="role-tag-display"></span>
             </div>
             <div style="display:flex; gap:6px; align-items:center;">
-                <button class="btn-icon" title="Global Chat Sessions" onclick="openChooseSessionModal()">💬</button>
+                <button class="btn-icon" title="Global Chat Sessions" onclick="navigateToRoute('/chat/')">💬</button>
                 <button class="btn-icon" id="terminal-btn" style="display:none;" onclick="openUniversalPanelModal()">>_</button>
                 <button class="btn" style="width:auto; margin:0; padding:6px 10px; font-size:0.75rem;" onclick="copyUserId()">Copy Client ID</button>
                 <div id="dashboard-google-container" style="display:none;">
@@ -941,7 +1138,10 @@
 
         <div style="margin: 15px 0; text-align: left; font-size: 0.85rem; color: var(--muted); display:flex; flex-direction:column; gap:6px;">
             <div id="account-email-display" style="color:var(--accent); font-size:0.75rem; font-weight:bold; display:flex; justify-content:space-between; align-items:center;">
-                <span>Linked Account: <span id="user-email-text">-</span></span>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span>Linked Account: <span id="user-email-text">-</span></span>
+                    <button class="btn" style="width:auto; margin:0; padding:2px 8px; font-size:0.7rem; background:#ffffff !important; color:#000000 !important;" onclick="navigateToRoute('/assets/')">Assets</button>
+                </div>
                 <button class="btn-icon" onclick="openAccountSettingsModal()">⋮</button>
             </div>
             <div>Users online on your server: <span id="online-users-count" style="color:var(--accent); font-weight:bold;">0</span></div>
@@ -966,7 +1166,7 @@
             <button class="btn btn-secondary" style="flex: 1;" onclick="openHowToUse()">How to Use</button>
         </div>
 
-        <button class="btn" style="background:#ffffff !important; color:#000000 !important; font-weight:bold; margin-top:15px;" onclick="openSeeAndPublishModal()">SEE AND PUBLISH</button>
+        <button class="btn" style="background:#ffffff !important; color:#000000 !important; font-weight:bold; margin-top:15px;" onclick="navigateToRoute('/sites/')">SEE AND PUBLISH</button>
     </div>
 
     <div id="modal-howto" class="overlay" style="display:none;">
@@ -1013,7 +1213,7 @@
                 DISCLAIMER: it's recommended that the client should have a temporary identifier so your scripts and projects know who's sending them, its optional.
             </div>
             
-            <div style="text-align:left; font-size:0.85rem; font-weight:bold; color:var(--accent);">1. Multiplayer Coin Collector (New Example) - Client HTML:</div>
+            <div style="text-align:left; font-size:0.85rem; font-weight:bold; color:var(--accent);">1. Multiplayer Coin Collector - Client HTML:</div>
             <textarea id="example-coin-client" class="code-box" readonly rows="8" style="width:100%; height:160px; border:none; resize:none;"></textarea>
 
             <div style="text-align:left; font-size:0.85rem; font-weight:bold; color:var(--accent); margin-top:10px;">1. Multiplayer Coin Collector - ServerScript:</div>
@@ -1041,12 +1241,14 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://postcard-queries-renaissance-investigate.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://shelf-basically-procurement-poetry.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
     let googleEmail = null;
     let ezbridgeUsername = null;
+    let ezbridgeEmail = null;
+    let emailVerificationOnLogin = true;
     let activeUserId = "";
     let userRole = "None";
     let serverKey = "";
@@ -1078,6 +1280,8 @@
     let currentPingVal = 60;
 
     let cooldownTimerCountdown = null;
+    let verifyCodeExpireTimer = null;
+    let verifyResendTimer = null;
 
     let currentChatSession = null;
     let chatHistoryChunks = [];
@@ -1091,6 +1295,11 @@
     let userSiteDataChunks = [];
     let siteSearchDebounce = null;
 
+    let userAssetsCache = [];
+    let clientAssetRamCache = {};
+    let stagedAssetBase64 = null;
+    let currentEditingAssetId = null;
+
     let currentAiGenId = null;
     let aiTimerInterval = null;
     let aiStartTime = 0;
@@ -1102,9 +1311,11 @@
     const SCRIPT_CHUNK_SIZE = 100 * 1024;
     const UNIV_CHUNK_SIZE = 50 * 1024;
     const SITE_CHUNK_SIZE = 150 * 1024;
+    const ASSET_CHUNK_SIZE = 150 * 1024;
     let isUploadingScript = false;
     let isUploadingUnivScript = false;
     let isUploadingSiteScript = false;
+    let isUploadingAsset = false;
 
     const canvas = document.getElementById("bg-canvas");
     const ctx = canvas.getContext("2d");
@@ -1159,6 +1370,32 @@
     }
     animateBackground();
 
+    function setupEditorLineNumbers(textareaId, linesId) {
+        const ta = document.getElementById(textareaId);
+        const lns = document.getElementById(linesId);
+        if (!ta || !lns) return;
+
+        function update() {
+            const count = (ta.value.match(/\n/g) || []).length + 1;
+            let str = '';
+            for (let i = 1; i <= count; i++) {
+                str += i + '\n';
+            }
+            lns.textContent = str;
+        }
+        ta.addEventListener('input', update);
+        ta.addEventListener('scroll', () => {
+            lns.scrollTop = ta.scrollTop;
+        });
+        update();
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        setupEditorLineNumbers('script-editor', 'lines-server-script');
+        setupEditorLineNumbers('univserver-script-editor', 'lines-univ-script');
+        setupEditorLineNumbers('site-html-field', 'lines-site-html');
+    });
+
     const initTimeout = setTimeout(() => {
         document.getElementById('overlay-sync').style.display = 'none';
         document.getElementById('overlay-timeout-error').style.display = 'flex';
@@ -1187,7 +1424,107 @@
 
     socket.on('connect', () => {
         socket.emit('eb_sync_session', { ownerId });
+        checkInitialUrlRoute();
     });
+
+    function getRelativeRoutePath() {
+        let p = window.location.pathname;
+        p = p.replace(/^\/[^/]+(?=\/)/, '');
+        if (!p || p === '') p = '/';
+        return p;
+    }
+
+    function navigateToRoute(pathStr) {
+        window.history.pushState(null, '', pathStr);
+        socket.emit('changeurl', { path: pathStr });
+    }
+
+    function checkInitialUrlRoute() {
+        const route = getRelativeRoutePath();
+        socket.emit('changeurl', { path: route });
+    }
+
+    socket.on('changeurl_response', (data) => {
+        if (data.status === 'valid') {
+            applyRouteUI(data.path, data);
+        } else if (data.status === 'login_with_server') {
+            showRouteNoticeModal(
+                "Notice",
+                data.message,
+                [
+                    { text: "Log off", class: "btn-danger", onClick: "accountLogout()" },
+                    { text: "Back to main page", class: "btn-purple", onClick: "navigateToRoute('/main/')" }
+                ]
+            );
+        } else if (data.status === 'no_access') {
+            showRouteNoticeModal(
+                "Access Denied",
+                data.message,
+                [
+                    { text: "Back to login page", class: "btn-purple", onClick: "navigateToRoute('/login/')" }
+                ]
+            );
+        } else if (data.status === 'no_permission') {
+            alert("title: No permission\nDescription: this asset is not yours, you cannot edit it.");
+            navigateToRoute('/assets/');
+        } else if (data.status === 'not_found') {
+            showRouteNoticeModal(
+                "DIRECTORY NOT FOUND!",
+                data.message,
+                [
+                    { text: "RETURN TO EZBRIDGE", class: "btn-purple", onClick: "navigateToRoute('/main/')" }
+                ]
+            );
+        }
+    });
+
+    function showRouteNoticeModal(title, desc, buttons) {
+        document.getElementById('route-notice-title').innerText = title;
+        document.getElementById('route-notice-desc').innerText = desc;
+        const acts = document.getElementById('route-notice-actions');
+        acts.innerHTML = "";
+        buttons.forEach(b => {
+            const btn = document.createElement('button');
+            btn.className = `btn ${b.class || 'btn-secondary'}`;
+            btn.innerText = b.text;
+            btn.setAttribute('onclick', `${b.onClick}; closeRouteNoticeModal();`);
+            acts.appendChild(btn);
+        });
+        document.getElementById('modal-route-notice').style.display = 'flex';
+    }
+
+    function closeRouteNoticeModal() {
+        document.getElementById('modal-route-notice').style.display = 'none';
+    }
+
+    function applyRouteUI(pathStr, routeData) {
+        if (pathStr === '/sites/' || pathStr === '/sites') {
+            openSeeAndPublishModal();
+        } else if (pathStr.startsWith('/site/')) {
+            if (routeData && routeData.siteId) {
+                accessSite(routeData.siteId);
+            }
+        } else if (pathStr === '/chat/' || pathStr === '/chat') {
+            openChooseSessionModal();
+        } else if (/^\/chat\/s([1-9]|10)\/?$/.test(pathStr)) {
+            const m = pathStr.match(/\/chat\/s([1-9]|10)/);
+            if (m && m[1]) openChatRoomModal(parseInt(m[1]));
+        } else if (pathStr === '/assets/' || pathStr === '/assets') {
+            openAssetsModal();
+        } else if (pathStr.startsWith('/assets/edit/')) {
+            if (routeData && routeData.assetId) {
+                openAssetEditModalById(routeData.assetId);
+            }
+        } else if (pathStr === '/main/' || pathStr === '/main') {
+            document.querySelectorAll('.overlay').forEach(el => {
+                if (el.id !== 'overlay-sync' && el.id !== 'overlay-loading') el.style.display = 'none';
+            });
+            if (serverKey) showDashboard();
+        } else if (pathStr === '/login/' || pathStr === '/login') {
+            document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
+            document.getElementById('overlay-captcha').style.display = 'flex';
+        }
+    }
 
     function applyFullAuthState(data, isNewLogin) {
         if (isNewLogin) {
@@ -1213,8 +1550,18 @@
         isCaptchaTagged = true;
 
         if (data.username) ezbridgeUsername = data.username;
+        if (data.email) ezbridgeEmail = data.email;
+        if (data.emailVerificationOnLogin !== undefined) {
+            emailVerificationOnLogin = Boolean(data.emailVerificationOnLogin);
+            updateLoginVerificationBtn();
+        }
         if (data.profile) updateLocalProfileUI(data.profile);
         if (data.coins !== undefined) updateCoinsDisplay(data.coins);
+
+        if (ezbridgeUsername && !ezbridgeEmail) {
+            openLinkEmailModal(ezbridgeUsername);
+            return;
+        }
 
         if (data.hasServer && data.server) {
             serverKey = data.server.key;
@@ -1276,6 +1623,11 @@
             return;
         }
 
+        if (data.emailVerificationOnLogin !== undefined) {
+            emailVerificationOnLogin = Boolean(data.emailVerificationOnLogin);
+            updateLoginVerificationBtn();
+        }
+
         if (data.hasServer) {
             applyFullAuthState(data, false);
         } else {
@@ -1301,6 +1653,7 @@
             ownerId = data.ownerId;
             activeUserId = data.userId;
             ezbridgeUsername = data.username;
+            ezbridgeEmail = data.email || null;
             setCookie("eb_owner_id", ownerId, 365);
             isCaptchaTagged = true;
             if (data.profile) updateLocalProfileUI(data.profile);
@@ -1310,6 +1663,138 @@
             applyFullAuthState(data, true);
         }
     });
+
+    function submitEzBridgeSignUpRequest() {
+        if (!isCaptchaTagged && !ezbridgeUsername && !googleSub) {
+            return alert("⚠Request rejected⚠\nYou must verify yourself to prove you're not a bot.");
+        }
+        const user = document.getElementById('eb-signup-user').value.trim();
+        const pass = document.getElementById('eb-signup-pass').value;
+        const email = document.getElementById('eb-signup-email').value.trim();
+        if (!user || !pass || !email) return alert("Please fill in all three required fields!");
+
+        showLoadingScreen("Sending verification code to your email...");
+        socket.emit('eb_request_signup_verification', { username: user, password: pass, email: email });
+    }
+
+    socket.on('eb_signup_code_sent', (data) => {
+        hideLoadingScreen();
+        document.getElementById('modal-ezbridge-signup').style.display = 'none';
+        openVerifyCodeModal('signup', data.email);
+    });
+
+    socket.on('eb_login_code_required', (data) => {
+        document.getElementById('overlay-ezbridge-logging').style.display = 'none';
+        openVerifyCodeModal('login', data.email);
+    });
+
+    socket.on('eb_require_email_link', (data) => {
+        document.getElementById('overlay-ezbridge-logging').style.display = 'none';
+        openLinkEmailModal(data.username);
+    });
+
+    socket.on('eb_link_code_sent', (data) => {
+        document.getElementById('modal-link-email').style.display = 'none';
+        openVerifyCodeModal('link_email', data.email);
+    });
+
+    let currentVerifyType = 'signup';
+    let currentVerifyEmail = '';
+
+    function openVerifyCodeModal(type, email) {
+        currentVerifyType = type;
+        currentVerifyEmail = email;
+        document.getElementById('verify-code-input').value = "";
+        document.getElementById('modal-verify-code').style.display = 'flex';
+
+        startVerifyTimer(30 * 60);
+        startResendCooldown(30);
+    }
+
+    function closeVerifyCodeModal() {
+        if (verifyCodeExpireTimer) clearInterval(verifyCodeExpireTimer);
+        if (verifyResendTimer) clearInterval(verifyResendTimer);
+        document.getElementById('modal-verify-code').style.display = 'none';
+    }
+
+    function startVerifyTimer(durationSeconds) {
+        if (verifyCodeExpireTimer) clearInterval(verifyCodeExpireTimer);
+        let rem = durationSeconds;
+        const el = document.getElementById('verify-timer-text');
+        verifyCodeExpireTimer = setInterval(() => {
+            rem--;
+            const m = String(Math.floor(rem / 60)).padStart(2, '0');
+            const s = String(rem % 60).padStart(2, '0');
+            el.innerText = `(Expires in ${m}:${s})`;
+            if (rem <= 0) {
+                clearInterval(verifyCodeExpireTimer);
+                el.innerText = "(Code expired, please refresh)";
+            }
+        }, 1000);
+    }
+
+    function startResendCooldown(seconds) {
+        const btn = document.getElementById('btn-resend-code');
+        btn.style.display = 'none';
+        if (verifyResendTimer) clearInterval(verifyResendTimer);
+        let rem = seconds;
+        verifyResendTimer = setInterval(() => {
+            rem--;
+            if (rem <= 0) {
+                clearInterval(verifyResendTimer);
+                btn.style.display = 'block';
+            }
+        }, 1000);
+    }
+
+    function resendVerificationCode() {
+        socket.emit('eb_resend_verification_code', { email: currentVerifyEmail });
+        startResendCooldown(30);
+    }
+
+    function submitCodeVerification() {
+        const code = document.getElementById('verify-code-input').value.trim().toUpperCase();
+        if (!code || code.length !== 6) return alert("Please enter the 6-character code!");
+
+        if (currentVerifyType === 'signup') {
+            socket.emit('eb_verify_signup_code', { code: code });
+        } else if (currentVerifyType === 'login') {
+            socket.emit('eb_verify_login_code', { code: code });
+        } else if (currentVerifyType === 'link_email') {
+            socket.emit('eb_verify_link_code', { code: code });
+        }
+        closeVerifyCodeModal();
+    }
+
+    function openLinkEmailModal(username) {
+        document.getElementById('link-email-input').value = "";
+        document.getElementById('modal-link-email').style.display = 'flex';
+    }
+
+    function submitLinkEmailRequest() {
+        const em = document.getElementById('link-email-input').value.trim();
+        if (!em) return alert("Email is required!");
+        socket.emit('eb_link_account_email', { username: ezbridgeUsername, email: em });
+    }
+
+    function updateLoginVerificationBtn() {
+        const pnl = document.getElementById('login-verify-toggle-panel');
+        const btn = document.getElementById('btn-toggle-login-verify');
+        if (!pnl || !btn) return;
+        if (ezbridgeUsername) {
+            pnl.style.display = 'block';
+            btn.innerText = emailVerificationOnLogin ? "Enabled" : "Disabled";
+            btn.className = `btn ${emailVerificationOnLogin ? 'btn-purple' : 'btn-secondary'}`;
+        } else {
+            pnl.style.display = 'none';
+        }
+    }
+
+    function toggleLoginVerificationState() {
+        emailVerificationOnLogin = !emailVerificationOnLogin;
+        updateLoginVerificationBtn();
+        socket.emit('eb_toggle_login_verification', { enabled: emailVerificationOnLogin });
+    }
 
     socket.on('server_created', (data) => {
         hideLoadingScreen();
@@ -1516,6 +2001,8 @@
             if (aiTimerInterval) clearInterval(aiTimerInterval);
             const cleanedHTML = cleanMarkdownCodeClient(outBox.value);
             document.getElementById('site-html-field').value = cleanedHTML;
+            const ta = document.getElementById('site-html-field');
+            ta.dispatchEvent(new Event('input'));
             alert("AI HTML script generated and applied to your site!");
             closeAskAiSiteModal();
         }
@@ -1611,6 +2098,8 @@
                 document.getElementById('site-html-field').value = parsed.site.htmlScript || "";
                 document.getElementById('site-vis-field').value = parsed.site.visibility || "public";
                 document.getElementById('site-auto-tunnel-field').value = String(parsed.site.autoUpdateTunnel !== false);
+                const sh = document.getElementById('site-html-field');
+                sh.dispatchEvent(new Event('input'));
                 generatedSiteIdVal = parsed.site.id || "";
 
                 if (parsed.remCooldownMs > 0) {
@@ -1645,7 +2134,7 @@
         document.getElementById('site-upload-progress').style.display = 'none';
         alert("Site published/updated successfully!");
         closeCreateSiteModal();
-        openSeeAndPublishModal();
+        navigateToRoute('/sites/');
     });
 
     socket.on('eb_site_data_response', (data) => {
@@ -1741,6 +2230,9 @@
         document.getElementById('modal-shop').style.display = 'none';
     }
     function buyBatteryProduct(itemId) {
+        if (currentBatteryMb >= 25000) {
+            return alert("Server is already at maximum V-Battery capacity (25000 MB).");
+        }
         socket.emit('eb_buy_battery', { itemId: itemId, serverKey: serverKey });
     }
     function updateCoinsDisplay(coins) {
@@ -1808,6 +2300,7 @@
         document.getElementById('modal-ezbridge-auth-choice').style.display = 'none';
         document.getElementById('eb-signup-user').value = "";
         document.getElementById('eb-signup-pass').value = "";
+        document.getElementById('eb-signup-email').value = "";
         document.getElementById('eb-signup-user-status').innerText = "";
         document.getElementById('eb-signup-pass-status').innerText = "";
         document.getElementById('modal-ezbridge-signup').style.display = 'flex';
@@ -1889,16 +2382,6 @@
             }
         }
     });
-
-    function submitEzBridgeSignUp() {
-        if (!isCaptchaTagged && !ezbridgeUsername && !googleSub) {
-            return alert("⚠Request rejected⚠\nYou must verify yourself to prove you're not a bot.");
-        }
-        const username = document.getElementById('eb-signup-user').value.trim();
-        const password = document.getElementById('eb-signup-pass').value;
-        showLoadingScreen("Wait, EzBridge wants to make sure your information and data are secure..");
-        socket.emit('eb_ezbridge_signup', { username, password });
-    }
 
     function submitEzBridgeLogIn() {
         if (!isCaptchaTagged && !ezbridgeUsername && !googleSub) {
@@ -1986,13 +2469,13 @@
         isGuestMode = true;
         document.getElementById('overlay-captcha').style.display = 'none';
         document.getElementById('overlay-google-auth').style.display = 'none';
-        openSeeAndPublishModal();
+        navigateToRoute('/sites/');
     }
 
     function returnToLoginFromSites() {
         closeSeeAndPublishModal();
         isGuestMode = false;
-        document.getElementById('overlay-captcha').style.display = 'flex';
+        navigateToRoute('/login/');
     }
 
     function applyRolePermissions() {
@@ -2012,6 +2495,7 @@
         if (ezbridgeUsername) {
             btnChangeUser.style.display = 'block';
             btnChangePass.style.display = 'block';
+            updateLoginVerificationBtn();
         } else {
             btnChangeUser.style.display = 'none';
             btnChangePass.style.display = 'none';
@@ -2140,6 +2624,7 @@
     function closeSeeAndPublishModal() {
         if (siteSearchDebounce) clearTimeout(siteSearchDebounce);
         document.getElementById('modal-see-publish').style.display = 'none';
+        navigateToRoute('/main/');
     }
 
     function updateCreateUpdateSiteBtnText() {
@@ -2220,7 +2705,7 @@
 
     function accessSite(siteId) {
         closeSeeAndPublishModal();
-        window.location.hash = `#/sites/${siteId}`;
+        window.history.pushState(null, '', `/site/${siteId}`);
         socket.emit('eb_visit_site', { siteId });
     }
 
@@ -2259,14 +2744,13 @@
         }
 
         document.getElementById('modal-site-viewer').style.display = 'none';
-        window.location.hash = "";
-        openSeeAndPublishModal();
+        navigateToRoute('/sites/');
     }
 
     function checkUrlSiteHash() {
-        const hash = window.location.hash;
-        if (hash && hash.startsWith('#/sites/')) {
-            const sId = hash.replace('#/sites/', '').trim();
+        const route = getRelativeRoutePath();
+        if (route.startsWith('/site/')) {
+            const sId = route.replace('/site/', '').trim();
             if (sId) {
                 socket.emit('eb_visit_site', { siteId: sId });
             }
@@ -2303,6 +2787,7 @@
 
     function closeCreateSiteModal() {
         document.getElementById('modal-create-site').style.display = 'none';
+        navigateToRoute('/sites/');
     }
 
     function generateSiteIdSubmit() {
@@ -2381,11 +2866,13 @@
     }
     function closeChooseSessionModal() {
         document.getElementById('modal-choose-session').style.display = 'none';
+        navigateToRoute('/main/');
     }
 
     function openChatRoomModal(sessionNum) {
         closeChooseSessionModal();
         currentChatSession = sessionNum;
+        window.history.pushState(null, '', `/chat/s${sessionNum}`);
         document.getElementById('chat-session-title').innerText = `Session S. ${sessionNum}`;
         document.getElementById('chat-messages-container').innerHTML = "";
         document.getElementById('chat-textbox').value = "";
@@ -2402,6 +2889,7 @@
         }
         currentChatSession = null;
         document.getElementById('modal-chat-room').style.display = 'none';
+        navigateToRoute('/chat/');
     }
 
     function setupChatTextboxEvents() {
@@ -2474,6 +2962,283 @@
     function copyTextValue(text) {
         navigator.clipboard.writeText(text);
         alert(`Copied to clipboard: ${text}`);
+    }
+
+    /* ASSETS CLIENT LOGIC */
+    function openAssetsModal() {
+        document.getElementById('modal-assets').style.display = 'flex';
+        socket.emit('eb_get_user_assets');
+    }
+
+    function closeAssetsModal() {
+        document.getElementById('modal-assets').style.display = 'none';
+        navigateToRoute('/main/');
+    }
+
+    socket.on('eb_user_assets_list', (data) => {
+        userAssetsCache = data.assets || [];
+        renderAssetsList(userAssetsCache);
+    });
+
+    function renderAssetsList(list) {
+        const container = document.getElementById('assets-list-container');
+        container.innerHTML = "";
+        if (list.length === 0) {
+            container.innerHTML = `<div style="color:var(--muted); padding:20px; font-size:0.85rem;">No assets uploaded yet.</div>`;
+            return;
+        }
+
+        list.forEach(a => {
+            const item = document.createElement('div');
+            item.className = 'domain-item';
+            item.style.alignItems = 'center';
+            item.style.gap = '10px';
+
+            const previewId = `asset-thumb-${a.id}`;
+            let previewPlaceholder = `<div id="${previewId}" style="width:50px; height:50px; background:#0f172a; border:1px solid #334155; display:flex; align-items:center; justify-content:center; font-size:0.7rem; color:var(--muted);">...</div>`;
+
+            item.innerHTML = `
+                <div style="display:flex; align-items:center; gap:10px;">
+                    ${previewPlaceholder}
+                    <div style="text-align:left;">
+                        <div style="font-weight:bold; font-size:0.85rem;">${escapeHtml(a.name)}</div>
+                        <div style="font-size:0.7rem; color:var(--muted);">${a.type.toUpperCase()} | ${(a.sizeBytes / 1024).toFixed(1)} KB</div>
+                    </div>
+                </div>
+                <div style="display:flex; gap:6px;">
+                    <button class="btn-secondary" style="width:auto; margin:0; padding:4px 8px; font-size:0.7rem;" onclick="copyTextValue('${a.id}')">Copy asset ID</button>
+                    <button class="btn btn-purple" style="width:auto; margin:0; padding:4px 8px; font-size:0.7rem;" onclick="navigateToRoute('/assets/edit/${a.id}')">Edit</button>
+                </div>
+            `;
+            container.appendChild(item);
+
+            loadAndCacheAsset(a.id, (cached) => {
+                const thumb = document.getElementById(previewId);
+                if (!thumb || !cached) return;
+                if (cached.type === 'image') {
+                    thumb.innerHTML = `<img src="${cached.data}" style="width:100%; height:100%; object-fit:cover;">`;
+                } else if (cached.type === 'audio') {
+                    thumb.innerHTML = `<button onclick="playCachedAudio('${cached.id}')" style="background:var(--purple); color:#fff; border:none; width:100%; height:100%; cursor:pointer;">▶</button>`;
+                }
+            });
+        });
+    }
+
+    function playCachedAudio(assetId) {
+        const cached = clientAssetRamCache[assetId];
+        if (cached && cached.data) {
+            const snd = new Audio(cached.data);
+            snd.play();
+        }
+    }
+
+    let assetChunksBuffer = {};
+
+    function loadAndCacheAsset(assetId, callback) {
+        if (clientAssetRamCache[assetId]) {
+            return callback(clientAssetRamCache[assetId]);
+        }
+
+        const listenerType = `eb_asset_chunk_${assetId}`;
+        const handler = (pkt) => {
+            if (pkt.type === listenerType && pkt.data) {
+                if (!assetChunksBuffer[assetId]) assetChunksBuffer[assetId] = [];
+                assetChunksBuffer[assetId].push(pkt.data.chunk);
+
+                if (assetChunksBuffer[assetId].length === pkt.data.total) {
+                    socket.off('RemoteEvent', handler);
+                    try {
+                        const parsed = JSON.parse(assetChunksBuffer[assetId].join(''));
+                        clientAssetRamCache[assetId] = parsed;
+                        delete assetChunksBuffer[assetId];
+                        callback(parsed);
+                    } catch(e) {}
+                }
+            }
+        };
+
+        socket.on('RemoteEvent', handler);
+        socket.emit('RemoteEvent', { type: `eb_asset_get_${assetId}` });
+    }
+
+    function openAssetUploadModal(isEdit, assetData) {
+        currentEditingAssetId = isEdit ? (assetData ? assetData.id : null) : null;
+        stagedAssetBase64 = null;
+        document.getElementById('asset-modal-title').innerText = isEdit ? "asset" : "asset";
+        document.getElementById('asset-name-field').value = assetData ? assetData.name : "";
+        document.getElementById('asset-file-input').value = "";
+        document.getElementById('asset-preview-box').innerHTML = `<span style="color:var(--muted); font-size:0.8rem;">No asset preview</span>`;
+        document.getElementById('asset-submit-btn').innerText = isEdit ? "Apply changes" : "Upload Asset";
+        document.getElementById('asset-delete-btn').style.display = isEdit ? "block" : "none";
+        document.getElementById('modal-asset-edit').style.display = 'flex';
+
+        if (isEdit && assetData) {
+            loadAndCacheAsset(assetData.id, (cached) => {
+                renderAssetPreview(cached.type, cached.data);
+            });
+        }
+    }
+
+    function openAssetEditModalById(assetId) {
+        const found = userAssetsCache.find(a => a.id === assetId);
+        openAssetUploadModal(true, found || { id: assetId, name: "Asset" });
+    }
+
+    function closeAssetEditModal() {
+        document.getElementById('modal-asset-edit').style.display = 'none';
+        navigateToRoute('/assets/');
+    }
+
+    let stagedAssetType = 'image';
+    let stagedAssetMime = 'image/png';
+
+    function handleAssetFileSelect(input) {
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            const isAudio = file.type.startsWith('audio/');
+            const isImage = file.type.startsWith('image/');
+
+            if (!isAudio && !isImage) return alert("Only audio (MP3, OGG, WAV) or images (JPG, JPEG, PNG) allowed!");
+            if (isAudio && file.size > 20 * 1024 * 1024) return alert("Audio must be less than 20MB!");
+            if (isImage && file.size > 5 * 1024 * 1024) return alert("Image must be less than 5MB!");
+
+            stagedAssetType = isAudio ? 'audio' : 'image';
+            stagedAssetMime = file.type;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                stagedAssetBase64 = e.target.result;
+                renderAssetPreview(stagedAssetType, stagedAssetBase64);
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function renderAssetPreview(type, base64Data) {
+        const box = document.getElementById('asset-preview-box');
+        if (type === 'image') {
+            box.innerHTML = `<img src="${base64Data}" style="max-height:140px; max-width:100%; object-fit:contain;">`;
+        } else if (type === 'audio') {
+            box.innerHTML = `<button class="btn btn-purple" style="width:auto; padding:10px 20px;" onclick="new Audio('${base64Data}').play()">▶ Play Audio</button>`;
+        }
+    }
+
+    function submitAssetUploadOrEdit() {
+        const nameVal = document.getElementById('asset-name-field').value.trim();
+        if (!nameVal || nameVal.length < 2 || nameVal.length > 20) {
+            return alert("Asset name must have at least 2 characters and less than 20!");
+        }
+
+        let assetDataToSend = stagedAssetBase64;
+        if (!assetDataToSend && currentEditingAssetId && clientAssetRamCache[currentEditingAssetId]) {
+            assetDataToSend = clientAssetRamCache[currentEditingAssetId].data;
+        }
+        if (!assetDataToSend) return alert("Please select an asset file to upload!");
+
+        const totalChunks = Math.ceil(assetDataToSend.length / ASSET_CHUNK_SIZE);
+        isUploadingAsset = true;
+        document.getElementById('asset-upload-progress').style.display = 'block';
+
+        sendAssetChunk(0, totalChunks, assetDataToSend, nameVal, stagedAssetType, stagedAssetMime, currentEditingAssetId);
+    }
+
+    function sendAssetChunk(index, total, fullData, name, assetType, mimeType, assetId) {
+        if (!isUploadingAsset) return;
+        const start = index * ASSET_CHUNK_SIZE;
+        const end = Math.min(start + ASSET_CHUNK_SIZE, fullData.length);
+        const chunk = fullData.slice(start, end);
+
+        socket.emit('eb_upload_asset_chunk', {
+            index, total, chunk,
+            assetId: assetId,
+            name: name,
+            assetType: assetType,
+            mimeType: mimeType
+        });
+    }
+
+    socket.on('eb_asset_upload_ack', (data) => {
+        const pct = Math.floor((data.received / data.total) * 100);
+        document.getElementById('asset-progress-bar').style.width = `${pct}%`;
+        document.getElementById('asset-progress-val').innerText = pct;
+    });
+
+    socket.on('eb_asset_upload_success', (data) => {
+        isUploadingAsset = false;
+        document.getElementById('asset-upload-progress').style.display = 'none';
+        alert(`Success on Asset upload!\nyour asset ${data.name} has been uploaded.`);
+        closeAssetEditModal();
+    });
+
+    function deleteCurrentAsset() {
+        if (!currentEditingAssetId) return;
+        if (confirm("Delete this asset permanently?")) {
+            socket.emit('eb_delete_asset', { assetId: currentEditingAssetId });
+            delete clientAssetRamCache[currentEditingAssetId];
+            closeAssetEditModal();
+        }
+    }
+
+    /* PYTHON TERMINAL MODAL & LOGIC */
+    let isPythonTermOpen = false;
+
+    function openPythonTerminalModal() {
+        isPythonTermOpen = true;
+        document.getElementById('python-term-box').innerText = "";
+        document.getElementById('modal-python-terminal').style.display = 'flex';
+        socket.emit('eb_start_python_terminal', { key: serverKey });
+    }
+
+    function closePythonTerminalModal() {
+        isPythonTermOpen = false;
+        document.getElementById('modal-python-terminal').style.display = 'none';
+    }
+
+    function focusPythonInput() {
+        document.getElementById('python-term-input').focus();
+    }
+
+    socket.on('eb_python_term_chunk', (data) => {
+        const box = document.getElementById('python-term-box');
+        if (box && data.chunk) {
+            box.innerText += data.chunk;
+            if (box.innerText.length > 1500) {
+                box.innerText = box.innerText.slice(box.innerText.length - 1500);
+            }
+            box.scrollTop = box.scrollHeight;
+        }
+    });
+
+    function sendPythonCommand() {
+        const input = document.getElementById('python-term-input');
+        const val = input.value.trim();
+        if (!val) return;
+
+        if (val === '/exe') {
+            openPythonExeModal();
+            input.value = "";
+            return;
+        }
+
+        socket.emit('eb_python_term_input', { key: serverKey, cmd: val });
+        input.value = "";
+    }
+
+    function openPythonExeModal() {
+        document.getElementById('python-exe-code').value = "";
+        document.getElementById('modal-python-exe').style.display = 'flex';
+    }
+
+    function closePythonExeModal() {
+        document.getElementById('modal-python-exe').style.display = 'none';
+    }
+
+    function submitPythonExecution() {
+        const code = document.getElementById('python-exe-code').value;
+        if (!code || !code.trim()) return alert("Code cannot be empty!");
+
+        socket.emit('eb_python_term_input', { key: serverKey, cmd: '/exe', script: code });
+        closePythonExeModal();
     }
 
     function openUniversalPanelModal() {
@@ -2705,6 +3470,8 @@
 
     function openScriptEditorModal() {
         document.getElementById('script-editor').value = currentServerScript;
+        const ta = document.getElementById('script-editor');
+        ta.dispatchEvent(new Event('input'));
         document.getElementById('modal-script').style.display = 'flex';
     }
 
@@ -3003,6 +3770,8 @@
         document.getElementById('cfg-target-ping-val').innerText = settings.targetPing || 60;
         document.getElementById('cfg-private').value = String(settings.allowPrivate);
         document.getElementById('script-editor').value = script;
+        const ta = document.getElementById('script-editor');
+        ta.dispatchEvent(new Event('input'));
 
         toggleDomainWhitelistUI();
         renderDomains();
@@ -3677,6 +4446,7 @@ ${serverType === 'websocket' ?
 3 - APIs You Can Use
 - 'ebuserid_get' / 'eb_id_get': Send RemoteEvent type 'ebuserid_get' to get the client's permanent unique User ID (15-30 chars). Returns "This user does not have an ID." if user is not a server owner.
 - 'eb_profile_get_{clientid}': Fetch any user's profile display name and avatar (sent in 500KB chunks).
+- 'eb_asset_get_{assetid}': Retrieve any audio or image asset uploaded by users (sent in 180KB chunks). Client caches it in RAM without re-downloading.
 - Server.storage API:
   * Server.storage.set(data) - Save up to 100MB of persistent server data.
   * Server.storage.get() - Retrieve stored server data.
@@ -3706,10 +4476,12 @@ ${coinServerCode}`;
         const box = document.getElementById('api-commands-box');
 
         if (isHttp) {
-            box.innerText = `// --- EZBRIDGE HTTP REST API ---
+            box.innerHTML = `
+<span class="api-tag-yellow">CLIENT-SIDED API (only the client can use this)</span>
 1. GET STATUS:
 GET ${PUBLIC_TUNNEL_URL}/getstatus
 
+<span class="api-tag-yellow">CLIENT AND SERVER API (both clients and servers can use this API)</span>
 2. GET CLIENT PROFILE:
 // GET request: ${PUBLIC_TUNNEL_URL}/eb_profile_get_{clientid}
 // Response: { displayName: "User_123...", pfpData: "base64_image..." }
@@ -3722,7 +4494,22 @@ async function fetchUserProfile(targetClientId) {
     }
 }
 
-3. SEND REMOTE EVENT & LISTEN TO RESPONSES:
+<span class="api-tag-yellow">CLIENT AND SERVER API (both clients and servers can use this API)</span>
+3. GET ASSET (IMAGE OR AUDIO):
+// GET request: ${PUBLIC_TUNNEL_URL}/eb_asset_get_{assetid}
+// Response: { id, name, type, mimeType, data, sizeBytes }
+async function fetchAsset(targetAssetId) {
+    const res = await fetch("${PUBLIC_TUNNEL_URL}/eb_asset_get_" + targetAssetId);
+    const asset = await res.json();
+    if (asset.type === 'image') {
+        document.getElementById("myImage").src = asset.data;
+    } else if (asset.type === 'audio') {
+        new Audio(asset.data).play();
+    }
+}
+
+<span class="api-tag-yellow">SERVER-SIDED API (only servers can use this)</span>
+4. SEND REMOTE EVENT & LISTEN TO RESPONSES:
 async function sendHttpEvent(type, data) {
     const res = await fetch("${PUBLIC_TUNNEL_URL}/remote", {
         method: "POST",
@@ -3738,12 +4525,14 @@ async function sendHttpEvent(type, data) {
     }
 }
 
-// --- SERVERSCRIPT 100MB DEDICATED STORAGE API ---
+<span class="api-tag-yellow">SERVER-SIDED API (only servers can use this)</span>
+5. SERVERSCRIPT 100MB DEDICATED STORAGE:
 // Server.storage.set("any string or JSON data up to 100MB");
 // const storedData = Server.storage.get();
 // const usedBytes = Server.storage.getUsageBytes();
 
-// --- SERVERSCRIPT LOCAL AI API (Ollama smollm2:360m / qwen2.5:0.5b) ---
+<span class="api-tag-yellow">SERVER-SIDED API (only servers can use this)</span>
+6. SERVERSCRIPT LOCAL AI:
 Server.eb_callai({
     model: "qwen2.5:0.5b",
     Temp: 0,
@@ -3760,19 +4549,18 @@ Server.stopAILatest();
 Server.stopAIAll();
 Server.stopAIId("4c1a");`;
         } else {
-            box.innerText = `// --- EZBRIDGE WEBSOCKET API ---
+            box.innerHTML = `
+<span class="api-tag-yellow">CLIENT-SIDED API (only the client can use this)</span>
 1. CONNECT & JOIN ROOM:
 const socket = io("${PUBLIC_TUNNEL_URL}", { auth: { token: "default_key" } });
 socket.emit("join_virtual_server", { key: "${serverKey}" });
 
-2. GET CLIENT PROFILE (OUTPUT & RENDER):
-// Send request for player's profile:
+<span class="api-tag-yellow">CLIENT AND SERVER API (both clients and servers can use this API)</span>
+2. GET CLIENT PROFILE:
 socket.emit("RemoteEvent", { type: "eb_profile_get_{clientid}" });
 socket.on("RemoteEvent", (pkt) => {
     if (pkt.type === "eb_profile_response_{clientid}") {
         console.log("Player Name:", pkt.data.displayName);
-        console.log("Avatar base64 image:", pkt.data.pfpData);
-        // Render in player nametag:
         document.getElementById("playerName").innerText = pkt.data.displayName;
         if (pkt.data.pfpData && pkt.data.pfpData !== "default") {
             document.getElementById("playerAvatar").src = pkt.data.pfpData;
@@ -3780,21 +4568,41 @@ socket.on("RemoteEvent", (pkt) => {
     }
 });
 
-3. SEND REMOTE EVENT:
+<span class="api-tag-yellow">CLIENT AND SERVER API (both clients and servers can use this API)</span>
+3. GET ASSET (IMAGE OR AUDIO):
+// Sent in 180KB chunks without requiring authority or server key
+let chunks = [];
+socket.emit("RemoteEvent", { type: "eb_asset_get_{assetid}" });
+socket.on("RemoteEvent", (pkt) => {
+    if (pkt.type === "eb_asset_chunk_{assetid}") {
+        chunks.push(pkt.data.chunk);
+        if (chunks.length === pkt.data.total) {
+            const asset = JSON.parse(chunks.join(''));
+            if (asset.type === 'image') document.getElementById("img").src = asset.data;
+            else if (asset.type === 'audio') new Audio(asset.data).play();
+        }
+    }
+});
+
+<span class="api-tag-yellow">SERVER-SIDED API (only servers can use this)</span>
+4. SEND REMOTE EVENT:
 socket.emit("RemoteEvent", { type: "player_join", data: { id: "usr_123" } });
 
-4. GET CLIENT USER ID:
+<span class="api-tag-yellow">CLIENT-SIDED API (only the client can use this)</span>
+5. GET CLIENT USER ID:
 socket.emit("RemoteEvent", { type: "ebuserid_get" });
 socket.on("RemoteEvent", (pkt) => {
     if (pkt.type === "userid_response") console.log("User ID:", pkt.userId || pkt.message);
 });
 
-// --- SERVERSCRIPT 100MB DEDICATED STORAGE API ---
+<span class="api-tag-yellow">SERVER-SIDED API (only servers can use this)</span>
+6. SERVERSCRIPT 100MB DEDICATED STORAGE:
 // Server.storage.set("any string or JSON data up to 100MB");
 // const storedData = Server.storage.get();
 // const usedBytes = Server.storage.getUsageBytes();
 
-// --- SERVERSCRIPT LOCAL AI API (Ollama gemma3:1b / llama3.2:1b / smollm2:360m / qwen2.5:0.5b) ---
+<span class="api-tag-yellow">SERVER-SIDED API (only servers can use this)</span>
+7. SERVERSCRIPT LOCAL AI:
 Server.eb_callai({
     model: "gemma3:1b",
     Temp: 0,
