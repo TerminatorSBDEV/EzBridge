@@ -66,8 +66,8 @@
         .btn-secondary:hover { background: rgba(239, 68, 68, 0.2) !important; }
         .btn-purple { background: rgba(139, 92, 246, 0.1) !important; border: 1px solid #8b5cf6 !important; color: #ffffff !important; }
         .btn-purple:hover { background: rgba(139, 92, 246, 0.3) !important; }
-        .btn-green { background: rgba(16, 185, 129, 0.15) !important; border: 1px solid #10b981 !important; color: #ffffff !important; }
-        .btn-green:hover { background: rgba(16, 185, 129, 0.35) !important; }
+        .btn-green { background: rgba(16, 185, 129, 0.1) !important; border: 1px solid #10b981 !important; color: #ffffff !important; }
+        .btn-green:hover { background: rgba(16, 185, 129, 0.3) !important; }
         .btn-danger { background: rgba(239, 68, 68, 0.2) !important; border: 1px solid var(--error) !important; color: #ffffff !important; }
         .btn-icon { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 6px 12px; cursor: pointer; font-size: 1rem; }
         .btn-icon:hover { border-color: var(--accent); color: var(--accent); }
@@ -109,23 +109,26 @@
         .domain-list { display: flex; flex-direction: column; gap: 6px; margin-top: 5px; }
         .domain-item { display: flex; justify-content: space-between; align-items: center; background: #020617; padding: 6px 10px; font-size: 0.8rem; border: 1px solid var(--border) !important; }
 
+        .code-container {
+            display: flex; position: relative; background: #020617; border: 1px solid var(--border);
+            margin: 10px 0; max-height: 260px; overflow: hidden;
+        }
+        .line-numbers {
+            width: 38px; padding: 12px 6px; background: #000000; color: var(--muted);
+            font-family: monospace; font-size: 0.8rem; text-align: right; user-select: none;
+            overflow: hidden; white-space: pre; border-right: 1px solid #1e293b;
+        }
+        .code-textarea {
+            flex: 1; background: transparent !important; color: #f8fafc !important;
+            padding: 12px; border: none !important; font-family: monospace; font-size: 0.8rem;
+            resize: none; outline: none; white-space: pre; overflow: auto;
+        }
+
         .code-box, textarea, .settings-item textarea {
             background: #020617 !important;
             color: #f8fafc !important;
             padding: 12px; border: 1px solid var(--border) !important;
             font-family: monospace; font-size: 0.8rem; margin: 10px 0; overflow-x: auto; white-space: pre; text-align: left;
-        }
-
-        .editor-container {
-            display: flex; border: 1px solid var(--border); background: #020617; margin: 10px 0; height: 250px;
-        }
-        .editor-line-numbers {
-            width: 40px; background: #010409; color: #64748b; font-family: monospace; font-size: 0.8rem;
-            padding: 10px 4px; text-align: right; user-select: none; border-right: 1px solid #1e293b; overflow: hidden; white-space: pre;
-        }
-        .editor-textarea {
-            flex: 1; background: transparent !important; color: #f8fafc !important; border: none !important;
-            padding: 10px; font-family: monospace; font-size: 0.8rem; outline: none; resize: none; overflow: auto; white-space: pre;
         }
 
         .console-box {
@@ -148,12 +151,8 @@
             color: #fff !important; padding: 12px; font-weight: bold; cursor: pointer;
             transition: transform 0.2s, background 0.2s; text-align: center;
         }
-        .session-btn:hover {
-            background: rgba(239, 68, 68, 0.5) !important;
-        }
-        .session-btn-list:hover .session-btn:not(:hover) {
-            transform: scale(0.96);
-        }
+        .session-btn:hover { background: rgba(239, 68, 68, 0.5) !important; }
+        .session-btn-list:hover .session-btn:not(:hover) { transform: scale(0.96); }
 
         .chat-bubble-box {
             background: #020617; border: 1px solid var(--border);
@@ -166,39 +165,24 @@
         }
 
         #modal-site-viewer .card {
-            width: 95vw !important;
-            height: 95vh !important;
-            max-width: 95vw !important;
-            max-height: 95vh !important;
-            padding: 15px;
-            display: flex; flex-direction: column;
-            background: #000000 !important;
-            border: 2px solid #ef4444 !important;
+            width: 95vw !important; height: 95vh !important;
+            max-width: 95vw !important; max-height: 95vh !important;
+            padding: 15px; display: flex; flex-direction: column;
+            background: #000000 !important; border: 2px solid #ef4444 !important;
             box-shadow: 0 0 30px rgba(239, 68, 68, 0.4);
         }
 
         #site-viewer-frame-container {
-            flex: 1;
-            width: 100%;
-            height: calc(95vh - 70px) !important;
-            border: 1px solid #ef4444;
-            background: #ffffff;
-            overflow: hidden;
-            position: relative;
+            flex: 1; width: 100%; height: calc(95vh - 70px) !important;
+            border: 1px solid #ef4444; background: #ffffff; overflow: hidden; position: relative;
         }
 
-        iframe.site-frame {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: block;
-        }
+        iframe.site-frame { width: 100%; height: 100%; border: none; display: block; }
 
         .banner-lockdown {
-            background: rgba(234, 179, 8, 0.15);
-            border: 1px solid var(--yellow) !important;
-            color: #fde047; padding: 12px; font-size: 0.8rem;
-            text-align: left; margin-bottom: 12px; line-height: 1.4;
+            background: rgba(234, 179, 8, 0.15); border: 1px solid var(--yellow) !important;
+            color: #fde047; padding: 12px; font-size: 0.8rem; text-align: left;
+            margin-bottom: 12px; line-height: 1.4;
         }
 
         .avatar-btn {
@@ -207,9 +191,7 @@
             cursor: pointer; display: flex; align-items: center; justify-content: center;
             overflow: hidden; padding: 0; position: relative;
         }
-        .avatar-img {
-            width: 100%; height: 100%; border-radius: 50% !important; object-fit: cover;
-        }
+        .avatar-img { width: 100%; height: 100%; border-radius: 50% !important; object-fit: cover; }
         .default-avatar-donut {
             width: 100%; height: 100%; border-radius: 50% !important; background: #94a3b8;
             display: flex; align-items: center; justify-content: center; position: relative;
@@ -231,10 +213,16 @@
             text-shadow: 1px 1px 1px rgba(0,0,0,0.6); vertical-align: middle;
         }
 
+        .api-tag-client { color: #eab308; font-weight: bold; font-size: 0.8rem; }
+        .api-tag-server { color: #eab308; font-weight: bold; font-size: 0.8rem; }
+        .api-tag-both { color: #eab308; font-weight: bold; font-size: 0.8rem; }
+
         .disclaimer { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--error) !important; color: #fca5a5; padding: 10px; font-size: 0.75rem; text-align: left; margin-bottom: 10px; }
 
-        .api-tag-yellow {
-            color: #eab308; font-weight: 900; font-size: 0.8rem; margin-top: 8px; display: block;
+        .pyterm-window {
+            background: #000000; color: #ffffff; font-family: 'Courier New', Courier, monospace;
+            padding: 12px; border: 1px solid var(--border); height: 280px; max-height: 280px;
+            overflow-y: auto; text-align: left; font-size: 0.85rem; cursor: text; white-space: pre-wrap;
         }
     </style>
 </head>
@@ -253,12 +241,12 @@
         </div>
     </div>
 
-    <!-- ROUTING NOTIFICATION MODAL -->
-    <div id="modal-route-notice" class="overlay" style="display:none; z-index:999999;">
-        <div class="card" style="border: 2px solid #ef4444 !important; max-width: 440px;">
-            <h3 id="route-notice-title" style="color: var(--accent);">Routing Notice</h3>
-            <p id="route-notice-desc" style="font-size:0.9rem; color:#ffffff; margin:15px 0; white-space:pre-line; line-height:1.4;"></p>
-            <div id="route-notice-actions" style="display:flex; gap:10px;"></div>
+    <!-- ROUTING TRANSITION POPUP -->
+    <div id="modal-route-notify" class="overlay" style="display:none; z-index:3200;">
+        <div class="card" style="border-color: var(--accent);">
+            <h3 id="route-notify-title" style="color:var(--accent);">Connecting to the site</h3>
+            <p id="route-notify-desc" style="font-size:0.85rem; color:#ffffff; margin:15px 0;">directing you to the existing URL...</p>
+            <div id="route-notify-actions" style="display:flex; gap:10px;"></div>
         </div>
     </div>
 
@@ -356,6 +344,84 @@
         </div>
     </div>
 
+    <!-- ASSETS PANEL MODAL (/assets/) -->
+    <div id="modal-assets" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 680px; width:95%; max-height:85vh; display:flex; flex-direction:column;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <h3 style="margin:0;">Assets</h3>
+                <button class="btn btn-purple" style="width:auto; margin:0; padding:6px 14px;" onclick="openAssetUploadModal()">Upload</button>
+            </div>
+            <div id="assets-list-container" class="settings-grid" style="flex:1; max-height:none;"></div>
+            <button class="btn btn-secondary" style="margin-top:10px;" onclick="closeAssetsModal()">Back to EzBridge</button>
+        </div>
+    </div>
+
+    <!-- ASSET EDIT / UPLOAD MODAL -->
+    <div id="modal-asset-edit" class="overlay" style="display:none; z-index:2200;">
+        <div class="card" style="max-width: 520px; width:95%;">
+            <h3 id="asset-edit-title">Upload Asset</h3>
+            <div class="settings-grid" style="max-height:none;">
+                <div id="asset-preview-box" style="margin-bottom:10px; text-align:center;"></div>
+                <div class="settings-item">
+                    <label>Asset name (2-20 chars):</label>
+                    <input type="text" id="asset-name-field" maxlength="20" placeholder="My Epic Asset">
+                </div>
+                <div class="settings-item">
+                    <label>Asset file (Audio: MP3, OGG, WAV < 20MB | Image: JPG, JPEG, PNG < 5MB):</label>
+                    <input type="file" id="asset-file-field" accept="audio/mp3,audio/ogg,audio/wav,image/jpeg,image/png,image/jpg" onchange="handleAssetFileSelected(this)">
+                </div>
+            </div>
+
+            <div id="asset-upload-progress" class="progress-container" style="display:none; margin-top:10px;">
+                <div id="asset-progress-bar" class="progress-bar"></div>
+                <div class="progress-text">Uploading Asset: <span id="asset-progress-val">0</span>%</div>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <button class="btn btn-purple" id="btn-submit-asset" onclick="submitAssetUpload()">Apply changes</button>
+                <button class="btn btn-danger" id="btn-delete-asset-form" style="display:none;" onclick="deleteCurrentAssetSubmit()">Delete Asset</button>
+                <button class="btn btn-secondary" onclick="closeAssetEditModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EMAIL 6-CHARS VERIFICATION MODAL -->
+    <div id="modal-email-verify" class="overlay" style="display:none; z-index:3100;">
+        <div class="card" style="max-width: 440px;">
+            <h3>Enter the generated 6-chars code</h3>
+            <p style="font-size:0.8rem; color:var(--muted); line-height:1.4; margin:10px 0;">
+                A code was sent to your provided email, please check your SPAM or inbox and search for a ezbridge bot, there is your generated code.
+            </p>
+            <div style="font-size:0.75rem; color:var(--accent); font-weight:bold; margin-bottom:10px;">
+                (Expires in <span id="email-expire-timer">30:00</span>)
+            </div>
+            <input type="text" id="email-verify-code-input" maxlength="6" placeholder="6-chars code" style="text-transform:uppercase; text-align:center; font-size:1.2rem; font-weight:bold; letter-spacing:4px;">
+            <div style="margin: 10px 0;">
+                <button id="btn-resend-email-code" style="opacity:0.3; font-size:0.8rem; background:transparent; border:none; color:var(--muted); cursor:pointer;" onclick="resendEmailCodeSubmit()">i didn't receive the email</button>
+            </div>
+            <div style="display:flex; gap:10px; margin-top:10px;">
+                <button class="btn btn-purple" onclick="validateEmailCodeSubmit()">Validate</button>
+                <button class="btn btn-secondary" onclick="closeEmailVerifyModal()">Go back</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PYTHON TERMINAL MODAL -->
+    <div id="modal-pyterminal" class="overlay" style="display:none; z-index:2700;">
+        <div class="card" style="max-width: 650px; width:95%; max-height:85vh; display:flex; flex-direction:column;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <h3 style="margin:0; color:var(--green);">Python Terminal</h3>
+                <button class="btn btn-secondary" style="width:auto; margin:0; padding:4px 12px;" onclick="closePyTerminalModal()">Close</button>
+            </div>
+            <div id="pyterminal-display" class="pyterm-window" onclick="focusPyTermInput()"></div>
+            <div style="display:flex; gap:6px; margin-top:8px;">
+                <span style="color:var(--green); font-weight:bold; font-family:monospace; padding-top:8px;">&gt;</span>
+                <input type="text" id="pyterminal-input" placeholder="Type command or /exe..." style="flex:1;" onkeypress="handlePyTermKey(event)">
+                <button class="btn btn-green" style="width:auto; margin:0; padding:6px 14px;" onclick="sendPyTermCommand()">Send</button>
+            </div>
+        </div>
+    </div>
+
     <div id="overlay-fetching-sites" class="overlay" style="display:none;">
         <div class="card">
             <h3>Fetching sites...</h3>
@@ -409,9 +475,9 @@
                 </div>
                 <div class="settings-item">
                     <label>HTML Script (at least 100 chars, max 20MB)</label>
-                    <div class="editor-container" id="container-site-html">
-                        <div class="editor-line-numbers" id="lines-site-html">1</div>
-                        <textarea class="editor-textarea" id="site-html-field" placeholder="<!DOCTYPE html>..."></textarea>
+                    <div class="code-container">
+                        <div id="site-code-lines" class="line-numbers">1</div>
+                        <textarea id="site-html-field" class="code-textarea" rows="8" placeholder="<!DOCTYPE html>..." oninput="updateLineNumbers('site-html-field', 'site-code-lines')" onscroll="syncScroll('site-html-field', 'site-code-lines')"></textarea>
                     </div>
                     <button class="btn btn-purple" type="button" style="margin-top:4px; font-size:0.8rem; padding:8px;" onclick="openAskAiSiteModal()">Or ask AI ✨</button>
                 </div>
@@ -583,7 +649,6 @@
         </div>
     </div>
 
-    <!-- SIGN UP 3 FIELDS (USER, PASS, EMAIL) -->
     <div id="modal-ezbridge-signup" class="overlay" style="display:none;">
         <div class="card" style="max-width: 460px;">
             <h3>EzBridge Sign Up</h3>
@@ -599,44 +664,12 @@
                     <div id="eb-signup-pass-status" style="font-size:0.75rem; text-align:left; min-height:16px;"></div>
                 </div>
                 <div class="settings-item">
-                    <label>Your email (REQUIRED):</label>
+                    <label>Your Email (Required for verification):</label>
                     <input type="email" id="eb-signup-email" placeholder="example@gmail.com">
                 </div>
             </div>
-            <button class="btn btn-purple" id="btn-submit-signup" onclick="submitEzBridgeSignUpRequest()">Create a new account</button>
+            <button class="btn btn-purple" id="btn-submit-signup" onclick="startSignUpFlow()">Create a new account</button>
             <button class="btn btn-secondary" onclick="closeEzBridgeSignUp()">Cancel</button>
-        </div>
-    </div>
-
-    <!-- 6 CHAR VERIFICATION POPUP (FOR SIGNUP & 2FA LOGIN) -->
-    <div id="modal-verify-code" class="overlay" style="display:none; z-index:3200;">
-        <div class="card" style="max-width: 440px;">
-            <h3>Enter the generated 6-chars code</h3>
-            <p style="font-size:0.8rem; color:var(--muted); line-height:1.4;">
-                A code was sent to your provided email, please check your SPAM or inbox and search for a ezbridge bot, there is your generated code.
-            </p>
-            <div style="font-size:0.85rem; font-weight:bold; color:var(--accent); margin-bottom:8px;" id="verify-timer-text">(Expires in 30:00)</div>
-            <input type="text" id="verify-code-input" maxlength="6" placeholder="6-digit code" style="text-align:center; font-size:1.3rem; letter-spacing:4px; text-transform:uppercase; font-weight:bold; width:100%; box-sizing:border-box;">
-            
-            <button id="btn-resend-code" style="display:none; opacity:0.7; transform:scale(0.8); background:transparent; border:none; color:var(--muted); text-decoration:underline; cursor:pointer; margin:8px auto; font-size:0.75rem;" onclick="resendVerificationCode()">i didn't receive the email</button>
-
-            <div style="display:flex; gap:10px; margin-top:15px;">
-                <button class="btn btn-purple" onclick="submitCodeVerification()">Validate</button>
-                <button class="btn btn-secondary" onclick="closeVerifyCodeModal()">Go back</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- OBLIGATE LINK EMAIL MODAL -->
-    <div id="modal-link-email" class="overlay" style="display:none; z-index:3300;">
-        <div class="card" style="max-width: 440px;">
-            <h3>Link Email Required</h3>
-            <p style="font-size:0.8rem; color:var(--muted);">Your account does not have an email linked yet. Please enter a valid email to secure your account.</p>
-            <div class="settings-item" style="text-align:left; margin:15px 0;">
-                <label>Email:</label>
-                <input type="email" id="link-email-input" placeholder="example@gmail.com">
-            </div>
-            <button class="btn btn-purple" onclick="submitLinkEmailRequest()">Send verification code</button>
         </div>
     </div>
 
@@ -747,9 +780,9 @@
         <div class="card" style="max-width: 650px;">
             <h3>ServerScript Editor (REQUIRED)</h3>
             <p style="font-size:0.8rem; color:var(--muted);">At least 1 character is strictly required for the server to operate.</p>
-            <div class="editor-container" id="container-server-script">
-                <div class="editor-line-numbers" id="lines-server-script">1</div>
-                <textarea class="editor-textarea" id="script-editor" placeholder="// ServerScript is mandatory!&#10;Server.on('player_update', (evt) => {&#10;    Server.broadcast('state_update', evt.data);&#10;});"></textarea>
+            <div class="code-container">
+                <div id="serverscript-lines" class="line-numbers">1</div>
+                <textarea id="script-editor" class="code-textarea" rows="12" placeholder="// ServerScript is mandatory!&#10;Server.on('player_update', (evt) => {&#10;    Server.broadcast('state_update', evt.data);&#10;});" oninput="updateLineNumbers('script-editor', 'serverscript-lines')" onscroll="syncScroll('script-editor', 'serverscript-lines')"></textarea>
             </div>
             
             <div id="script-upload-progress" class="progress-container" style="display:none;">
@@ -769,38 +802,10 @@
             <h3>Server Console Logs</h3>
             <div id="console-logs-display" class="console-box"></div>
             <div style="display:flex; gap:10px;">
-                <button class="btn btn-green" style="flex:1;" onclick="openPythonTerminalModal()">Python Terminal</button>
+                <button class="btn btn-green" style="flex:1;" onclick="openPyTerminalModal()">Python Terminal</button>
                 <button class="btn" style="flex:1;" onclick="copyConsoleLogs()">Copy Logs</button>
                 <button class="btn btn-purple" style="flex:1;" onclick="openServerStorageModal()">See Storage</button>
-                <button class="btn btn-secondary" style="flex:1;" onclick="closeConsoleModal()">Close</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ISOLATED PYTHON TERMINAL MODAL -->
-    <div id="modal-python-terminal" class="overlay" style="display:none; z-index:2700;">
-        <div class="card" style="max-width: 700px; width:95%; height:85vh; display:flex; flex-direction:column; background:#000000; border:2px solid var(--green) !important;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                <h3 style="margin:0; color:var(--green);">>_ Python Server Terminal</h3>
-                <button class="btn btn-secondary" style="width:auto; margin:0; padding:4px 12px;" onclick="closePythonTerminalModal()">Close</button>
-            </div>
-            <div id="python-term-box" style="flex:1; background:#000000; color:#ffffff; font-family:monospace; font-size:0.85rem; text-align:left; padding:10px; overflow-y:auto; border:1px solid #1e293b; white-space:pre-wrap; cursor:text;" onclick="focusPythonInput()"></div>
-            <div style="display:flex; align-items:center; background:#020617; border:1px solid #1e293b; margin-top:8px; padding:4px 8px;">
-                <span style="color:var(--green); font-weight:bold; margin-right:6px;">></span>
-                <input type="text" id="python-term-input" style="flex:1; background:transparent; border:none; color:#ffffff; font-family:monospace; font-size:0.85rem; outline:none;" placeholder="Type /exe (press enter to paste script), /r, /clear, /v [module]...">
-                <button class="btn btn-green" style="width:auto; margin:0; padding:4px 14px; font-size:0.8rem;" onclick="sendPythonCommand()">Run</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- PYTHON EXECUTE MODAL (FOR PASTING SCRIPT) -->
-    <div id="modal-python-exe" class="overlay" style="display:none; z-index:2800;">
-        <div class="card" style="max-width: 600px;">
-            <h3 style="color:var(--green);">Paste Python Script to Execute</h3>
-            <textarea id="python-exe-code" class="code-box" rows="10" style="width:100%; height:200px; resize:none;" placeholder="# Paste your safe python script here..."></textarea>
-            <div style="display:flex; gap:10px; margin-top:10px;">
-                <button class="btn btn-green" onclick="submitPythonExecution()">Execute</button>
-                <button class="btn btn-secondary" onclick="closePythonExeModal()">Cancel</button>
+                <button class="btn btn-secondary" style="width:80px;" onclick="closeConsoleModal()">Close</button>
             </div>
         </div>
     </div>
@@ -820,61 +825,20 @@
         </div>
     </div>
 
-    <!-- ASSETS MANAGER MODAL -->
-    <div id="modal-assets" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 680px; width:95%; max-height:85vh; display:flex; flex-direction:column;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <h3 style="margin:0;">Assets</h3>
-                <button class="btn btn-purple" style="width:auto; margin:0; padding:6px 14px; font-size:0.8rem;" onclick="openAssetUploadModal(false)">Upload</button>
-            </div>
-            <div id="assets-list-container" class="settings-grid" style="flex:1; max-height:none;"></div>
-            <button class="btn btn-secondary" style="margin-top:10px;" onclick="closeAssetsModal()">Close</button>
-        </div>
-    </div>
-
-    <!-- ASSET UPLOAD / EDIT MODAL -->
-    <div id="modal-asset-edit" class="overlay" style="display:none; z-index:2400;">
-        <div class="card" style="max-width: 500px; width:95%;">
-            <h3 id="asset-modal-title">asset</h3>
-            <div id="asset-preview-box" style="margin:10px 0; max-height:160px; display:flex; align-items:center; justify-content:center; background:#020617; border:1px solid var(--border); padding:10px;">
-                <span style="color:var(--muted); font-size:0.8rem;">No asset preview</span>
-            </div>
-            <div class="settings-grid" style="max-height:none;">
-                <div class="settings-item">
-                    <label>Asset name: (min 2 chars, less than 20)</label>
-                    <input type="text" id="asset-name-field" maxlength="19" placeholder="Asset name">
-                </div>
-                <div class="settings-item">
-                    <label>Asset: (MP3, OGG, WAV &lt; 20MB | JPG, JPEG, PNG &lt; 5MB)</label>
-                    <input type="file" id="asset-file-input" accept="image/jpeg,image/png,audio/mpeg,audio/ogg,audio/wav" onchange="handleAssetFileSelect(this)">
-                </div>
-            </div>
-            <div id="asset-upload-progress" class="progress-container" style="display:none; margin-top:10px;">
-                <div id="asset-progress-bar" class="progress-bar"></div>
-                <div class="progress-text">Uploading: <span id="asset-progress-val">0</span>%</div>
-            </div>
-            <div style="display:flex; gap:10px; margin-top:15px;">
-                <button class="btn btn-purple" id="asset-submit-btn" onclick="submitAssetUploadOrEdit()">Apply changes</button>
-                <button class="btn btn-danger" id="asset-delete-btn" style="display:none;" onclick="deleteCurrentAsset()">Delete Asset</button>
-                <button class="btn btn-secondary" onclick="closeAssetEditModal()">Cancel</button>
-            </div>
-        </div>
-    </div>
-
     <div id="modal-choose-session" class="overlay" style="display:none;">
         <div class="card" style="max-width: 420px;">
             <h3>Choose a session</h3>
             <div class="session-btn-list">
-                <button class="session-btn" onclick="openChatRoomModal(1)">S. 1</button>
-                <button class="session-btn" onclick="openChatRoomModal(2)">S. 2</button>
-                <button class="session-btn" onclick="openChatRoomModal(3)">S. 3</button>
-                <button class="session-btn" onclick="openChatRoomModal(4)">S. 4</button>
-                <button class="session-btn" onclick="openChatRoomModal(5)">S. 5</button>
-                <button class="session-btn" onclick="openChatRoomModal(6)">S. 6</button>
-                <button class="session-btn" onclick="openChatRoomModal(7)">S. 7</button>
-                <button class="session-btn" onclick="openChatRoomModal(8)">S. 8</button>
-                <button class="session-btn" onclick="openChatRoomModal(9)">S. 9</button>
-                <button class="session-btn" onclick="openChatRoomModal(10)">S. 10</button>
+                <button class="session-btn" onclick="navigateToPath('chat/s1')">S. 1</button>
+                <button class="session-btn" onclick="navigateToPath('chat/s2')">S. 2</button>
+                <button class="session-btn" onclick="navigateToPath('chat/s3')">S. 3</button>
+                <button class="session-btn" onclick="navigateToPath('chat/s4')">S. 4</button>
+                <button class="session-btn" onclick="navigateToPath('chat/s5')">S. 5</button>
+                <button class="session-btn" onclick="navigateToPath('chat/s6')">S. 6</button>
+                <button class="session-btn" onclick="navigateToPath('chat/s7')">S. 7</button>
+                <button class="session-btn" onclick="navigateToPath('chat/s8')">S. 8</button>
+                <button class="session-btn" onclick="navigateToPath('chat/s9')">S. 9</button>
+                <button class="session-btn" onclick="navigateToPath('chat/s10')">S. 10</button>
             </div>
             <button class="btn btn-secondary" onclick="closeChooseSessionModal()">Close</button>
         </div>
@@ -894,8 +858,8 @@
         </div>
     </div>
 
-    <!-- LOOK SERVERSCRIPT MODAL WITH HIGHER Z-INDEX (3500) TO POP UP ON TOP -->
-    <div id="modal-view-script" class="overlay" style="display:none; z-index:3500;">
+    <!-- VIEW SERVERSCRIPT MODAL (ON TOP OF EVERYTHING) -->
+    <div id="modal-view-script" class="overlay" style="display:none; z-index:2600;">
         <div class="card" style="max-width: 650px;">
             <h3>View ServerScript</h3>
             <textarea id="view-script-textarea" class="code-box" readonly rows="12" style="width:100%; height:250px; resize:none;" placeholder="Loading script chunks..."></textarea>
@@ -916,9 +880,12 @@
                 <button class="btn btn-purple" id="btn-change-username" style="display:none;" onclick="openChangeUsernameModal()">Change Account Username</button>
                 <button class="btn btn-purple" id="btn-change-password" style="display:none;" onclick="openChangePasswordModal()">Change Account Password</button>
 
-                <div id="login-verify-toggle-panel" style="display:none; background:#020617; border:1px solid var(--border); padding:10px; text-align:left;">
-                    <label style="font-size:0.75rem; color:var(--muted); font-weight:bold;">logging requires email verification (6 chars code):</label>
-                    <button class="btn btn-purple" id="btn-toggle-login-verify" style="margin-top:6px; padding:6px;" onclick="toggleLoginVerificationState()">Enabled</button>
+                <div class="settings-item" style="text-align:left; margin-top:5px;">
+                    <label>logging requires email verification (6 chars code):</label>
+                    <select id="cfg-login-2fa" onchange="toggleLogin2FASubmit(this.value)">
+                        <option value="true" selected>Enabled</option>
+                        <option value="false">Disabled</option>
+                    </select>
                 </div>
 
                 <button class="btn btn-purple" id="btn-server-mgmt" style="display:none;" onclick="openServerMgmtModal()">Server Management</button>
@@ -947,10 +914,7 @@
         <div class="card" style="max-width: 650px;">
             <h3>Update Universal Server Script</h3>
             <p style="font-size:0.8rem; color:var(--muted);">Paste the new univserver.js code below. Tested for 5s before switching over.</p>
-            <div class="editor-container" id="container-univ-script">
-                <div class="editor-line-numbers" id="lines-univ-script">1</div>
-                <textarea class="editor-textarea" id="univserver-script-editor" placeholder="// Paste new univserver.js here..."></textarea>
-            </div>
+            <textarea id="univserver-script-editor" class="code-box" rows="12" style="width:100%; height:220px; resize:none;" placeholder="// Paste new univserver.js here..."></textarea>
             
             <div id="univ-upload-progress" class="progress-container" style="display:none;">
                 <div id="univ-progress-bar" class="progress-bar"></div>
@@ -1074,7 +1038,7 @@
                 <span id="role-tag-display"></span>
             </div>
             <div style="display:flex; gap:6px; align-items:center;">
-                <button class="btn-icon" title="Global Chat Sessions" onclick="navigateToRoute('/chat/')">💬</button>
+                <button class="btn-icon" title="Global Chat Sessions" onclick="openChooseSessionModal()">💬</button>
                 <button class="btn-icon" id="terminal-btn" style="display:none;" onclick="openUniversalPanelModal()">>_</button>
                 <button class="btn" style="width:auto; margin:0; padding:6px 10px; font-size:0.75rem;" onclick="copyUserId()">Copy Client ID</button>
                 <div id="dashboard-google-container" style="display:none;">
@@ -1090,11 +1054,11 @@
 
         <div style="margin: 15px 0; text-align: left; font-size: 0.85rem; color: var(--muted); display:flex; flex-direction:column; gap:6px;">
             <div id="account-email-display" style="color:var(--accent); font-size:0.75rem; font-weight:bold; display:flex; justify-content:space-between; align-items:center;">
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <span>Linked Account: <span id="user-email-text">-</span></span>
-                    <button class="btn" style="width:auto; margin:0; padding:2px 8px; font-size:0.7rem; background:#ffffff !important; color:#000000 !important;" onclick="navigateToRoute('/assets/')">Assets</button>
+                <span>Linked Account: <span id="user-email-text">-</span></span>
+                <div style="display:flex; gap:6px; align-items:center;">
+                    <button class="btn" style="width:auto; margin:0; padding:2px 8px; font-size:0.75rem; background:#ffffff !important; color:#000000 !important;" onclick="navigateToPath('assets')">Assets</button>
+                    <button class="btn-icon" onclick="openAccountSettingsModal()">⋮</button>
                 </div>
-                <button class="btn-icon" onclick="openAccountSettingsModal()">⋮</button>
             </div>
             <div>Users online on your server: <span id="online-users-count" style="color:var(--accent); font-weight:bold;">0</span></div>
             <div>Active ServerScripts: <span id="active-scripts-count" style="color:var(--accent); font-weight:bold;">0</span></div>
@@ -1118,7 +1082,7 @@
             <button class="btn btn-secondary" style="flex: 1;" onclick="openHowToUse()">How to Use</button>
         </div>
 
-        <button class="btn" style="background:#ffffff !important; color:#000000 !important; font-weight:bold; margin-top:15px;" onclick="navigateToRoute('/sites/')">SEE AND PUBLISH</button>
+        <button class="btn" style="background:#ffffff !important; color:#000000 !important; font-weight:bold; margin-top:15px;" onclick="navigateToPath('sites')">SEE AND PUBLISH</button>
     </div>
 
     <div id="modal-howto" class="overlay" style="display:none;">
@@ -1193,14 +1157,14 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://telling-carefully-tone-seminars.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://shelf-basically-procurement-poetry.trycloudflare.com";
+    const BASE_SITE_URL = "https://terminatorsbdev.github.io/EzBridge/";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
     let googleEmail = null;
     let ezbridgeUsername = null;
-    let ezbridgeEmail = null;
-    let emailVerificationOnLogin = true;
+    let userLinkedEmail = null;
     let activeUserId = "";
     let userRole = "None";
     let serverKey = "";
@@ -1216,9 +1180,14 @@
     let isCaptchaTagged = false;
 
     let currentProfile = { displayName: "User_123456789", pfpData: "default" };
+    let cachedUserProfiles = {};
+    let cachedAssetsRam = {};
+
     let currentCoins = 50;
     let currentBatteryMb = 500;
     let stagedPfpBase64 = null;
+    let stagedAssetBase64 = null;
+    let currentEditingAssetId = null;
 
     let isServerLockdown = false;
     let lockdownUntilTime = 0;
@@ -1227,13 +1196,17 @@
     let isGuestMode = false;
     let pendingDailyRewardForNewServer = null;
 
+    let emailTimerInterval = null;
+    let emailTimerSeconds = 1800;
+    let emailResendCooldown = 0;
+    let emailResendInterval = null;
+    let pendingSignupData = null;
+
     let rxBytesAccum = 0;
     let txBytesAccum = 0;
     let currentPingVal = 60;
 
     let cooldownTimerCountdown = null;
-    let verifyCodeExpireTimer = null;
-    let verifyResendTimer = null;
 
     let currentChatSession = null;
     let chatHistoryChunks = [];
@@ -1246,11 +1219,6 @@
     let generatedSiteIdVal = "";
     let userSiteDataChunks = [];
     let siteSearchDebounce = null;
-
-    let userAssetsCache = [];
-    let clientAssetRamCache = {};
-    let stagedAssetBase64 = null;
-    let currentEditingAssetId = null;
 
     let currentAiGenId = null;
     let aiTimerInterval = null;
@@ -1322,32 +1290,6 @@
     }
     animateBackground();
 
-    function setupEditorLineNumbers(textareaId, linesId) {
-        const ta = document.getElementById(textareaId);
-        const lns = document.getElementById(linesId);
-        if (!ta || !lns) return;
-
-        function update() {
-            const count = (ta.value.match(/\n/g) || []).length + 1;
-            let str = '';
-            for (let i = 1; i <= count; i++) {
-                str += i + '\n';
-            }
-            lns.textContent = str;
-        }
-        ta.addEventListener('input', update);
-        ta.addEventListener('scroll', () => {
-            lns.scrollTop = ta.scrollTop;
-        });
-        update();
-    }
-
-    window.addEventListener('DOMContentLoaded', () => {
-        setupEditorLineNumbers('script-editor', 'lines-server-script');
-        setupEditorLineNumbers('univserver-script-editor', 'lines-univ-script');
-        setupEditorLineNumbers('site-html-field', 'lines-site-html');
-    });
-
     const initTimeout = setTimeout(() => {
         document.getElementById('overlay-sync').style.display = 'none';
         document.getElementById('overlay-timeout-error').style.display = 'flex';
@@ -1376,106 +1318,116 @@
 
     socket.on('connect', () => {
         socket.emit('eb_sync_session', { ownerId });
-        checkInitialUrlRoute();
     });
 
-    function getRelativeRoutePath() {
-        let p = window.location.pathname;
-        p = p.replace(/^\/[^/]+(?=\/)/, '');
-        if (!p || p === '') p = '/';
-        return p;
+    function navigateToPath(subpath) {
+        const clean = subpath.replace(/^\/+|\/+$/g, '');
+        const targetUrl = `${BASE_SITE_URL}${clean}/`;
+        window.history.pushState({}, '', targetUrl);
+        showRouteConnectingModal();
+        socket.emit('changeurl', { path: clean });
     }
 
-    function navigateToRoute(pathStr) {
-        window.history.pushState(null, '', pathStr);
-        socket.emit('changeurl', { path: pathStr });
-    }
-
-    function checkInitialUrlRoute() {
-        const route = getRelativeRoutePath();
-        socket.emit('changeurl', { path: route });
+    function checkInitialUrlRouting() {
+        const pathStr = window.location.pathname;
+        const clean = pathStr.replace(/^\/?(EzBridge\/)?/i, '').replace(/^\/+|\/+$/g, '');
+        if (clean) {
+            socket.emit('changeurl', { path: clean });
+        }
     }
 
     socket.on('changeurl_response', (data) => {
-        if (data.status === 'valid') {
-            applyRouteUI(data.path, data);
-        } else if (data.status === 'login_with_server') {
-            showRouteNoticeModal(
-                "Notice",
-                data.message,
-                [
-                    { text: "Log off", class: "btn-danger", onClick: "accountLogout()" },
-                    { text: "Back to main page", class: "btn-purple", onClick: "navigateToRoute('/main/')" }
-                ]
-            );
-        } else if (data.status === 'no_access') {
-            showRouteNoticeModal(
-                "Access Denied",
-                data.message,
-                [
-                    { text: "Back to login page", class: "btn-purple", onClick: "navigateToRoute('/login/')" }
-                ]
-            );
-        } else if (data.status === 'no_permission') {
-            alert("title: No permission\nDescription: this asset is not yours, you cannot edit it.");
-            navigateToRoute('/assets/');
-        } else if (data.status === 'not_found') {
-            showRouteNoticeModal(
-                "DIRECTORY NOT FOUND!",
-                data.message,
-                [
-                    { text: "RETURN TO EZBRIDGE", class: "btn-purple", onClick: "navigateToRoute('/main/')" }
-                ]
-            );
+        hideRouteConnectingModal();
+        if (!data.valid) {
+            if (data.requiresAuth) {
+                showRouteNotifyModal("You do not have access to this page.", "Please make sure you are logged in EzBridge to access this content.", [
+                    { label: "Back to login page", action: () => { navigateToPath('login'); } }
+                ]);
+            } else {
+                showRouteNotifyModal(data.error || "DIRECTORY NOT FOUND!", data.description || "It looks like you entered a invalid directory of EzBridge or that doesn't exist.", [
+                    { label: "RETURN TO EZBRIDGE", action: () => { navigateToPath('main'); } }
+                ]);
+            }
+            return;
+        }
+
+        const path = data.path;
+        if (path === 'main') {
+            if (serverKey) showDashboard();
+            else openSetupUI();
+        } else if (path === 'login') {
+            if (serverKey) {
+                showRouteNotifyModal("Login Notice", "It looks like you entered the login/signup link, are you planning on logging off your EzBridge account or was that accidental?", [
+                    { label: "Log off", action: () => { accountLogout(); } },
+                    { label: "Back to main page", action: () => { navigateToPath('main'); } }
+                ]);
+            } else {
+                document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
+                document.getElementById('overlay-captcha').style.display = 'flex';
+            }
+        } else if (path === 'sites') {
+            openSeeAndPublishModal();
+        } else if (path.startsWith('site/')) {
+            const sId = path.replace('site/', '').trim();
+            socket.emit('eb_visit_site', { siteId: sId });
+        } else if (path === 'chat') {
+            openChooseSessionModal();
+        } else if (/^chat\/s([1-9]|10)$/.test(path)) {
+            const num = Number(path.replace('chat/s', ''));
+            openChatRoomModal(num);
+        } else if (path === 'assets') {
+            openAssetsModal();
+        } else if (path.startsWith('assets/edit/')) {
+            const aId = path.replace('assets/edit/', '').trim();
+            openAssetEditForm(aId);
         }
     });
 
-    function showRouteNoticeModal(title, desc, buttons) {
-        document.getElementById('route-notice-title').innerText = title;
-        document.getElementById('route-notice-desc').innerText = desc;
-        const acts = document.getElementById('route-notice-actions');
-        acts.innerHTML = "";
+    function showRouteConnectingModal() {
+        document.getElementById('route-notify-title').innerText = "Connecting to the site";
+        document.getElementById('route-notify-desc').innerText = "directing you to the existing URL...";
+        document.getElementById('route-notify-actions').innerHTML = "";
+        document.getElementById('modal-route-notify').style.display = 'flex';
+    }
+
+    function hideRouteConnectingModal() {
+        document.getElementById('modal-route-notify').style.display = 'none';
+    }
+
+    function showRouteNotifyModal(title, desc, buttons) {
+        document.getElementById('route-notify-title').innerText = title;
+        document.getElementById('route-notify-desc').innerText = desc;
+        const actions = document.getElementById('route-notify-actions');
+        actions.innerHTML = "";
         buttons.forEach(b => {
             const btn = document.createElement('button');
-            btn.className = `btn ${b.class || 'btn-secondary'}`;
-            btn.innerText = b.text;
-            btn.setAttribute('onclick', `${b.onClick}; closeRouteNoticeModal();`);
-            acts.appendChild(btn);
+            btn.className = "btn btn-secondary";
+            btn.innerText = b.label;
+            btn.onclick = () => {
+                hideRouteConnectingModal();
+                b.action();
+            };
+            actions.appendChild(btn);
         });
-        document.getElementById('modal-route-notice').style.display = 'flex';
+        document.getElementById('modal-route-notify').style.display = 'flex';
     }
 
-    function closeRouteNoticeModal() {
-        document.getElementById('modal-route-notice').style.display = 'none';
-    }
-
-    function applyRouteUI(pathStr, routeData) {
-        if (pathStr === '/sites/' || pathStr === '/sites') {
-            openSeeAndPublishModal();
-        } else if (pathStr.startsWith('/site/')) {
-            if (routeData && routeData.siteId) {
-                accessSite(routeData.siteId);
-            }
-        } else if (pathStr === '/chat/' || pathStr === '/chat') {
-            openChooseSessionModal();
-        } else if (/^\/chat\/s([1-9]|10)\/?$/.test(pathStr)) {
-            const m = pathStr.match(/\/chat\/s([1-9]|10)/);
-            if (m && m[1]) openChatRoomModal(parseInt(m[1]));
-        } else if (pathStr === '/assets/' || pathStr === '/assets') {
-            openAssetsModal();
-        } else if (pathStr.startsWith('/assets/edit/')) {
-            if (routeData && routeData.assetId) {
-                openAssetEditModalById(routeData.assetId);
-            }
-        } else if (pathStr === '/main/' || pathStr === '/main') {
-            document.querySelectorAll('.overlay').forEach(el => {
-                if (el.id !== 'overlay-sync' && el.id !== 'overlay-loading') el.style.display = 'none';
-            });
-            if (serverKey) showDashboard();
-        } else if (pathStr === '/login/' || pathStr === '/login') {
-            document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
-            document.getElementById('overlay-captcha').style.display = 'flex';
+    function updateLineNumbers(textareaId, linesId) {
+        const ta = document.getElementById(textareaId);
+        const linesEl = document.getElementById(linesId);
+        if (!ta || !linesEl) return;
+        const lineCount = ta.value.split('\n').length;
+        let numbers = '';
+        for (let i = 1; i <= lineCount; i++) {
+            numbers += i + '\n';
         }
+        linesEl.innerText = numbers;
+    }
+
+    function syncScroll(textareaId, linesId) {
+        const ta = document.getElementById(textareaId);
+        const linesEl = document.getElementById(linesId);
+        if (ta && linesEl) linesEl.scrollTop = ta.scrollTop;
     }
 
     function applyFullAuthState(data, isNewLogin) {
@@ -1498,22 +1450,13 @@
         ownerId = data.ownerId;
         activeUserId = data.userId || data.ownerId;
         userRole = data.role || "None";
+        userLinkedEmail = data.email || null;
         setCookie("eb_owner_id", ownerId, 365);
         isCaptchaTagged = true;
 
         if (data.username) ezbridgeUsername = data.username;
-        if (data.email) ezbridgeEmail = data.email;
-        if (data.emailVerificationOnLogin !== undefined) {
-            emailVerificationOnLogin = Boolean(data.emailVerificationOnLogin);
-            updateLoginVerificationBtn();
-        }
         if (data.profile) updateLocalProfileUI(data.profile);
         if (data.coins !== undefined) updateCoinsDisplay(data.coins);
-
-        if (ezbridgeUsername && !ezbridgeEmail) {
-            openLinkEmailModal(ezbridgeUsername);
-            return;
-        }
 
         if (data.hasServer && data.server) {
             serverKey = data.server.key;
@@ -1525,6 +1468,7 @@
             currentServerScript = data.server.serverScript || "";
             googleSub = data.server.googleSub || null;
             googleEmail = data.server.email || null;
+            userLinkedEmail = data.server.email || userLinkedEmail;
             ezbridgeUsername = data.server.ezbridgeUsername || ezbridgeUsername;
             whitelistedDomains = serverSettings.whitelistedDomains || [];
 
@@ -1534,9 +1478,13 @@
 
             applyRolePermissions();
             showDashboard();
-            checkUrlSiteHash();
+            checkInitialUrlRouting();
         } else {
             openSetupUI();
+        }
+
+        if (data.emailRequired) {
+            openEmailVerifyModal(true);
         }
 
         if (data.dailyReward && data.dailyReward.pendingReward) {
@@ -1575,20 +1523,17 @@
             return;
         }
 
-        if (data.emailVerificationOnLogin !== undefined) {
-            emailVerificationOnLogin = Boolean(data.emailVerificationOnLogin);
-            updateLoginVerificationBtn();
-        }
-
         if (data.hasServer) {
             applyFullAuthState(data, false);
         } else {
             activeUserId = data.userId || data.ownerId;
             if (data.username) ezbridgeUsername = data.username;
+            if (data.email) userLinkedEmail = data.email;
             if (data.profile) updateLocalProfileUI(data.profile);
             if (data.coins !== undefined) updateCoinsDisplay(data.coins);
             if (ownerId && (data.username || data.userId)) isCaptchaTagged = true;
             document.getElementById('overlay-captcha').style.display = 'flex';
+            checkInitialUrlRouting();
         }
     });
 
@@ -1605,7 +1550,7 @@
             ownerId = data.ownerId;
             activeUserId = data.userId;
             ezbridgeUsername = data.username;
-            ezbridgeEmail = data.email || null;
+            userLinkedEmail = data.email;
             setCookie("eb_owner_id", ownerId, 365);
             isCaptchaTagged = true;
             if (data.profile) updateLocalProfileUI(data.profile);
@@ -1616,137 +1561,10 @@
         }
     });
 
-    function submitEzBridgeSignUpRequest() {
-        if (!isCaptchaTagged && !ezbridgeUsername && !googleSub) {
-            return alert("⚠Request rejected⚠\nYou must verify yourself to prove you're not a bot.");
-        }
-        const user = document.getElementById('eb-signup-user').value.trim();
-        const pass = document.getElementById('eb-signup-pass').value;
-        const email = document.getElementById('eb-signup-email').value.trim();
-        if (!user || !pass || !email) return alert("Please fill in all three required fields!");
-
-        showLoadingScreen("Sending verification code to your email...");
-        socket.emit('eb_request_signup_verification', { username: user, password: pass, email: email });
-    }
-
-    socket.on('eb_signup_code_sent', (data) => {
-        hideLoadingScreen();
-        document.getElementById('modal-ezbridge-signup').style.display = 'none';
-        openVerifyCodeModal('signup', data.email);
-    });
-
-    socket.on('eb_login_code_required', (data) => {
+    socket.on('eb_login_2fa_required', (data) => {
         document.getElementById('overlay-ezbridge-logging').style.display = 'none';
-        openVerifyCodeModal('login', data.email);
+        openEmailVerifyModal(false, true, data.email);
     });
-
-    socket.on('eb_require_email_link', (data) => {
-        document.getElementById('overlay-ezbridge-logging').style.display = 'none';
-        openLinkEmailModal(data.username);
-    });
-
-    socket.on('eb_link_code_sent', (data) => {
-        document.getElementById('modal-link-email').style.display = 'none';
-        openVerifyCodeModal('link_email', data.email);
-    });
-
-    let currentVerifyType = 'signup';
-    let currentVerifyEmail = '';
-
-    function openVerifyCodeModal(type, email) {
-        currentVerifyType = type;
-        currentVerifyEmail = email;
-        document.getElementById('verify-code-input').value = "";
-        document.getElementById('modal-verify-code').style.display = 'flex';
-
-        startVerifyTimer(30 * 60);
-        startResendCooldown(30);
-    }
-
-    function closeVerifyCodeModal() {
-        if (verifyCodeExpireTimer) clearInterval(verifyCodeExpireTimer);
-        if (verifyResendTimer) clearInterval(verifyResendTimer);
-        document.getElementById('modal-verify-code').style.display = 'none';
-    }
-
-    function startVerifyTimer(durationSeconds) {
-        if (verifyCodeExpireTimer) clearInterval(verifyCodeExpireTimer);
-        let rem = durationSeconds;
-        const el = document.getElementById('verify-timer-text');
-        verifyCodeExpireTimer = setInterval(() => {
-            rem--;
-            const m = String(Math.floor(rem / 60)).padStart(2, '0');
-            const s = String(rem % 60).padStart(2, '0');
-            el.innerText = `(Expires in ${m}:${s})`;
-            if (rem <= 0) {
-                clearInterval(verifyCodeExpireTimer);
-                el.innerText = "(Code expired, please refresh)";
-            }
-        }, 1000);
-    }
-
-    function startResendCooldown(seconds) {
-        const btn = document.getElementById('btn-resend-code');
-        btn.style.display = 'none';
-        if (verifyResendTimer) clearInterval(verifyResendTimer);
-        let rem = seconds;
-        verifyResendTimer = setInterval(() => {
-            rem--;
-            if (rem <= 0) {
-                clearInterval(verifyResendTimer);
-                btn.style.display = 'block';
-            }
-        }, 1000);
-    }
-
-    function resendVerificationCode() {
-        socket.emit('eb_resend_verification_code', { email: currentVerifyEmail });
-        startResendCooldown(30);
-    }
-
-    function submitCodeVerification() {
-        const code = document.getElementById('verify-code-input').value.trim().toUpperCase();
-        if (!code || code.length !== 6) return alert("Please enter the 6-character code!");
-
-        if (currentVerifyType === 'signup') {
-            socket.emit('eb_verify_signup_code', { code: code });
-        } else if (currentVerifyType === 'login') {
-            socket.emit('eb_verify_login_code', { code: code });
-        } else if (currentVerifyType === 'link_email') {
-            socket.emit('eb_verify_link_code', { code: code });
-        }
-        closeVerifyCodeModal();
-    }
-
-    function openLinkEmailModal(username) {
-        document.getElementById('link-email-input').value = "";
-        document.getElementById('modal-link-email').style.display = 'flex';
-    }
-
-    function submitLinkEmailRequest() {
-        const em = document.getElementById('link-email-input').value.trim();
-        if (!em) return alert("Email is required!");
-        socket.emit('eb_link_account_email', { username: ezbridgeUsername, email: em });
-    }
-
-    function updateLoginVerificationBtn() {
-        const pnl = document.getElementById('login-verify-toggle-panel');
-        const btn = document.getElementById('btn-toggle-login-verify');
-        if (!pnl || !btn) return;
-        if (ezbridgeUsername) {
-            pnl.style.display = 'block';
-            btn.innerText = emailVerificationOnLogin ? "Enabled" : "Disabled";
-            btn.className = `btn ${emailVerificationOnLogin ? 'btn-purple' : 'btn-secondary'}`;
-        } else {
-            pnl.style.display = 'none';
-        }
-    }
-
-    function toggleLoginVerificationState() {
-        emailVerificationOnLogin = !emailVerificationOnLogin;
-        updateLoginVerificationBtn();
-        socket.emit('eb_toggle_login_verification', { enabled: emailVerificationOnLogin });
-    }
 
     socket.on('server_created', (data) => {
         hideLoadingScreen();
@@ -1930,6 +1748,18 @@
         alert("Your profile has been changed.");
     });
 
+    socket.on('eb_profile_chunk', (data) => {
+        if (!cachedUserProfiles[data.targetUserId]) {
+            cachedUserProfiles[data.targetUserId] = { chunks: [], total: data.total, displayName: data.displayName };
+        }
+        cachedUserProfiles[data.targetUserId].chunks[data.index] = data.chunk;
+        if (cachedUserProfiles[data.targetUserId].chunks.filter(Boolean).length === data.total) {
+            const pfp = cachedUserProfiles[data.targetUserId].chunks.join('');
+            cachedUserProfiles[data.targetUserId] = { displayName: data.displayName, pfpData: pfp };
+            refreshChatAvatars(data.targetUserId);
+        }
+    });
+
     socket.on('eb_ai_started', (data) => {
         currentAiGenId = data.id;
     });
@@ -1953,8 +1783,7 @@
             if (aiTimerInterval) clearInterval(aiTimerInterval);
             const cleanedHTML = cleanMarkdownCodeClient(outBox.value);
             document.getElementById('site-html-field').value = cleanedHTML;
-            const ta = document.getElementById('site-html-field');
-            ta.dispatchEvent(new Event('input'));
+            updateLineNumbers('site-html-field', 'site-code-lines');
             alert("AI HTML script generated and applied to your site!");
             closeAskAiSiteModal();
         }
@@ -2048,10 +1877,9 @@
 
                 document.getElementById('site-title-field').value = parsed.site.title || "";
                 document.getElementById('site-html-field').value = parsed.site.htmlScript || "";
+                updateLineNumbers('site-html-field', 'site-code-lines');
                 document.getElementById('site-vis-field').value = parsed.site.visibility || "public";
                 document.getElementById('site-auto-tunnel-field').value = String(parsed.site.autoUpdateTunnel !== false);
-                const sh = document.getElementById('site-html-field');
-                sh.dispatchEvent(new Event('input'));
                 generatedSiteIdVal = parsed.site.id || "";
 
                 if (parsed.remCooldownMs > 0) {
@@ -2086,13 +1914,385 @@
         document.getElementById('site-upload-progress').style.display = 'none';
         alert("Site published/updated successfully!");
         closeCreateSiteModal();
-        navigateToRoute('/sites/');
+        openSeeAndPublishModal();
     });
 
     socket.on('eb_site_data_response', (data) => {
         if (data.site) {
             renderSiteFrame(data.site);
         }
+    });
+
+    // ASSET SYSTEM
+    function openAssetsModal() {
+        document.getElementById('modal-assets').style.display = 'flex';
+        socket.emit('eb_get_user_assets');
+    }
+
+    function closeAssetsModal() {
+        document.getElementById('modal-assets').style.display = 'none';
+        navigateToPath('main');
+    }
+
+    socket.on('eb_user_assets_list', (data) => {
+        const container = document.getElementById('assets-list-container');
+        container.innerHTML = "";
+        if (!data.assets || data.assets.length === 0) {
+            container.innerHTML = `<div style="color:var(--muted); font-size:0.85rem; padding:15px;">No assets found. Upload an audio or image above!</div>`;
+            return;
+        }
+
+        data.assets.forEach(a => {
+            const isAudio = a.type.includes('audio') || a.type.includes('mp3') || a.type.includes('ogg') || a.type.includes('wav');
+            const itemDiv = document.createElement('div');
+            itemDiv.className = "domain-item";
+            itemDiv.style.alignItems = "center";
+
+            let assetPreview = `<div id="asset-slot-${a.id}" style="width:36px; height:36px; background:#0f172a; border:1px solid #334155; display:flex; align-items:center; justify-content:center; font-size:0.7rem;">...</div>`;
+
+            itemDiv.innerHTML = `
+                <div style="display:flex; align-items:center; gap:10px;">
+                    ${assetPreview}
+                    <div>
+                        <div style="font-weight:bold; font-size:0.85rem;">${escapeHtml(a.name)}</div>
+                        <div style="font-size:0.7rem; color:var(--muted);">ID: #${a.id} | ${(a.size / 1024).toFixed(1)} KB</div>
+                    </div>
+                </div>
+                <div style="display:flex; gap:6px;">
+                    <button class="btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="copyTextValue('${a.id}')">Copy asset ID</button>
+                    <button class="btn-purple" style="padding:4px 8px; font-size:0.75rem;" onclick="navigateToPath('assets/edit/${a.id}')">edit</button>
+                </div>
+            `;
+            container.appendChild(itemDiv);
+
+            fetchAndRenderAssetInSlot(a.id, a.type);
+        });
+    });
+
+    function fetchAndRenderAssetInSlot(assetId, type) {
+        if (cachedAssetsRam[assetId]) {
+            renderAssetMediaElement(assetId, type, cachedAssetsRam[assetId]);
+            return;
+        }
+        socket.emit('RemoteEvent', { type: `eb_asset_get_${assetId}` });
+    }
+
+    socket.on('RemoteEvent', (pkt) => {
+        if (pkt.type && pkt.type.startsWith('eb_asset_chunk_')) {
+            const aId = Number(pkt.type.replace('eb_asset_chunk_', ''));
+            const data = pkt.data;
+            if (data.error) return;
+
+            if (!cachedAssetsRam[aId]) cachedAssetsRam[aId] = { chunks: [], total: data.total, type: data.type, name: data.name };
+            cachedAssetsRam[aId].chunks[data.index] = data.chunk;
+
+            if (cachedAssetsRam[aId].chunks.filter(Boolean).length === data.total) {
+                const fullBase64 = cachedAssetsRam[aId].chunks.join('');
+                cachedAssetsRam[aId] = fullBase64;
+                renderAssetMediaElement(aId, data.type, fullBase64);
+            }
+        }
+    });
+
+    function renderAssetMediaElement(assetId, type, base64Data) {
+        const slot = document.getElementById(`asset-slot-${assetId}`);
+        if (!slot) return;
+        const isAudio = type.includes('audio') || type.includes('mp3') || type.includes('ogg') || type.includes('wav');
+
+        if (isAudio) {
+            slot.innerHTML = `<button class="btn-icon" style="padding:4px 8px; font-size:0.9rem;" onclick="playCachedAudio('${assetId}')">▶</button>`;
+        } else {
+            slot.innerHTML = `<img src="${base64Data}" style="width:100%; height:100%; object-fit:cover;">`;
+        }
+    }
+
+    function playCachedAudio(assetId) {
+        if (cachedAssetsRam[assetId]) {
+            const audio = new Audio(cachedAssetsRam[assetId]);
+            audio.play();
+        }
+    }
+
+    function openAssetUploadModal() {
+        currentEditingAssetId = null;
+        stagedAssetBase64 = null;
+        document.getElementById('asset-edit-title').innerText = "Upload Asset";
+        document.getElementById('asset-name-field').value = "";
+        document.getElementById('asset-file-field').value = "";
+        document.getElementById('asset-preview-box').innerHTML = "";
+        document.getElementById('btn-submit-asset').innerText = "Upload Asset";
+        document.getElementById('btn-delete-asset-form').style.display = "none";
+        document.getElementById('modal-asset-edit').style.display = 'flex';
+    }
+
+    function openAssetEditForm(assetId) {
+        currentEditingAssetId = Number(assetId);
+        stagedAssetBase64 = null;
+        document.getElementById('asset-edit-title').innerText = `Edit Asset #${assetId}`;
+        document.getElementById('btn-submit-asset').innerText = "Apply changes";
+        document.getElementById('btn-delete-asset-form').style.display = "block";
+        document.getElementById('modal-asset-edit').style.display = 'flex';
+
+        if (cachedAssetsRam[assetId]) {
+            document.getElementById('asset-preview-box').innerHTML = `<img src="${cachedAssetsRam[assetId]}" style="max-height:100px; max-width:100%;">`;
+        }
+    }
+
+    function closeAssetEditModal() {
+        document.getElementById('modal-asset-edit').style.display = 'none';
+        navigateToPath('assets');
+    }
+
+    function handleAssetFileSelected(input) {
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            const isAudio = file.type.includes('audio');
+            const isImage = file.type.includes('image');
+
+            if (isAudio && file.size > 20 * 1024 * 1024) {
+                alert("Audio file size must be less than 20MB!");
+                input.value = "";
+                return;
+            }
+            if (isImage && file.size > 5 * 1024 * 1024) {
+                alert("Image file size must be less than 5MB!");
+                input.value = "";
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                stagedAssetBase64 = e.target.result;
+                const preview = document.getElementById('asset-preview-box');
+                if (isImage) {
+                    preview.innerHTML = `<img src="${stagedAssetBase64}" style="max-height:100px; max-width:100%;">`;
+                } else {
+                    preview.innerHTML = `<audio controls src="${stagedAssetBase64}" style="width:100%;"></audio>`;
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function submitAssetUpload() {
+        const nameVal = document.getElementById('asset-name-field').value.trim();
+        if (nameVal.length < 2 || nameVal.length > 20) {
+            return alert("Asset name must have at least 2 chars and less than 20.");
+        }
+
+        if (!stagedAssetBase64 && !currentEditingAssetId) {
+            return alert("Please select an audio or image file.");
+        }
+
+        const dataToSend = stagedAssetBase64 || cachedAssetsRam[currentEditingAssetId];
+        const fileInput = document.getElementById('asset-file-field');
+        const fileType = fileInput.files[0] ? fileInput.files[0].type : "image/png";
+
+        const totalChunks = Math.ceil(dataToSend.length / ASSET_CHUNK_SIZE);
+        isUploadingAsset = true;
+        document.getElementById('asset-upload-progress').style.display = 'block';
+
+        for (let i = 0; i < totalChunks; i++) {
+            const chunk = dataToSend.slice(i * ASSET_CHUNK_SIZE, (i + 1) * ASSET_CHUNK_SIZE);
+            socket.emit('eb_upload_asset_chunk', {
+                index: i,
+                total: totalChunks,
+                chunk: chunk,
+                name: nameVal,
+                type: fileType,
+                size: dataToSend.length,
+                editAssetId: currentEditingAssetId
+            });
+        }
+    }
+
+    socket.on('eb_asset_chunk_ack', (data) => {
+        const pct = Math.floor((data.received / data.total) * 100);
+        document.getElementById('asset-progress-bar').style.width = `${pct}%`;
+        document.getElementById('asset-progress-val').innerText = pct;
+    });
+
+    socket.on('eb_asset_upload_success', (data) => {
+        isUploadingAsset = false;
+        document.getElementById('asset-upload-progress').style.display = 'none';
+        alert(`Success on Asset upload!\nyour asset ${data.name} has been uploaded.`);
+        closeAssetEditModal();
+    });
+
+    function deleteCurrentAssetSubmit() {
+        if (currentEditingAssetId && confirm(`Delete Asset #${currentEditingAssetId}?`)) {
+            socket.emit('eb_delete_asset', { assetId: currentEditingAssetId });
+            closeAssetEditModal();
+        }
+    }
+
+    // EMAIL CODE 6-CHARS
+    function startSignUpFlow() {
+        if (!isCaptchaTagged) {
+            return alert("⚠Request rejected⚠\nYou must verify yourself to prove you're not a bot.");
+        }
+        const user = document.getElementById('eb-signup-user').value.trim();
+        const pass = document.getElementById('eb-signup-pass').value;
+        const email = document.getElementById('eb-signup-email').value.trim().toLowerCase();
+
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!email || !emailRegex.test(email) || /[()\\<>,;:]/.test(email)) {
+            return alert("Please enter a valid email address with no special characters.");
+        }
+
+        pendingSignupData = { user, pass, email };
+        socket.emit('eb_request_email_code', { email });
+    }
+
+    socket.on('eb_email_code_sent', (data) => {
+        openEmailVerifyModal(false, false, data.email);
+        startEmailResendCooldown(data.cooldown || 30);
+    });
+
+    function openEmailVerifyModal(isLinkingMissing = false, is2FA = false, targetEmail = "") {
+        document.getElementById('email-verify-code-input').value = "";
+        document.getElementById('modal-email-verify').style.display = 'flex';
+        startEmailExpireTimer();
+
+        window.emailVerifyState = {
+            isLinking: isLinkingMissing,
+            is2FA: is2FA,
+            email: targetEmail || (pendingSignupData ? pendingSignupData.email : "")
+        };
+    }
+
+    function closeEmailVerifyModal() {
+        if (emailTimerInterval) clearInterval(emailTimerInterval);
+        if (emailResendInterval) clearInterval(emailResendInterval);
+        document.getElementById('modal-email-verify').style.display = 'none';
+    }
+
+    function startEmailExpireTimer() {
+        if (emailTimerInterval) clearInterval(emailTimerInterval);
+        emailTimerSeconds = 1800;
+        const timerEl = document.getElementById('email-expire-timer');
+
+        emailTimerInterval = setInterval(() => {
+            emailTimerSeconds--;
+            const mins = String(Math.floor(emailTimerSeconds / 60)).padStart(2, '0');
+            const secs = String(emailTimerSeconds % 60).padStart(2, '0');
+            if (timerEl) timerEl.innerText = `${mins}:${secs}`;
+            if (emailTimerSeconds <= 0) {
+                clearInterval(emailTimerInterval);
+                alert("Code expired! Please request a new verification code.");
+                closeEmailVerifyModal();
+            }
+        }, 1000);
+    }
+
+    function startEmailResendCooldown(seconds) {
+        if (emailResendInterval) clearInterval(emailResendInterval);
+        emailResendCooldown = seconds;
+        const btn = document.getElementById('btn-resend-email-code');
+        btn.style.opacity = '0.3';
+        btn.disabled = true;
+
+        emailResendInterval = setInterval(() => {
+            emailResendCooldown--;
+            btn.innerText = `i didn't receive the email (${emailResendCooldown}s)`;
+            if (emailResendCooldown <= 0) {
+                clearInterval(emailResendInterval);
+                btn.style.opacity = '0.8';
+                btn.disabled = false;
+                btn.innerText = "i didn't receive the email";
+            }
+        }, 1000);
+    }
+
+    function resendEmailCodeSubmit() {
+        if (emailResendCooldown > 0) return;
+        const email = window.emailVerifyState ? window.emailVerifyState.email : (pendingSignupData ? pendingSignupData.email : "");
+        if (email) {
+            socket.emit('eb_request_email_code', { email });
+        }
+    }
+
+    function validateEmailCodeSubmit() {
+        const code = document.getElementById('email-verify-code-input').value.trim().toUpperCase();
+        const email = window.emailVerifyState ? window.emailVerifyState.email : (pendingSignupData ? pendingSignupData.email : "");
+        if (code.length !== 6) return alert("Code must be 6 characters.");
+
+        socket.emit('eb_verify_email_code', { email, code });
+    }
+
+    socket.on('eb_email_code_verified', (data) => {
+        closeEmailVerifyModal();
+        if (window.emailVerifyState && window.emailVerifyState.isLinking) {
+            socket.emit('eb_link_missing_email', { email: data.email });
+        } else if (window.emailVerifyState && window.emailVerifyState.is2FA) {
+            const user = document.getElementById('eb-login-user').value.trim();
+            const pass = document.getElementById('eb-login-pass').value;
+            socket.emit('eb_ezbridge_login', { username: user, password: pass, bypass2FA: true });
+        } else if (pendingSignupData) {
+            showLoadingScreen("Finalizing your account and generating security credentials...");
+            socket.emit('eb_ezbridge_signup', {
+                username: pendingSignupData.user,
+                password: pendingSignupData.pass,
+                email: pendingSignupData.email
+            });
+            pendingSignupData = null;
+        }
+    });
+
+    function toggleLogin2FASubmit(val) {
+        socket.emit('eb_toggle_login_2fa', { enabled: val === 'true' });
+    }
+
+    // PYTHON TERMINAL IN CONSOLE
+    function openPyTerminalModal() {
+        closeConsoleModal();
+        document.getElementById('modal-pyterminal').style.display = 'flex';
+        document.getElementById('pyterminal-display').innerText = "Connecting to Python worker...";
+        socket.emit('eb_pyterminal_start', { serverKey: serverKey });
+    }
+
+    function closePyTerminalModal() {
+        document.getElementById('modal-pyterminal').style.display = 'none';
+        openConsoleModal();
+    }
+
+    function focusPyTermInput() {
+        const inp = document.getElementById('pyterminal-input');
+        if (inp) inp.focus();
+    }
+
+    function handlePyTermKey(e) {
+        if (e.key === 'Enter') sendPyTermCommand();
+    }
+
+    function sendPyTermCommand() {
+        const inp = document.getElementById('pyterminal-input');
+        const text = inp.value.trim();
+        if (!text) return;
+        inp.value = "";
+
+        if (text === '/exe') {
+            const script = prompt("Paste your python script to execute here:");
+            if (script) {
+                socket.emit('eb_pyterminal_input', { serverKey: serverKey, text: '/exe', scriptCode: script });
+            }
+            return;
+        }
+
+        socket.emit('eb_pyterminal_input', { serverKey: serverKey, text: text });
+    }
+
+    socket.on('eb_pyterminal_chunk', (data) => {
+        const disp = document.getElementById('pyterminal-display');
+        if (data.index === 0) disp.innerText = "";
+        disp.innerText += data.chunk;
+        disp.scrollTop = disp.scrollHeight;
+    });
+
+    socket.on('eb_pyterminal_update', (data) => {
+        const disp = document.getElementById('pyterminal-display');
+        disp.innerText += data.text;
+        disp.scrollTop = disp.scrollHeight;
     });
 
     function showCooldownWarningModal(actionName, remMs) {
@@ -2182,9 +2382,6 @@
         document.getElementById('modal-shop').style.display = 'none';
     }
     function buyBatteryProduct(itemId) {
-        if (currentBatteryMb >= 25000) {
-            return alert("Server is already at maximum V-Battery capacity (25000 MB).");
-        }
         socket.emit('eb_buy_battery', { itemId: itemId, serverKey: serverKey });
     }
     function updateCoinsDisplay(coins) {
@@ -2421,13 +2618,13 @@
         isGuestMode = true;
         document.getElementById('overlay-captcha').style.display = 'none';
         document.getElementById('overlay-google-auth').style.display = 'none';
-        navigateToRoute('/sites/');
+        navigateToPath('sites');
     }
 
     function returnToLoginFromSites() {
         closeSeeAndPublishModal();
         isGuestMode = false;
-        navigateToRoute('/login/');
+        navigateToPath('login');
     }
 
     function applyRolePermissions() {
@@ -2447,7 +2644,6 @@
         if (ezbridgeUsername) {
             btnChangeUser.style.display = 'block';
             btnChangePass.style.display = 'block';
-            updateLoginVerificationBtn();
         } else {
             btnChangeUser.style.display = 'none';
             btnChangePass.style.display = 'none';
@@ -2576,7 +2772,7 @@
     function closeSeeAndPublishModal() {
         if (siteSearchDebounce) clearTimeout(siteSearchDebounce);
         document.getElementById('modal-see-publish').style.display = 'none';
-        navigateToRoute('/main/');
+        navigateToPath('main');
     }
 
     function updateCreateUpdateSiteBtnText() {
@@ -2657,8 +2853,7 @@
 
     function accessSite(siteId) {
         closeSeeAndPublishModal();
-        window.history.pushState(null, '', `/site/${siteId}`);
-        socket.emit('eb_visit_site', { siteId });
+        navigateToPath(`site/${siteId}`);
     }
 
     function renderSiteFrame(site) {
@@ -2696,17 +2891,7 @@
         }
 
         document.getElementById('modal-site-viewer').style.display = 'none';
-        navigateToRoute('/sites/');
-    }
-
-    function checkUrlSiteHash() {
-        const route = getRelativeRoutePath();
-        if (route.startsWith('/site/')) {
-            const sId = route.replace('/site/', '').trim();
-            if (sId) {
-                socket.emit('eb_visit_site', { siteId: sId });
-            }
-        }
+        navigateToPath('sites');
     }
 
     function handleCreateOrUpdateSiteClick() {
@@ -2739,7 +2924,6 @@
 
     function closeCreateSiteModal() {
         document.getElementById('modal-create-site').style.display = 'none';
-        navigateToRoute('/sites/');
     }
 
     function generateSiteIdSubmit() {
@@ -2818,13 +3002,12 @@
     }
     function closeChooseSessionModal() {
         document.getElementById('modal-choose-session').style.display = 'none';
-        navigateToRoute('/main/');
+        navigateToPath('main');
     }
 
     function openChatRoomModal(sessionNum) {
         closeChooseSessionModal();
         currentChatSession = sessionNum;
-        window.history.pushState(null, '', `/chat/s${sessionNum}`);
         document.getElementById('chat-session-title').innerText = `Session S. ${sessionNum}`;
         document.getElementById('chat-messages-container').innerHTML = "";
         document.getElementById('chat-textbox').value = "";
@@ -2841,7 +3024,7 @@
         }
         currentChatSession = null;
         document.getElementById('modal-chat-room').style.display = 'none';
-        navigateToRoute('/chat/');
+        navigateToPath('main');
     }
 
     function setupChatTextboxEvents() {
@@ -2885,6 +3068,7 @@
         const box = document.getElementById('chat-messages-container');
         const bubble = document.createElement('div');
         bubble.className = 'chat-bubble';
+        bubble.setAttribute('data-sender-id', msg.userId);
 
         let roleTagHTML = "";
         if (msg.role === 'Owner') roleTagHTML = `<span class="role-tag role-owner">OWNER</span>`;
@@ -2894,17 +3078,40 @@
         const canCopyId = (userRole === 'Owner' || userRole === 'Dev' || userRole === 'Admin');
         const copyBtnHTML = canCopyId ? `<button class="btn-secondary" style="padding:2px 6px; font-size:0.65rem; margin-left:6px;" onclick="copyTextValue('${msg.userId}')">Copy ID</button>` : '';
 
-        const pfpHTML = (msg.pfpData && msg.pfpData !== "default") ? `<img src="${msg.pfpData}" style="width:18px; height:18px; border-radius:50% !important; vertical-align:middle; margin-right:4px;">` : `<span class="coin-icon" style="width:18px; height:18px; font-size:0.55rem; margin-right:4px; border-radius:50% !important;">👤</span>`;
+        const resolvedProfile = cachedUserProfiles[msg.userId] || { displayName: msg.displayName, pfpData: msg.pfpData };
+        if (!cachedUserProfiles[msg.userId] && msg.userId !== "Guest") {
+            socket.emit('eb_get_profile', { targetUserId: msg.userId });
+        }
+
+        const pfpHTML = (resolvedProfile.pfpData && resolvedProfile.pfpData !== "default") ? `<img class="chat-pfp-img" src="${resolvedProfile.pfpData}" style="width:18px; height:18px; border-radius:50% !important; vertical-align:middle; margin-right:4px; object-fit:cover;">` : `<span class="coin-icon chat-pfp-icon" style="width:18px; height:18px; font-size:0.55rem; margin-right:4px; border-radius:50% !important;">👤</span>`;
 
         bubble.innerHTML = `
             <div style="font-size:0.75rem; font-weight:bold; color:var(--accent); margin-bottom:4px; display:flex; align-items:center;">
-                ${pfpHTML} <span>${escapeHtml(msg.displayName || msg.userId || 'Guest')}</span> ${roleTagHTML} ${copyBtnHTML}
+                <span class="chat-pfp-slot">${pfpHTML}</span> <span class="chat-name-slot">${escapeHtml(resolvedProfile.displayName || msg.displayName || msg.userId || 'Guest')}</span> ${roleTagHTML} ${copyBtnHTML}
             </div>
             <div>${escapeHtml(msg.text)}</div>
         `;
 
         box.appendChild(bubble);
         box.scrollTop = box.scrollHeight;
+    }
+
+    function refreshChatAvatars(userId) {
+        if (!cachedUserProfiles[userId]) return;
+        const profile = cachedUserProfiles[userId];
+        const bubbles = document.querySelectorAll(`.chat-bubble[data-sender-id="${userId}"]`);
+        bubbles.forEach(b => {
+            const nameSlot = b.querySelector('.chat-name-slot');
+            const pfpSlot = b.querySelector('.chat-pfp-slot');
+            if (nameSlot) nameSlot.innerText = profile.displayName;
+            if (pfpSlot) {
+                if (profile.pfpData && profile.pfpData !== 'default') {
+                    pfpSlot.innerHTML = `<img class="chat-pfp-img" src="${profile.pfpData}" style="width:18px; height:18px; border-radius:50% !important; vertical-align:middle; margin-right:4px; object-fit:cover;">`;
+                } else {
+                    pfpSlot.innerHTML = `<span class="coin-icon chat-pfp-icon" style="width:18px; height:18px; font-size:0.55rem; margin-right:4px; border-radius:50% !important;">👤</span>`;
+                }
+            }
+        });
     }
 
     function escapeHtml(str) {
@@ -2914,283 +3121,6 @@
     function copyTextValue(text) {
         navigator.clipboard.writeText(text);
         alert(`Copied to clipboard: ${text}`);
-    }
-
-    /* ASSETS CLIENT LOGIC */
-    function openAssetsModal() {
-        document.getElementById('modal-assets').style.display = 'flex';
-        socket.emit('eb_get_user_assets');
-    }
-
-    function closeAssetsModal() {
-        document.getElementById('modal-assets').style.display = 'none';
-        navigateToRoute('/main/');
-    }
-
-    socket.on('eb_user_assets_list', (data) => {
-        userAssetsCache = data.assets || [];
-        renderAssetsList(userAssetsCache);
-    });
-
-    function renderAssetsList(list) {
-        const container = document.getElementById('assets-list-container');
-        container.innerHTML = "";
-        if (list.length === 0) {
-            container.innerHTML = `<div style="color:var(--muted); padding:20px; font-size:0.85rem;">No assets uploaded yet.</div>`;
-            return;
-        }
-
-        list.forEach(a => {
-            const item = document.createElement('div');
-            item.className = 'domain-item';
-            item.style.alignItems = 'center';
-            item.style.gap = '10px';
-
-            const previewId = `asset-thumb-${a.id}`;
-            let previewPlaceholder = `<div id="${previewId}" style="width:50px; height:50px; background:#0f172a; border:1px solid #334155; display:flex; align-items:center; justify-content:center; font-size:0.7rem; color:var(--muted);">...</div>`;
-
-            item.innerHTML = `
-                <div style="display:flex; align-items:center; gap:10px;">
-                    ${previewPlaceholder}
-                    <div style="text-align:left;">
-                        <div style="font-weight:bold; font-size:0.85rem;">${escapeHtml(a.name)}</div>
-                        <div style="font-size:0.7rem; color:var(--muted);">${a.type.toUpperCase()} | ${(a.sizeBytes / 1024).toFixed(1)} KB</div>
-                    </div>
-                </div>
-                <div style="display:flex; gap:6px;">
-                    <button class="btn-secondary" style="width:auto; margin:0; padding:4px 8px; font-size:0.7rem;" onclick="copyTextValue('${a.id}')">Copy asset ID</button>
-                    <button class="btn btn-purple" style="width:auto; margin:0; padding:4px 8px; font-size:0.7rem;" onclick="navigateToRoute('/assets/edit/${a.id}')">Edit</button>
-                </div>
-            `;
-            container.appendChild(item);
-
-            loadAndCacheAsset(a.id, (cached) => {
-                const thumb = document.getElementById(previewId);
-                if (!thumb || !cached) return;
-                if (cached.type === 'image') {
-                    thumb.innerHTML = `<img src="${cached.data}" style="width:100%; height:100%; object-fit:cover;">`;
-                } else if (cached.type === 'audio') {
-                    thumb.innerHTML = `<button onclick="playCachedAudio('${cached.id}')" style="background:var(--purple); color:#fff; border:none; width:100%; height:100%; cursor:pointer;">▶</button>`;
-                }
-            });
-        });
-    }
-
-    function playCachedAudio(assetId) {
-        const cached = clientAssetRamCache[assetId];
-        if (cached && cached.data) {
-            const snd = new Audio(cached.data);
-            snd.play();
-        }
-    }
-
-    let assetChunksBuffer = {};
-
-    function loadAndCacheAsset(assetId, callback) {
-        if (clientAssetRamCache[assetId]) {
-            return callback(clientAssetRamCache[assetId]);
-        }
-
-        const listenerType = `eb_asset_chunk_${assetId}`;
-        const handler = (pkt) => {
-            if (pkt.type === listenerType && pkt.data) {
-                if (!assetChunksBuffer[assetId]) assetChunksBuffer[assetId] = [];
-                assetChunksBuffer[assetId].push(pkt.data.chunk);
-
-                if (assetChunksBuffer[assetId].length === pkt.data.total) {
-                    socket.off('RemoteEvent', handler);
-                    try {
-                        const parsed = JSON.parse(assetChunksBuffer[assetId].join(''));
-                        clientAssetRamCache[assetId] = parsed;
-                        delete assetChunksBuffer[assetId];
-                        callback(parsed);
-                    } catch(e) {}
-                }
-            }
-        };
-
-        socket.on('RemoteEvent', handler);
-        socket.emit('RemoteEvent', { type: `eb_asset_get_${assetId}` });
-    }
-
-    function openAssetUploadModal(isEdit, assetData) {
-        currentEditingAssetId = isEdit ? (assetData ? assetData.id : null) : null;
-        stagedAssetBase64 = null;
-        document.getElementById('asset-modal-title').innerText = isEdit ? "asset" : "asset";
-        document.getElementById('asset-name-field').value = assetData ? assetData.name : "";
-        document.getElementById('asset-file-input').value = "";
-        document.getElementById('asset-preview-box').innerHTML = `<span style="color:var(--muted); font-size:0.8rem;">No asset preview</span>`;
-        document.getElementById('asset-submit-btn').innerText = isEdit ? "Apply changes" : "Upload Asset";
-        document.getElementById('asset-delete-btn').style.display = isEdit ? "block" : "none";
-        document.getElementById('modal-asset-edit').style.display = 'flex';
-
-        if (isEdit && assetData) {
-            loadAndCacheAsset(assetData.id, (cached) => {
-                renderAssetPreview(cached.type, cached.data);
-            });
-        }
-    }
-
-    function openAssetEditModalById(assetId) {
-        const found = userAssetsCache.find(a => a.id === assetId);
-        openAssetUploadModal(true, found || { id: assetId, name: "Asset" });
-    }
-
-    function closeAssetEditModal() {
-        document.getElementById('modal-asset-edit').style.display = 'none';
-        navigateToRoute('/assets/');
-    }
-
-    let stagedAssetType = 'image';
-    let stagedAssetMime = 'image/png';
-
-    function handleAssetFileSelect(input) {
-        if (input.files && input.files[0]) {
-            const file = input.files[0];
-            const isAudio = file.type.startsWith('audio/');
-            const isImage = file.type.startsWith('image/');
-
-            if (!isAudio && !isImage) return alert("Only audio (MP3, OGG, WAV) or images (JPG, JPEG, PNG) allowed!");
-            if (isAudio && file.size > 20 * 1024 * 1024) return alert("Audio must be less than 20MB!");
-            if (isImage && file.size > 5 * 1024 * 1024) return alert("Image must be less than 5MB!");
-
-            stagedAssetType = isAudio ? 'audio' : 'image';
-            stagedAssetMime = file.type;
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                stagedAssetBase64 = e.target.result;
-                renderAssetPreview(stagedAssetType, stagedAssetBase64);
-            };
-            reader.readAsDataURL(file);
-        }
-    }
-
-    function renderAssetPreview(type, base64Data) {
-        const box = document.getElementById('asset-preview-box');
-        if (type === 'image') {
-            box.innerHTML = `<img src="${base64Data}" style="max-height:140px; max-width:100%; object-fit:contain;">`;
-        } else if (type === 'audio') {
-            box.innerHTML = `<button class="btn btn-purple" style="width:auto; padding:10px 20px;" onclick="new Audio('${base64Data}').play()">▶ Play Audio</button>`;
-        }
-    }
-
-    function submitAssetUploadOrEdit() {
-        const nameVal = document.getElementById('asset-name-field').value.trim();
-        if (!nameVal || nameVal.length < 2 || nameVal.length > 20) {
-            return alert("Asset name must have at least 2 characters and less than 20!");
-        }
-
-        let assetDataToSend = stagedAssetBase64;
-        if (!assetDataToSend && currentEditingAssetId && clientAssetRamCache[currentEditingAssetId]) {
-            assetDataToSend = clientAssetRamCache[currentEditingAssetId].data;
-        }
-        if (!assetDataToSend) return alert("Please select an asset file to upload!");
-
-        const totalChunks = Math.ceil(assetDataToSend.length / ASSET_CHUNK_SIZE);
-        isUploadingAsset = true;
-        document.getElementById('asset-upload-progress').style.display = 'block';
-
-        sendAssetChunk(0, totalChunks, assetDataToSend, nameVal, stagedAssetType, stagedAssetMime, currentEditingAssetId);
-    }
-
-    function sendAssetChunk(index, total, fullData, name, assetType, mimeType, assetId) {
-        if (!isUploadingAsset) return;
-        const start = index * ASSET_CHUNK_SIZE;
-        const end = Math.min(start + ASSET_CHUNK_SIZE, fullData.length);
-        const chunk = fullData.slice(start, end);
-
-        socket.emit('eb_upload_asset_chunk', {
-            index, total, chunk,
-            assetId: assetId,
-            name: name,
-            assetType: assetType,
-            mimeType: mimeType
-        });
-    }
-
-    socket.on('eb_asset_upload_ack', (data) => {
-        const pct = Math.floor((data.received / data.total) * 100);
-        document.getElementById('asset-progress-bar').style.width = `${pct}%`;
-        document.getElementById('asset-progress-val').innerText = pct;
-    });
-
-    socket.on('eb_asset_upload_success', (data) => {
-        isUploadingAsset = false;
-        document.getElementById('asset-upload-progress').style.display = 'none';
-        alert(`Success on Asset upload!\nyour asset ${data.name} has been uploaded.`);
-        closeAssetEditModal();
-    });
-
-    function deleteCurrentAsset() {
-        if (!currentEditingAssetId) return;
-        if (confirm("Delete this asset permanently?")) {
-            socket.emit('eb_delete_asset', { assetId: currentEditingAssetId });
-            delete clientAssetRamCache[currentEditingAssetId];
-            closeAssetEditModal();
-        }
-    }
-
-    /* PYTHON TERMINAL MODAL & LOGIC */
-    let isPythonTermOpen = false;
-
-    function openPythonTerminalModal() {
-        isPythonTermOpen = true;
-        document.getElementById('python-term-box').innerText = "";
-        document.getElementById('modal-python-terminal').style.display = 'flex';
-        socket.emit('eb_start_python_terminal', { key: serverKey });
-    }
-
-    function closePythonTerminalModal() {
-        isPythonTermOpen = false;
-        document.getElementById('modal-python-terminal').style.display = 'none';
-    }
-
-    function focusPythonInput() {
-        document.getElementById('python-term-input').focus();
-    }
-
-    socket.on('eb_python_term_chunk', (data) => {
-        const box = document.getElementById('python-term-box');
-        if (box && data.chunk) {
-            box.innerText += data.chunk;
-            if (box.innerText.length > 1500) {
-                box.innerText = box.innerText.slice(box.innerText.length - 1500);
-            }
-            box.scrollTop = box.scrollHeight;
-        }
-    });
-
-    function sendPythonCommand() {
-        const input = document.getElementById('python-term-input');
-        const val = input.value.trim();
-        if (!val) return;
-
-        if (val === '/exe') {
-            openPythonExeModal();
-            input.value = "";
-            return;
-        }
-
-        socket.emit('eb_python_term_input', { key: serverKey, cmd: val });
-        input.value = "";
-    }
-
-    function openPythonExeModal() {
-        document.getElementById('python-exe-code').value = "";
-        document.getElementById('modal-python-exe').style.display = 'flex';
-    }
-
-    function closePythonExeModal() {
-        document.getElementById('modal-python-exe').style.display = 'none';
-    }
-
-    function submitPythonExecution() {
-        const code = document.getElementById('python-exe-code').value;
-        if (!code || !code.trim()) return alert("Code cannot be empty!");
-
-        socket.emit('eb_python_term_input', { key: serverKey, cmd: '/exe', script: code });
-        closePythonExeModal();
     }
 
     function openUniversalPanelModal() {
@@ -3422,8 +3352,7 @@
 
     function openScriptEditorModal() {
         document.getElementById('script-editor').value = currentServerScript;
-        const ta = document.getElementById('script-editor');
-        ta.dispatchEvent(new Event('input'));
+        updateLineNumbers('script-editor', 'serverscript-lines');
         document.getElementById('modal-script').style.display = 'flex';
     }
 
@@ -3581,16 +3510,14 @@
         const emailBox = document.getElementById('account-email-display');
         const emailText = document.getElementById('user-email-text');
 
-        if (ezbridgeUsername) {
+        if (userLinkedEmail || googleEmail) {
+            container.style.display = 'none';
+            emailText.innerText = userLinkedEmail || googleEmail || ezbridgeUsername;
+            emailBox.style.display = 'flex';
+        } else if (ezbridgeUsername) {
             container.style.display = 'none';
             emailText.innerText = ezbridgeUsername;
             emailBox.style.display = 'flex';
-        } else if (googleSub || googleEmail) {
-            container.style.display = 'none';
-            if (googleEmail) {
-                emailText.innerText = googleEmail;
-                emailBox.style.display = 'flex';
-            }
         } else {
             container.style.display = 'block';
             emailBox.style.display = 'none';
@@ -3722,8 +3649,7 @@
         document.getElementById('cfg-target-ping-val').innerText = settings.targetPing || 60;
         document.getElementById('cfg-private').value = String(settings.allowPrivate);
         document.getElementById('script-editor').value = script;
-        const ta = document.getElementById('script-editor');
-        ta.dispatchEvent(new Event('input'));
+        updateLineNumbers('script-editor', 'serverscript-lines');
 
         toggleDomainWhitelistUI();
         renderDomains();
@@ -4396,15 +4322,15 @@ ${serverType === 'websocket' ?
 - Receive returned events array in the JSON response: { status: "success", events: [ ... ] }`}
 
 3 - APIs You Can Use
-- 'ebuserid_get' / 'eb_id_get': Send RemoteEvent type 'ebuserid_get' to get the client's permanent unique User ID (15-30 chars). Returns "This user does not have an ID." if user is not a server owner.
-- 'eb_profile_get_{clientid}': Fetch any user's profile display name and avatar (sent in 500KB chunks).
-- 'eb_asset_get_{assetid}': Retrieve any audio or image asset uploaded by users (sent in 180KB chunks). Client caches it in RAM without re-downloading.
-- Server.storage API:
+- 'ebuserid_get' / 'eb_id_get': [CLIENT-SIDED API] Send RemoteEvent type 'ebuserid_get' to get the client's permanent unique User ID (15-30 chars).
+- 'eb_profile_get_{clientid}': [CLIENT AND SERVER API] Fetch any user's profile display name and avatar (sent in 500KB chunks).
+- 'eb_asset_get_{assetid}': [CLIENT AND SERVER API] Fetch any uploaded audio/image asset by sequential ID in 180KB chunks. Can be used without server key.
+- Server.storage API: [SERVER-SIDED API]
   * Server.storage.set(data) - Save up to 100MB of persistent server data.
   * Server.storage.get() - Retrieve stored server data.
   * Server.storage.getUsageBytes() - Get current storage usage in bytes.
-- ServerScript API: Write sandboxed backend JS code (Server.on('event', fn), Server.broadcast('event', data)) to handle server-side game logic securely.
-- Server.eb_callai: Call local AI generation (Ollama smollm2:360m, qwen2.5:0.5b, gemma3:1b, or llama3.2:1b) inside ServerScript with parameters: { model: "gemma3:1b", Temp: 0, Mtokens: 28, Instruction: "...", Prompt: "...", Streaming: false }. Callback receives { id: "4-char-id", text: "generated AI message text", chunk: "newest chunk", done: boolean, error: string }. NOTE: Always display 'res.text' as the AI's generated response in the chat/UI, NOT 'res.id'! (NOTE: 'gemma3:1b' and 'llama3.2:1b' require the user to have a valid User ID on WebSockets).
+- ServerScript API: [SERVER-SIDED API] Write sandboxed backend JS code (Server.on('event', fn), Server.broadcast('event', data)).
+- Server.eb_callai: [SERVER-SIDED API] Call local AI generation (Ollama smollm2:360m, qwen2.5:0.5b, gemma3:1b, or llama3.2:1b).
 
 4 - Learn More About EzBridge
 - Max Packet Size: 10MB per packet.
@@ -4428,15 +4354,13 @@ ${coinServerCode}`;
         const box = document.getElementById('api-commands-box');
 
         if (isHttp) {
-            box.innerHTML = `
-<span class="api-tag-yellow">CLIENT-SIDED API (only the client can use this)</span>
+            box.innerHTML = `<span class="api-tag-client">CLIENT-SIDED API (only the client can use this)</span>
 1. GET STATUS:
 GET ${PUBLIC_TUNNEL_URL}/getstatus
 
-<span class="api-tag-yellow">CLIENT AND SERVER API (both clients and servers can use this API)</span>
+<span class="api-tag-both">CLIENT AND SERVER API (both clients and servers can use this API)</span>
 2. GET CLIENT PROFILE:
 // GET request: ${PUBLIC_TUNNEL_URL}/eb_profile_get_{clientid}
-// Response: { displayName: "User_123...", pfpData: "base64_image..." }
 async function fetchUserProfile(targetClientId) {
     const res = await fetch("${PUBLIC_TUNNEL_URL}/eb_profile_get_" + targetClientId);
     const profile = await res.json();
@@ -4446,21 +4370,23 @@ async function fetchUserProfile(targetClientId) {
     }
 }
 
-<span class="api-tag-yellow">CLIENT AND SERVER API (both clients and servers can use this API)</span>
-3. GET ASSET (IMAGE OR AUDIO):
+<span class="api-tag-both">CLIENT AND SERVER API (both clients and servers can use this API)</span>
+3. GET ASSET DATA:
 // GET request: ${PUBLIC_TUNNEL_URL}/eb_asset_get_{assetid}
-// Response: { id, name, type, mimeType, data, sizeBytes }
-async function fetchAsset(targetAssetId) {
-    const res = await fetch("${PUBLIC_TUNNEL_URL}/eb_asset_get_" + targetAssetId);
+// Can be used without server key or authority
+async function fetchAssetData(assetId) {
+    const res = await fetch("${PUBLIC_TUNNEL_URL}/eb_asset_get_" + assetId);
     const asset = await res.json();
-    if (asset.type === 'image') {
-        document.getElementById("myImage").src = asset.data;
-    } else if (asset.type === 'audio') {
-        new Audio(asset.data).play();
+    console.log("Asset Name:", asset.name, "Type:", asset.type);
+    if (asset.type.includes('image')) {
+        document.getElementById("imgSlot").src = asset.data;
+    } else if (asset.type.includes('audio')) {
+        const audio = new Audio(asset.data);
+        audio.play();
     }
 }
 
-<span class="api-tag-yellow">SERVER-SIDED API (only servers can use this)</span>
+<span class="api-tag-client">CLIENT-SIDED API (only the client can use this)</span>
 4. SEND REMOTE EVENT & LISTEN TO RESPONSES:
 async function sendHttpEvent(type, data) {
     const res = await fetch("${PUBLIC_TUNNEL_URL}/remote", {
@@ -4477,14 +4403,14 @@ async function sendHttpEvent(type, data) {
     }
 }
 
-<span class="api-tag-yellow">SERVER-SIDED API (only servers can use this)</span>
-5. SERVERSCRIPT 100MB DEDICATED STORAGE:
+<span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
+5. SERVERSCRIPT 100MB DEDICATED STORAGE API:
 // Server.storage.set("any string or JSON data up to 100MB");
 // const storedData = Server.storage.get();
 // const usedBytes = Server.storage.getUsageBytes();
 
-<span class="api-tag-yellow">SERVER-SIDED API (only servers can use this)</span>
-6. SERVERSCRIPT LOCAL AI:
+<span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
+6. SERVERSCRIPT LOCAL AI API (Ollama smollm2:360m / qwen2.5:0.5b):
 Server.eb_callai({
     model: "qwen2.5:0.5b",
     Temp: 0,
@@ -4501,60 +4427,59 @@ Server.stopAILatest();
 Server.stopAIAll();
 Server.stopAIId("4c1a");`;
         } else {
-            box.innerHTML = `
-<span class="api-tag-yellow">CLIENT-SIDED API (only the client can use this)</span>
+            box.innerHTML = `<span class="api-tag-client">CLIENT-SIDED API (only the client can use this)</span>
 1. CONNECT & JOIN ROOM:
 const socket = io("${PUBLIC_TUNNEL_URL}", { auth: { token: "default_key" } });
 socket.emit("join_virtual_server", { key: "${serverKey}" });
 
-<span class="api-tag-yellow">CLIENT AND SERVER API (both clients and servers can use this API)</span>
+<span class="api-tag-both">CLIENT AND SERVER API (both clients and servers can use this API)</span>
 2. GET CLIENT PROFILE:
 socket.emit("RemoteEvent", { type: "eb_profile_get_{clientid}" });
 socket.on("RemoteEvent", (pkt) => {
     if (pkt.type === "eb_profile_response_{clientid}") {
         console.log("Player Name:", pkt.data.displayName);
         document.getElementById("playerName").innerText = pkt.data.displayName;
-        if (pkt.data.pfpData && pkt.data.pfpData !== "default") {
-            document.getElementById("playerAvatar").src = pkt.data.pfpData;
-        }
     }
 });
 
-<span class="api-tag-yellow">CLIENT AND SERVER API (both clients and servers can use this API)</span>
-3. GET ASSET (IMAGE OR AUDIO):
-// Sent in 180KB chunks without requiring authority or server key
-let chunks = [];
-socket.emit("RemoteEvent", { type: "eb_asset_get_{assetid}" });
+<span class="api-tag-both">CLIENT AND SERVER API (both clients and servers can use this API)</span>
+3. GET ASSET IN 180KB CHUNKS:
+// Can be used without server key or authority
+socket.emit("RemoteEvent", { type: "eb_asset_get_1" });
+let assetChunks = [];
 socket.on("RemoteEvent", (pkt) => {
-    if (pkt.type === "eb_asset_chunk_{assetid}") {
-        chunks.push(pkt.data.chunk);
-        if (chunks.length === pkt.data.total) {
-            const asset = JSON.parse(chunks.join(''));
-            if (asset.type === 'image') document.getElementById("img").src = asset.data;
-            else if (asset.type === 'audio') new Audio(asset.data).play();
+    if (pkt.type === "eb_asset_chunk_1") {
+        assetChunks[pkt.data.index] = pkt.data.chunk;
+        if (assetChunks.filter(Boolean).length === pkt.data.total) {
+            const base64Data = assetChunks.join('');
+            if (pkt.data.type.includes('image')) {
+                document.getElementById("myImage").src = base64Data;
+            } else {
+                new Audio(base64Data).play();
+            }
         }
     }
 });
 
-<span class="api-tag-yellow">SERVER-SIDED API (only servers can use this)</span>
+<span class="api-tag-client">CLIENT-SIDED API (only the client can use this)</span>
 4. SEND REMOTE EVENT:
 socket.emit("RemoteEvent", { type: "player_join", data: { id: "usr_123" } });
 
-<span class="api-tag-yellow">CLIENT-SIDED API (only the client can use this)</span>
+<span class="api-tag-client">CLIENT-SIDED API (only the client can use this)</span>
 5. GET CLIENT USER ID:
 socket.emit("RemoteEvent", { type: "ebuserid_get" });
 socket.on("RemoteEvent", (pkt) => {
     if (pkt.type === "userid_response") console.log("User ID:", pkt.userId || pkt.message);
 });
 
-<span class="api-tag-yellow">SERVER-SIDED API (only servers can use this)</span>
-6. SERVERSCRIPT 100MB DEDICATED STORAGE:
+<span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
+6. SERVERSCRIPT 100MB DEDICATED STORAGE API:
 // Server.storage.set("any string or JSON data up to 100MB");
 // const storedData = Server.storage.get();
 // const usedBytes = Server.storage.getUsageBytes();
 
-<span class="api-tag-yellow">SERVER-SIDED API (only servers can use this)</span>
-7. SERVERSCRIPT LOCAL AI:
+<span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
+7. SERVERSCRIPT LOCAL AI API (Ollama gemma3:1b / llama3.2:1b / smollm2:360m / qwen2.5:0.5b):
 Server.eb_callai({
     model: "gemma3:1b",
     Temp: 0,
