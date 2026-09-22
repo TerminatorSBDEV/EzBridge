@@ -224,19 +224,14 @@
             overflow-y: auto; text-align: left; font-size: 0.85rem; cursor: text; white-space: pre-wrap;
         }
 
-        .rate-btn {
-            background: #020617; border: 1px solid var(--border); color: #fff;
-            padding: 4px 8px; font-size: 0.75rem; cursor: pointer; transition: background 0.2s;
+        .tug-war-bar {
+            width: 100%; height: 6px; background: var(--error);
+            position: relative; overflow: hidden; margin-top: 4px;
         }
-        .rate-btn.rated-active {
-            background: #10b981 !important; color: #000000 !important; font-weight: bold;
+        .tug-war-fill {
+            height: 100%; background: var(--green); width: 50%;
+            transition: width 0.2s ease;
         }
-        .tug-of-war-container {
-            display: flex; width: 80px; height: 6px; background: #000;
-            border: 1px solid #334155; overflow: hidden;
-        }
-        .tug-likes { background: var(--green); height: 100%; transition: width 0.3s; }
-        .tug-dislikes { background: var(--error); height: 100%; flex: 1; }
     </style>
 </head>
 <body>
@@ -272,15 +267,15 @@
         </div>
     </div>
 
-    <div id="modal-missing-email" class="overlay" style="display:none; z-index:3120;">
-        <div class="card">
-            <h3>Account Security</h3>
-            <p style="font-size:0.85rem; color:#ffffff; margin:12px 0;">
+    <div id="modal-missing-email" class="overlay" style="display:none; z-index:3050;">
+        <div class="card" style="max-width: 440px;">
+            <h3>Security Notice</h3>
+            <p style="font-size:0.85rem; color:#ffffff; line-height:1.4; margin:12px 0;">
                 Before you can continue, please enter your EMAIL to make your account more secure.
             </p>
             <div class="settings-item" style="text-align:left;">
                 <label>New Email:</label>
-                <input type="email" id="missing-email-input" placeholder="example@gmail.com">
+                <input type="email" id="missing-email-field" placeholder="example@gmail.com">
             </div>
             <button class="btn btn-purple" style="margin-top:10px;" onclick="submitMissingEmailValidation()">Validate</button>
         </div>
@@ -378,9 +373,9 @@
         <div class="card" style="max-width: 680px; width:95%; max-height:85vh; display:flex; flex-direction:column;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                 <h3 style="margin:0;">Assets</h3>
-                <button class="btn btn-purple" id="btn-open-asset-upload" style="width:auto; margin:0; padding:6px 14px;" onclick="openAssetUploadModal()">Upload</button>
+                <div id="assets-storage-remaining" style="font-size:0.8rem; color:var(--accent); font-weight:bold;">500.0MB remaining</div>
+                <button class="btn btn-purple" id="btn-assets-upload-top" style="width:auto; margin:0; padding:6px 14px;" onclick="openAssetUploadModal()">Upload</button>
             </div>
-            <div id="asset-remaining-text" style="font-size:0.75rem; color:var(--accent); font-weight:bold; text-align:left; margin-bottom:8px;">500.0MB remaining</div>
             <div id="assets-list-container" class="settings-grid" style="flex:1; max-height:none;"></div>
             <button class="btn btn-secondary" style="margin-top:10px;" onclick="closeAssetsModal()">Back to EzBridge</button>
         </div>
@@ -397,7 +392,7 @@
                 </div>
                 <div class="settings-item">
                     <label>Asset file (Audio < 10min, < 20MB | Image < 5MB | Video < 50MB):</label>
-                    <input type="file" id="asset-file-field" accept="audio/*,image/*,video/*,.mp3,.ogg,.wav,.jpg,.jpeg,.png,.mp4,.webm" onchange="handleAssetFileSelected(this)">
+                    <input type="file" id="asset-file-field" accept="audio/mp3,audio/ogg,audio/wav,image/jpeg,image/png,image/jpg,video/mp4,video/webm" onchange="handleAssetFileSelected(this)">
                 </div>
             </div>
 
@@ -580,7 +575,7 @@
                         <option value="qwen2.5:0.5b">Qwen 2.5 [FASTER]</option>
                         <option value="gemma3:1b" selected>Gemma3 [Default] [Recommended]</option>
                         <option value="llama3.2:1b">Llama 3.2</option>
-                        <option value="qwen2.5:1.5b">Qwen 2.5 1.5B [WebSockets & IDs Exclusive]</option>
+                        <option value="qwen2.5:1.5b">Qwen 2.5 1.5B [ID & WebSocket Only]</option>
                     </select>
                 </div>
                 <div style="display:flex; gap:10px; margin-top:15px;">
@@ -842,30 +837,35 @@
     </div>
 
     <div id="modal-console" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 600px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                <h3 id="console-title-view" style="margin:0;">Server Console Logs</h3>
+        <div class="card" style="max-width: 620px; width:95%;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="margin:0;">Server Console</h3>
                 <div style="display:flex; gap:6px;">
-                    <button class="btn btn-secondary" id="btn-toggle-perf-tab" style="width:auto; margin:0; padding:4px 10px; font-size:0.75rem;" onclick="toggleConsolePerformanceView()">Performance</button>
-                    <button class="btn btn-green" style="width:auto; margin:0; padding:4px 10px; font-size:0.75rem;" onclick="openPyTerminalModal()">Python Terminal</button>
+                    <button class="btn btn-secondary" id="tab-btn-logs" style="width:auto; margin:0; padding:4px 10px; font-size:0.75rem;" onclick="switchConsoleTab('logs')">Logs</button>
+                    <button class="btn btn-secondary" id="tab-btn-perf" style="width:auto; margin:0; padding:4px 10px; font-size:0.75rem;" onclick="switchConsoleTab('perf')">Performance</button>
                 </div>
             </div>
 
-            <div id="console-logs-display" class="console-box"></div>
-
-            <div id="console-perf-container" style="display:none; flex-direction:column; gap:6px; margin:15px 0;">
-                <div style="display:flex; justify-content:space-between; font-size:0.75rem; font-weight:bold;">
-                    <span style="color:var(--green);">■ Data Received (Rx)</span>
-                    <span style="color:var(--yellow);">■ Data Sent (Tx)</span>
-                    <span style="color:var(--error);">■ RAM Usage</span>
+            <div id="console-logs-view">
+                <div id="console-logs-display" class="console-box"></div>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn btn-green" style="flex:1;" onclick="openPyTerminalModal()">Python Terminal</button>
+                    <button class="btn" style="flex:1;" onclick="copyConsoleLogs()">Copy Logs</button>
+                    <button class="btn btn-purple" style="flex:1;" onclick="openServerStorageModal()">See Storage</button>
+                    <button class="btn btn-secondary" style="width:80px;" onclick="closeConsoleModal()">Close</button>
                 </div>
-                <canvas id="perf-canvas" width="540" height="220" style="background:#000; border:1px solid var(--border); width:100%;"></canvas>
             </div>
 
-            <div style="display:flex; gap:10px;">
-                <button class="btn" style="flex:1;" onclick="copyConsoleLogs()">Copy Logs</button>
-                <button class="btn btn-purple" style="flex:1;" onclick="openServerStorageModal()">See Storage</button>
-                <button class="btn btn-secondary" style="width:80px;" onclick="closeConsoleModal()">Close</button>
+            <div id="console-perf-view" style="display:none; text-align:left; margin-top:10px;">
+                <div style="font-size:0.75rem; color:var(--muted); display:flex; gap:12px; margin-bottom:6px;">
+                    <span style="color:var(--green);">● Data Received (Rx)</span>
+                    <span style="color:var(--yellow);">● Data Sent (Tx)</span>
+                    <span style="color:var(--error);">● RAM Used</span>
+                </div>
+                <canvas id="perf-canvas" width="550" height="200" style="width:100%; height:200px; background:#000; border:1px solid var(--border);"></canvas>
+                <div style="display:flex; justify-content:flex-end; margin-top:10px;">
+                    <button class="btn btn-secondary" style="width:80px;" onclick="closeConsoleModal()">Close</button>
+                </div>
             </div>
         </div>
     </div>
@@ -1203,7 +1203,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://eventually-enclosed-milwaukee-tale.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://invitations-infants-ref-forum.trycloudflare.com";
     const BASE_SITE_URL = "https://terminatorsbdev.github.io/EzBridge/";
 
     let ownerId = getCookie("eb_owner_id") || "";
@@ -1231,9 +1231,9 @@
 
     let currentCoins = 0;
     let currentBatteryMb = 100;
-    let userUsedAssetBytes = 0;
     let stagedPfpBase64 = null;
     let stagedAssetBase64 = null;
+    let stagedAssetVideoCost = 0;
     let currentEditingAssetId = null;
 
     let isServerLockdown = false;
@@ -1251,9 +1251,6 @@
 
     let delCodeTimerInterval = null;
     let delCodeTimerSeconds = 300;
-
-    let perfRollingHistory = [];
-    let isShowingConsolePerf = false;
 
     let rxBytesAccum = 0;
     let txBytesAccum = 0;
@@ -1280,6 +1277,9 @@
     let serverStorageChunks = [];
     let serverScriptChunks = [];
     let serverStoragePollInterval = null;
+
+    let perfHistory = [];
+    let perfGraphInterval = null;
 
     const SCRIPT_CHUNK_SIZE = 100 * 1024;
     const UNIV_CHUNK_SIZE = 50 * 1024;
@@ -1392,6 +1392,22 @@
         }
     }
     window.addEventListener('hashchange', checkInitialUrlRouting);
+
+    function restorePendingVerification() {
+        try {
+            const stored = localStorage.getItem('eb_pending_verify');
+            if (stored) {
+                const data = JSON.parse(stored);
+                if (data && data.expiresAt && Date.now() < data.expiresAt) {
+                    const remSec = Math.floor((data.expiresAt - Date.now()) / 1000);
+                    openEmailVerifyModal(data.isLinking || false, data.is2FA || false, data.email || "");
+                    emailTimerSeconds = remSec;
+                } else {
+                    localStorage.removeItem('eb_pending_verify');
+                }
+            }
+        } catch(e) {}
+    }
 
     socket.on('changeurl_response', (data) => {
         hideRouteConnectingModal();
@@ -1544,6 +1560,8 @@
             document.getElementById('modal-missing-email').style.display = 'flex';
         }
 
+        restorePendingVerification();
+
         if (data.dailyReward && data.dailyReward.pendingReward) {
             document.getElementById('daily-streak-badge').innerText = `🔥 ${data.dailyReward.streak}`;
             document.getElementById('daily-reward-coins').innerText = data.dailyReward.pendingReward;
@@ -1580,8 +1598,6 @@
             return;
         }
 
-        resumeVerificationIfPending();
-
         if (data.hasServer) {
             applyFullAuthState(data, false);
         } else {
@@ -1593,16 +1609,15 @@
             if (ownerId && (data.username || data.userId)) isCaptchaTagged = true;
             document.getElementById('overlay-captcha').style.display = 'flex';
             checkInitialUrlRouting();
+            restorePendingVerification();
         }
     });
 
     socket.on('google_login_verified', (data) => {
-        localStorage.removeItem('eb_pending_verify');
         applyFullAuthState(data, true);
     });
 
     socket.on('eb_ezbridge_auth_success', (data) => {
-        localStorage.removeItem('eb_pending_verify');
         document.getElementById('overlay-ezbridge-logging').style.display = 'none';
         if (!data.hasServer) {
             pendingDailyRewardForNewServer = data.dailyReward;
@@ -1624,7 +1639,7 @@
 
     socket.on('eb_login_2fa_required', (data) => {
         document.getElementById('overlay-ezbridge-logging').style.display = 'none';
-        openEmailVerifyModal(false, true, data.email, Boolean(data.isGoogle));
+        openEmailVerifyModal(false, true, data.email);
     });
 
     socket.on('server_created', (data) => {
@@ -1639,15 +1654,6 @@
         activeUserId = data.userId || data.server.clientId || ownerId;
         setCookie("eb_owner_id", ownerId, 365);
         showDashboard();
-
-        if (pendingDailyRewardForNewServer && pendingDailyRewardForNewServer.pendingReward) {
-            document.getElementById('daily-streak-badge').innerText = `🔥 ${pendingDailyRewardForNewServer.streak}`;
-            document.getElementById('daily-reward-coins').innerText = pendingDailyRewardForNewServer.pendingReward;
-            document.getElementById('daily-reward-coins-txt').innerText = pendingDailyRewardForNewServer.pendingReward;
-            if (pendingDailyRewardForNewServer.serverTime) document.getElementById('daily-server-time').innerText = pendingDailyRewardForNewServer.serverTime;
-            document.getElementById('modal-daily-rewards').style.display = 'flex';
-            pendingDailyRewardForNewServer = null;
-        }
 
         setTimeout(() => {
             window.location.reload();
@@ -1984,20 +1990,6 @@
         }
     });
 
-    socket.on('eb_site_rated_response', (data) => {
-        const site = publishedSitesCache.find(s => s.id === data.siteId);
-        if (site) {
-            site.likes = data.likes;
-            site.dislikes = data.dislikes;
-            site.userRating = data.userRating;
-            applySiteSearchAndSort();
-        }
-    });
-
-    function rateSite(siteId, rating) {
-        socket.emit('eb_rate_site', { siteId, rating });
-    }
-
     function openAssetsModal() {
         document.getElementById('modal-assets').style.display = 'flex';
         socket.emit('eb_get_user_assets');
@@ -2009,22 +2001,30 @@
     }
 
     socket.on('eb_user_assets_list', (data) => {
-        userUsedAssetBytes = data.usedStorageBytes || 0;
-        const maxBytes = data.maxStorageBytes || (500 * 1024 * 1024);
-        const remMB = Math.max(0, (maxBytes - userUsedAssetBytes) / (1024 * 1024)).toFixed(1);
-        document.getElementById('asset-remaining-text').innerText = `${remMB}MB remaining`;
-
-        const btnUpload = document.getElementById('btn-open-asset-upload');
-        if (userUsedAssetBytes >= maxBytes) {
-            btnUpload.style.opacity = '0.3';
-        } else {
-            btnUpload.style.opacity = '1';
-        }
-
         const container = document.getElementById('assets-list-container');
         container.innerHTML = "";
+
+        const usedBytes = data.usedStorageBytes || 0;
+        const maxBytes = data.maxStorageBytes || (500 * 1024 * 1024);
+        const remMb = Math.max(0, (maxBytes - usedBytes) / (1024 * 1024)).toFixed(1);
+        const remLabel = document.getElementById('assets-storage-remaining');
+        if (remLabel) remLabel.innerText = `${remMb}MB remaining`;
+
+        const topUploadBtn = document.getElementById('btn-assets-upload-top');
+        if (usedBytes >= maxBytes) {
+            if (topUploadBtn) {
+                topUploadBtn.style.opacity = '0.3';
+                topUploadBtn.style.pointerEvents = 'none';
+            }
+        } else {
+            if (topUploadBtn) {
+                topUploadBtn.style.opacity = '1';
+                topUploadBtn.style.pointerEvents = 'auto';
+            }
+        }
+
         if (!data.assets || data.assets.length === 0) {
-            container.innerHTML = `<div style="color:var(--muted); font-size:0.85rem; padding:15px;">No assets found. Upload audio, image or video above!</div>`;
+            container.innerHTML = `<div style="color:var(--muted); font-size:0.85rem; padding:15px;">No assets found. Upload an audio, image, or video above!</div>`;
             return;
         }
 
@@ -2088,7 +2088,7 @@
         if (isAudio) {
             slot.innerHTML = `<button class="btn-icon" style="padding:4px 8px; font-size:0.9rem;" onclick="playCachedAudio('${assetId}')">▶</button>`;
         } else if (isVideo) {
-            slot.innerHTML = `<video src="${base64Data}" style="width:100%; height:100%; object-fit:cover;" muted loop onmouseover="this.play()" onmouseout="this.pause()"></video>`;
+            slot.innerHTML = `<video src="${base64Data}" style="width:100%; height:100%; object-fit:cover;" muted></video>`;
         } else {
             slot.innerHTML = `<img src="${base64Data}" style="width:100%; height:100%; object-fit:cover;">`;
         }
@@ -2102,11 +2102,9 @@
     }
 
     function openAssetUploadModal() {
-        if (userUsedAssetBytes >= 500 * 1024 * 1024) {
-            return alert("Asset storage limit reached (500MB max). Delete existing assets to upload more.");
-        }
         currentEditingAssetId = null;
         stagedAssetBase64 = null;
+        stagedAssetVideoCost = 0;
         document.getElementById('asset-edit-title').innerText = "Upload Asset";
         document.getElementById('asset-name-field').value = "";
         document.getElementById('asset-file-field').value = "";
@@ -2119,6 +2117,7 @@
     function openAssetEditForm(assetId) {
         currentEditingAssetId = Number(assetId);
         stagedAssetBase64 = null;
+        stagedAssetVideoCost = 0;
         document.getElementById('asset-edit-title').innerText = `Edit Asset #${assetId}`;
         document.getElementById('btn-submit-asset').innerText = "Apply changes";
         document.getElementById('btn-delete-asset-form').style.display = "block";
@@ -2139,7 +2138,7 @@
             const file = input.files[0];
             const isAudio = file.type.includes('audio');
             const isImage = file.type.includes('image');
-            const isVideo = file.type.includes('video');
+            const isVideo = file.type.includes('video') || file.name.endsWith('.mp4') || file.name.endsWith('.webm');
 
             if (isAudio && file.size > 20 * 1024 * 1024) {
                 alert("Audio file size must be less than 20MB!");
@@ -2158,46 +2157,38 @@
             }
 
             if (isAudio) {
-                const tempAudio = document.createElement('audio');
-                tempAudio.src = URL.createObjectURL(file);
+                const tempAudio = new Audio(URL.createObjectURL(file));
                 tempAudio.onloadedmetadata = () => {
                     if (tempAudio.duration > 600) {
-                        alert("Audio duration cannot exceed 10 minutes!");
+                        alert("Audio duration exceeds the 10 minute limit!");
                         input.value = "";
-                        return;
                     }
-                    processAssetFileReader(file);
                 };
+            }
+
+            if (isVideo) {
+                const cost = Math.max(1, Math.ceil(file.size / (100 * 1024)));
+                stagedAssetVideoCost = cost;
+                document.getElementById('btn-submit-asset').innerHTML = `Upload Asset | ${cost} <span class="coin-icon" style="width:16px; height:16px; font-size:0.55rem;">EZ</span>`;
             } else {
-                processAssetFileReader(file);
+                stagedAssetVideoCost = 0;
+                document.getElementById('btn-submit-asset').innerText = currentEditingAssetId ? "Apply changes" : "Upload Asset";
             }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                stagedAssetBase64 = e.target.result;
+                const preview = document.getElementById('asset-preview-box');
+                if (isImage) {
+                    preview.innerHTML = `<img src="${stagedAssetBase64}" style="max-height:100px; max-width:100%;">`;
+                } else if (isVideo) {
+                    preview.innerHTML = `<video controls src="${stagedAssetBase64}" style="max-height:120px; max-width:100%;"></video>`;
+                } else {
+                    preview.innerHTML = `<audio controls src="${stagedAssetBase64}" style="width:100%;"></audio>`;
+                }
+            };
+            reader.readAsDataURL(file);
         }
-    }
-
-    function processAssetFileReader(file) {
-        const isVideo = file.type.includes('video');
-        const submitBtn = document.getElementById('btn-submit-asset');
-
-        if (isVideo) {
-            const cost = Math.max(1, Math.ceil(file.size / (100 * 1024)));
-            submitBtn.innerText = currentEditingAssetId ? `Apply changes | ${cost} EZ` : `Upload Asset | ${cost} EZ`;
-        } else {
-            submitBtn.innerText = currentEditingAssetId ? "Apply changes" : "Upload Asset";
-        }
-
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            stagedAssetBase64 = e.target.result;
-            const preview = document.getElementById('asset-preview-box');
-            if (file.type.includes('image')) {
-                preview.innerHTML = `<img src="${stagedAssetBase64}" style="max-height:100px; max-width:100%;">`;
-            } else if (file.type.includes('audio')) {
-                preview.innerHTML = `<audio controls src="${stagedAssetBase64}" style="width:100%;"></audio>`;
-            } else if (file.type.includes('video')) {
-                preview.innerHTML = `<video controls src="${stagedAssetBase64}" style="max-height:140px; max-width:100%;"></video>`;
-            }
-        };
-        reader.readAsDataURL(file);
     }
 
     function submitAssetUpload() {
@@ -2207,7 +2198,11 @@
         }
 
         if (!stagedAssetBase64 && !currentEditingAssetId) {
-            return alert("Please select an audio, image, or video file.");
+            return alert("Please select a valid file.");
+        }
+
+        if (stagedAssetVideoCost > 0 && currentCoins < stagedAssetVideoCost) {
+            return alert(`Insufficient EzCoins to upload video. Required: ${stagedAssetVideoCost} EzCoins.`);
         }
 
         const dataToSend = stagedAssetBase64 || cachedAssetsRam[currentEditingAssetId];
@@ -2265,32 +2260,14 @@
     }
 
     function submitMissingEmailValidation() {
-        const email = document.getElementById('missing-email-input').value.trim().toLowerCase();
+        const email = document.getElementById('missing-email-field').value.trim().toLowerCase();
         const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         if (!email || !emailRegex.test(email) || /[()\\<>,;:]/.test(email)) {
-            return alert("Please enter a valid email address with no special characters.");
+            return alert("Please enter a valid email address with no special symbols.");
         }
         document.getElementById('modal-missing-email').style.display = 'none';
         openEmailVerifyModal(true, false, email);
         socket.emit('eb_request_email_code', { email });
-    }
-
-    function resumeVerificationIfPending() {
-        try {
-            const raw = localStorage.getItem('eb_pending_verify');
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (parsed && Date.now() < parsed.expiresAt) {
-                    window.emailVerifyState = parsed;
-                    document.getElementById('modal-email-verify').style.display = 'flex';
-                    startEmailExpireTimer(Math.floor((parsed.expiresAt - Date.now()) / 1000));
-                    const remCooldown = Math.max(0, Math.floor(((parsed.lastSent || 0) + 30000 - Date.now()) / 1000));
-                    startEmailResendCooldown(remCooldown);
-                } else {
-                    localStorage.removeItem('eb_pending_verify');
-                }
-            }
-        } catch(e) {}
     }
 
     function startSignUpFlow() {
@@ -2315,34 +2292,37 @@
         startEmailResendCooldown(data.cooldown || 30);
     });
 
-    function openEmailVerifyModal(isLinkingMissing = false, is2FA = false, targetEmail = "", isGoogle = false) {
+    function openEmailVerifyModal(isLinkingMissing = false, is2FA = false, targetEmail = "") {
         document.getElementById('email-verify-code-input').value = "";
         document.getElementById('modal-email-verify').style.display = 'flex';
-        const emailToUse = targetEmail || (pendingSignupData ? pendingSignupData.email : "");
-        const expiresAt = Date.now() + 1800 * 1000;
-        startEmailExpireTimer(1800);
+        startEmailExpireTimer();
 
         window.emailVerifyState = {
             isLinking: isLinkingMissing,
             is2FA: is2FA,
-            isGoogle: isGoogle,
-            email: emailToUse,
-            expiresAt: expiresAt,
-            lastSent: Date.now()
+            email: targetEmail || (pendingSignupData ? pendingSignupData.email : "")
         };
-        localStorage.setItem('eb_pending_verify', JSON.stringify(window.emailVerifyState));
+
+        try {
+            localStorage.setItem('eb_pending_verify', JSON.stringify({
+                email: window.emailVerifyState.email,
+                isLinking: isLinkingMissing,
+                is2FA: is2FA,
+                expiresAt: Date.now() + 1800000
+            }));
+        } catch(e) {}
     }
 
     function closeEmailVerifyModal() {
         if (emailTimerInterval) clearInterval(emailTimerInterval);
         if (emailResendInterval) clearInterval(emailResendInterval);
-        localStorage.removeItem('eb_pending_verify');
+        try { localStorage.removeItem('eb_pending_verify'); } catch(e) {}
         document.getElementById('modal-email-verify').style.display = 'none';
     }
 
-    function startEmailExpireTimer(customSeconds) {
+    function startEmailExpireTimer() {
         if (emailTimerInterval) clearInterval(emailTimerInterval);
-        emailTimerSeconds = customSeconds || 1800;
+        emailTimerSeconds = 1800;
         const timerEl = document.getElementById('email-expire-timer');
 
         emailTimerInterval = setInterval(() => {
@@ -2362,14 +2342,6 @@
         if (emailResendInterval) clearInterval(emailResendInterval);
         emailResendCooldown = seconds;
         const btn = document.getElementById('btn-resend-email-code');
-
-        if (emailResendCooldown <= 0) {
-            btn.style.opacity = '0.8';
-            btn.disabled = false;
-            btn.innerText = "i didn't receive the email";
-            return;
-        }
-
         btn.style.opacity = '0.3';
         btn.disabled = true;
 
@@ -2406,8 +2378,7 @@
         if (window.emailVerifyState && window.emailVerifyState.isLinking) {
             socket.emit('eb_link_missing_email', { email: data.email });
         } else if (window.emailVerifyState && window.emailVerifyState.is2FA) {
-            if (window.emailVerifyState.isGoogle) {
-                showLoadingScreen("Finalizing Google account 2FA verification...");
+            if (googleSub && googleEmail) {
                 socket.emit('eb_google_login', { googleSub, email: googleEmail, ownerId, bypass2FA: true });
             } else {
                 const user = document.getElementById('eb-login-user').value.trim();
@@ -2475,75 +2446,87 @@
         socket.emit('eb_confirm_delete_account', { key: serverKey, ownerId, code });
     }
 
-    function toggleConsolePerformanceView() {
-        isShowingConsolePerf = !isShowingConsolePerf;
-        const logsBox = document.getElementById('console-logs-display');
-        const perfBox = document.getElementById('console-perf-container');
-        const btnToggle = document.getElementById('btn-toggle-perf-tab');
-        const titleView = document.getElementById('console-title-view');
+    function switchConsoleTab(tab) {
+        const logsView = document.getElementById('console-logs-view');
+        const perfView = document.getElementById('console-perf-view');
+        const btnLogs = document.getElementById('tab-btn-logs');
+        const btnPerf = document.getElementById('tab-btn-perf');
 
-        if (isShowingConsolePerf) {
-            logsBox.style.display = "none";
-            perfBox.style.display = "flex";
-            btnToggle.innerText = "Console Logs";
-            titleView.innerText = "Server Performance";
-            renderPerformanceGraph();
+        if (tab === 'perf') {
+            logsView.style.display = "none";
+            perfView.style.display = "block";
+            btnPerf.className = "btn btn-purple";
+            btnLogs.className = "btn btn-secondary";
+            startPerfGraphLoop();
         } else {
-            logsBox.style.display = "flex";
-            perfBox.style.display = "none";
-            btnToggle.innerText = "Performance";
-            titleView.innerText = "Server Console Logs";
+            logsView.style.display = "block";
+            perfView.style.display = "none";
+            btnLogs.className = "btn btn-purple";
+            btnPerf.className = "btn btn-secondary";
+            stopPerfGraphLoop();
         }
     }
 
+    function startPerfGraphLoop() {
+        if (perfGraphInterval) clearInterval(perfGraphInterval);
+        renderPerfGraph();
+        perfGraphInterval = setInterval(renderPerfGraph, 1000);
+    }
+
+    function stopPerfGraphLoop() {
+        if (perfGraphInterval) clearInterval(perfGraphInterval);
+        perfGraphInterval = null;
+    }
+
     socket.on('eb_perf_tick', (data) => {
-        perfRollingHistory.push({
-            rx: data.rx || 0,
-            tx: data.tx || 0,
-            ram: data.ram || 0
+        perfHistory.push({
+            rx: data.rx,
+            tx: data.tx,
+            ram: data.ram
         });
-        if (perfRollingHistory.length > 30) perfRollingHistory.shift();
-        if (isShowingConsolePerf) renderPerformanceGraph();
+        if (perfHistory.length > 30) perfHistory.shift();
     });
 
-    function renderPerformanceGraph() {
-        const cv = document.getElementById('perf-canvas');
-        if (!cv) return;
-        const c = cv.getContext('2d');
-        c.clearRect(0, 0, cv.width, cv.height);
+    function renderPerfGraph() {
+        const pCanvas = document.getElementById('perf-canvas');
+        if (!pCanvas) return;
+        const pCtx = pCanvas.getContext('2d');
+        const w = pCanvas.width;
+        const h = pCanvas.height;
 
-        c.strokeStyle = '#1e293b';
-        c.lineWidth = 1;
-        for (let y = 0; y <= cv.height; y += 40) {
-            c.beginPath();
-            c.moveTo(0, y);
-            c.lineTo(cv.width, y);
-            c.stroke();
+        pCtx.fillStyle = "#000000";
+        pCtx.fillRect(0, 0, w, h);
+
+        pCtx.strokeStyle = "#1e293b";
+        pCtx.lineWidth = 1;
+        pCtx.beginPath();
+        for (let y = 0; y < h; y += 40) {
+            pCtx.moveTo(0, y);
+            pCtx.lineTo(w, y);
+        }
+        pCtx.stroke();
+
+        if (perfHistory.length < 2) return;
+
+        function drawMetricLine(key, color, maxScale) {
+            pCtx.strokeStyle = color;
+            pCtx.lineWidth = 2;
+            pCtx.beginPath();
+            const step = w / (Math.max(perfHistory.length - 1, 1));
+            for (let i = 0; i < perfHistory.length; i++) {
+                const val = perfHistory[i][key] || 0;
+                const norm = Math.min(1, val / maxScale);
+                const x = i * step;
+                const y = h - (norm * (h - 20)) - 10;
+                if (i === 0) pCtx.moveTo(x, y);
+                else pCtx.lineTo(x, y);
+            }
+            pCtx.stroke();
         }
 
-        if (perfRollingHistory.length < 2) return;
-
-        const maxRx = Math.max(1024, ...perfRollingHistory.map(p => p.rx));
-        const maxTx = Math.max(1024, ...perfRollingHistory.map(p => p.tx));
-        const maxRam = 250 * 1024 * 1024;
-        const stepX = cv.width / 30;
-
-        function drawLine(points, maxVal, color) {
-            c.beginPath();
-            c.strokeStyle = color;
-            c.lineWidth = 2;
-            points.forEach((val, idx) => {
-                const x = idx * stepX;
-                const y = cv.height - (val / maxVal) * (cv.height - 20) - 10;
-                if (idx === 0) c.moveTo(x, y);
-                else c.lineTo(x, y);
-            });
-            c.stroke();
-        }
-
-        drawLine(perfRollingHistory.map(p => p.rx), maxRx, '#10b981');
-        drawLine(perfRollingHistory.map(p => p.tx), maxTx, '#eab308');
-        drawLine(perfRollingHistory.map(p => p.ram), maxRam, '#ef4444');
+        drawMetricLine('rx', '#10b981', 1000 * 1024);
+        drawMetricLine('tx', '#eab308', 1000 * 1024);
+        drawMetricLine('ram', '#ef4444', 250 * 1024 * 1024);
     }
 
     function openPyTerminalModal() {
@@ -2952,10 +2935,12 @@
 
     function openConsoleModal() {
         document.getElementById('modal-console').style.display = 'flex';
+        switchConsoleTab('logs');
         socket.emit('eb_get_console_logs', { key: serverKey, ownerId, googleSub });
     }
 
     function closeConsoleModal() {
+        stopPerfGraphLoop();
         document.getElementById('modal-console').style.display = 'none';
     }
 
@@ -3696,7 +3681,7 @@ ${serverType === 'websocket' ?
 3 - APIs You Can Use
 - 'ebuserid_get' / 'eb_id_get': [CLIENT-SIDED API] Send RemoteEvent type 'ebuserid_get' to get the client's permanent unique User ID (15-30 chars).
 - 'eb_profile_get_{clientid}': [CLIENT AND SERVER API] Fetch any user's profile display name and avatar (sent in 500KB chunks).
-- 'eb_asset_get_{assetid}': [CLIENT AND SERVER API] Fetch any uploaded audio, image, or video asset by sequential ID in 180KB chunks. Can be used without server key.
+- 'eb_asset_get_{assetid}': [CLIENT AND SERVER API] Fetch any uploaded audio/image/video asset by sequential ID in 180KB chunks. Can be used without server key.
 - Server.storage API: [SERVER-SIDED API]
   * Server.storage.set(data) - Save up to 100MB of persistent server data.
   * Server.storage.get() - Retrieve stored server data.
@@ -3732,7 +3717,6 @@ GET ${PUBLIC_TUNNEL_URL}/getstatus
 
 <span class="api-tag-both">CLIENT AND SERVER API (both clients and servers can use this API)</span>
 2. GET CLIENT PROFILE:
-// GET request: ${PUBLIC_TUNNEL_URL}/eb_profile_get_{clientid}
 async function fetchUserProfile(targetClientId) {
     const res = await fetch("${PUBLIC_TUNNEL_URL}/eb_profile_get_" + targetClientId);
     const profile = await res.json();
@@ -3744,19 +3728,17 @@ async function fetchUserProfile(targetClientId) {
 
 <span class="api-tag-both">CLIENT AND SERVER API (both clients and servers can use this API)</span>
 3. GET ASSET DATA:
-// GET request: ${PUBLIC_TUNNEL_URL}/eb_asset_get_{assetid}
-// Can be used without server key or authority
 async function fetchAssetData(assetId) {
     const res = await fetch("${PUBLIC_TUNNEL_URL}/eb_asset_get_" + assetId);
     const asset = await res.json();
     console.log("Asset Name:", asset.name, "Type:", asset.type);
     if (asset.type.includes('image')) {
         document.getElementById("imgSlot").src = asset.data;
+    } else if (asset.type.includes('video')) {
+        document.getElementById("vidSlot").src = asset.data;
     } else if (asset.type.includes('audio')) {
         const audio = new Audio(asset.data);
         audio.play();
-    } else if (asset.type.includes('video')) {
-        document.getElementById("videoSlot").src = asset.data;
     }
 }
 
@@ -3779,9 +3761,9 @@ async function sendHttpEvent(type, data) {
 
 <span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
 5. SERVERSCRIPT 100MB DEDICATED STORAGE API:
-// Server.storage.set("any string or JSON data up to 100MB");
-// const storedData = Server.storage.get();
-// const usedBytes = Server.storage.getUsageBytes();
+Server.storage.set("any string or JSON data up to 100MB");
+const storedData = Server.storage.get();
+const usedBytes = Server.storage.getUsageBytes();
 
 <span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
 6. SERVERSCRIPT LOCAL AI API (Ollama qwen2.5:0.5b / gemma3:1b):
@@ -3818,7 +3800,6 @@ socket.on("RemoteEvent", (pkt) => {
 
 <span class="api-tag-both">CLIENT AND SERVER API (both clients and servers can use this API)</span>
 3. GET ASSET IN 180KB CHUNKS:
-// Can be used without server key or authority
 socket.emit("RemoteEvent", { type: "eb_asset_get_1" });
 let assetChunks = [];
 socket.on("RemoteEvent", (pkt) => {
@@ -3828,10 +3809,10 @@ socket.on("RemoteEvent", (pkt) => {
             const base64Data = assetChunks.join('');
             if (pkt.data.type.includes('image')) {
                 document.getElementById("myImage").src = base64Data;
-            } else if (pkt.data.type.includes('audio')) {
-                new Audio(base64Data).play();
             } else if (pkt.data.type.includes('video')) {
                 document.getElementById("myVideo").src = base64Data;
+            } else {
+                new Audio(base64Data).play();
             }
         }
     }
@@ -3850,12 +3831,12 @@ socket.on("RemoteEvent", (pkt) => {
 
 <span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
 6. SERVERSCRIPT 100MB DEDICATED STORAGE API:
-// Server.storage.set("any string or JSON data up to 100MB");
-// const storedData = Server.storage.get();
-// const usedBytes = Server.storage.getUsageBytes();
+Server.storage.set("any string or JSON data up to 100MB");
+const storedData = Server.storage.get();
+const usedBytes = Server.storage.getUsageBytes();
 
 <span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
-7. SERVERSCRIPT LOCAL AI API (Ollama qwen2.5:0.5b / gemma3:1b / llama3.2:1b / qwen2.5:1.5b):
+7. SERVERSCRIPT LOCAL AI API (Ollama gemma3:1b / llama3.2:1b / qwen2.5:0.5b / qwen2.5:1.5b):
 Server.eb_callai({
     model: "gemma3:1b",
     Temp: 0,
