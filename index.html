@@ -149,7 +149,7 @@
         .session-btn {
             background: #020617 !important; border: 1px solid var(--border) !important;
             color: #fff !important; padding: 12px; font-weight: bold; cursor: pointer;
-            transition: transform 0.2s, background 0.2s; text-align: center;
+            transition: 0.2s; text-align: center;
         }
         .session-btn:hover { background: rgba(239, 68, 68, 0.5) !important; }
 
@@ -223,6 +223,13 @@
             padding: 12px; border: 1px solid var(--border); height: 280px; max-height: 280px;
             overflow-y: auto; text-align: left; font-size: 0.85rem; cursor: text; white-space: pre-wrap;
         }
+
+        .tug-war-bar {
+            display: flex; height: 6px; width: 110px; background: #ef4444; overflow: hidden; margin-top: 4px;
+        }
+        .tug-war-fill {
+            background: #10b981; height: 100%; transition: width 0.3s;
+        }
     </style>
 </head>
 <body>
@@ -230,7 +237,7 @@
     <canvas id="bg-canvas"></canvas>
 
     <div style="position:fixed; bottom:10px; left:12px; z-index:99999; color:#ffffff; font-family:'Courier New', monospace; font-size:0.75rem; font-weight:bold; letter-spacing:1px; pointer-events:none; text-shadow:0 0 4px #000;">
-        EzBridge - V2.1.5
+        EzBridge - V2.2.0
     </div>
 
     <div id="overlay-sync" class="overlay">
@@ -245,6 +252,20 @@
             <h3 id="route-notify-title" style="color:var(--accent);">Connecting to the site</h3>
             <p id="route-notify-desc" style="font-size:0.85rem; color:#ffffff; margin:15px 0;">directing you to the existing URL...</p>
             <div id="route-notify-actions" style="display:flex; gap:10px;"></div>
+        </div>
+    </div>
+
+    <div id="modal-link-missing-email" class="overlay" style="display:none; z-index:3120;">
+        <div class="card" style="max-width:440px;">
+            <h3>Account Security</h3>
+            <p style="font-size:0.85rem; color:#ffffff; margin:12px 0; line-height:1.4;">Before you can continue, please enter your EMAIL to make your account more secure.</p>
+            <div class="settings-item">
+                <label>New Email:</label>
+                <input type="email" id="missing-email-input" placeholder="example@gmail.com">
+            </div>
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <button class="btn btn-purple" onclick="submitLinkMissingEmail()">Validate</button>
+            </div>
         </div>
     </div>
 
@@ -286,7 +307,7 @@
         <div class="card" style="max-width: 520px; max-height:85vh; display:flex; flex-direction:column;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <h3 style="margin:0;">Shopping Menu</h3>
-                <div style="font-size:0.85rem; font-weight:bold;"><span class="coin-icon">EZ</span> <span id="shop-user-coins">50</span> EzCoins</div>
+                <div style="font-size:0.85rem; font-weight:bold;"><span class="coin-icon">EZ</span> <span id="shop-user-coins">0</span> EzCoins</div>
             </div>
             <p style="font-size:0.75rem; color:var(--muted); text-align:left; margin:8px 0;">V-Batteries</p>
             <div class="settings-grid" style="flex:1;">
@@ -348,9 +369,10 @@
 
     <div id="modal-assets" class="overlay" style="display:none;">
         <div class="card" style="max-width: 680px; width:95%; max-height:85vh; display:flex; flex-direction:column;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                 <h3 style="margin:0;">Assets</h3>
-                <button class="btn btn-purple" style="width:auto; margin:0; padding:6px 14px;" onclick="openAssetUploadModal()">Upload</button>
+                <span id="assets-storage-rem-text" style="font-size:0.75rem; color:var(--accent); font-weight:bold;">500MB remaining</span>
+                <button id="btn-open-asset-upload" class="btn btn-purple" style="width:auto; margin:0; padding:6px 14px;" onclick="openAssetUploadModal()">Upload</button>
             </div>
             <div id="assets-list-container" class="settings-grid" style="flex:1; max-height:none;"></div>
             <button class="btn btn-secondary" style="margin-top:10px;" onclick="closeAssetsModal()">Back to EzBridge</button>
@@ -367,8 +389,8 @@
                     <input type="text" id="asset-name-field" maxlength="20" placeholder="My Epic Asset">
                 </div>
                 <div class="settings-item">
-                    <label>Asset file (Audio: MP3, OGG, WAV < 20MB | Image: JPG, JPEG, PNG < 5MB):</label>
-                    <input type="file" id="asset-file-field" accept="audio/mp3,audio/ogg,audio/wav,image/jpeg,image/png,image/jpg" onchange="handleAssetFileSelected(this)">
+                    <label>Asset file (Audio <= 10m < 20MB | Image < 5MB | Video < 50MB):</label>
+                    <input type="file" id="asset-file-field" accept="audio/mp3,audio/ogg,audio/wav,image/jpeg,image/png,image/jpg,video/mp4,video/webm" onchange="handleAssetFileSelected(this)">
                 </div>
             </div>
 
@@ -465,6 +487,8 @@
             <div style="display:flex; gap:10px; margin-bottom:10px; align-items:center; flex-wrap:wrap;">
                 <label style="font-size:0.8rem; font-weight:bold;">Sort by:</label>
                 <select id="site-sort-select" onchange="triggerAutoSiteSearch()" style="padding:6px; background:#020617; color:#fff; border:1px solid var(--border);">
+                    <option value="hottest" selected>Hottest 🔥</option>
+                    <option value="most_liked">Most liked</option>
                     <option value="visits">Most accessed</option>
                     <option value="newest">Newest</option>
                 </select>
@@ -546,10 +570,10 @@
                 <div class="settings-item" style="text-align:left; margin-top:8px;">
                     <label>Model:</label>
                     <select id="ai-site-model-select">
-                        <option value="smollm2:360m">Smollm2</option>
                         <option value="qwen2.5:0.5b">Qwen 2.5 [FASTER]</option>
                         <option value="gemma3:1b" selected>Gemma3 [Default] [Recommended]</option>
                         <option value="llama3.2:1b">Llama 3.2</option>
+                        <option value="qwen2.5:1.5b">Qwen 2.5 1.5B [Exclusive]</option>
                     </select>
                 </div>
                 <div style="display:flex; gap:10px; margin-top:15px;">
@@ -812,9 +836,28 @@
 
     <div id="modal-console" class="overlay" style="display:none;">
         <div class="card" style="max-width: 600px;">
-            <h3>Server Console Logs</h3>
-            <div id="console-logs-display" class="console-box"></div>
-            <div style="display:flex; gap:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <h3 style="margin:0;">Server Console</h3>
+                <div style="display:flex; gap:6px;">
+                    <button id="btn-tab-console-logs" class="btn btn-purple" style="width:auto; margin:0; padding:4px 10px; font-size:0.75rem;" onclick="switchConsoleTab('logs')">Logs</button>
+                    <button id="btn-tab-console-perf" class="btn btn-secondary" style="width:auto; margin:0; padding:4px 10px; font-size:0.75rem;" onclick="switchConsoleTab('perf')">Performance</button>
+                </div>
+            </div>
+
+            <div id="console-tab-logs-view">
+                <div id="console-logs-display" class="console-box"></div>
+            </div>
+
+            <div id="console-tab-perf-view" style="display:none; text-align:left;">
+                <div style="font-size:0.75rem; color:var(--muted); margin-bottom:6px;">
+                    <span style="color:var(--green); font-weight:bold;">■ Received (Rx)</span> | 
+                    <span style="color:var(--yellow); font-weight:bold;">■ Sent (Tx)</span> | 
+                    <span style="color:var(--error); font-weight:bold;">■ RAM Used</span>
+                </div>
+                <canvas id="console-perf-canvas" width="540" height="240" style="background:#000; border:1px solid var(--border); width:100%; height:240px;"></canvas>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:10px;">
                 <button class="btn btn-green" style="flex:1;" onclick="openPyTerminalModal()">Python Terminal</button>
                 <button class="btn" style="flex:1;" onclick="copyConsoleLogs()">Copy Logs</button>
                 <button class="btn btn-purple" style="flex:1;" onclick="openServerStorageModal()">See Storage</button>
@@ -1015,7 +1058,7 @@
 
             <div style="display:flex; align-items:center; gap:8px;">
                 <button class="btn-icon" title="Shopping Menu" onclick="openShopModal()" style="padding:2px 8px; font-size:0.85rem;">🛒</button>
-                <div style="font-size:0.85rem; font-weight:bold;"><span class="coin-icon">EZ</span> <span id="dashboard-coins-count">50</span></div>
+                <div style="font-size:0.85rem; font-weight:bold;"><span class="coin-icon">EZ</span> <span id="dashboard-coins-count">0</span></div>
             </div>
         </div>
 
@@ -1026,8 +1069,8 @@
         <div style="margin-bottom:12px; text-align:left;">
             <div style="font-size:0.75rem; color:var(--muted); font-weight:bold; margin-bottom:3px;">V-Battery left:</div>
             <div class="progress-container" style="height:18px; margin:0; background:#020617; border-color:var(--green) !important;">
-                <div id="battery-progress-fill" class="progress-bar" style="background:var(--green); width:2%;"></div>
-                <div class="progress-text" style="color:#ffffff; font-size:0.7rem;"><span id="battery-curr-val">500.0</span>mb | 25000mb</div>
+                <div id="battery-progress-fill" class="progress-bar" style="background:var(--green); width:0.4%;"></div>
+                <div class="progress-text" style="color:#ffffff; font-size:0.7rem;"><span id="battery-curr-val">100.0</span>mb | 25000mb</div>
             </div>
         </div>
 
@@ -1128,7 +1171,7 @@
                 DISCLAIMER: it's recommended that the client should have a temporary identifier so your scripts and projects know who's sending them, its optional.
             </div>
             
-            <div style="text-align:left; font-size:0.85rem; font-weight:bold; color:var(--accent);">1. Multiplayer Coin Collector (New Example) - Client HTML:</div>
+            <div style="text-align:left; font-size:0.85rem; font-weight:bold; color:var(--accent);">1. Multiplayer Coin Collector - Client HTML:</div>
             <textarea id="example-coin-client" class="code-box" readonly rows="8" style="width:100%; height:160px; border:none; resize:none;"></textarea>
 
             <div style="text-align:left; font-size:0.85rem; font-weight:bold; color:var(--accent); margin-top:10px;">1. Multiplayer Coin Collector - ServerScript:</div>
@@ -1156,7 +1199,8 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://greg-horse-carbon-shift.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://invitations-infants-ref-forum.trycloudflare.com";
+    const BASE_SITE_URL = "https://terminatorsbdev.github.io/EzBridge/";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
@@ -1181,11 +1225,12 @@
     let cachedUserProfiles = {};
     let cachedAssetsRam = {};
 
-    let currentCoins = 50;
-    let currentBatteryMb = 500;
+    let currentCoins = 0;
+    let currentBatteryMb = 100;
     let stagedPfpBase64 = null;
     let stagedAssetBase64 = null;
     let currentEditingAssetId = null;
+    let currentAssetFileDuration = null;
 
     let isServerLockdown = false;
     let lockdownUntilTime = 0;
@@ -1228,6 +1273,8 @@
     let serverStorageChunks = [];
     let serverScriptChunks = [];
     let serverStoragePollInterval = null;
+
+    let perfHistory = [];
 
     const SCRIPT_CHUNK_SIZE = 100 * 1024;
     const UNIV_CHUNK_SIZE = 50 * 1024;
@@ -1330,6 +1377,11 @@
         const hashStr = window.location.hash || '';
         const clean = hashStr.replace(/^#?\/?/g, '').replace(/\/+$/, '');
         if (clean) {
+            if (clean.startsWith('site/')) {
+                const sId = clean.replace('site/', '').trim();
+                socket.emit('eb_visit_site', { siteId: sId });
+                return;
+            }
             showRouteConnectingModal();
             socket.emit('changeurl', { path: clean });
         }
@@ -1484,7 +1536,7 @@
         }
 
         if (data.emailRequired) {
-            openEmailVerifyModal(true);
+            document.getElementById('modal-link-missing-email').style.display = 'flex';
         }
 
         if (data.dailyReward && data.dailyReward.pendingReward) {
@@ -1494,6 +1546,17 @@
             if (data.dailyReward.serverTime) document.getElementById('daily-server-time').innerText = data.dailyReward.serverTime;
             document.getElementById('modal-daily-rewards').style.display = 'flex';
         }
+    }
+
+    function submitLinkMissingEmail() {
+        const email = document.getElementById('missing-email-input').value.trim().toLowerCase();
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!email || !emailRegex.test(email) || /[()\\<>,;:]/.test(email)) {
+            return alert("Please enter a valid email address with no special characters.");
+        }
+        document.getElementById('modal-link-missing-email').style.display = 'none';
+        socket.emit('eb_request_email_code', { email });
+        openEmailVerifyModal(true, false, email);
     }
 
     socket.on('eb_cookie_cache_verified', (data) => {
@@ -1535,13 +1598,33 @@
             document.getElementById('overlay-captcha').style.display = 'flex';
             checkInitialUrlRouting();
         }
+
+        checkPendingVerificationResume();
     });
 
+    function checkPendingVerificationResume() {
+        const raw = localStorage.getItem('eb_pending_verify');
+        if (!raw) return;
+        try {
+            const data = JSON.parse(raw);
+            const elapsed = Math.floor((Date.now() - data.timestamp) / 1000);
+            if (elapsed < 1800) {
+                openEmailVerifyModal(Boolean(data.isLinking), Boolean(data.is2FA), data.email);
+                const remCooldown = Math.max(0, 30 - elapsed);
+                startEmailResendCooldown(remCooldown);
+            } else {
+                localStorage.removeItem('eb_pending_verify');
+            }
+        } catch(e) {}
+    }
+
     socket.on('google_login_verified', (data) => {
+        localStorage.removeItem('eb_pending_verify');
         applyFullAuthState(data, true);
     });
 
     socket.on('eb_ezbridge_auth_success', (data) => {
+        localStorage.removeItem('eb_pending_verify');
         document.getElementById('overlay-ezbridge-logging').style.display = 'none';
         if (!data.hasServer) {
             pendingDailyRewardForNewServer = data.dailyReward;
@@ -1563,6 +1646,12 @@
 
     socket.on('eb_login_2fa_required', (data) => {
         document.getElementById('overlay-ezbridge-logging').style.display = 'none';
+        localStorage.setItem('eb_pending_verify', JSON.stringify({
+            email: data.email,
+            timestamp: Date.now(),
+            is2FA: true,
+            isGoogle: Boolean(data.isGoogle)
+        }));
         openEmailVerifyModal(false, true, data.email);
     });
 
@@ -1936,8 +2025,25 @@
     socket.on('eb_user_assets_list', (data) => {
         const container = document.getElementById('assets-list-container');
         container.innerHTML = "";
+        
+        const usedMB = (data.usedStorageBytes / (1024 * 1024)).toFixed(1);
+        const remMB = Math.max(0, 500 - (data.usedStorageBytes / (1024 * 1024))).toFixed(1);
+        const remText = document.getElementById('assets-storage-rem-text');
+        if (remText) remText.innerText = `${remMB}MB remaining`;
+
+        const uploadBtn = document.getElementById('btn-open-asset-upload');
+        if (uploadBtn) {
+            if (data.usedStorageBytes >= 500 * 1024 * 1024) {
+                uploadBtn.style.opacity = '0.3';
+                uploadBtn.style.pointerEvents = 'none';
+            } else {
+                uploadBtn.style.opacity = '1';
+                uploadBtn.style.pointerEvents = 'auto';
+            }
+        }
+
         if (!data.assets || data.assets.length === 0) {
-            container.innerHTML = `<div style="color:var(--muted); font-size:0.85rem; padding:15px;">No assets found. Upload an audio or image above!</div>`;
+            container.innerHTML = `<div style="color:var(--muted); font-size:0.85rem; padding:15px;">No assets found. Upload audio, image or video!</div>`;
             return;
         }
 
@@ -1996,9 +2102,12 @@
         const slot = document.getElementById(`asset-slot-${assetId}`);
         if (!slot) return;
         const isAudio = type.includes('audio') || type.includes('mp3') || type.includes('ogg') || type.includes('wav');
+        const isVideo = type.includes('video') || type.includes('mp4') || type.includes('webm');
 
         if (isAudio) {
             slot.innerHTML = `<button class="btn-icon" style="padding:4px 8px; font-size:0.9rem;" onclick="playCachedAudio('${assetId}')">▶</button>`;
+        } else if (isVideo) {
+            slot.innerHTML = `<video src="${base64Data}" style="width:100%; height:100%; object-fit:cover;" muted></video>`;
         } else {
             slot.innerHTML = `<img src="${base64Data}" style="width:100%; height:100%; object-fit:cover;">`;
         }
@@ -2014,6 +2123,7 @@
     function openAssetUploadModal() {
         currentEditingAssetId = null;
         stagedAssetBase64 = null;
+        currentAssetFileDuration = null;
         document.getElementById('asset-edit-title').innerText = "Upload Asset";
         document.getElementById('asset-name-field').value = "";
         document.getElementById('asset-file-field').value = "";
@@ -2026,6 +2136,7 @@
     function openAssetEditForm(assetId) {
         currentEditingAssetId = Number(assetId);
         stagedAssetBase64 = null;
+        currentAssetFileDuration = null;
         document.getElementById('asset-edit-title').innerText = `Edit Asset #${assetId}`;
         document.getElementById('btn-submit-asset').innerText = "Apply changes";
         document.getElementById('btn-delete-asset-form').style.display = "block";
@@ -2046,6 +2157,7 @@
             const file = input.files[0];
             const isAudio = file.type.includes('audio');
             const isImage = file.type.includes('image');
+            const isVideo = file.type.includes('video');
 
             if (isAudio && file.size > 20 * 1024 * 1024) {
                 alert("Audio file size must be less than 20MB!");
@@ -2057,6 +2169,19 @@
                 input.value = "";
                 return;
             }
+            if (isVideo && file.size > 50 * 1024 * 1024) {
+                alert("Video file size must be less than 50MB!");
+                input.value = "";
+                return;
+            }
+
+            const submitBtn = document.getElementById('btn-submit-asset');
+            if (isVideo) {
+                const coinCost = Math.max(1, Math.ceil(file.size / (100 * 1024)));
+                submitBtn.innerHTML = `Upload Asset | ${coinCost} <span class="coin-icon" style="width:16px; height:16px; font-size:0.5rem;">EZ</span>`;
+            } else {
+                submitBtn.innerText = currentEditingAssetId ? "Apply changes" : "Upload Asset";
+            }
 
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -2064,8 +2189,20 @@
                 const preview = document.getElementById('asset-preview-box');
                 if (isImage) {
                     preview.innerHTML = `<img src="${stagedAssetBase64}" style="max-height:100px; max-width:100%;">`;
-                } else {
+                } else if (isVideo) {
+                    preview.innerHTML = `<video controls src="${stagedAssetBase64}" style="max-height:120px; max-width:100%;"></video>`;
+                } else if (isAudio) {
                     preview.innerHTML = `<audio controls src="${stagedAssetBase64}" style="width:100%;"></audio>`;
+                    const testAud = new Audio(stagedAssetBase64);
+                    testAud.onloadedmetadata = () => {
+                        currentAssetFileDuration = testAud.duration;
+                        if (currentAssetFileDuration > 600) {
+                            alert("Audio duration exceeds 10 minutes limit!");
+                            stagedAssetBase64 = null;
+                            input.value = "";
+                            preview.innerHTML = "";
+                        }
+                    };
                 }
             };
             reader.readAsDataURL(file);
@@ -2079,12 +2216,20 @@
         }
 
         if (!stagedAssetBase64 && !currentEditingAssetId) {
-            return alert("Please select an audio or image file.");
+            return alert("Please select a file to upload.");
         }
 
         const dataToSend = stagedAssetBase64 || cachedAssetsRam[currentEditingAssetId];
         const fileInput = document.getElementById('asset-file-field');
         const fileType = fileInput.files[0] ? fileInput.files[0].type : "image/png";
+
+        const isVideo = fileType.includes('video');
+        if (isVideo && fileInput.files[0]) {
+            const cost = Math.max(1, Math.ceil(fileInput.files[0].size / (100 * 1024)));
+            if (currentCoins < cost) {
+                return alert(`You need ${cost} EzCoins to upload this video. Current: ${currentCoins} EzCoins.`);
+            }
+        }
 
         const totalChunks = Math.ceil(dataToSend.length / ASSET_CHUNK_SIZE);
         isUploadingAsset = true;
@@ -2099,6 +2244,7 @@
                 name: nameVal,
                 type: fileType,
                 size: dataToSend.length,
+                duration: currentAssetFileDuration,
                 editAssetId: currentEditingAssetId
             });
         }
@@ -2113,6 +2259,7 @@
     socket.on('eb_asset_upload_success', (data) => {
         isUploadingAsset = false;
         document.getElementById('asset-upload-progress').style.display = 'none';
+        if (data.newCoins !== undefined) updateCoinsDisplay(data.newCoins);
         alert(`Success on Asset upload!\nyour asset ${data.name} has been uploaded.`);
         closeAssetEditModal();
     });
@@ -2153,6 +2300,12 @@
     }
 
     socket.on('eb_email_code_sent', (data) => {
+        localStorage.setItem('eb_pending_verify', JSON.stringify({
+            email: data.email,
+            timestamp: Date.now(),
+            isLinking: Boolean(window.emailVerifyState && window.emailVerifyState.isLinking),
+            is2FA: Boolean(window.emailVerifyState && window.emailVerifyState.is2FA)
+        }));
         openEmailVerifyModal(false, false, data.email);
         startEmailResendCooldown(data.cooldown || 30);
     });
@@ -2230,12 +2383,24 @@
 
     socket.on('eb_email_code_verified', (data) => {
         closeEmailVerifyModal();
+        const pendingVerify = localStorage.getItem('eb_pending_verify');
+        let isGoogle = false;
+        if (pendingVerify) {
+            try { isGoogle = JSON.parse(pendingVerify).isGoogle; } catch(e) {}
+        }
+        localStorage.removeItem('eb_pending_verify');
+
         if (window.emailVerifyState && window.emailVerifyState.isLinking) {
             socket.emit('eb_link_missing_email', { email: data.email });
         } else if (window.emailVerifyState && window.emailVerifyState.is2FA) {
-            const user = document.getElementById('eb-login-user').value.trim();
-            const pass = document.getElementById('eb-login-pass').value;
-            socket.emit('eb_ezbridge_login', { username: user, password: pass, bypass2FA: true });
+            if (isGoogle && googleSub) {
+                showLoadingScreen("Wait, the server is logging you into the inserted account.");
+                socket.emit('eb_google_login', { googleSub, email: data.email, ownerId, bypass2FA: true });
+            } else {
+                const user = document.getElementById('eb-login-user').value.trim();
+                const pass = document.getElementById('eb-login-pass').value;
+                socket.emit('eb_ezbridge_login', { username: user, password: pass, bypass2FA: true });
+            }
         } else if (pendingSignupData) {
             showLoadingScreen("Finalizing your account and generating security credentials...");
             socket.emit('eb_ezbridge_signup', {
@@ -2348,501 +2513,91 @@
         disp.scrollTop = disp.scrollHeight;
     });
 
-    function showCooldownWarningModal(actionName, remMs) {
-        if (cooldownTimerCountdown) clearInterval(cooldownTimerCountdown);
-        let remSeconds = Math.max(1, Math.ceil(remMs / 1000));
+    function switchConsoleTab(tab) {
+        const logsTab = document.getElementById('console-tab-logs-view');
+        const perfTab = document.getElementById('console-tab-perf-view');
+        const logsBtn = document.getElementById('btn-tab-console-logs');
+        const perfBtn = document.getElementById('btn-tab-console-perf');
 
-        function updateWarnText() {
-            const h = String(Math.floor(remSeconds / 3600)).padStart(2, '0');
-            const m = String(Math.floor((remSeconds % 3600) / 60)).padStart(2, '0');
-            const s = String(remSeconds % 60).padStart(2, '0');
-            document.getElementById('cooldown-warning-time').innerText = `${h}:${m}:${s}`;
-        }
-        updateWarnText();
-
-        cooldownTimerCountdown = setInterval(() => {
-            remSeconds--;
-            if (remSeconds <= 0) {
-                clearInterval(cooldownTimerCountdown);
-                closeCooldownWarningModal();
-            } else {
-                updateWarnText();
-            }
-        }, 1000);
-
-        document.getElementById('modal-cooldown-warning').style.display = 'flex';
-    }
-
-    function closeCooldownWarningModal() {
-        if (cooldownTimerCountdown) clearInterval(cooldownTimerCountdown);
-        document.getElementById('modal-cooldown-warning').style.display = 'none';
-    }
-
-    function openProfileModal() {
-        document.getElementById('profile-name-input').value = currentProfile.displayName || "";
-        document.getElementById('modal-profile').style.display = 'flex';
-    }
-    function closeProfileModal() {
-        document.getElementById('modal-profile').style.display = 'none';
-    }
-    function handlePfpFileSelect(input) {
-        if (input.files && input.files[0]) {
-            const file = input.files[0];
-            if (file.size > 500 * 1024) {
-                alert("Profile picture must be lower than 500kb!");
-                input.value = "";
-                return;
-            }
-            const reader = new FileReader();
-            reader.onload = (e) => { stagedPfpBase64 = e.target.result; };
-            reader.readAsDataURL(file);
-        }
-    }
-    function submitProfileUpdate() {
-        const nameVal = document.getElementById('profile-name-input').value.trim();
-        const pfpDataToSend = stagedPfpBase64 || currentProfile.pfpData || "default";
-
-        const totalChunks = Math.max(1, Math.ceil(pfpDataToSend.length / (192 * 1024)));
-        for (let i = 0; i < totalChunks; i++) {
-            const chunk = pfpDataToSend.slice(i * 192 * 1024, (i + 1) * 192 * 1024);
-            socket.emit('eb_upload_profile_chunk', {
-                index: i,
-                total: totalChunks,
-                chunk: chunk,
-                displayName: nameVal
-            });
-        }
-    }
-    function updateLocalProfileUI(profile) {
-        currentProfile = profile;
-        const customImg = document.getElementById('custom-avatar-view');
-        const donutView = document.getElementById('donut-avatar-view');
-        if (profile.pfpData && profile.pfpData !== "default") {
-            customImg.src = profile.pfpData;
-            customImg.style.display = 'block';
-            donutView.style.display = 'none';
+        if (tab === 'logs') {
+            logsTab.style.display = 'block';
+            perfTab.style.display = 'none';
+            logsBtn.className = 'btn btn-purple';
+            perfBtn.className = 'btn btn-secondary';
         } else {
-            customImg.style.display = 'none';
-            donutView.style.display = 'flex';
+            logsTab.style.display = 'none';
+            perfTab.style.display = 'block';
+            logsBtn.className = 'btn btn-secondary';
+            perfBtn.className = 'btn btn-purple';
+            drawPerformanceGraph();
         }
     }
 
-    function openShopModal() {
-        document.getElementById('shop-user-coins').innerText = currentCoins;
-        document.getElementById('modal-shop').style.display = 'flex';
-    }
-    function closeShopModal() {
-        document.getElementById('modal-shop').style.display = 'none';
-    }
-    function buyBatteryProduct(itemId) {
-        socket.emit('eb_buy_battery', { itemId: itemId, serverKey: serverKey });
-    }
-    function updateCoinsDisplay(coins) {
-        currentCoins = coins;
-        const dashCoins = document.getElementById('dashboard-coins-count');
-        const shopCoins = document.getElementById('shop-user-coins');
-        if (dashCoins) dashCoins.innerText = coins;
-        if (shopCoins) shopCoins.innerText = coins;
-    }
-    function updateBatteryDisplay(batteryMb) {
-        currentBatteryMb = batteryMb;
-        const valEl = document.getElementById('battery-curr-val');
-        const fillEl = document.getElementById('battery-progress-fill');
-        if (valEl) valEl.innerText = batteryMb.toFixed(1);
-        if (fillEl) {
-            const pct = Math.min(100, Math.max(0, (batteryMb / 25000) * 100));
-            fillEl.style.width = `${pct}%`;
-        }
-    }
-
-    function openOwnerSetCoinsModal() {
-        closeUniversalPanelModal();
-        document.getElementById('owner-coins-target-id').value = "";
-        document.getElementById('owner-coins-val').value = "50";
-        document.getElementById('modal-owner-set-coins').style.display = 'flex';
-    }
-    function closeOwnerSetCoinsModal() {
-        document.getElementById('modal-owner-set-coins').style.display = 'none';
-    }
-    function submitOwnerSetCoins() {
-        const targetId = document.getElementById('owner-coins-target-id').value.trim();
-        const amount = parseFloat(document.getElementById('owner-coins-val').value) || 50;
-        socket.emit('eb_owner_set_coins', { targetUserId: targetId, amount: amount });
-        closeOwnerSetCoinsModal();
-    }
-
-    function handleGoogleLogin(response) {
-        if (!isCaptchaTagged) {
-            return alert("⚠Request rejected⚠\nYou must verify yourself to prove you're not a bot.");
-        }
-
-        const base64Url = response.credential.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-        const payload = JSON.parse(jsonPayload);
-
-        googleSub = payload.sub;
-        googleEmail = payload.email;
-
-        showLoadingScreen("Wait, the server is logging you into the inserted account.");
-        socket.emit('eb_google_login', { googleSub, email: googleEmail, ownerId });
-    }
-
-    function openEzBridgeAuthChoice() {
-        document.getElementById('overlay-google-auth').style.display = 'none';
-        document.getElementById('modal-ezbridge-auth-choice').style.display = 'flex';
-    }
-
-    function closeEzBridgeAuthChoice() {
-        document.getElementById('modal-ezbridge-auth-choice').style.display = 'none';
-        document.getElementById('overlay-google-auth').style.display = 'flex';
-    }
-
-    function openEzBridgeSignUp() {
-        document.getElementById('modal-ezbridge-auth-choice').style.display = 'none';
-        document.getElementById('eb-signup-user').value = "";
-        document.getElementById('eb-signup-pass').value = "";
-        document.getElementById('eb-signup-email').value = "";
-        document.getElementById('eb-signup-user-status').innerText = "";
-        document.getElementById('eb-signup-pass-status').innerText = "";
-        document.getElementById('modal-ezbridge-signup').style.display = 'flex';
-    }
-
-    function closeEzBridgeSignUp() {
-        document.getElementById('modal-ezbridge-signup').style.display = 'none';
-        openEzBridgeAuthChoice();
-    }
-
-    function openEzBridgeLogIn() {
-        document.getElementById('modal-ezbridge-auth-choice').style.display = 'none';
-        document.getElementById('eb-login-user').value = "";
-        document.getElementById('eb-login-pass').value = "";
-        document.getElementById('eb-login-user-status').innerText = "";
-        document.getElementById('eb-login-pass-status').innerText = "";
-        document.getElementById('modal-ezbridge-login').style.display = 'flex';
-    }
-
-    function closeEzBridgeLogIn() {
-        document.getElementById('modal-ezbridge-login').style.display = 'none';
-        openEzBridgeAuthChoice();
-    }
-
-    function handleEzBridgeFieldValidate(mode, field) {
-        if (field === 'user') {
-            const userVal = document.getElementById(`eb-${mode}-user`).value;
-            const statusEl = document.getElementById(`eb-${mode}-user-status`);
-            statusEl.style.color = "#ffffff";
-            statusEl.innerText = "*Checking..*";
-            socket.emit('eb_check_username', { username: userVal, mode });
-        } else if (field === 'pass') {
-            const passVal = document.getElementById(`eb-${mode}-pass`).value;
-            socket.emit('eb_check_password', { password: passVal });
-        }
-    }
-
-    socket.on('eb_check_username_response', (data) => {
-        const statusEl = document.getElementById(`eb-${data.mode}-user-status`);
-        if (!statusEl) return;
-
-        if (data.mode === 'login') {
-            if (data.exists) {
-                statusEl.style.color = "var(--green)";
-                statusEl.innerText = `*Great, the Username ${data.username} exists in EzBridge.*`;
-            } else {
-                statusEl.style.color = "var(--error)";
-                statusEl.innerHTML = `*Incorrect chars. Please make sure they meet these requirements*<br>1 - has more than 10 chars<br>2 - has less than 30 chars<br>3 - does not have unsupported symbols<br>4 - make sure the Username exists`;
-            }
-        } else {
-            if (data.validFormat && !data.exists) {
-                statusEl.style.color = "var(--green)";
-                statusEl.innerText = `*Username is available.*`;
-            } else {
-                statusEl.style.color = "var(--error)";
-                statusEl.innerHTML = data.exists ? `*Username is already taken.*` : `*Incorrect chars. Please make sure they meet these requirements*<br>1 - has more than 10 chars<br>2 - has less than 30 chars<br>3 - does not have unsupported symbols`;
-            }
+    socket.on('eb_perf_tick', (data) => {
+        perfHistory.push({
+            rx: data.rx || 0,
+            tx: data.tx || 0,
+            ram: data.ram || 0
+        });
+        if (perfHistory.length > 30) perfHistory.shift();
+        if (document.getElementById('console-tab-perf-view').style.display === 'block') {
+            drawPerformanceGraph();
         }
     });
 
-    socket.on('eb_check_password_response', (data) => {
-        const signupPassStatus = document.getElementById('eb-signup-pass-status');
-        const loginPassStatus = document.getElementById('eb-login-pass-status');
+    function drawPerformanceGraph() {
+        const c = document.getElementById('console-perf-canvas');
+        if (!c) return;
+        const g = c.getContext('2d');
+        g.clearRect(0, 0, c.width, c.height);
 
-        if (signupPassStatus && document.getElementById('modal-ezbridge-signup').style.display === 'flex') {
-            if (!data.validFormat) {
-                signupPassStatus.style.color = "var(--error)";
-                signupPassStatus.innerText = "*Incorrect password format (8-30 chars, supported symbols only).*";
-            } else {
-                signupPassStatus.innerText = "";
-            }
+        g.strokeStyle = '#1e293b';
+        g.lineWidth = 1;
+        for (let y = 0; y < c.height; y += 40) {
+            g.beginPath();
+            g.moveTo(0, y);
+            g.lineTo(c.width, y);
+            g.stroke();
         }
-        if (loginPassStatus && document.getElementById('modal-ezbridge-login').style.display === 'flex') {
-            if (!data.validFormat) {
-                loginPassStatus.style.color = "var(--error)";
-                loginPassStatus.innerText = "*Incorrect password format.*";
-            } else {
-                loginPassStatus.innerText = "";
-            }
+
+        if (perfHistory.length < 2) return;
+
+        const maxRx = Math.max(1024, ...perfHistory.map(p => p.rx));
+        const maxTx = Math.max(1024, ...perfHistory.map(p => p.tx));
+        const maxRam = Math.max(1024 * 1024, ...perfHistory.map(p => p.ram));
+
+        function plotLine(color, valueFn, maxVal) {
+            g.beginPath();
+            g.strokeStyle = color;
+            g.lineWidth = 2;
+            perfHistory.forEach((p, i) => {
+                const x = (i / (perfHistory.length - 1)) * c.width;
+                const v = valueFn(p);
+                const y = c.height - ((v / maxVal) * (c.height - 20) + 10);
+                if (i === 0) g.moveTo(x, y);
+                else g.lineTo(x, y);
+            });
+            g.stroke();
+        }
+
+        plotLine('#10b981', p => p.rx, maxRx);
+        plotLine('#eab308', p => p.tx, maxTx);
+        plotLine('#ef4444', p => p.ram, maxRam);
+    }
+
+    function rateSiteSubmit(siteId, rating) {
+        socket.emit('eb_rate_site', { siteId, rating });
+    }
+
+    socket.on('eb_site_rated_response', (data) => {
+        const site = publishedSitesCache.find(s => s.id === data.siteId);
+        if (site) {
+            site.likes = data.likes;
+            site.dislikes = data.dislikes;
+            site.userRating = data.userRating;
+            applySiteSearchAndSort();
         }
     });
-
-    function submitEzBridgeLogIn() {
-        if (!isCaptchaTagged && !ezbridgeUsername && !googleSub) {
-            return alert("⚠Request rejected⚠\nYou must verify yourself to prove you're not a bot.");
-        }
-        const username = document.getElementById('eb-login-user').value.trim();
-        const password = document.getElementById('eb-login-pass').value;
-        document.getElementById('modal-ezbridge-login').style.display = 'none';
-        document.getElementById('overlay-ezbridge-logging').style.display = 'flex';
-        socket.emit('eb_ezbridge_login', { username, password });
-    }
-
-    function openChangeUsernameModal() {
-        closeAccountSettingsModal();
-        document.getElementById('change-user-val').value = "";
-        document.getElementById('modal-change-username').style.display = 'flex';
-    }
-    function closeChangeUsernameModal() {
-        document.getElementById('modal-change-username').style.display = 'none';
-    }
-    function submitChangeUsername() {
-        const newUsername = document.getElementById('change-user-val').value.trim();
-        socket.emit('eb_change_username', { newUsername, ownerId });
-        closeChangeUsernameModal();
-    }
-
-    function openChangePasswordModal() {
-        closeAccountSettingsModal();
-        document.getElementById('change-pass-current').value = "";
-        document.getElementById('change-pass-new').value = "";
-        document.getElementById('modal-change-password').style.display = 'flex';
-    }
-    function closeChangePasswordModal() {
-        document.getElementById('modal-change-password').style.display = 'none';
-    }
-    function submitChangePassword() {
-        const currentPassword = document.getElementById('change-pass-current').value;
-        const newPassword = document.getElementById('change-pass-new').value;
-        socket.emit('eb_change_password', { currentPassword, newPassword, ownerId });
-        closeChangePasswordModal();
-    }
-
-    function regenerateServerKeySubmit() {
-        socket.emit('eb_regen_server_key', { key: serverKey, ownerId, googleSub });
-    }
-
-    function openServerStorageModal() {
-        serverStorageChunks = [];
-        document.getElementById('modal-server-storage').style.display = 'flex';
-        socket.emit('eb_get_server_storage_chunks', { key: serverKey, ownerId, googleSub });
-
-        if (serverStoragePollInterval) clearInterval(serverStoragePollInterval);
-        serverStoragePollInterval = setInterval(() => {
-            if (document.getElementById('modal-server-storage').style.display === 'flex') {
-                socket.emit('eb_get_server_storage_chunks', { key: serverKey, ownerId, googleSub });
-            } else {
-                clearInterval(serverStoragePollInterval);
-            }
-        }, 5000);
-    }
-
-    function closeServerStorageModal() {
-        if (serverStoragePollInterval) clearInterval(serverStoragePollInterval);
-        document.getElementById('modal-server-storage').style.display = 'none';
-    }
-
-    function wipeServerStorageSubmit() {
-        if (confirm("Are you sure you want to WIPE the entire server storage? This cannot be undone.")) {
-            socket.emit('eb_storage_wipe', { key: serverKey, ownerId, googleSub });
-        }
-    }
-
-    function captchaSolved() {
-        socket.emit('eb_verify_captcha');
-        isCaptchaTagged = true;
-        document.getElementById('overlay-captcha').style.display = 'none';
-        if (!googleSub && !ezbridgeUsername) {
-            document.getElementById('overlay-google-auth').style.display = 'flex';
-        } else {
-            document.getElementById('overlay-start').style.display = 'flex';
-        }
-    }
-
-    function exploreSitesAsGuest() {
-        isGuestMode = true;
-        document.getElementById('overlay-captcha').style.display = 'none';
-        document.getElementById('overlay-google-auth').style.display = 'none';
-        navigateToPath('sites');
-    }
-
-    function returnToLoginFromSites() {
-        closeSeeAndPublishModal();
-        isGuestMode = false;
-        navigateToPath('login');
-    }
-
-    function applyRolePermissions() {
-        const tag = document.getElementById('role-tag-display');
-        const termBtn = document.getElementById('terminal-btn');
-        const btnServerMgmt = document.getElementById('btn-server-mgmt');
-        const btnBanUser = document.getElementById('btn-ban-user');
-        const btnRoleMgr = document.getElementById('btn-role-mgr');
-        const btnChangeUser = document.getElementById('btn-change-username');
-        const btnChangePass = document.getElementById('btn-change-password');
-
-        termBtn.style.display = 'none';
-        btnServerMgmt.style.display = 'none';
-        btnBanUser.style.display = 'none';
-        btnRoleMgr.style.display = 'none';
-        
-        if (ezbridgeUsername) {
-            btnChangeUser.style.display = 'block';
-            btnChangePass.style.display = 'block';
-        } else {
-            btnChangeUser.style.display = 'none';
-            btnChangePass.style.display = 'none';
-        }
-
-        if (userRole === 'Owner') {
-            tag.innerHTML = `<span class="role-tag role-owner">OWNER</span>`;
-            termBtn.style.display = 'block';
-            btnServerMgmt.style.display = 'block';
-            btnBanUser.style.display = 'block';
-            btnRoleMgr.style.display = 'block';
-        } else if (userRole === 'Dev') {
-            tag.innerHTML = `<span class="role-tag role-dev">DEVELOPER</span>`;
-            btnServerMgmt.style.display = 'block';
-            btnBanUser.style.display = 'block';
-            btnRoleMgr.style.display = 'block';
-        } else if (userRole === 'Admin') {
-            tag.innerHTML = `<span class="role-tag role-admin">ADMIN</span>`;
-            btnServerMgmt.style.display = 'block';
-            btnBanUser.style.display = 'block';
-        } else {
-            tag.innerHTML = "";
-        }
-    }
-
-    function openAskAiSiteModal() {
-        document.getElementById('ai-site-prompt').value = "";
-        document.getElementById('ai-site-output-box').value = "";
-        document.getElementById('ai-token-counter').innerText = "Token Usage: 0/3250";
-        document.getElementById('ai-gen-timer').innerText = "00:00";
-        document.getElementById('ai-site-input-view').style.display = 'block';
-        document.getElementById('ai-site-gen-view').style.display = 'none';
-        document.getElementById('modal-ask-ai-site').style.display = 'flex';
-    }
-
-    function closeAskAiSiteModal() {
-        stopAiSiteGen();
-        document.getElementById('modal-ask-ai-site').style.display = 'none';
-    }
-
-    function startAiSiteGen() {
-        const promptVal = document.getElementById('ai-site-prompt').value.trim();
-        const tempVal = document.getElementById('ai-site-creativity').value;
-        const selectedModel = document.getElementById('ai-site-model-select').value;
-
-        document.getElementById('ai-site-input-view').style.display = 'none';
-        document.getElementById('ai-site-gen-view').style.display = 'block';
-
-        aiStartTime = Date.now();
-        if (aiTimerInterval) clearInterval(aiTimerInterval);
-        aiTimerInterval = setInterval(() => {
-            const elapsedSecs = Math.floor((Date.now() - aiStartTime) / 1000);
-            const m = String(Math.floor(elapsedSecs / 60)).padStart(2, '0');
-            const s = String(elapsedSecs % 60).padStart(2, '0');
-            document.getElementById('ai-gen-timer').innerText = `${m}:${s}`;
-        }, 1000);
-
-        socket.emit('eb_callai_direct', {
-            model: selectedModel,
-            Temp: parseFloat(tempVal),
-            Mtokens: 3250,
-            Instruction: "You are an expert web developer. Output ONLY a single valid HTML script with no intros, outros, or comments. Do NOT include markdown blocks.",
-            Prompt: promptVal || "Create a random fun creative interactive HTML website or game.",
-            Streaming: true
-        });
-    }
-
-    function stopAiSiteGen() {
-        if (aiTimerInterval) clearInterval(aiTimerInterval);
-        if (currentAiGenId) {
-            socket.emit('eb_ai_stop_id', { id: currentAiGenId });
-            currentAiGenId = null;
-        }
-        document.getElementById('ai-site-input-view').style.display = 'block';
-        document.getElementById('ai-site-gen-view').style.display = 'none';
-    }
-
-    function triggerAutoSiteSearch() {
-        document.getElementById('published-sites-container').innerHTML = "";
-        document.getElementById('search-fetching-indicator').style.display = 'block';
-
-        if (siteSearchDebounce) clearTimeout(siteSearchDebounce);
-        siteSearchDebounce = setTimeout(() => {
-            socket.emit('eb_get_published_sites', {
-                ownerId, googleSub,
-                search: document.getElementById('site-search-input').value.trim(),
-                sortBy: document.getElementById('site-sort-select').value
-            });
-        }, 300);
-    }
-
-    function openSeeAndPublishModal() {
-        siteFetchChunks = [];
-        document.getElementById('site-fetch-pct').innerText = '0';
-        document.getElementById('site-fetch-bar').style.width = '0%';
-        document.getElementById('overlay-fetching-sites').style.display = 'flex';
-
-        const btnCreateSite = document.getElementById('btn-create-update-site');
-        const btnBackLogin = document.getElementById('btn-sites-back-login');
-        const btnClose = document.getElementById('btn-sites-close');
-
-        if (isGuestMode) {
-            if (btnCreateSite) btnCreateSite.style.display = 'none';
-            if (btnBackLogin) btnBackLogin.style.display = 'block';
-            if (btnClose) btnClose.style.display = 'none';
-        } else {
-            if (btnCreateSite) btnCreateSite.style.display = 'block';
-            if (btnBackLogin) btnBackLogin.style.display = 'none';
-            if (btnClose) btnClose.style.display = 'block';
-        }
-
-        socket.emit('eb_get_published_sites', {
-            ownerId, googleSub,
-            search: document.getElementById('site-search-input') ? document.getElementById('site-search-input').value : '',
-            sortBy: document.getElementById('site-sort-select') ? document.getElementById('site-sort-select').value : 'visits'
-        });
-    }
-
-    function cancelSiteFetch() {
-        document.getElementById('overlay-fetching-sites').style.display = 'none';
-        if (isGuestMode) {
-            returnToLoginFromSites();
-        }
-    }
-
-    function closeSeeAndPublishModal() {
-        if (siteSearchDebounce) clearTimeout(siteSearchDebounce);
-        document.getElementById('modal-see-publish').style.display = 'none';
-        navigateToPath('main');
-    }
-
-    function updateCreateUpdateSiteBtnText() {
-        const btn = document.getElementById('btn-create-update-site');
-        const submitBtn = document.getElementById('submit-site-btn');
-        const titleHeader = document.getElementById('create-site-title');
-
-        if (isUserHasSite) {
-            if (btn) btn.innerText = "UPDATE SITE";
-            if (submitBtn) submitBtn.innerText = "UPDATE SITE";
-            if (titleHeader) titleHeader.innerText = "UPDATE SITE";
-        } else {
-            if (btn) btn.innerText = "Create site";
-            if (submitBtn) submitBtn.innerText = "Create site";
-            if (titleHeader) titleHeader.innerText = "CREATE SITE";
-        }
-    }
 
     function applySiteSearchAndSort() {
         const searchVal = document.getElementById('site-search-input').value.trim().toLowerCase();
@@ -2853,7 +2608,15 @@
             return s.id === searchVal || s.title.toLowerCase().includes(searchVal);
         });
 
-        if (sortVal === 'newest') {
+        if (sortVal === 'hottest') {
+            filtered.sort((a, b) => {
+                const scoreA = (a.onlineCount * 10) + ((a.likes || 0) * 2) + (a.visits || 0);
+                const scoreB = (b.onlineCount * 10) + ((b.likes || 0) * 2) + (b.visits || 0);
+                return scoreB - scoreA;
+            });
+        } else if (sortVal === 'most_liked') {
+            filtered.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+        } else if (sortVal === 'newest') {
             filtered.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
         } else {
             filtered.sort((a, b) => (b.visits || 0) - (a.visits || 0));
@@ -2883,15 +2646,30 @@
 
             const pfpHTML = (s.ownerPfpData && s.ownerPfpData !== "default") ? `<img src="${s.ownerPfpData}" style="width:18px; height:18px; border-radius:50% !important; vertical-align:middle; margin-left:4px; object-fit:cover;">` : `<span class="coin-icon" style="width:18px; height:18px; font-size:0.55rem; margin-left:4px; border-radius:50% !important;">👤</span>`;
 
+            const likes = s.likes || 0;
+            const dislikes = s.dislikes || 0;
+            const totalVotes = likes + dislikes;
+            const likePct = totalVotes > 0 ? (likes / totalVotes) * 100 : 50;
+
+            const likeBg = s.userRating === 'like' ? 'background:var(--green) !important; color:#000 !important;' : '';
+            const dislikeBg = s.userRating === 'dislike' ? 'background:var(--error) !important; color:#fff !important;' : '';
+
             div.innerHTML = `
                 <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
                     <span><b>${escapeHtml(s.title)}</b> <button class="btn-secondary" style="padding:2px 6px; font-size:0.65rem;" onclick="copyTextValue('${s.id}')">COPY ID</button> by <b>${escapeHtml(s.ownerDisplayName || s.ownerUserId)}</b> ${pfpHTML}</span>
                     ${deleteBtnHTML}
                 </div>
                 <div style="font-size:0.75rem; color:var(--muted);">
-                    Latest update: ${s.dateStr || '0/0/0'} | <b>${s.onlineCount || 0}</b> people online in it! | visits: <b>${s.visits || 0}</b>
+                    Latest update: ${s.dateStr || '0/0/0'} | <b>${s.onlineCount || 0}</b> active people in it! | visits: <b>${s.visits || 0}</b>
                 </div>
-                <button class="btn" style="width:auto; margin:0; padding:4px 14px; font-size:0.8rem;" onclick="accessSite('${s.id}')">access</button>
+                <div style="display:flex; justify-content:space-between; width:100%; align-items:center; margin-top:2px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <button class="btn-secondary" style="padding:2px 8px; font-size:0.75rem; ${likeBg}" onclick="rateSiteSubmit('${s.id}', 'like')">👍 ${likes}</button>
+                        <button class="btn-secondary" style="padding:2px 8px; font-size:0.75rem; ${dislikeBg}" onclick="rateSiteSubmit('${s.id}', 'dislike')">👎 ${dislikes}</button>
+                        <div class="tug-war-bar"><div class="tug-war-fill" style="width:${likePct}%;"></div></div>
+                    </div>
+                    <button class="btn" style="width:auto; margin:0; padding:4px 14px; font-size:0.8rem;" onclick="accessSite('${s.id}')">access</button>
+                </div>
             `;
             container.appendChild(div);
         });
@@ -3255,57 +3033,6 @@
     function closeNewUserIdModal() {
         document.getElementById('modal-new-userid').style.display = 'none';
     }
-
-    function openPyTerminalModal() {
-        closeConsoleModal();
-        document.getElementById('modal-pyterminal').style.display = 'flex';
-        document.getElementById('pyterminal-display').innerText = "Connecting to Python worker...";
-        socket.emit('eb_pyterminal_start', { serverKey: serverKey });
-    }
-
-    function closePyTerminalModal() {
-        document.getElementById('modal-pyterminal').style.display = 'none';
-        openConsoleModal();
-    }
-
-    function focusPyTermInput() {
-        const inp = document.getElementById('pyterminal-input');
-        if (inp) inp.focus();
-    }
-
-    function handlePyTermKey(e) {
-        if (e.key === 'Enter') sendPyTermCommand();
-    }
-
-    function sendPyTermCommand() {
-        const inp = document.getElementById('pyterminal-input');
-        const text = inp.value.trim();
-        if (!text) return;
-        inp.value = "";
-
-        if (text === '/exe') {
-            const script = prompt("Paste your python script to execute here:");
-            if (script) {
-                socket.emit('eb_pyterminal_input', { serverKey: serverKey, text: '/exe', scriptCode: script });
-            }
-            return;
-        }
-
-        socket.emit('eb_pyterminal_input', { serverKey: serverKey, text: text });
-    }
-
-    socket.on('eb_pyterminal_chunk', (data) => {
-        const disp = document.getElementById('pyterminal-display');
-        if (data.index === 0) disp.innerText = "";
-        disp.innerText += data.chunk;
-        disp.scrollTop = disp.scrollHeight;
-    });
-
-    socket.on('eb_pyterminal_update', (data) => {
-        const disp = document.getElementById('pyterminal-display');
-        disp.innerText += data.text;
-        disp.scrollTop = disp.scrollHeight;
-    });
 
     function openBanUserModal() {
         closeAccountSettingsModal();
@@ -4406,13 +4133,13 @@ ${serverType === 'websocket' ?
 3 - APIs You Can Use
 - 'ebuserid_get' / 'eb_id_get': [CLIENT-SIDED API] Send RemoteEvent type 'ebuserid_get' to get the client's permanent unique User ID (15-30 chars).
 - 'eb_profile_get_{clientid}': [CLIENT AND SERVER API] Fetch any user's profile display name and avatar (sent in 500KB chunks).
-- 'eb_asset_get_{assetid}': [CLIENT AND SERVER API] Fetch any uploaded audio/image asset by sequential ID in 180KB chunks. Can be used without server key.
+- 'eb_asset_get_{assetid}': [CLIENT AND SERVER API] Fetch any uploaded audio/image/video asset by sequential ID in 180KB chunks. Can be used without server key.
 - Server.storage API: [SERVER-SIDED API]
   * Server.storage.set(data) - Save up to 100MB of persistent server data.
   * Server.storage.get() - Retrieve stored server data.
   * Server.storage.getUsageBytes() - Get current storage usage in bytes.
 - ServerScript API: [SERVER-SIDED API] Write sandboxed backend JS code (Server.on('event', fn), Server.broadcast('event', data)).
-- Server.eb_callai: [SERVER-SIDED API] Call local AI generation (Ollama smollm2:360m, qwen2.5:0.5b, gemma3:1b, or llama3.2:1b).
+- Server.eb_callai: [SERVER-SIDED API] Call local AI generation (Ollama qwen2.5:0.5b, gemma3:1b, llama3.2:1b, or qwen2.5:1.5b).
 
 4 - Learn More About EzBridge
 - Max Packet Size: 10MB per packet.
@@ -4462,9 +4189,9 @@ async function fetchAssetData(assetId) {
     console.log("Asset Name:", asset.name, "Type:", asset.type);
     if (asset.type.includes('image')) {
         document.getElementById("imgSlot").src = asset.data;
-    } else if (asset.type.includes('audio')) {
-        const audio = new Audio(asset.data);
-        audio.play();
+    } else if (asset.type.includes('audio') || asset.type.includes('video')) {
+        const media = new Audio(asset.data);
+        media.play();
     }
 }
 
@@ -4492,7 +4219,7 @@ async function sendHttpEvent(type, data) {
 // const usedBytes = Server.storage.getUsageBytes();
 
 <span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
-6. SERVERSCRIPT LOCAL AI API (Ollama smollm2:360m / qwen2.5:0.5b):
+6. SERVERSCRIPT LOCAL AI API (Ollama qwen2.5:0.5b / gemma3:1b):
 Server.eb_callai({
     model: "qwen2.5:0.5b",
     Temp: 0,
@@ -4526,7 +4253,6 @@ socket.on("RemoteEvent", (pkt) => {
 
 <span class="api-tag-both">CLIENT AND SERVER API (both clients and servers can use this API)</span>
 3. GET ASSET IN 180KB CHUNKS:
-// Can be used without server key or authority
 socket.emit("RemoteEvent", { type: "eb_asset_get_1" });
 let assetChunks = [];
 socket.on("RemoteEvent", (pkt) => {
@@ -4536,6 +4262,8 @@ socket.on("RemoteEvent", (pkt) => {
             const base64Data = assetChunks.join('');
             if (pkt.data.type.includes('image')) {
                 document.getElementById("myImage").src = base64Data;
+            } else if (pkt.data.type.includes('video')) {
+                document.getElementById("myVideo").src = base64Data;
             } else {
                 new Audio(base64Data).play();
             }
@@ -4561,7 +4289,7 @@ socket.on("RemoteEvent", (pkt) => {
 // const usedBytes = Server.storage.getUsageBytes();
 
 <span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
-7. SERVERSCRIPT LOCAL AI API (Ollama gemma3:1b / llama3.2:1b / smollm2:360m / qwen2.5:0.5b):
+7. SERVERSCRIPT LOCAL AI API (Ollama qwen2.5:1.5b / gemma3:1b / llama3.2:1b / qwen2.5:0.5b):
 Server.eb_callai({
     model: "gemma3:1b",
     Temp: 0,
