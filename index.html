@@ -226,18 +226,18 @@
 
         .rate-btn {
             background: #020617; border: 1px solid var(--border); color: #fff;
-            padding: 4px 10px; font-size: 0.75rem; cursor: pointer; transition: background 0.2s;
+            padding: 3px 8px; cursor: pointer; font-size: 0.75rem; transition: background 0.2s;
         }
-        .rate-btn.active-rate {
-            background: rgba(16, 185, 129, 0.4) !important;
-            border-color: var(--green) !important;
+        .rate-btn.active {
+            background: #10b981 !important; color: #000 !important; border-color: #10b981 !important;
         }
+
         .tug-war-bar {
-            width: 100px; height: 8px; background: #ef4444; border: 1px solid var(--border);
-            display: inline-flex; overflow: hidden; vertical-align: middle; margin-left: 6px;
+            flex: 1; height: 8px; background: #ef4444; position: relative; overflow: hidden;
+            border: 1px solid #1e293b; min-width: 60px;
         }
         .tug-war-green {
-            background: #10b981; height: 100%; transition: width 0.3s;
+            height: 100%; background: #10b981; width: 50%; transition: width 0.3s;
         }
     </style>
 </head>
@@ -264,20 +264,6 @@
         </div>
     </div>
 
-    <div id="modal-missing-email" class="overlay" style="display:none; z-index:3150;">
-        <div class="card" style="max-width: 440px;">
-            <h3>Account Security</h3>
-            <p style="font-size:0.85rem; color:#ffffff; line-height:1.4; margin:12px 0;">
-                Before you can continue, please enter your EMAIL to make your account more secure.
-            </p>
-            <div class="settings-item" style="text-align:left;">
-                <label>New Email:</label>
-                <input type="email" id="missing-email-input" placeholder="enter here">
-            </div>
-            <button class="btn btn-purple" style="margin-top:15px;" onclick="submitMissingEmailValidate()">Validate</button>
-        </div>
-    </div>
-
     <div id="modal-flagged-notify" class="overlay" style="display:none; z-index:3300;">
         <div class="card" style="border-color: var(--error);">
             <h2 style="color:var(--error);">Your file has been flagged</h2>
@@ -285,6 +271,23 @@
                 it was detected that the Asset had hidden scripts or was corrupted, please ensure it is safe to be uploaded.
             </p>
             <button class="btn btn-secondary" onclick="closeFlaggedModal()">Dismiss</button>
+        </div>
+    </div>
+
+    <div id="modal-missing-email" class="overlay" style="display:none; z-index:3120;">
+        <div class="card">
+            <h3>Link Your Email</h3>
+            <p style="font-size:0.85rem; color:#ffffff; margin:15px 0; line-height:1.4;">
+                Before you can continue, please enter your EMAIL to make your account more secure.
+            </p>
+            <div class="settings-item">
+                <label>New Email:</label>
+                <input type="email" id="missing-email-input" placeholder="example@gmail.com">
+            </div>
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <button class="btn btn-purple" onclick="submitMissingEmailValidate()">Validate</button>
+                <button class="btn btn-secondary" onclick="accountLogout()">Logout</button>
+            </div>
         </div>
     </div>
 
@@ -378,11 +381,13 @@
 
     <div id="modal-assets" class="overlay" style="display:none;">
         <div class="card" style="max-width: 680px; width:95%; max-height:85vh; display:flex; flex-direction:column;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                <h3 style="margin:0;">Assets</h3>
-                <button id="btn-open-asset-upload" class="btn btn-purple" style="width:auto; margin:0; padding:6px 14px;" onclick="openAssetUploadModal()">Upload</button>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <div>
+                    <h3 style="margin:0;">Assets</h3>
+                    <div style="font-size:0.75rem; color:var(--accent); font-weight:bold;" id="asset-storage-indicator">500MB remaining</div>
+                </div>
+                <button class="btn btn-purple" id="btn-open-asset-upload" style="width:auto; margin:0; padding:6px 14px;" onclick="openAssetUploadModal()">Upload</button>
             </div>
-            <div id="assets-storage-remaining-text" style="font-size:0.75rem; color:var(--accent); font-weight:bold; text-align:left; margin-bottom:8px;">500MB remaining</div>
             <div id="assets-list-container" class="settings-grid" style="flex:1; max-height:none;"></div>
             <button class="btn btn-secondary" style="margin-top:10px;" onclick="closeAssetsModal()">Back to EzBridge</button>
         </div>
@@ -398,7 +403,7 @@
                     <input type="text" id="asset-name-field" maxlength="20" placeholder="My Epic Asset">
                 </div>
                 <div class="settings-item">
-                    <label>Asset file (Audio < 10m & < 20MB | Image < 5MB | Video < 50MB):</label>
+                    <label>Asset file (Audio < 10min, Images < 5MB, Videos < 50MB):</label>
                     <input type="file" id="asset-file-field" accept="audio/mp3,audio/ogg,audio/wav,image/jpeg,image/png,image/jpg,video/mp4,video/webm" onchange="handleAssetFileSelected(this)">
                 </div>
             </div>
@@ -844,33 +849,24 @@
     </div>
 
     <div id="modal-console" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 650px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <h3 style="margin:0;">Console</h3>
-                <div style="display:flex; gap:6px;">
-                    <button class="btn-secondary" id="btn-tab-logs" style="padding:4px 10px; font-size:0.75rem;" onclick="switchConsoleTab('logs')">Logs</button>
-                    <button class="btn-secondary" id="btn-tab-perf" style="padding:4px 10px; font-size:0.75rem;" onclick="switchConsoleTab('perf')">Performance</button>
+        <div class="card" style="max-width: 600px;">
+            <h3>Server Console Logs</h3>
+            <div id="console-logs-display" class="console-box"></div>
+            
+            <div id="console-perf-container" style="display:none; margin:10px 0;">
+                <div style="font-size:0.75rem; color:var(--muted); margin-bottom:4px; display:flex; justify-content:space-between;">
+                    <span>Live Performance (3s window)</span>
+                    <span><span style="color:#10b981;">■ Rx</span> <span style="color:#eab308;">■ Tx</span> <span style="color:#ef4444;">■ RAM</span></span>
                 </div>
+                <canvas id="console-perf-canvas" width="540" height="120" style="width:100%; height:120px; background:#000; border:1px solid #1e293b;"></canvas>
             </div>
 
-            <div id="console-logs-view">
-                <div id="console-logs-display" class="console-box"></div>
-                <div style="display:flex; gap:10px;">
-                    <button class="btn btn-green" style="flex:1;" onclick="openPyTerminalModal()">Python Terminal</button>
-                    <button class="btn" style="flex:1;" onclick="copyConsoleLogs()">Copy Logs</button>
-                    <button class="btn btn-purple" style="flex:1;" onclick="openServerStorageModal()">See Storage</button>
-                    <button class="btn btn-secondary" style="width:80px;" onclick="closeConsoleModal()">Close</button>
-                </div>
-            </div>
-
-            <div id="console-perf-view" style="display:none; text-align:left;">
-                <div style="font-size:0.75rem; color:var(--muted); margin-bottom:6px;">
-                    Real-time (3s window): <span style="color:#10b981; font-weight:bold;">Green: Rx (Recv)</span> | <span style="color:#eab308; font-weight:bold;">Yellow: Tx (Sent)</span> | <span style="color:#ef4444; font-weight:bold;">Red: RAM</span>
-                </div>
-                <canvas id="perf-canvas" width="580" height="240" style="background:#000; border:1px solid var(--border); width:100%; height:240px;"></canvas>
-                <div style="display:flex; justify-content:flex-end; margin-top:10px;">
-                    <button class="btn btn-secondary" style="width:80px;" onclick="closeConsoleModal()">Close</button>
-                </div>
+            <div style="display:flex; gap:10px;">
+                <button class="btn btn-purple" id="btn-console-perf-toggle" style="width:110px;" onclick="toggleConsolePerf()">Performance</button>
+                <button class="btn btn-green" style="flex:1;" onclick="openPyTerminalModal()">Python Terminal</button>
+                <button class="btn" style="flex:1;" onclick="copyConsoleLogs()">Copy Logs</button>
+                <button class="btn btn-purple" style="flex:1;" onclick="openServerStorageModal()">See Storage</button>
+                <button class="btn btn-secondary" style="width:80px;" onclick="closeConsoleModal()">Close</button>
             </div>
         </div>
     </div>
@@ -1040,6 +1036,18 @@
         </div>
     </div>
 
+    <div id="modal-new-userid" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 420px;">
+            <h3>User ID Regenerated</h3>
+            <p style="font-size:0.8rem; color:var(--muted);">Your new unique User ID is:</p>
+            <input type="text" id="new-userid-display" readonly style="font-size:1rem; font-weight:bold; color:var(--accent);">
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <button class="btn" onclick="copyText('new-userid-display')">Copy</button>
+                <button class="btn btn-secondary" onclick="closeNewUserIdModal()">Dismiss</button>
+            </div>
+        </div>
+    </div>
+
     <div id="dashboard" class="card" style="display:none; width: 480px;">
         <div id="lockdown-banner-display" class="banner-lockdown" style="display:none;">
             <div style="font-weight:bold; margin-bottom:4px;">⚠YOUR SERVER HAS EXCEEDED IT'S RAM LIMIT⚠</div>
@@ -1066,7 +1074,7 @@
         <div style="margin-bottom:12px; text-align:left;">
             <div style="font-size:0.75rem; color:var(--muted); font-weight:bold; margin-bottom:3px;">V-Battery left:</div>
             <div class="progress-container" style="height:18px; margin:0; background:#020617; border-color:var(--green) !important;">
-                <div id="battery-progress-fill" class="progress-bar" style="background:var(--green); width:0.4%;"></div>
+                <div id="battery-progress-fill" class="progress-bar" style="background:var(--green); width:2%;"></div>
                 <div class="progress-text" style="color:#ffffff; font-size:0.7rem;"><span id="battery-curr-val">100.0</span>mb | 25000mb</div>
             </div>
         </div>
@@ -1168,7 +1176,7 @@
                 DISCLAIMER: it's recommended that the client should have a temporary identifier so your scripts and projects know who's sending them, its optional.
             </div>
             
-            <div style="text-align:left; font-size:0.85rem; font-weight:bold; color:var(--accent);">1. Multiplayer Coin Collector (New Example) - Client HTML:</div>
+            <div style="text-align:left; font-size:0.85rem; font-weight:bold; color:var(--accent);">1. Multiplayer Coin Collector - Client HTML:</div>
             <textarea id="example-coin-client" class="code-box" readonly rows="8" style="width:100%; height:160px; border:none; resize:none;"></textarea>
 
             <div style="text-align:left; font-size:0.85rem; font-weight:bold; color:var(--accent); margin-top:10px;">1. Multiplayer Coin Collector - ServerScript:</div>
@@ -1196,7 +1204,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://checked-carlos-technical-marco.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://invitations-infants-ref-forum.trycloudflare.com";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
@@ -1225,9 +1233,11 @@
     let currentBatteryMb = 100;
     let stagedPfpBase64 = null;
     let stagedAssetBase64 = null;
-    let stagedAssetDuration = null;
     let currentEditingAssetId = null;
-    let userTotalAssetBytesUsed = 0;
+    let currentAssetCost = 0;
+
+    let userTotalAssetBytes = 0;
+    const MAX_ASSET_BYTES = 500 * 1024 * 1024;
 
     let isServerLockdown = false;
     let lockdownUntilTime = 0;
@@ -1244,9 +1254,6 @@
 
     let delCodeTimerInterval = null;
     let delCodeTimerSeconds = 300;
-
-    let perfHistory = { rx: [], tx: [], ram: [] };
-    let consoleActiveTab = "logs";
 
     let rxBytesAccum = 0;
     let txBytesAccum = 0;
@@ -1273,6 +1280,9 @@
     let serverStorageChunks = [];
     let serverScriptChunks = [];
     let serverStoragePollInterval = null;
+
+    let perfHistory = [];
+    let perfGraphVisible = false;
 
     const SCRIPT_CHUNK_SIZE = 100 * 1024;
     const UNIV_CHUNK_SIZE = 50 * 1024;
@@ -1375,11 +1385,6 @@
         const hashStr = window.location.hash || '';
         const clean = hashStr.replace(/^#?\/?/g, '').replace(/\/+$/, '');
         if (clean) {
-            if (clean.startsWith('site/')) {
-                const sId = clean.replace('site/', '').trim();
-                socket.emit('eb_visit_site', { siteId: sId });
-                return;
-            }
             showRouteConnectingModal();
             socket.emit('changeurl', { path: clean });
         }
@@ -1536,7 +1541,7 @@
         if (data.emailRequired) {
             openMissingEmailModal();
         } else {
-            checkPendingVerificationRestore();
+            restorePendingVerificationCheck();
         }
 
         if (data.dailyReward && data.dailyReward.pendingReward) {
@@ -1546,6 +1551,25 @@
             if (data.dailyReward.serverTime) document.getElementById('daily-server-time').innerText = data.dailyReward.serverTime;
             document.getElementById('modal-daily-rewards').style.display = 'flex';
         }
+    }
+
+    function openMissingEmailModal() {
+        document.getElementById('modal-missing-email').style.display = 'flex';
+    }
+
+    function closeMissingEmailModal() {
+        document.getElementById('modal-missing-email').style.display = 'none';
+    }
+
+    function submitMissingEmailValidate() {
+        const email = document.getElementById('missing-email-input').value.trim().toLowerCase();
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!email || !emailRegex.test(email) || /[()\\<>,;:]/.test(email)) {
+            return alert("Please enter a valid email address with no special characters.");
+        }
+        socket.emit('eb_request_email_code', { email });
+        closeMissingEmailModal();
+        openEmailVerifyModal(true, false, email);
     }
 
     socket.on('eb_cookie_cache_verified', (data) => {
@@ -1586,7 +1610,7 @@
             if (ownerId && (data.username || data.userId)) isCaptchaTagged = true;
             document.getElementById('overlay-captcha').style.display = 'flex';
             checkInitialUrlRouting();
-            checkPendingVerificationRestore();
+            restorePendingVerificationCheck();
         }
     });
 
@@ -1595,8 +1619,8 @@
     });
 
     socket.on('eb_ezbridge_auth_success', (data) => {
-        clearPendingVerificationState();
         document.getElementById('overlay-ezbridge-logging').style.display = 'none';
+        clearPendingVerificationState();
         if (!data.hasServer) {
             pendingDailyRewardForNewServer = data.dailyReward;
             hideLoadingScreen();
@@ -1617,11 +1641,7 @@
 
     socket.on('eb_login_2fa_required', (data) => {
         document.getElementById('overlay-ezbridge-logging').style.display = 'none';
-        savePendingVerificationState({
-            type: data.isGoogle ? 'google2FA' : 'native2FA',
-            email: data.email
-        });
-        openEmailVerifyModal(false, true, data.email);
+        openEmailVerifyModal(false, true, data.email, Boolean(data.isGoogle));
     });
 
     socket.on('server_created', (data) => {
@@ -1690,71 +1710,57 @@
     });
 
     socket.on('eb_perf_tick', (data) => {
-        if (perfHistory.rx.length >= 40) perfHistory.rx.shift();
-        if (perfHistory.tx.length >= 40) perfHistory.tx.shift();
-        if (perfHistory.ram.length >= 40) perfHistory.ram.shift();
-
-        perfHistory.rx.push(data.rx || 0);
-        perfHistory.tx.push(data.tx || 0);
-        perfHistory.ram.push(data.ram || 0);
-
-        if (consoleActiveTab === 'perf') {
-            renderPerfGraph();
-        }
+        perfHistory.push(data);
+        if (perfHistory.length > 30) perfHistory.shift();
+        if (perfGraphVisible) drawConsolePerfGraph();
     });
 
-    function switchConsoleTab(tab) {
-        consoleActiveTab = tab;
-        const logsView = document.getElementById('console-logs-view');
-        const perfView = document.getElementById('console-perf-view');
-        if (tab === 'logs') {
-            logsView.style.display = 'block';
-            perfView.style.display = 'none';
-        } else {
-            logsView.style.display = 'none';
-            perfView.style.display = 'block';
-            renderPerfGraph();
-        }
+    function toggleConsolePerf() {
+        const container = document.getElementById('console-perf-container');
+        perfGraphVisible = !perfGraphVisible;
+        container.style.display = perfGraphVisible ? 'block' : 'none';
+        if (perfGraphVisible) drawConsolePerfGraph();
     }
 
-    function renderPerfGraph() {
-        const c = document.getElementById('perf-canvas');
-        if (!c) return;
-        const cx = c.getContext('2d');
-        cx.clearRect(0, 0, c.width, c.height);
+    function drawConsolePerfGraph() {
+        const cvs = document.getElementById('console-perf-canvas');
+        if (!cvs) return;
+        const gCtx = cvs.getContext('2d');
+        gCtx.clearRect(0, 0, cvs.width, cvs.height);
 
-        cx.strokeStyle = '#1e293b';
-        cx.lineWidth = 1;
-        for (let y = 40; y < c.height; y += 40) {
-            cx.beginPath();
-            cx.moveTo(0, y);
-            cx.lineTo(c.width, y);
-            cx.stroke();
+        gCtx.strokeStyle = '#1e293b';
+        gCtx.lineWidth = 1;
+        for (let y = 20; y < cvs.height; y += 30) {
+            gCtx.beginPath();
+            gCtx.moveTo(0, y);
+            gCtx.lineTo(cvs.width, y);
+            gCtx.stroke();
         }
 
-        const maxRx = Math.max(1024, ...perfHistory.rx);
-        const maxTx = Math.max(1024, ...perfHistory.tx);
+        if (perfHistory.length < 2) return;
+
+        const maxRx = Math.max(1024, ...perfHistory.map(p => p.rx));
+        const maxTx = Math.max(1024, ...perfHistory.map(p => p.tx));
         const maxRam = 250 * 1024 * 1024;
+        const step = cvs.width / Math.max(1, perfHistory.length - 1);
 
-        function plotLine(arr, maxVal, color) {
-            if (arr.length < 2) return;
-            cx.beginPath();
-            cx.strokeStyle = color;
-            cx.lineWidth = 2;
-            const step = c.width / 39;
-            for (let i = 0; i < arr.length; i++) {
-                const x = i * step;
-                const ratio = Math.min(1, arr[i] / maxVal);
-                const y = c.height - (ratio * (c.height - 20)) - 10;
-                if (i === 0) cx.moveTo(x, y);
-                else cx.lineTo(x, y);
-            }
-            cx.stroke();
+        function drawMetricLine(color, valueExtractor, maxVal) {
+            gCtx.beginPath();
+            gCtx.strokeStyle = color;
+            gCtx.lineWidth = 2;
+            perfHistory.forEach((p, idx) => {
+                const x = idx * step;
+                const ratio = Math.min(1, valueExtractor(p) / maxVal);
+                const y = cvs.height - (ratio * (cvs.height - 10)) - 5;
+                if (idx === 0) gCtx.moveTo(x, y);
+                else gCtx.lineTo(x, y);
+            });
+            gCtx.stroke();
         }
 
-        plotLine(perfHistory.rx, maxRx, '#10b981');
-        plotLine(perfHistory.tx, maxTx, '#eab308');
-        plotLine(perfHistory.ram, maxRam, '#ef4444');
+        drawMetricLine('#10b981', p => p.rx, maxRx);
+        drawMetricLine('#eab308', p => p.tx, maxTx);
+        drawMetricLine('#ef4444', p => p.ram, maxRam);
     }
 
     socket.on('eb_user_id_regenerated', (data) => {
@@ -2050,16 +2056,16 @@
     });
 
     socket.on('eb_site_rated_response', (data) => {
-        const s = publishedSitesCache.find(x => x.id === data.siteId);
-        if (s) {
-            s.likes = data.likes;
-            s.dislikes = data.dislikes;
-            s.userRating = data.userRating;
+        const item = publishedSitesCache.find(s => s.id === data.siteId);
+        if (item) {
+            item.likes = data.likes;
+            item.dislikes = data.dislikes;
+            item.userRating = data.userRating;
             applySiteSearchAndSort();
         }
     });
 
-    function rateSiteSubmit(siteId, rating) {
+    function rateSite(siteId, rating) {
         socket.emit('eb_rate_site', { siteId, rating });
     }
 
@@ -2076,25 +2082,25 @@
     socket.on('eb_user_assets_list', (data) => {
         const container = document.getElementById('assets-list-container');
         container.innerHTML = "";
-        userTotalAssetBytesUsed = data.usedStorageBytes || 0;
-        const usedMb = (userTotalAssetBytesUsed / (1024 * 1024)).toFixed(1);
-        const remMb = Math.max(0, 500 - Math.ceil(userTotalAssetBytesUsed / (1024 * 1024)));
-        const remTextEl = document.getElementById('assets-storage-remaining-text');
-        if (remTextEl) remTextEl.innerText = `${remMb}MB remaining`;
+        userTotalAssetBytes = data.usedStorageBytes || 0;
 
-        const uploadBtn = document.getElementById('btn-open-asset-upload');
-        if (uploadBtn) {
-            if (userTotalAssetBytesUsed >= 500 * 1024 * 1024) {
-                uploadBtn.style.opacity = '0.3';
-                uploadBtn.style.pointerEvents = 'none';
+        const remMb = Math.max(0, 500 - (userTotalAssetBytes / (1024 * 1024))).toFixed(1);
+        const ind = document.getElementById('asset-storage-indicator');
+        if (ind) ind.innerText = `${remMb}MB remaining`;
+
+        const upBtn = document.getElementById('btn-open-asset-upload');
+        if (upBtn) {
+            if (userTotalAssetBytes >= MAX_ASSET_BYTES) {
+                upBtn.style.opacity = '0.3';
+                upBtn.style.pointerEvents = 'none';
             } else {
-                uploadBtn.style.opacity = '1';
-                uploadBtn.style.pointerEvents = 'auto';
+                upBtn.style.opacity = '1';
+                upBtn.style.pointerEvents = 'auto';
             }
         }
 
         if (!data.assets || data.assets.length === 0) {
-            container.innerHTML = `<div style="color:var(--muted); font-size:0.85rem; padding:15px;">No assets found. Upload an audio, image, or video above!</div>`;
+            container.innerHTML = `<div style="color:var(--muted); font-size:0.85rem; padding:15px;">No assets found. Upload audio, image or video above!</div>`;
             return;
         }
 
@@ -2158,7 +2164,7 @@
         if (isAudio) {
             slot.innerHTML = `<button class="btn-icon" style="padding:4px 8px; font-size:0.9rem;" onclick="playCachedAudio('${assetId}')">▶</button>`;
         } else if (isVideo) {
-            slot.innerHTML = `<video src="${base64Data}" style="width:100%; height:100%; object-fit:cover;"></video>`;
+            slot.innerHTML = `<button class="btn-icon" style="padding:4px 8px; font-size:0.9rem;" onclick="playCachedVideo('${assetId}')">🎬</button>`;
         } else {
             slot.innerHTML = `<img src="${base64Data}" style="width:100%; height:100%; object-fit:cover;">`;
         }
@@ -2171,18 +2177,22 @@
         }
     }
 
-    function openAssetUploadModal() {
-        if (userTotalAssetBytesUsed >= 500 * 1024 * 1024) {
-            return alert("Asset storage limit reached (500MB max).");
+    function playCachedVideo(assetId) {
+        if (cachedAssetsRam[assetId]) {
+            const win = window.open("");
+            win.document.write(`<body style="background:#000; display:flex; justify-content:center; align-items:center; height:100vh; margin:0;"><video controls autoplay src="${cachedAssetsRam[assetId]}" style="max-width:90vw; max-height:90vh;"></video></body>`);
         }
+    }
+
+    function openAssetUploadModal() {
         currentEditingAssetId = null;
         stagedAssetBase64 = null;
-        stagedAssetDuration = null;
+        currentAssetCost = 0;
         document.getElementById('asset-edit-title').innerText = "Upload Asset";
         document.getElementById('asset-name-field').value = "";
         document.getElementById('asset-file-field').value = "";
         document.getElementById('asset-preview-box').innerHTML = "";
-        document.getElementById('btn-submit-asset').innerText = "Upload Asset";
+        document.getElementById('btn-submit-asset').innerHTML = "Upload Asset";
         document.getElementById('btn-delete-asset-form').style.display = "none";
         document.getElementById('modal-asset-edit').style.display = 'flex';
     }
@@ -2190,9 +2200,9 @@
     function openAssetEditForm(assetId) {
         currentEditingAssetId = Number(assetId);
         stagedAssetBase64 = null;
-        stagedAssetDuration = null;
+        currentAssetCost = 0;
         document.getElementById('asset-edit-title').innerText = `Edit Asset #${assetId}`;
-        document.getElementById('btn-submit-asset').innerText = "Apply changes";
+        document.getElementById('btn-submit-asset').innerHTML = "Apply changes";
         document.getElementById('btn-delete-asset-form').style.display = "block";
         document.getElementById('modal-asset-edit').style.display = 'flex';
 
@@ -2229,34 +2239,31 @@
                 return;
             }
 
-            if (isVideo) {
-                const cost = Math.max(1, Math.ceil(file.size / (100 * 1024)));
-                const submitBtn = document.getElementById('btn-submit-asset');
-                submitBtn.innerHTML = `Upload Asset | ${cost} <span class="coin-icon" style="width:16px; height:16px; font-size:0.5rem;">EZ</span>`;
-            } else {
-                document.getElementById('btn-submit-asset').innerText = currentEditingAssetId ? "Apply changes" : "Upload Asset";
-            }
-
             const reader = new FileReader();
             reader.onload = (e) => {
                 stagedAssetBase64 = e.target.result;
                 const preview = document.getElementById('asset-preview-box');
+                const submitBtn = document.getElementById('btn-submit-asset');
+
                 if (isImage) {
                     preview.innerHTML = `<img src="${stagedAssetBase64}" style="max-height:100px; max-width:100%;">`;
+                    submitBtn.innerHTML = currentEditingAssetId ? "Apply changes" : "Upload Asset";
                 } else if (isAudio) {
-                    const tempAudio = new Audio(stagedAssetBase64);
-                    tempAudio.onloadedmetadata = () => {
-                        stagedAssetDuration = tempAudio.duration;
-                        if (stagedAssetDuration > 600) {
-                            alert("Audio exceeds 10 minutes limit!");
-                            stagedAssetBase64 = null;
+                    preview.innerHTML = `<audio id="staging-audio" controls src="${stagedAssetBase64}" style="width:100%;"></audio>`;
+                    submitBtn.innerHTML = currentEditingAssetId ? "Apply changes" : "Upload Asset";
+                    setTimeout(() => {
+                        const audEl = document.getElementById('staging-audio');
+                        if (audEl && audEl.duration > 600) {
+                            alert("Audio files cannot be longer than 10 minutes!");
                             input.value = "";
+                            stagedAssetBase64 = null;
                             preview.innerHTML = "";
                         }
-                    };
-                    preview.innerHTML = `<audio controls src="${stagedAssetBase64}" style="width:100%;"></audio>`;
+                    }, 500);
                 } else if (isVideo) {
-                    preview.innerHTML = `<video controls src="${stagedAssetBase64}" style="max-height:120px; width:100%;"></video>`;
+                    currentAssetCost = Math.max(1, Math.ceil(file.size / (100 * 1024)));
+                    preview.innerHTML = `<video controls src="${stagedAssetBase64}" style="max-height:120px; max-width:100%;"></video>`;
+                    submitBtn.innerHTML = `${currentEditingAssetId ? "Apply changes" : "Upload Asset"} | ${currentAssetCost} <span class="coin-icon" style="width:16px; height:16px; font-size:0.5rem;">EZ</span>`;
                 }
             };
             reader.readAsDataURL(file);
@@ -2270,12 +2277,16 @@
         }
 
         if (!stagedAssetBase64 && !currentEditingAssetId) {
-            return alert("Please select a valid file.");
+            return alert("Please select an audio, image or video file.");
         }
 
         const dataToSend = stagedAssetBase64 || cachedAssetsRam[currentEditingAssetId];
         const fileInput = document.getElementById('asset-file-field');
         const fileType = fileInput.files[0] ? fileInput.files[0].type : "image/png";
+
+        if (fileType.includes('video') && currentCoins < currentAssetCost) {
+            return alert(`Insufficient EzCoins! You need ${currentAssetCost} EzCoins to upload this video.`);
+        }
 
         const totalChunks = Math.ceil(dataToSend.length / ASSET_CHUNK_SIZE);
         isUploadingAsset = true;
@@ -2290,7 +2301,6 @@
                 name: nameVal,
                 type: fileType,
                 size: dataToSend.length,
-                duration: stagedAssetDuration,
                 editAssetId: currentEditingAssetId
             });
         }
@@ -2308,6 +2318,7 @@
         if (data.newCoins !== undefined) updateCoinsDisplay(data.newCoins);
         alert(`Success on Asset upload!\nyour asset ${data.name} has been uploaded.`);
         closeAssetEditModal();
+        socket.emit('eb_get_user_assets');
     });
 
     socket.on('eb_asset_flagged', (data) => {
@@ -2328,45 +2339,27 @@
         }
     }
 
-    function openMissingEmailModal() {
-        document.getElementById('missing-email-input').value = "";
-        document.getElementById('modal-missing-email').style.display = 'flex';
-    }
-
-    function submitMissingEmailValidate() {
-        const emailVal = document.getElementById('missing-email-input').value.trim().toLowerCase();
-        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-        if (!emailVal || !emailRegex.test(emailVal) || /[()\\<>,;:]/.test(emailVal)) {
-            return alert("Please enter a valid email address with no special symbols.");
-        }
-        document.getElementById('modal-missing-email').style.display = 'none';
-        openEmailVerifyModal(true, false, emailVal);
-        socket.emit('eb_request_email_code', { email: emailVal });
-    }
-
-    function savePendingVerificationState(stateObj) {
-        stateObj.timestamp = Date.now();
-        localStorage.setItem('eb_pending_verify', JSON.stringify(stateObj));
+    function savePendingVerificationState(state) {
+        localStorage.setItem("eb_pending_verify", JSON.stringify(state));
     }
 
     function clearPendingVerificationState() {
-        localStorage.removeItem('eb_pending_verify');
+        localStorage.removeItem("eb_pending_verify");
     }
 
-    function checkPendingVerificationRestore() {
-        const raw = localStorage.getItem('eb_pending_verify');
-        if (!raw) return;
+    function restorePendingVerificationCheck() {
         try {
-            const state = JSON.parse(raw);
-            const elapsed = Math.floor((Date.now() - state.timestamp) / 1000);
-            if (elapsed < 1800) {
-                openEmailVerifyModal(Boolean(state.isLinking), Boolean(state.is2FA), state.email);
-            } else {
-                clearPendingVerificationState();
+            const saved = localStorage.getItem("eb_pending_verify");
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                const now = Date.now();
+                if (now < parsed.expiresAt) {
+                    openEmailVerifyModal(parsed.isLinking, parsed.is2FA, parsed.email, parsed.isGoogle);
+                } else {
+                    clearPendingVerificationState();
+                }
             }
-        } catch(e) {
-            clearPendingVerificationState();
-        }
+        } catch(e) {}
     }
 
     function startSignUpFlow() {
@@ -2383,7 +2376,6 @@
         }
 
         pendingSignupData = { user, pass, email };
-        savePendingVerificationState({ type: 'signup', email, user, pass });
         socket.emit('eb_request_email_code', { email });
     }
 
@@ -2392,7 +2384,7 @@
         startEmailResendCooldown(data.cooldown || 30);
     });
 
-    function openEmailVerifyModal(isLinkingMissing = false, is2FA = false, targetEmail = "") {
+    function openEmailVerifyModal(isLinkingMissing = false, is2FA = false, targetEmail = "", isGoogle = false) {
         document.getElementById('email-verify-code-input').value = "";
         document.getElementById('modal-email-verify').style.display = 'flex';
         startEmailExpireTimer();
@@ -2400,8 +2392,12 @@
         window.emailVerifyState = {
             isLinking: isLinkingMissing,
             is2FA: is2FA,
-            email: targetEmail || (pendingSignupData ? pendingSignupData.email : "")
+            isGoogle: isGoogle,
+            email: targetEmail || (pendingSignupData ? pendingSignupData.email : ""),
+            expiresAt: Date.now() + 1800 * 1000
         };
+
+        savePendingVerificationState(window.emailVerifyState);
     }
 
     function closeEmailVerifyModal() {
@@ -2466,11 +2462,11 @@
 
     socket.on('eb_email_code_verified', (data) => {
         closeEmailVerifyModal();
-        clearPendingVerificationState();
         if (window.emailVerifyState && window.emailVerifyState.isLinking) {
             socket.emit('eb_link_missing_email', { email: data.email });
         } else if (window.emailVerifyState && window.emailVerifyState.is2FA) {
-            if (googleSub && googleEmail) {
+            if (window.emailVerifyState.isGoogle) {
+                showLoadingScreen("Wait, logging into your Google account...");
                 socket.emit('eb_google_login', { googleSub, email: googleEmail, ownerId, bypass2FA: true });
             } else {
                 const user = document.getElementById('eb-login-user').value.trim();
@@ -3095,7 +3091,11 @@
         });
 
         if (sortVal === 'hottest') {
-            filtered.sort((a, b) => ((b.onlineCount || 0) * 10 + (b.likes || 0) * 2 + (b.visits || 0)) - ((a.onlineCount || 0) * 10 + (a.likes || 0) * 2 + (a.visits || 0)));
+            filtered.sort((a, b) => {
+                const sA = (a.onlineCount * 10) + (a.likes * 2) + a.visits;
+                const sB = (b.onlineCount * 10) + (b.likes * 2) + b.visits;
+                return sB - sA;
+            });
         } else if (sortVal === 'most_liked') {
             filtered.sort((a, b) => (b.likes || 0) - (a.likes || 0));
         } else if (sortVal === 'newest') {
@@ -3128,13 +3128,11 @@
 
             const pfpHTML = (s.ownerPfpData && s.ownerPfpData !== "default") ? `<img src="${s.ownerPfpData}" style="width:18px; height:18px; border-radius:50% !important; vertical-align:middle; margin-left:4px; object-fit:cover;">` : `<span class="coin-icon" style="width:18px; height:18px; font-size:0.55rem; margin-left:4px; border-radius:50% !important;">👤</span>`;
 
-            const likes = s.likes || 0;
-            const dislikes = s.dislikes || 0;
-            const totalRatings = likes + dislikes;
-            const greenPct = totalRatings === 0 ? 50 : Math.round((likes / totalRatings) * 100);
+            const totalVotes = (s.likes || 0) + (s.dislikes || 0);
+            const greenPct = totalVotes > 0 ? ((s.likes || 0) / totalVotes) * 100 : 50;
 
-            const isLiked = s.userRating === 'like' ? 'active-rate' : '';
-            const isDisliked = s.userRating === 'dislike' ? 'active-rate' : '';
+            const likeActive = s.userRating === 'like' ? 'active' : '';
+            const dislikeActive = s.userRating === 'dislike' ? 'active' : '';
 
             div.innerHTML = `
                 <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
@@ -3144,11 +3142,11 @@
                 <div style="font-size:0.75rem; color:var(--muted);">
                     Latest update: ${s.dateStr || '0/0/0'} | <b>${s.onlineCount || 0}</b> people online in it! | visits: <b>${s.visits || 0}</b>
                 </div>
-                <div style="display:flex; justify-content:space-between; width:100%; align-items:center; margin-top:2px;">
-                    <div style="display:flex; align-items:center; gap:6px;">
-                        <button class="rate-btn ${isLiked}" onclick="rateSiteSubmit('${s.id}', 'like')">👍 ${likes}</button>
-                        <button class="rate-btn ${isDisliked}" onclick="rateSiteSubmit('${s.id}', 'dislike')">👎 ${dislikes}</button>
-                        <div class="tug-war-bar"><div class="tug-war-green" style="width:${greenPct}%;"></div></div>
+                <div style="display:flex; gap:8px; width:100%; align-items:center; margin-top:2px;">
+                    <button class="rate-btn ${likeActive}" onclick="rateSite('${s.id}', 'like')">👍 ${s.likes || 0}</button>
+                    <button class="rate-btn ${dislikeActive}" onclick="rateSite('${s.id}', 'dislike')">👎 ${s.dislikes || 0}</button>
+                    <div class="tug-war-bar">
+                        <div class="tug-war-green" style="width:${greenPct}%;"></div>
                     </div>
                     <button class="btn" style="width:auto; margin:0; padding:4px 14px; font-size:0.8rem;" onclick="accessSite('${s.id}')">access</button>
                 </div>
@@ -4274,7 +4272,257 @@
             ctx.fillStyle = "#facc15";
             coins.forEach(c => {
                 ctx.beginPath();
-                                ctx.arc(c.x, c.y, 10, 0, Math.PI * 2);
+                ctx.arc(c.x, c.y, 10, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            ctx.restore();
+        }
+
+        function loop() {
+            update();
+            draw();
+            requestAnimationFrame(loop);
+        }
+        loop();
+    <\/script>
+</body>
+</html>` : 
+`<!-- EzBridge Multiplayer Coin Collector (WebSocket) -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>EzBridge Multiplayer Coin Collector (WebSocket)</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"><\/script>
+    <style>
+        body { margin: 0; background: #0f172a; color: #fff; font-family: sans-serif; overflow: hidden; user-select: none; }
+        canvas { display: block; background: #1e293b; }
+        #ui { position: absolute; top: 10px; left: 10px; pointer-events: none; font-weight: bold; font-size: 1.2rem; text-shadow: 1px 1px 2px #000; }
+        #toggle-container { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); padding: 8px 12px; border-radius: 8px; font-family: sans-serif; font-weight: bold; font-size: 0.9rem; z-index: 10; }
+        #toggle-container label { cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        #joystick { position: absolute; bottom: 40px; left: 40px; width: 120px; height: 120px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; display: none; touch-action: none; }
+        #stick { position: absolute; top: 35px; left: 35px; width: 50px; height: 50px; background: rgba(255,255,255,0.4); border-radius: 50%; pointer-events: none; }
+    </style>
+</head>
+<body>
+    <div id="ui">Score: <span id="score">0</span> | Status: <span id="status">Connecting...</span></div>
+    <div id="toggle-container">
+        <label>
+            <input type="checkbox" id="serverCharToggle">
+            Serversided character test
+        </label>
+    </div>
+    <div id="joystick"><div id="stick"></div></div>
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener("resize", resize);
+        resize();
+
+        const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        if (isMobile) {
+            document.getElementById("joystick").style.display = "block";
+        }
+
+        const link = "${PUBLIC_TUNNEL_URL}";
+        const key = "${serverKey}";
+        const socket = io(link, { auth: { token: "default_key" } });
+
+        let myId = Math.random().toString(36).substring(2, 6);
+        let myColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+        let myPos = { x: Math.random() * 2000, y: Math.random() * 2000 };
+        let myScore = 0;
+
+        let isServerSided = false;
+        let isClientCharDeleted = false;
+
+        const keys = { w: false, a: false, s: false, d: false };
+        let players = {};
+        let coins = [];
+
+        let joyActive = false;
+        let joyVector = { x: 0, y: 0 };
+
+        socket.on("connect", () => {
+            socket.emit("join_virtual_server", { key });
+        });
+
+        socket.on("joined_successfully", () => {
+            document.getElementById("status").innerText = "Connected";
+            socket.emit("RemoteEvent", { type: "player_join", data: { id: myId, color: myColor, x: myPos.x, y: myPos.y } });
+        });
+
+        socket.on("RemoteEvent", (pkt) => {
+            handleServerEvent(pkt);
+        });
+
+        function sendRemote(eventType, customData) {
+            socket.emit("RemoteEvent", { type: eventType, data: customData });
+        }
+
+        function handleServerEvent(pkt) {
+            if (pkt.type === "state_update") {
+                const serverPlayers = pkt.data.players;
+                coins = pkt.data.coins || [];
+                for (let id in serverPlayers) {
+                    if (id === myId) {
+                        myScore = serverPlayers[id].score;
+                        document.getElementById("score").innerText = myScore;
+                        if (isServerSided) {
+                            myPos.x = serverPlayers[id].x;
+                            myPos.y = serverPlayers[id].y;
+                        }
+                    }
+                    players[id] = serverPlayers[id];
+                }
+            } else if (pkt.type === "server_char_created") {
+                if (pkt.data.clientId === myId) {
+                    isClientCharDeleted = true;
+                }
+            }
+        }
+
+        document.getElementById("serverCharToggle").addEventListener("change", (e) => {
+            isServerSided = e.target.checked;
+            if (isServerSided) {
+                sendRemote("create_server_char", { name: myId });
+            } else {
+                isClientCharDeleted = false;
+            }
+        });
+
+        window.addEventListener("keydown", (e) => {
+            if (e.key.toLowerCase() === 'w') keys.w = true;
+            if (e.key.toLowerCase() === 'a') keys.a = true;
+            if (e.key.toLowerCase() === 's') keys.s = true;
+            if (e.key.toLowerCase() === 'd') keys.d = true;
+        });
+
+        window.addEventListener("keyup", (e) => {
+            if (e.key.toLowerCase() === 'w') keys.w = false;
+            if (e.key.toLowerCase() === 'a') keys.a = false;
+            if (e.key.toLowerCase() === 's') keys.s = false;
+            if (e.key.toLowerCase() === 'd') keys.d = false;
+        });
+
+        const joystickEl = document.getElementById("joystick");
+        const stickEl = document.getElementById("stick");
+        let joyCenter = { x: 0, y: 0 };
+
+        joystickEl.addEventListener("touchstart", (e) => {
+            joyActive = true;
+            const rect = joystickEl.getBoundingClientRect();
+            joyCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+        });
+
+        window.addEventListener("touchmove", (e) => {
+            if (!joyActive) return;
+            const touch = e.touches[0];
+            const dx = touch.clientX - joyCenter.x;
+            const dy = touch.clientY - joyCenter.y;
+            const dist = Math.min(50, Math.hypot(dx, dy));
+            const angle = Math.atan2(dy, dx);
+
+            joyVector.x = Math.cos(angle) * (dist / 50);
+            joyVector.y = Math.sin(angle) * (dist / 50);
+
+            stickEl.style.transform = \`translate(\${Math.cos(angle)*dist}px, \${Math.sin(angle)*dist}px)\`;
+        });
+
+        window.addEventListener("touchend", (e) => {
+            if (joyActive) {
+                joyActive = false;
+                joyVector = { x: 0, y: 0 };
+                stickEl.style.transform = \`translate(0px, 0px)\`;
+            }
+        });
+
+        function update() {
+            if (isServerSided) {
+                let moveX = 0;
+                let moveY = 0;
+                if (isMobile) {
+                    moveX = joyVector.x;
+                    moveY = joyVector.y;
+                } else {
+                    if (keys.w) moveY -= 1;
+                    if (keys.s) moveY += 1;
+                    if (keys.a) moveX -= 1;
+                    if (keys.d) moveX += 1;
+                }
+                sendRemote("server_char_input", { id: myId, moveX: moveX, moveY: moveY });
+            } else {
+                let speed = 5;
+                if (isMobile) {
+                    myPos.x += joyVector.x * speed;
+                    myPos.y += joyVector.y * speed;
+                } else {
+                    if (keys.w) myPos.y -= speed;
+                    if (keys.s) myPos.y += speed;
+                    if (keys.a) myPos.x -= speed;
+                    if (keys.d) myPos.x += speed;
+                }
+
+                myPos.x = Math.max(0, Math.min(2000, myPos.x));
+                myPos.y = Math.max(0, Math.min(2000, myPos.y));
+
+                sendRemote("player_update", { id: myId, x: myPos.x, y: myPos.y, color: myColor });
+
+                coins.forEach(coin => {
+                    if (Math.hypot(coin.x - myPos.x, coin.y - myPos.y) < 25) {
+                        sendRemote("collect_coin", { playerId: myId, coinId: coin.id });
+                    }
+                });
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.save();
+            ctx.translate(canvas.width / 2 - myPos.x, canvas.height / 2 - myPos.y);
+
+            ctx.strokeStyle = "#475569";
+            ctx.lineWidth = 4;
+            ctx.strokeRect(0, 0, 2000, 2000);
+
+            if (!isClientCharDeleted) {
+                ctx.fillStyle = myColor;
+                ctx.beginPath();
+                ctx.arc(myPos.x, myPos.y, 20, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "bold 14px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText(\`Coins: \${myScore}\`, myPos.x, myPos.y - 30);
+            }
+
+            for (let id in players) {
+                if (id === myId && !isClientCharDeleted) continue;
+                let p = players[id];
+                ctx.fillStyle = p.color || '#fff';
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 20, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "bold 14px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText(\`Coins: \${p.score || 0}\`, p.x, p.y - 30);
+            }
+
+            ctx.fillStyle = "#facc15";
+            coins.forEach(c => {
+                ctx.beginPath();
+                ctx.arc(c.x, c.y, 10, 0, Math.PI * 2);
                 ctx.fill();
             });
 
@@ -4416,7 +4664,7 @@ ${serverType === 'websocket' ?
 3 - APIs You Can Use
 - 'ebuserid_get' / 'eb_id_get': [CLIENT-SIDED API] Send RemoteEvent type 'ebuserid_get' to get the client's permanent unique User ID (15-30 chars).
 - 'eb_profile_get_{clientid}': [CLIENT AND SERVER API] Fetch any user's profile display name and avatar (sent in 500KB chunks).
-- 'eb_asset_get_{assetid}': [CLIENT AND SERVER API] Fetch any uploaded audio/image/video asset by sequential ID in 180KB chunks. Can be used without server key.
+- 'eb_asset_get_{assetid}': [CLIENT AND SERVER API] Fetch any uploaded audio, image or video asset by sequential ID in 180KB chunks. Can be used without server key.
 - Server.storage API: [SERVER-SIDED API]
   * Server.storage.set(data) - Save up to 100MB of persistent server data.
   * Server.storage.get() - Retrieve stored server data.
@@ -4476,7 +4724,7 @@ async function fetchAssetData(assetId) {
         const audio = new Audio(asset.data);
         audio.play();
     } else if (asset.type.includes('video')) {
-        document.getElementById("videoSlot").src = asset.data;
+        document.getElementById("vidSlot").src = asset.data;
     }
 }
 
@@ -4548,10 +4796,10 @@ socket.on("RemoteEvent", (pkt) => {
             const base64Data = assetChunks.join('');
             if (pkt.data.type.includes('image')) {
                 document.getElementById("myImage").src = base64Data;
-            } else if (pkt.data.type.includes('audio')) {
-                new Audio(base64Data).play();
             } else if (pkt.data.type.includes('video')) {
                 document.getElementById("myVideo").src = base64Data;
+            } else {
+                new Audio(base64Data).play();
             }
         }
     }
@@ -4575,7 +4823,7 @@ socket.on("RemoteEvent", (pkt) => {
 // const usedBytes = Server.storage.getUsageBytes();
 
 <span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
-7. SERVERSCRIPT LOCAL AI API (Ollama gemma3:1b / llama3.2:1b / qwen2.5:0.5b / qwen2.5:1.5b):
+7. SERVERSCRIPT LOCAL AI API (Ollama qwen2.5:0.5b / gemma3:1b / llama3.2:1b / qwen2.5:1.5b):
 Server.eb_callai({
     model: "qwen2.5:1.5b",
     Temp: 0,
