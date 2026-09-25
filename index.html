@@ -421,6 +421,22 @@
         </div>
     </div>
 
+    <div id="modal-ai-billing" class="overlay" style="display:none; z-index:2800;">
+        <div class="card" style="max-width: 440px;">
+            <h3>AI access billing</h3>
+            <p style="font-size:0.8rem; color:var(--muted); line-height:1.4; margin:12px 0;">
+                Each month your AI key is active, the server checks it's usage inside each month and gives you a certain amount of EzCoins you have to pay for the API stay active.
+            </p>
+            <div style="font-size:0.85rem; text-align:left; margin:10px 0; display:flex; flex-direction:column; gap:6px;">
+                <div>Last Month: <b id="ai-bill-tokens" style="color:var(--accent);">0 tokens</b></div>
+                <div>Current price: <b id="ai-bill-price" style="color:var(--yellow);">0</b> <span class="coin-icon" style="width:16px; height:16px; font-size:0.5rem;">EZ</span></div>
+                <div>Status: <b id="ai-bill-status" style="color:var(--green);">Active</b></div>
+            </div>
+            <button class="btn btn-purple" id="btn-pay-ai-billing" style="display:none;" onclick="payAiBillingSubmit()">Pay</button>
+            <button class="btn btn-secondary" onclick="closeAiBillingModal()">Close</button>
+        </div>
+    </div>
+
     <div id="modal-email-verify" class="overlay" style="display:none; z-index:3100;">
         <div class="card" style="max-width: 440px;">
             <h3>Enter the generated 6-chars code</h3>
@@ -533,7 +549,6 @@
                         <div id="site-code-lines" class="line-numbers">1</div>
                         <textarea id="site-html-field" class="code-textarea" rows="8" placeholder="<!DOCTYPE html>..." oninput="updateLineNumbers('site-html-field', 'site-code-lines')" onscroll="syncScroll('site-html-field', 'site-code-lines')"></textarea>
                     </div>
-                    <button class="btn btn-purple" type="button" style="margin-top:4px; font-size:0.8rem; padding:8px;" onclick="openAskAiSiteModal()">Or ask AI ✨</button>
                 </div>
                 <div class="settings-item">
                     <label>Visibility</label>
@@ -563,49 +578,6 @@
             <div style="display:flex; gap:10px; margin-top:15px;">
                 <button class="btn" id="submit-site-btn" onclick="submitPublishSite()">Create site</button>
                 <button class="btn btn-secondary" onclick="closeCreateSiteModal()">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="modal-ask-ai-site" class="overlay" style="display:none; z-index:2100;">
-        <div class="card" style="max-width: 520px; width:95%;">
-            <h3>What do you wanna ask AI to make?</h3>
-            <p style="font-size:0.75rem; color:var(--muted);">(only accepting Html scripts)</p>
-
-            <div id="ai-site-input-view">
-                <div class="settings-item" style="text-align:left;">
-                    <label>Prompt:</label>
-                    <textarea id="ai-site-prompt" rows="3" placeholder="Build an interactive multiplayer game with chat and canvas graphics..."></textarea>
-                </div>
-                <div class="settings-item" style="text-align:left; margin-top:8px;">
-                    <label>Creativity: <span id="ai-creativity-val">0.7</span></label>
-                    <input type="range" id="ai-site-creativity" min="0.0" max="1.0" step="0.1" value="0.7" oninput="document.getElementById('ai-creativity-val').innerText = this.value">
-                </div>
-                <div class="settings-item" style="text-align:left; margin-top:8px;">
-                    <label>Model:</label>
-                    <select id="ai-site-model-select">
-                        <option value="qwen2.5:0.5b">Qwen 2.5 [FASTER]</option>
-                        <option value="gemma3:1b" selected>Gemma3 [Default] [Recommended]</option>
-                        <option value="llama3.2:1b">Llama 3.2</option>
-                        <option value="qwen2.5:1.5b">Qwen 2.5 1.5B [Exclusive to IDs & WebSockets]</option>
-                    </select>
-                </div>
-                <div style="display:flex; gap:10px; margin-top:15px;">
-                    <button class="btn btn-purple" onclick="startAiSiteGen()">Start</button>
-                    <button class="btn btn-secondary" onclick="closeAskAiSiteModal()">Cancel</button>
-                </div>
-            </div>
-
-            <div id="ai-site-gen-view" style="display:none; text-align:left;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                    <span style="font-size:0.8rem; font-weight:bold; color:var(--accent);">AI Output:</span>
-                    <span style="font-size:0.75rem; color:var(--muted);" id="ai-gen-timer">00:00</span>
-                </div>
-                <textarea id="ai-site-output-box" class="code-box" readonly rows="10" style="width:100%; height:200px; resize:none;"></textarea>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
-                    <span style="font-size:0.75rem; color:var(--accent);" id="ai-token-counter">Token Usage: 0/3250</span>
-                    <button class="btn btn-danger" style="width:auto; margin:0; padding:6px 16px;" onclick="stopAiSiteGen()">stop generation</button>
-                </div>
             </div>
         </div>
     </div>
@@ -797,8 +769,8 @@
                 </div>
 
                 <div class="settings-item">
-                    <label>Server target Ping: <span id="cfg-target-ping-val">60</span>ms (60 - 1000)</label>
-                    <input type="range" id="cfg-target-ping" min="60" max="1000" step="10" value="60" oninput="document.getElementById('cfg-target-ping-val').innerText = this.value">
+                    <label>Server target Ping: <span id="cfg-target-ping-val">50</span>ms (50 - 1000)</label>
+                    <input type="range" id="cfg-target-ping" min="50" max="1000" step="10" value="50" oninput="document.getElementById('cfg-target-ping-val').innerText = this.value">
                 </div>
 
                 <div class="settings-item">
@@ -959,11 +931,14 @@
     </div>
 
     <div id="modal-universal-panel" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 460px;">
+        <div class="card" style="max-width: 500px;">
             <h3>Universal Server Panel</h3>
-            <div style="display:flex; flex-direction:column; gap:10px; margin:20px 0;">
-                <button class="btn btn-purple" onclick="openUpdateUnivServerModal()">Update univserver</button>
-                <button class="btn btn-purple" onclick="openOwnerSetCoinsModal()">Set User Coins</button>
+            <div id="terminal-host-metrics" style="font-size:0.75rem; color:var(--accent); font-weight:bold; font-family:monospace; margin-bottom:12px; background:#000; padding:6px; border:1px solid #1e293b;">
+                RAM: 0% | CPU: 0% | BATTERY: 100% | TEMPERATURE: 0.0 | DATE: 0/0/0 00:00:00
+            </div>
+            <div style="display:flex; flex-direction:column; gap:10px; margin:10px 0;">
+                <button class="btn btn-purple" id="btn-univ-update-script" onclick="openUpdateUnivServerModal()">Update univserver</button>
+                <button class="btn btn-purple" id="btn-univ-set-coins" onclick="openOwnerSetCoinsModal()">Set User Coins</button>
                 <button class="btn btn-secondary" onclick="restartNodeOnly()">restart node</button>
             </div>
             <button class="btn btn-secondary" onclick="closeUniversalPanelModal()">Close</button>
@@ -1068,7 +1043,7 @@
         </div>
 
         <div id="metrics-bar" style="font-size: 0.75rem; color: var(--accent); font-weight: bold; margin-bottom: 8px;">
-            PING: <span id="metric-ping">60</span>ms | Data received: <span id="metric-rx">0.0</span>kbs↓ | Data sent: <span id="metric-tx">0.0</span>kbps↑
+            PING: <span id="metric-ping">50</span>ms | Data received: <span id="metric-rx">0.0</span>kbs↓ | Data sent: <span id="metric-tx">0.0</span>kbps↑
         </div>
 
         <div style="margin-bottom:12px; text-align:left;">
@@ -1126,7 +1101,7 @@
             <button class="btn btn-secondary" style="width: 50px;" onclick="openEditSettings()">⚙</button>
         </div>
         <div class="dashboard-row">
-            <button class="btn btn-secondary" style="flex: 1;" onclick="openHowToUse()">How to Use</button>
+            <button class="btn btn-secondary" style="flex: 1;" onclick="openHowToUse()">Help & Auth Keys</button>
         </div>
 
         <button class="btn" style="background:#ffffff !important; color:#000000 !important; font-weight:bold; margin-top:15px;" onclick="navigateToPath('sites')">SEE AND PUBLISH</button>
@@ -1134,7 +1109,7 @@
 
     <div id="modal-howto" class="overlay" style="display:none;">
         <div class="card" style="max-width: 600px;">
-            <h3 style="margin-bottom:15px;">How to Connect Your Server</h3>
+            <h3 style="margin-bottom:15px;">Help & Auth Keys</h3>
             <div style="text-align:left;">
                 <button class="btn btn-purple" style="margin-bottom:15px;" onclick="copyAIPrompt()">Copy AI Prompt</button>
                 <div class="settings-item">
@@ -1150,6 +1125,18 @@
                     <div style="display:flex; gap:10px;">
                         <input type="text" id="copy-link" readonly style="flex-grow:1;">
                         <button class="btn" style="width:auto; margin:0;" onclick="copyText('copy-link')">Copy</button>
+                    </div>
+                </div>
+                <div class="settings-item" style="margin-top:10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <label>3 - AI auth key</label>
+                        <span id="ai-key-status-label" style="font-size:0.75rem; color:var(--muted); font-weight:bold;">Status: None</span>
+                    </div>
+                    <div style="display:flex; gap:10px; margin-top:4px;">
+                        <div id="ai-key-slot" style="flex-grow:1;">
+                            <button class="btn btn-secondary" style="margin:0;" onclick="generateAiKeySubmit()">Generate AI key</button>
+                        </div>
+                        <button class="btn" style="width:auto; margin:0; background:#ffffff !important; color:#000000 !important;" onclick="openAiBillingModal()">Billing</button>
                     </div>
                 </div>
                 <div style="display:flex; gap:10px; margin-top:15px;">
@@ -1196,15 +1183,19 @@
                 <textarea id="example-http-chat-server" class="code-box" readonly rows="8" style="width:100%; height:160px; border:none; resize:none;"></textarea>
             </div>
 
+            <div style="text-align:left; font-size:0.85rem; font-weight:bold; color:var(--accent); margin-top:14px; border-top:1px solid var(--border); padding-top:10px;">4. Dynamic Tunnel Fetcher Example:</div>
+            <textarea id="example-auto-tunnel-fetch" class="code-box" readonly rows="8" style="width:100%; height:160px; border:none; resize:none;"></textarea>
+
             <div style="display:flex; gap:10px; margin-top:10px;">
-                <button class="btn" onclick="copyText('example-coin-client')">Copy Coin Collector Client</button>
+                <button class="btn" onclick="copyText('example-auto-tunnel-fetch')">Copy Tunnel Fetcher</button>
                 <button class="btn btn-secondary" onclick="closeGameCode()">Back</button>
             </div>
         </div>
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://choir-breathing-administrative-def.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://invitations-infants-ref-forum.trycloudflare.com";
+    const BASE_SITE_URL = "https://terminatorsbdev.github.io/EzBridge/";
 
     let ownerId = getCookie("eb_owner_id") || "";
     let googleSub = null;
@@ -1214,6 +1205,8 @@
     let activeUserId = "";
     let userRole = "None";
     let serverKey = "";
+    let userAiKeyVal = "";
+    let userAiKeyStatus = "None";
     let serverActive = false;
     let isServerSleeping = false;
     let serverSleepReason = null;
@@ -1257,7 +1250,7 @@
 
     let rxBytesAccum = 0;
     let txBytesAccum = 0;
-    let currentPingVal = 60;
+    let currentPingVal = 50;
 
     let cooldownTimerCountdown = null;
 
@@ -1272,10 +1265,6 @@
     let generatedSiteIdVal = "";
     let userSiteDataChunks = [];
     let siteSearchDebounce = null;
-
-    let currentAiGenId = null;
-    let aiTimerInterval = null;
-    let aiStartTime = 0;
 
     let serverStorageChunks = [];
     let serverScriptChunks = [];
@@ -1385,6 +1374,11 @@
         const hashStr = window.location.hash || '';
         const clean = hashStr.replace(/^#?\/?/g, '').replace(/\/+$/, '');
         if (clean) {
+            if (clean.startsWith('site/')) {
+                const sId = clean.replace('site/', '').trim();
+                socket.emit('eb_visit_site', { siteId: sId });
+                return;
+            }
             showRouteConnectingModal();
             socket.emit('changeurl', { path: clean });
         }
@@ -1543,6 +1537,8 @@
         } else {
             restorePendingVerificationCheck();
         }
+
+        socket.emit('eb_generate_ai_key');
 
         if (data.dailyReward && data.dailyReward.pendingReward) {
             document.getElementById('daily-streak-badge').innerText = `🔥 ${data.dailyReward.streak}`;
@@ -1709,6 +1705,13 @@
         }
     });
 
+    socket.on('eb_server_sys_info', (data) => {
+        const el = document.getElementById('terminal-host-metrics');
+        if (el) {
+            el.innerText = `RAM: ${data.ram}% | CPU: ${data.cpu}% | BATTERY: ${data.battery}% | TEMPERATURE: ${data.temperature} | DATE: ${data.date}`;
+        }
+    });
+
     socket.on('eb_perf_tick', (data) => {
         perfHistory.push(data);
         if (perfHistory.length > 30) perfHistory.shift();
@@ -1792,6 +1795,81 @@
         document.getElementById('copy-key').value = serverKey;
         alert("Server Auth Key regenerated successfully!");
     });
+
+    socket.on('eb_ai_key_response', (data) => {
+        userAiKeyVal = data.aiKey || "";
+        userAiKeyStatus = data.status || "None";
+        updateAiKeyDisplay();
+    });
+
+    function updateAiKeyDisplay() {
+        const slot = document.getElementById('ai-key-slot');
+        const statusLabel = document.getElementById('ai-key-status-label');
+        if (statusLabel) statusLabel.innerText = `Status: ${userAiKeyStatus}`;
+        if (!slot) return;
+
+        if (userAiKeyVal) {
+            slot.innerHTML = `
+                <div style="display:flex; gap:6px;">
+                    <input type="text" id="ai-key-display-field" readonly value="${userAiKeyVal}" style="flex:1;">
+                    <button class="btn btn-secondary" style="width:auto; margin:0;" onclick="copyText('ai-key-display-field')">Copy</button>
+                </div>
+            `;
+        } else {
+            slot.innerHTML = `<button class="btn btn-secondary" style="margin:0;" onclick="generateAiKeySubmit()">Generate AI key</button>`;
+        }
+    }
+
+    function generateAiKeySubmit() {
+        socket.emit('eb_generate_ai_key');
+    }
+
+    function openAiBillingModal() {
+        document.getElementById('modal-ai-billing').style.display = 'flex';
+        socket.emit('eb_get_ai_billing');
+    }
+
+    function closeAiBillingModal() {
+        document.getElementById('modal-ai-billing').style.display = 'none';
+    }
+
+    socket.on('eb_ai_billing_chunk', (data) => {
+        if (data.index === 0) window.aiBillingDataChunks = [];
+        window.aiBillingDataChunks.push(data.chunk);
+
+        if (window.aiBillingDataChunks.length === data.total) {
+            try {
+                const parsed = JSON.parse(window.aiBillingDataChunks.join(''));
+                document.getElementById('ai-bill-tokens').innerText = `${parsed.lastMonthTokens || 0} tokens`;
+                document.getElementById('ai-bill-price').innerText = parsed.currentPriceCoins || 0;
+                document.getElementById('ai-bill-status').innerText = parsed.status || "Active";
+                document.getElementById('ai-bill-status').style.color = parsed.status === "Blocked" ? "var(--error)" : "var(--green)";
+
+                const payBtn = document.getElementById('btn-pay-ai-billing');
+                if (payBtn) payBtn.style.display = (parsed.currentPriceCoins > 0) ? "block" : "none";
+            } catch(e) {}
+        }
+    });
+
+    socket.on('eb_ai_billing_response', (data) => {
+        if (!data.hasKey) {
+            document.getElementById('ai-bill-tokens').innerText = "0 tokens";
+            document.getElementById('ai-bill-price').innerText = "0";
+            document.getElementById('ai-bill-status').innerText = "None";
+            document.getElementById('btn-pay-ai-billing').style.display = "none";
+            return;
+        }
+        document.getElementById('ai-bill-tokens').innerText = `${data.lastMonthTokens || 0} tokens`;
+        document.getElementById('ai-bill-price').innerText = data.currentPriceCoins || 0;
+        document.getElementById('ai-bill-status').innerText = data.status || "Active";
+        document.getElementById('ai-bill-status').style.color = data.status === "Blocked" ? "var(--error)" : "var(--green)";
+        const payBtn = document.getElementById('btn-pay-ai-billing');
+        if (payBtn) payBtn.style.display = (data.currentPriceCoins > 0) ? "block" : "none";
+    });
+
+    function payAiBillingSubmit() {
+        socket.emit('eb_pay_ai_billing');
+    }
 
     socket.on('eb_server_storage_chunk', (data) => {
         if (data.index === 0) serverStorageChunks = [];
@@ -1891,42 +1969,6 @@
             refreshChatAvatars(data.targetUserId);
         }
     });
-
-    socket.on('eb_ai_started', (data) => {
-        currentAiGenId = data.id;
-    });
-
-    socket.on('eb_ai_response', (data) => {
-        const outBox = document.getElementById('ai-site-output-box');
-        if (data.error) {
-            alert(data.error);
-            stopAiSiteGen();
-            return;
-        }
-
-        if (data.text && outBox) {
-            outBox.value = data.text;
-            outBox.scrollTop = outBox.scrollHeight;
-            const approxTokens = Math.min(3250, Math.floor(data.text.length / 3.8));
-            document.getElementById('ai-token-counter').innerText = `Token Usage: ${approxTokens}/3250`;
-        }
-
-        if (data.done) {
-            if (aiTimerInterval) clearInterval(aiTimerInterval);
-            const cleanedHTML = cleanMarkdownCodeClient(outBox.value);
-            document.getElementById('site-html-field').value = cleanedHTML;
-            updateLineNumbers('site-html-field', 'site-code-lines');
-            alert("AI HTML script generated and applied to your site!");
-            closeAskAiSiteModal();
-        }
-    });
-
-    function cleanMarkdownCodeClient(text) {
-        if (!text) return "";
-        let cleaned = text.replace(/```html\s*/gi, '');
-        cleaned = cleaned.replace(/```\s*/g, '');
-        return cleaned.trim();
-    }
 
     socket.on('eb_chat_history_chunk', (data) => {
         if (data.session !== currentChatSession) return;
@@ -2925,6 +2967,8 @@
         const btnRoleMgr = document.getElementById('btn-role-mgr');
         const btnChangeUser = document.getElementById('btn-change-username');
         const btnChangePass = document.getElementById('btn-change-password');
+        const univUpdateBtn = document.getElementById('btn-univ-update-script');
+        const univSetCoinsBtn = document.getElementById('btn-univ-set-coins');
 
         termBtn.style.display = 'none';
         btnServerMgmt.style.display = 'none';
@@ -2945,11 +2989,16 @@
             btnServerMgmt.style.display = 'block';
             btnBanUser.style.display = 'block';
             btnRoleMgr.style.display = 'block';
+            if (univUpdateBtn) univUpdateBtn.style.display = 'block';
+            if (univSetCoinsBtn) univSetCoinsBtn.style.display = 'block';
         } else if (userRole === 'Dev') {
             tag.innerHTML = `<span class="role-tag role-dev">DEVELOPER</span>`;
+            termBtn.style.display = 'block';
             btnServerMgmt.style.display = 'block';
             btnBanUser.style.display = 'block';
             btnRoleMgr.style.display = 'block';
+            if (univUpdateBtn) univUpdateBtn.style.display = 'none';
+            if (univSetCoinsBtn) univSetCoinsBtn.style.display = 'none';
         } else if (userRole === 'Admin') {
             tag.innerHTML = `<span class="role-tag role-admin">ADMIN</span>`;
             btnServerMgmt.style.display = 'block';
@@ -2957,58 +3006,6 @@
         } else {
             tag.innerHTML = "";
         }
-    }
-
-    function openAskAiSiteModal() {
-        document.getElementById('ai-site-prompt').value = "";
-        document.getElementById('ai-site-output-box').value = "";
-        document.getElementById('ai-token-counter').innerText = "Token Usage: 0/3250";
-        document.getElementById('ai-gen-timer').innerText = "00:00";
-        document.getElementById('ai-site-input-view').style.display = 'block';
-        document.getElementById('ai-site-gen-view').style.display = 'none';
-        document.getElementById('modal-ask-ai-site').style.display = 'flex';
-    }
-
-    function closeAskAiSiteModal() {
-        stopAiSiteGen();
-        document.getElementById('modal-ask-ai-site').style.display = 'none';
-    }
-
-    function startAiSiteGen() {
-        const promptVal = document.getElementById('ai-site-prompt').value.trim();
-        const tempVal = document.getElementById('ai-site-creativity').value;
-        const selectedModel = document.getElementById('ai-site-model-select').value;
-
-        document.getElementById('ai-site-input-view').style.display = 'none';
-        document.getElementById('ai-site-gen-view').style.display = 'block';
-
-        aiStartTime = Date.now();
-        if (aiTimerInterval) clearInterval(aiTimerInterval);
-        aiTimerInterval = setInterval(() => {
-            const elapsedSecs = Math.floor((Date.now() - aiStartTime) / 1000);
-            const m = String(Math.floor(elapsedSecs / 60)).padStart(2, '0');
-            const s = String(elapsedSecs % 60).padStart(2, '0');
-            document.getElementById('ai-gen-timer').innerText = `${m}:${s}`;
-        }, 1000);
-
-        socket.emit('eb_callai_direct', {
-            model: selectedModel,
-            Temp: parseFloat(tempVal),
-            Mtokens: 3250,
-            Instruction: "You are an expert web developer. Output ONLY a single valid HTML script with no intros, outros, or comments. Do NOT include markdown blocks.",
-            Prompt: promptVal || "Create a random fun creative interactive HTML website or game.",
-            Streaming: true
-        });
-    }
-
-    function stopAiSiteGen() {
-        if (aiTimerInterval) clearInterval(aiTimerInterval);
-        if (currentAiGenId) {
-            socket.emit('eb_ai_stop_id', { id: currentAiGenId });
-            currentAiGenId = null;
-        }
-        document.getElementById('ai-site-input-view').style.display = 'block';
-        document.getElementById('ai-site-gen-view').style.display = 'none';
     }
 
     function triggerAutoSiteSearch() {
@@ -3435,7 +3432,7 @@
     }
 
     function openUniversalPanelModal() {
-        if (userRole !== 'Owner') return alert("Permission denied! Owner only.");
+        if (userRole !== 'Owner' && userRole !== 'Dev') return alert("Permission denied! Owner or Developer only.");
         document.getElementById('modal-universal-panel').style.display = 'flex';
     }
     function closeUniversalPanelModal() {
@@ -3787,7 +3784,7 @@
             return alert("SIGN-IN REQUIRED TO CREATE A NEW SERVER!");
         }
 
-        const targetPing = parseInt(document.getElementById('cfg-target-ping').value) || 60;
+        const targetPing = parseInt(document.getElementById('cfg-target-ping').value) || 50;
 
         const settings = {
             allowPrivate: document.getElementById('cfg-private').value === 'true',
@@ -3826,7 +3823,7 @@
         setInterval(() => {
             const startTime = Date.now();
             socket.once('ebgetstatus_response', () => {
-                currentPingVal = Math.max(60, Date.now() - startTime);
+                currentPingVal = Math.max(50, Date.now() - startTime);
                 const pingEl = document.getElementById('metric-ping');
                 if (pingEl) pingEl.innerText = currentPingVal;
             });
@@ -3985,8 +3982,8 @@
 
     function populateSettingsForm(type, settings, script) {
         document.getElementById('cfg-server-type').value = type;
-        document.getElementById('cfg-target-ping').value = settings.targetPing || 60;
-        document.getElementById('cfg-target-ping-val').innerText = settings.targetPing || 60;
+        document.getElementById('cfg-target-ping').value = settings.targetPing || 50;
+        document.getElementById('cfg-target-ping-val').innerText = settings.targetPing || 50;
         document.getElementById('cfg-private').value = String(settings.allowPrivate);
         document.getElementById('script-editor').value = script;
         updateLineNumbers('script-editor', 'serverscript-lines');
@@ -4014,6 +4011,7 @@
     function openHowToUse() {
         document.getElementById('copy-key').value = serverKey;
         document.getElementById('copy-link').value = PUBLIC_TUNNEL_URL;
+        updateAiKeyDisplay();
         document.getElementById('modal-howto').style.display = 'flex';
     }
 
@@ -4502,7 +4500,7 @@
                 ctx.fillStyle = "#ffffff";
                 ctx.font = "bold 14px sans-serif";
                 ctx.textAlign = "center";
-                ctx.fillText(\`Coins: \${myScore}\`, myPos.x, myPos.y - 30);
+                ctx.fillText(`Coins: ${myScore}`, myPos.x, myPos.y - 30);
             }
 
             for (let id in players) {
@@ -4516,7 +4514,7 @@
                 ctx.fillStyle = "#ffffff";
                 ctx.font = "bold 14px sans-serif";
                 ctx.textAlign = "center";
-                ctx.fillText(\`Coins: \${p.score || 0}\`, p.x, p.y - 30);
+                ctx.fillText(`Coins: ${p.score || 0}`, p.x, p.y - 30);
             }
 
             ctx.fillStyle = "#facc15";
@@ -4540,8 +4538,7 @@
 </html>`;
 
         const coinServerCode = 
-`// --- EzBridge Multiplayer Coin Collector (ServerScript) ---
-let players = {};
+`let players = {};
 let coins = [];
 
 function spawnCoin() {
@@ -4636,11 +4633,752 @@ setInterval(() => {
     Server.broadcast('state_update', { players, coins });
 }, 1000 / 30);`;
 
-        return { coinClientCode, coinServerCode, clientCode: coinClientCode, serverCode: coinServerCode };
+        const gunsClientCode = isHttp ? 
+`<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Your Guns (HTTP)</title>
+    <style>
+        body { margin: 0; background: #0f172a; color: #fff; font-family: sans-serif; overflow: hidden; user-select: none; }
+        canvas { display: block; background: #1e293b; }
+        #ui { position: absolute; top: 10px; left: 10px; pointer-events: none; font-weight: bold; font-size: 1.2rem; text-shadow: 1px 1px 2px #000; }
+        #joystick { position: absolute; bottom: 40px; left: 40px; width: 120px; height: 120px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; display: none; touch-action: none; }
+        #stick { position: absolute; top: 35px; left: 35px; width: 50px; height: 50px; background: rgba(255,255,255,0.4); border-radius: 50%; pointer-events: none; }
+    </style>
+</head>
+<body>
+    <div id="ui">Health: <span id="hp">100</span> | Mode: <span id="status">HTTP REST</span></div>
+    <div id="joystick"><div id="stick"></div></div>
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener("resize", resize);
+        resize();
+
+        const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        if (isMobile) {
+            document.getElementById("joystick").style.display = "block";
+        }
+
+        const link = "${PUBLIC_TUNNEL_URL}/remote";
+        const key = "${serverKey}";
+
+        let myId = Math.random().toString(36).substring(2, 7);
+        let myColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+        let myPos = { x: Math.random() * 1500, y: Math.random() * 1500 };
+        let myHp = 100;
+        let isDead = false;
+        let lastShot = 0;
+        let aimAngle = 0;
+
+        const keys = { w: false, a: false, s: false, d: false };
+        let players = {};
+        let bullets = [];
+
+        let joyActive = false;
+        let joyVector = { x: 0, y: 0 };
+
+        let isHttpBusy = false;
+        async function syncHttp(eventType, customData) {
+            if (isHttpBusy && !customData) return;
+            isHttpBusy = true;
+            try {
+                const payload = customData ? { type: eventType, data: customData } : {
+                    type: "player_update",
+                    data: { id: myId, x: myPos.x, y: myPos.y, angle: aimAngle, color: myColor }
+                };
+
+                const res = await fetch(link, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "auth-token": key },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    const json = await res.json();
+                    if (json.events && Array.isArray(json.events)) {
+                        json.events.forEach(handleServerEvent);
+                    }
+                }
+            } catch(e) {}
+            isHttpBusy = false;
+        }
+
+        function handleServerEvent(pkt) {
+            if (pkt.type === "state_update") {
+                const serverPlayers = pkt.data.players;
+                for (let id in serverPlayers) {
+                    if (id === myId) {
+                        myHp = serverPlayers[id].hp;
+                        document.getElementById("hp").innerText = myHp;
+                        if (myHp <= 0 && !isDead) {
+                            isDead = true;
+                            setTimeout(() => {
+                                isDead = false;
+                                myPos = { x: Math.random() * 1500, y: Math.random() * 1500 };
+                                syncHttp("respawn", { id: myId, x: myPos.x, y: myPos.y });
+                            }, 3000);
+                        }
+                    } else {
+                        players[id] = serverPlayers[id];
+                    }
+                }
+            } else if (pkt.type === "spawn_bullet") {
+                if (pkt.data.shooterId !== myId) {
+                    bullets.push(pkt.data);
+                }
+            }
+        }
+
+        syncHttp("player_join", { id: myId, color: myColor, x: myPos.x, y: myPos.y });
+
+        setInterval(() => {
+            if (!isDead) syncHttp();
+        }, 50);
+
+        window.addEventListener("keydown", (e) => {
+            if (e.key.toLowerCase() === 'w') keys.w = true;
+            if (e.key.toLowerCase() === 'a') keys.a = true;
+            if (e.key.toLowerCase() === 's') keys.s = true;
+            if (e.key.toLowerCase() === 'd') keys.d = true;
+        });
+
+        window.addEventListener("keyup", (e) => {
+            if (e.key.toLowerCase() === 'w') keys.w = false;
+            if (e.key.toLowerCase() === 'a') keys.a = false;
+            if (e.key.toLowerCase() === 's') keys.s = false;
+            if (e.key.toLowerCase() === 'd') keys.d = false;
+        });
+
+        let mousePos = { x: canvas.width / 2, y: canvas.height / 2 };
+        window.addEventListener("mousemove", (e) => {
+            mousePos.x = e.clientX;
+            mousePos.y = e.clientY;
+        });
+
+        window.addEventListener("mousedown", (e) => {
+            if (e.button === 2 && !isDead) {
+                shoot();
+            }
+        });
+        window.addEventListener("contextmenu", (e) => e.preventDefault());
+
+        const joystickEl = document.getElementById("joystick");
+        const stickEl = document.getElementById("stick");
+        let joyCenter = { x: 0, y: 0 };
+
+        joystickEl.addEventListener("touchstart", (e) => {
+            joyActive = true;
+            const rect = joystickEl.getBoundingClientRect();
+            joyCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+        });
+
+        window.addEventListener("touchmove", (e) => {
+            if (!joyActive) return;
+            const touch = e.touches[0];
+            const dx = touch.clientX - joyCenter.x;
+            const dy = touch.clientY - joyCenter.y;
+            const dist = Math.min(50, Math.hypot(dx, dy));
+            const angle = Math.atan2(dy, dx);
+
+            joyVector.x = Math.cos(angle) * (dist / 50);
+            joyVector.y = Math.sin(angle) * (dist / 50);
+
+            stickEl.style.transform = \`translate(\${Math.cos(angle)*dist}px, \${Math.sin(angle)*dist}px)\`;
+        });
+
+        window.addEventListener("touchend", (e) => {
+            if (joyActive) {
+                joyActive = false;
+                joyVector = { x: 0, y: 0 };
+                stickEl.style.transform = \`translate(0px, 0px)\`;
+            }
+        });
+
+        function shoot() {
+            const now = Date.now();
+            if (now - lastShot < 200) return;
+            lastShot = now;
+
+            const bullet = {
+                x: myPos.x,
+                y: myPos.y,
+                vx: Math.cos(aimAngle) * 12,
+                vy: Math.sin(aimAngle) * 12,
+                damage: 13,
+                shooterId: myId
+            };
+
+            bullets.push(bullet);
+            syncHttp("fire_bullet", bullet);
+        }
+
+        function update() {
+            if (!isDead) {
+                let speed = 4;
+                if (isMobile) {
+                    myPos.x += joyVector.x * speed;
+                    myPos.y += joyVector.y * speed;
+                } else {
+                    if (keys.w) myPos.y -= speed;
+                    if (keys.s) myPos.y += speed;
+                    if (keys.a) myPos.x -= speed;
+                    if (keys.d) myPos.x += speed;
+                }
+
+                myPos.x = Math.max(0, Math.min(3000, myPos.x));
+                myPos.y = Math.max(0, Math.min(3000, myPos.y));
+
+                const screenCenterX = canvas.width / 2;
+                const screenCenterY = canvas.height / 2;
+                aimAngle = Math.atan2(mousePos.y - screenCenterY, mousePos.x - screenCenterX);
+            }
+
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                let b = bullets[i];
+                b.x += b.vx;
+                b.y += b.vy;
+
+                if (b.x < 0 || b.x > 3000 || b.y < 0 || b.y > 3000) {
+                    bullets.splice(i, 1);
+                    continue;
+                }
+
+                if (b.shooterId === myId) {
+                    for (let id in players) {
+                        let p = players[id];
+                        if (p.hp > 0 && Math.abs(p.x - b.x) < 25 && Math.abs(p.y - b.y) < 25) {
+                            syncHttp("apply_damage", { targetId: id, damage: b.damage });
+                            bullets.splice(i, 1);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.save();
+            if (!isDead) {
+                ctx.translate(canvas.width / 2 - myPos.x, canvas.height / 2 - myPos.y);
+            }
+
+            ctx.strokeStyle = "#475569";
+            ctx.lineWidth = 4;
+            ctx.strokeRect(0, 0, 3000, 3000);
+
+            if (!isDead) {
+                ctx.save();
+                ctx.translate(myPos.x, myPos.y);
+                ctx.fillStyle = myColor;
+                ctx.fillRect(-20, -20, 40, 40);
+
+                ctx.fillStyle = "#ef4444";
+                ctx.fillRect(-20, -32, 40, 6);
+                ctx.fillStyle = "#22c55e";
+                ctx.fillRect(-20, -32, 40 * (myHp / 100), 6);
+
+                ctx.rotate(aimAngle);
+                ctx.fillStyle = "#94a3b8";
+                ctx.fillRect(0, -6, 30, 12);
+                ctx.restore();
+            }
+
+            for (let id in players) {
+                let p = players[id];
+                if (p.hp <= 0) continue;
+
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.fillStyle = p.color || '#fff';
+                ctx.fillRect(-20, -20, 40, 40);
+
+                ctx.fillStyle = "#ef4444";
+                ctx.fillRect(-20, -32, 40, 6);
+                ctx.fillStyle = "#22c55e";
+                ctx.fillRect(-20, -32, 40 * (p.hp / 100), 6);
+
+                ctx.rotate(p.angle);
+                ctx.fillStyle = "#94a3b8";
+                ctx.fillRect(0, -6, 30, 12);
+                ctx.restore();
+            }
+
+            ctx.fillStyle = "#facc15";
+            bullets.forEach(b => {
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            ctx.restore();
+        }
+
+        function loop() {
+            update();
+            draw();
+            requestAnimationFrame(loop);
+        }
+        loop();
+    <\/script>
+</body>
+</html>` : 
+`<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Your Guns</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"><\/script>
+    <style>
+        body { margin: 0; background: #0f172a; color: #fff; font-family: sans-serif; overflow: hidden; user-select: none; }
+        canvas { display: block; background: #1e293b; }
+        #ui { position: absolute; top: 10px; left: 10px; pointer-events: none; font-weight: bold; font-size: 1.2rem; text-shadow: 1px 1px 2px #000; }
+        #joystick { position: absolute; bottom: 40px; left: 40px; width: 120px; height: 120px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; display: none; touch-action: none; }
+        #stick { position: absolute; top: 35px; left: 35px; width: 50px; height: 50px; background: rgba(255,255,255,0.4); border-radius: 50%; pointer-events: none; }
+    </style>
+</head>
+<body>
+    <div id="ui">Health: <span id="hp">100</span> | Status: <span id="status">Connecting...</span></div>
+    <div id="joystick"><div id="stick"></div></div>
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener("resize", resize);
+        resize();
+
+        const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        if (isMobile) {
+            document.getElementById("joystick").style.display = "block";
+        }
+
+        const link = "${PUBLIC_TUNNEL_URL}";
+        const key = "${serverKey}";
+        const socket = io(link, { auth: { token: "default_key" } });
+
+        let myId = Math.random().toString(36).substring(2, 7);
+        let myColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+        let myPos = { x: Math.random() * 1500, y: Math.random() * 1500 };
+        let myHp = 100;
+        let isDead = false;
+        let lastShot = 0;
+        let aimAngle = 0;
+
+        const keys = { w: false, a: false, s: false, d: false };
+        let players = {};
+        let bullets = [];
+
+        let joyActive = false;
+        let joyVector = { x: 0, y: 0 };
+
+        socket.on("connect", () => {
+            socket.emit("join_virtual_server", { key });
+        });
+
+        socket.on("joined_successfully", () => {
+            document.getElementById("status").innerText = "Connected";
+            socket.emit("RemoteEvent", { type: "player_join", data: { id: myId, color: myColor, x: myPos.x, y: myPos.y } });
+        });
+
+        socket.on("RemoteEvent", (pkt) => {
+            if (pkt.type === "state_update") {
+                const serverPlayers = pkt.data.players;
+                for (let id in serverPlayers) {
+                    if (id === myId) {
+                        myHp = serverPlayers[id].hp;
+                        document.getElementById("hp").innerText = myHp;
+                        if (myHp <= 0 && !isDead) {
+                            isDead = true;
+                            setTimeout(() => {
+                                isDead = false;
+                                myPos = { x: Math.random() * 1500, y: Math.random() * 1500 };
+                                socket.emit("RemoteEvent", { type: "respawn", data: { id: myId, x: myPos.x, y: myPos.y } });
+                            }, 3000);
+                        }
+                    } else {
+                        players[id] = serverPlayers[id];
+                    }
+                }
+            } else if (pkt.type === "spawn_bullet") {
+                if (pkt.data.shooterId !== myId) {
+                    bullets.push(pkt.data);
+                }
+            }
+        });
+
+        window.addEventListener("keydown", (e) => {
+            if (e.key.toLowerCase() === 'w') keys.w = true;
+            if (e.key.toLowerCase() === 'a') keys.a = true;
+            if (e.key.toLowerCase() === 's') keys.s = true;
+            if (e.key.toLowerCase() === 'd') keys.d = true;
+        });
+
+        window.addEventListener("keyup", (e) => {
+            if (e.key.toLowerCase() === 'w') keys.w = false;
+            if (e.key.toLowerCase() === 'a') keys.a = false;
+            if (e.key.toLowerCase() === 's') keys.s = false;
+            if (e.key.toLowerCase() === 'd') keys.d = false;
+        });
+
+        let mousePos = { x: canvas.width / 2, y: canvas.height / 2 };
+        window.addEventListener("mousemove", (e) => {
+            mousePos.x = e.clientX;
+            mousePos.y = e.clientY;
+        });
+
+        window.addEventListener("mousedown", (e) => {
+            if (e.button === 2 && !isDead) {
+                shoot();
+            }
+        });
+        window.addEventListener("contextmenu", (e) => e.preventDefault());
+
+        const joystickEl = document.getElementById("joystick");
+        const stickEl = document.getElementById("stick");
+        let joyCenter = { x: 0, y: 0 };
+
+        joystickEl.addEventListener("touchstart", (e) => {
+            joyActive = true;
+            const rect = joystickEl.getBoundingClientRect();
+            joyCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+        });
+
+        window.addEventListener("touchmove", (e) => {
+            if (!joyActive) return;
+            const touch = e.touches[0];
+            const dx = touch.clientX - joyCenter.x;
+            const dy = touch.clientY - joyCenter.y;
+            const dist = Math.min(50, Math.hypot(dx, dy));
+            const angle = Math.atan2(dy, dx);
+
+            joyVector.x = Math.cos(angle) * (dist / 50);
+            joyVector.y = Math.sin(angle) * (dist / 50);
+
+            stickEl.style.transform = \`translate(\${Math.cos(angle)*dist}px, \${Math.sin(angle)*dist}px)\`;
+        });
+
+        window.addEventListener("touchend", (e) => {
+            if (joyActive) {
+                joyActive = false;
+                joyVector = { x: 0, y: 0 };
+                stickEl.style.transform = \`translate(0px, 0px)\`;
+            }
+        });
+
+        function shoot() {
+            const now = Date.now();
+            if (now - lastShot < 200) return;
+            lastShot = now;
+
+            const bullet = {
+                x: myPos.x,
+                y: myPos.y,
+                vx: Math.cos(aimAngle) * 12,
+                vy: Math.sin(aimAngle) * 12,
+                damage: 13,
+                shooterId: myId
+            };
+
+            bullets.push(bullet);
+            socket.emit("RemoteEvent", { type: "fire_bullet", data: bullet });
+        }
+
+        function update() {
+            if (!isDead) {
+                let speed = 4;
+                if (isMobile) {
+                    myPos.x += joyVector.x * speed;
+                    myPos.y += joyVector.y * speed;
+                } else {
+                    if (keys.w) myPos.y -= speed;
+                    if (keys.s) myPos.y += speed;
+                    if (keys.a) myPos.x -= speed;
+                    if (keys.d) myPos.x += speed;
+                }
+
+                myPos.x = Math.max(0, Math.min(3000, myPos.x));
+                myPos.y = Math.max(0, Math.min(3000, myPos.y));
+
+                const screenCenterX = canvas.width / 2;
+                const screenCenterY = canvas.height / 2;
+                aimAngle = Math.atan2(mousePos.y - screenCenterY, mousePos.x - screenCenterX);
+
+                socket.emit("RemoteEvent", { type: "player_update", data: { id: myId, x: myPos.x, y: myPos.y, angle: aimAngle, color: myColor } });
+            }
+
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                let b = bullets[i];
+                b.x += b.vx;
+                b.y += b.vy;
+
+                if (b.x < 0 || b.x > 3000 || b.y < 0 || b.y > 3000) {
+                    bullets.splice(i, 1);
+                    continue;
+                }
+
+                if (b.shooterId === myId) {
+                    for (let id in players) {
+                        let p = players[id];
+                        if (p.hp > 0 && Math.abs(p.x - b.x) < 25 && Math.abs(p.y - b.y) < 25) {
+                            socket.emit("RemoteEvent", { type: "apply_damage", data: { targetId: id, damage: b.damage } });
+                            bullets.splice(i, 1);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.save();
+            if (!isDead) {
+                ctx.translate(canvas.width / 2 - myPos.x, canvas.height / 2 - myPos.y);
+            }
+
+            ctx.strokeStyle = "#475569";
+            ctx.lineWidth = 4;
+            ctx.strokeRect(0, 0, 3000, 3000);
+
+            if (!isDead) {
+                ctx.save();
+                ctx.translate(myPos.x, myPos.y);
+                ctx.fillStyle = myColor;
+                ctx.fillRect(-20, -20, 40, 40);
+
+                ctx.fillStyle = "#ef4444";
+                ctx.fillRect(-20, -32, 40, 6);
+                ctx.fillStyle = "#22c55e";
+                ctx.fillRect(-20, -32, 40 * (myHp / 100), 6);
+
+                ctx.rotate(aimAngle);
+                ctx.fillStyle = "#94a3b8";
+                ctx.fillRect(0, -6, 30, 12);
+                ctx.restore();
+            }
+
+            for (let id in players) {
+                let p = players[id];
+                if (p.hp <= 0) continue;
+
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.fillStyle = p.color || '#fff';
+                ctx.fillRect(-20, -20, 40, 40);
+
+                ctx.fillStyle = "#ef4444";
+                ctx.fillRect(-20, -32, 40, 6);
+                ctx.fillStyle = "#22c55e";
+                ctx.fillRect(-20, -32, 40 * (p.hp / 100), 6);
+
+                ctx.rotate(p.angle);
+                ctx.fillStyle = "#94a3b8";
+                ctx.fillRect(0, -6, 30, 12);
+                ctx.restore();
+            }
+
+            ctx.fillStyle = "#facc15";
+            bullets.forEach(b => {
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            ctx.restore();
+        }
+
+        function loop() {
+            update();
+            draw();
+            requestAnimationFrame(loop);
+        }
+        loop();
+    <\/script>
+</body>
+</html>`;
+
+        const gunsServerCode = 
+`let players = {};
+
+Server.on('player_join', (evt) => {
+    const id = evt.data.id;
+    players[id] = {
+        id: id,
+        x: evt.data.x || 1500,
+        y: evt.data.y || 1500,
+        color: evt.data.color || '#ffffff',
+        angle: 0,
+        hp: 100
+    };
+});
+
+Server.on('player_update', (evt) => {
+    const data = evt.data;
+    if (players[data.id]) {
+        players[data.id].x = data.x;
+        players[data.id].y = data.y;
+        players[data.id].angle = data.angle;
+        players[data.id].color = data.color;
+    }
+});
+
+Server.on('fire_bullet', (evt) => {
+    Server.broadcast('spawn_bullet', evt.data);
+});
+
+Server.on('apply_damage', (evt) => {
+    const { targetId, damage } = evt.data;
+    if (players[targetId]) {
+        players[targetId].hp = Math.max(0, players[targetId].hp - damage);
+    }
+});
+
+Server.on('respawn', (evt) => {
+    const id = evt.data.id;
+    if (players[id]) {
+        players[id].hp = 100;
+        players[id].x = evt.data.x;
+        players[id].y = evt.data.y;
+    }
+});
+
+setInterval(() => {
+    Server.broadcast('state_update', { players });
+}, 1000 / 30);`;
+
+        const httpChatClientCode = 
+`<!DOCTYPE html>
+<html>
+<head>
+    <title>HTTP Global Chat</title>
+    <style>
+        body { background: #0f172a; color: #fff; font-family: sans-serif; padding: 20px; }
+        #chat { height: 200px; overflow-y: auto; background: #1e293b; padding: 10px; }
+        input { width: 70%; padding: 8px; }
+        button { padding: 8px 16px; background: #ef4444; color:#fff; border: none; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h2>HTTP Global Chat</h2>
+    <div id="chat"></div>
+    <br>
+    <input type="text" id="msgInput" placeholder="Type a message...">
+    <button onclick="sendMsg()">Send</button>
+
+    <script>
+        const link = "${PUBLIC_TUNNEL_URL}/remote";
+        const key = "${serverKey}";
+        const mySender = "Guest_" + Math.floor(Math.random() * 8999 + 1000);
+        let pendingText = null;
+        let isSyncing = false;
+
+        async function httpSync() {
+            if (isSyncing) return;
+            isSyncing = true;
+            try {
+                const payload = pendingText ? 
+                    { type: "send_message", data: { sender: mySender, text: pendingText } } :
+                    { type: "get_messages", data: {} };
+                pendingText = null;
+
+                const res = await fetch(link, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "auth-token": key },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    const json = await res.json();
+                    if (json.events && Array.isArray(json.events)) {
+                        json.events.forEach(evt => {
+                            if (evt.type === 'send_message_reply' || evt.type === 'get_messages_reply') {
+                                renderChat(evt.data.messages);
+                            }
+                        });
+                    }
+                }
+            } catch(e) {}
+            isSyncing = false;
+        }
+
+        function sendMsg() {
+            const input = document.getElementById('msgInput');
+            if (input.value.trim()) {
+                pendingText = input.value.trim();
+                input.value = "";
+                httpSync();
+            }
+        }
+
+        function renderChat(messages) {
+            const box = document.getElementById('chat');
+            box.innerHTML = messages.map(m => \`<div><b>\${m.sender}:</b> \${m.text}</div>\`).join('');
+            box.scrollTop = box.scrollHeight;
+        }
+
+        setInterval(httpSync, 50);
+    <\/script>
+</body>
+</html>`;
+
+        const httpChatServerCode = 
+`if (!Server.state.messages) {
+    Server.state.messages = [];
+}
+
+Server.on('send_message', (evt) => {
+    if (evt.data && evt.data.text) {
+        Server.state.messages.push({
+            sender: evt.data.sender || 'Guest',
+            text: evt.data.text
+        });
+        if (Server.state.messages.length > 50) {
+            Server.state.messages.shift();
+        }
+    }
+    evt.reply({ messages: Server.state.messages });
+});
+
+Server.on('get_messages', (evt) => {
+    evt.reply({ messages: Server.state.messages });
+});`;
+
+        const autoTunnelFetchCode = 
+`local HttpService = game:GetService("HttpService")
+local response = HttpService:GetAsync("https://raw.githubusercontent.com/TerminatorSBDEV/ebtunnel/main/tunnel")
+local currentTunnel = string.gsub(response, "%s+", "")
+print("EzBridge Current Tunnel: " .. currentTunnel)
+-- use this example of you don't want to keep updating the tunnel everytime a new one generates`;
+
+        return { 
+            coinClientCode, 
+            coinServerCode, 
+            gunsClientCode, 
+            gunsServerCode, 
+            httpChatClientCode, 
+            httpChatServerCode, 
+            autoTunnelFetchCode 
+        };
     }
 
     function copyAIPrompt() {
         const { coinClientCode, coinServerCode } = getGameExamples();
+        const aiKeyNotice = userAiKeyVal ? `\nAnd if you are going to add an AI feature to the project, here's my AI key: ${userAiKeyVal}` : "";
         const promptText = `*How to implement EzBridge's universal server on your online project*
 EzBridge server is a universal server that is also free and can be used to make multiplayer and online apps, if you want to implement it on your project, please follow these steps:
 
@@ -4669,21 +5407,22 @@ ${serverType === 'websocket' ?
   * Server.storage.set(data) - Save up to 100MB of persistent server data.
   * Server.storage.get() - Retrieve stored server data.
   * Server.storage.getUsageBytes() - Get current storage usage in bytes.
-- ServerScript API: [SERVER-SIDED API] Write sandboxed backend JS code (Server.on('event', fn), Server.broadcast('event', data)).
-- Server.eb_callai: [SERVER-SIDED API] Call local AI generation (Ollama qwen2.5:0.5b, gemma3:1b, llama3.2:1b, or qwen2.5:1.5b).
+- ServerScript API: [SERVER-SIDED API] Write sandboxed backend JS code (Server.on('event', fn), Server.broadcast('event', data), Server.onTick((dt) => { ... })).
+- Server.eb_callai: [SERVER-SIDED API] Call local or cloud AI models (qwen2.5:0.5b, gemma3:1b, llama3.2:1b, qwen2.5:1.5b, gemma-4-26b-a4b-it).
 
 4 - Learn More About EzBridge
 - Max Packet Size: 10MB per packet.
 - Request Limit: Up to 60 requests/sec.
 - Server Memory: Configured at 250MB.
-- Server Target Ping: Configurable between 60ms and 1000ms.
+- Server Target Ping: Configurable between 50ms and 1000ms.
+- Physics Engine Tickrate: 33 Hz fixed delta time simulation.
 
 here are some examples so you understand more about making online apps:
 1 - html script (Coin Collector Example)
 ${coinClientCode}
 
 2 - serverscript (Coin Collector Example)
-${coinServerCode}`;
+${coinServerCode}${aiKeyNotice}`;
 
         navigator.clipboard.writeText(promptText);
         alert("AI Prompt copied to clipboard! Paste it into your AI chat.");
@@ -4728,8 +5467,28 @@ async function fetchAssetData(assetId) {
     }
 }
 
+<span class="api-tag-both">CLIENT AND SERVER API (both clients and servers can use this API)</span>
+4. DIRECT AI REST API (Requires AI Key):
+async function askAI(prompt) {
+    const res = await fetch("${PUBLIC_TUNNEL_URL}/ai", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "ai-key": "${userAiKeyVal || 'YOUR_AI_KEY'}"
+        },
+        body: JSON.stringify({
+            model: "gemma-4-26b-a4b-it",
+            Prompt: prompt,
+            Temp: 0.7,
+            Mtokens: 1500
+        })
+    });
+    const data = await res.json();
+    console.log("AI Response:", data.text);
+}
+
 <span class="api-tag-client">CLIENT-SIDED API (only the client can use this)</span>
-4. SEND REMOTE EVENT & LISTEN TO RESPONSES:
+5. SEND REMOTE EVENT & LISTEN TO RESPONSES:
 async function sendHttpEvent(type, data) {
     const res = await fetch("${PUBLIC_TUNNEL_URL}/remote", {
         method: "POST",
@@ -4746,17 +5505,17 @@ async function sendHttpEvent(type, data) {
 }
 
 <span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
-5. SERVERSCRIPT 100MB DEDICATED STORAGE API:
+6. SERVERSCRIPT 100MB DEDICATED STORAGE API:
 // Server.storage.set("any string or JSON data up to 100MB");
 // const storedData = Server.storage.get();
 // const usedBytes = Server.storage.getUsageBytes();
 
 <span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
-6. SERVERSCRIPT LOCAL AI API (Ollama qwen2.5:0.5b / gemma3:1b):
+7. SERVERSCRIPT LOCAL OR CLOUD AI API:
 Server.eb_callai({
-    model: "gemma3:1b",
-    Temp: 0,
-    Mtokens: 28,
+    model: "gemma-4-26b-a4b-it",
+    Temp: 0.7,
+    Mtokens: 1500,
     Instruction: "You are a helpful assistant.",
     Prompt: "what's the capital of France?",
     Streaming: false
@@ -4786,7 +5545,6 @@ socket.on("RemoteEvent", (pkt) => {
 
 <span class="api-tag-both">CLIENT AND SERVER API (both clients and servers can use this API)</span>
 3. GET ASSET IN 180KB CHUNKS:
-// Can be used without server key or authority
 socket.emit("RemoteEvent", { type: "eb_asset_get_1" });
 let assetChunks = [];
 socket.on("RemoteEvent", (pkt) => {
@@ -4817,17 +5575,26 @@ socket.on("RemoteEvent", (pkt) => {
 });
 
 <span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
-6. SERVERSCRIPT 100MB DEDICATED STORAGE API:
+6. SERVERSCRIPT FIXED 33 HZ ENGINE TICK HOOK:
+Server.onTick((dt) => {
+    // Runs at 33 Hz fixed delta time
+    for (let id in players) {
+        players[id].x += players[id].vx * dt;
+    }
+});
+
+<span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
+7. SERVERSCRIPT 100MB DEDICATED STORAGE API:
 // Server.storage.set("any string or JSON data up to 100MB");
 // const storedData = Server.storage.get();
 // const usedBytes = Server.storage.getUsageBytes();
 
 <span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
-7. SERVERSCRIPT LOCAL AI API (Ollama qwen2.5:0.5b / gemma3:1b / llama3.2:1b / qwen2.5:1.5b):
+8. SERVERSCRIPT AI API (Ollama qwen2.5:0.5b / qwen2.5:1.5b / Google gemma-4-26b-a4b-it):
 Server.eb_callai({
     model: "qwen2.5:1.5b",
-    Temp: 0,
-    Mtokens: 28,
+    Temp: 0.7,
+    Mtokens: 1500,
     Instruction: "You are a helpful assistant.",
     Prompt: "what's the capital of France?",
     Streaming: false
@@ -4851,12 +5618,26 @@ Server.stopAIId("4c1a");`;
         document.getElementById('http-disclaimer').style.display = isHttp ? 'block' : 'none';
         document.getElementById('http-extra-example-container').style.display = isHttp ? 'block' : 'none';
 
-        const { coinClientCode, coinServerCode } = getGameExamples();
+        const { 
+            coinClientCode, 
+            coinServerCode, 
+            gunsClientCode, 
+            gunsServerCode, 
+            httpChatClientCode, 
+            httpChatServerCode, 
+            autoTunnelFetchCode 
+        } = getGameExamples();
 
         document.getElementById('example-coin-client').value = coinClientCode;
         document.getElementById('example-coin-server').value = coinServerCode;
-        document.getElementById('example-code-client').value = coinClientCode;
-        document.getElementById('example-code-server').value = coinServerCode;
+        document.getElementById('example-code-client').value = gunsClientCode;
+        document.getElementById('example-code-server').value = gunsServerCode;
+        document.getElementById('example-auto-tunnel-fetch').value = autoTunnelFetchCode;
+
+        if (isHttp) {
+            document.getElementById('example-http-chat-client').value = httpChatClientCode;
+            document.getElementById('example-http-chat-server').value = httpChatServerCode;
+        }
 
         document.getElementById('modal-code').style.display = 'flex';
     }
