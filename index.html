@@ -32,7 +32,6 @@
             font-family: 'Segoe UI', system-ui, sans-serif;
             display: flex; align-items: center; justify-content: center;
             overflow-x: hidden;
-            font-size: 14px;
         }
 
         #bg-canvas {
@@ -47,24 +46,22 @@
         }
 
         .card {
-            background: var(--panel); border: 1px solid var(--border) !important; padding: 25px;
-            width: 85%; max-width: 410px; text-align: center;
-            box-shadow: 0 0 17px var(--accent-glow);
+            background: var(--panel); border: 1px solid var(--border) !important; padding: 30px;
+            width: 90%; max-width: 480px; text-align: center;
+            box-shadow: 0 0 20px var(--accent-glow);
             position: relative; z-index: 10;
         }
 
-        h1 { color: var(--accent); margin-top: 0; letter-spacing: 1px; font-size: 1.5rem; }
-        h2 { color: var(--accent); margin-top: 0; letter-spacing: 1px; font-size: 1.25rem; }
-        h3 { color: var(--accent); margin-top: 0; letter-spacing: 1px; font-size: 1.05rem; }
+        h1, h2, h3 { color: var(--accent); margin-top: 0; letter-spacing: 1px; }
 
         .btn {
-            width: 100%; padding: 10px; margin: 7px 0;
+            width: 100%; padding: 12px; margin: 8px 0;
             background: rgba(239, 68, 68, 0.05) !important;
             border: 1px solid var(--border) !important;
             color: #ffffff !important;
-            font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 0.82rem;
+            font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 0.95rem;
         }
-        .btn:hover { background: rgba(239, 68, 68, 0.25) !important; box-shadow: 0 0 8px var(--accent-glow); }
+        .btn:hover { background: rgba(239, 68, 68, 0.25) !important; box-shadow: 0 0 10px var(--accent-glow); }
         .btn-secondary { background: #020617 !important; border: 1px solid var(--border) !important; color: #ffffff !important; }
         .btn-secondary:hover { background: rgba(239, 68, 68, 0.2) !important; }
         .btn-purple { background: rgba(139, 92, 246, 0.1) !important; border: 1px solid #8b5cf6 !important; color: #ffffff !important; }
@@ -72,73 +69,73 @@
         .btn-green { background: rgba(16, 185, 129, 0.1) !important; border: 1px solid #10b981 !important; color: #ffffff !important; }
         .btn-green:hover { background: rgba(16, 185, 129, 0.3) !important; }
         .btn-danger { background: rgba(239, 68, 68, 0.2) !important; border: 1px solid var(--error) !important; color: #ffffff !important; }
-        .btn-icon { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 5px 10px; cursor: pointer; font-size: 0.85rem; }
+        .btn-icon { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 6px 12px; cursor: pointer; font-size: 1rem; }
         .btn-icon:hover { border-color: var(--accent); color: var(--accent); }
 
-        .role-tag { font-size: 0.55rem; font-weight: bold; padding: 2px 7px; display: inline-block; text-transform: uppercase; margin-left: 5px; }
+        .role-tag { font-size: 0.65rem; font-weight: bold; padding: 2px 8px; display: inline-block; text-transform: uppercase; margin-left: 6px; }
         .role-owner { background: linear-gradient(135deg, #ef4444 0%, #ffffff 100%); color: #000; text-shadow: none; }
         .role-dev { background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); color: #000; }
         .role-admin { background: #10b981; color: #000; }
 
         .settings-grid {
-            text-align: left; display: flex; flex-direction: column; gap: 10px; margin: 17px 0;
-            max-height: 320px; overflow-y: auto; padding-right: 4px;
+            text-align: left; display: flex; flex-direction: column; gap: 12px; margin: 20px 0;
+            max-height: 380px; overflow-y: auto; padding-right: 5px;
         }
-        .settings-item { display: flex; flex-direction: column; gap: 3px; }
-        .settings-item label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; font-weight: bold; }
+        .settings-item { display: flex; flex-direction: column; gap: 4px; }
+        .settings-item label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; font-weight: bold; }
         .settings-item input, .settings-item select, .settings-item textarea {
             background: #020617 !important; border: 1px solid var(--border) !important; color: #f8fafc !important;
-            padding: 8px; outline: none; font-family: inherit; font-size: 0.82rem;
+            padding: 10px; outline: none; font-family: inherit;
         }
 
-        .dashboard-row { display: flex; gap: 8px; margin-top: 8px; }
+        .dashboard-row { display: flex; gap: 10px; margin-top: 10px; }
         .status-indicator {
-            padding: 10px; background: #020617;
-            border: 1px solid var(--border) !important; font-size: 0.75rem; font-weight: bold;
-            display: flex; align-items: center; justify-content: center; gap: 7px; margin-top: 13px;
+            padding: 12px; background: #020617;
+            border: 1px solid var(--border) !important; font-size: 0.85rem; font-weight: bold;
+            display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 15px;
         }
-        .dot { width: 7px; height: 7px; border-radius: 0px !important; background: var(--error); }
+        .dot { width: 8px; height: 8px; border-radius: 0px !important; background: var(--error); }
         .dot.online { background: var(--green); }
         .dot.lockdown { background: var(--yellow); }
         .dot.sleeping { background: var(--orange); }
 
         .progress-container {
             width: 100%; background: #020617; border: 1px solid var(--border) !important;
-            height: 19px; overflow: hidden; margin: 8px 0; position: relative;
+            height: 22px; overflow: hidden; margin: 10px 0; position: relative;
         }
         .progress-bar { width: 0%; height: 100%; background: var(--accent); transition: width 0.1s ease; }
-        .progress-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: bold; }
+        .progress-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; }
 
-        .domain-list { display: flex; flex-direction: column; gap: 5px; margin-top: 4px; }
-        .domain-item { display: flex; justify-content: space-between; align-items: center; background: #020617; padding: 5px 8px; font-size: 0.72rem; border: 1px solid var(--border) !important; }
+        .domain-list { display: flex; flex-direction: column; gap: 6px; margin-top: 5px; }
+        .domain-item { display: flex; justify-content: space-between; align-items: center; background: #020617; padding: 6px 10px; font-size: 0.8rem; border: 1px solid var(--border) !important; }
 
         .code-container {
             display: flex; position: relative; background: #020617; border: 1px solid var(--border);
-            margin: 8px 0; max-height: 220px; overflow: hidden;
+            margin: 10px 0; max-height: 260px; overflow: hidden;
         }
         .line-numbers {
-            width: 32px; padding: 10px 5px; background: #000000; color: var(--muted);
-            font-family: monospace; font-size: 0.72rem; text-align: right; user-select: none;
+            width: 38px; padding: 12px 6px; background: #000000; color: var(--muted);
+            font-family: monospace; font-size: 0.8rem; text-align: right; user-select: none;
             overflow: hidden; white-space: pre; border-right: 1px solid #1e293b;
         }
         .code-textarea {
             flex: 1; background: transparent !important; color: #f8fafc !important;
-            padding: 10px; border: none !important; font-family: monospace; font-size: 0.72rem;
+            padding: 12px; border: none !important; font-family: monospace; font-size: 0.8rem;
             resize: none; outline: none; white-space: pre; overflow: auto;
         }
 
         .code-box, textarea, .settings-item textarea {
             background: #020617 !important;
             color: #f8fafc !important;
-            padding: 10px; border: 1px solid var(--border) !important;
-            font-family: monospace; font-size: 0.72rem; margin: 8px 0; overflow-x: auto; white-space: pre; text-align: left;
+            padding: 12px; border: 1px solid var(--border) !important;
+            font-family: monospace; font-size: 0.8rem; margin: 10px 0; overflow-x: auto; white-space: pre; text-align: left;
         }
 
         .console-box {
-            background: #000000; padding: 10px; border: 1px solid var(--border) !important;
-            font-family: 'Courier New', Courier, monospace; font-size: 0.72rem; margin: 13px 0;
-            height: 220px; max-height: 220px; overflow-y: auto; text-align: left;
-            display: flex; flex-direction: column; gap: 3px;
+            background: #000000; padding: 12px; border: 1px solid var(--border) !important;
+            font-family: 'Courier New', Courier, monospace; font-size: 0.8rem; margin: 15px 0;
+            height: 260px; max-height: 260px; overflow-y: auto; text-align: left;
+            display: flex; flex-direction: column; gap: 4px;
         }
         .log-green { color: var(--green); }
         .log-yellow { color: var(--yellow); }
@@ -146,36 +143,36 @@
         .log-white { color: #f8fafc !important; }
 
         .session-btn-list {
-            display: flex; flex-direction: column; gap: 7px; margin: 13px 0;
-            max-height: 270px; overflow-y: auto;
+            display: flex; flex-direction: column; gap: 8px; margin: 15px 0;
+            max-height: 320px; overflow-y: auto;
         }
         .session-btn {
             background: #020617 !important; border: 1px solid var(--border) !important;
-            color: #fff !important; padding: 10px; font-weight: bold; cursor: pointer;
-            text-align: center; font-size: 0.82rem;
+            color: #fff !important; padding: 12px; font-weight: bold; cursor: pointer;
+            transition: background 0.2s; text-align: center;
         }
         .session-btn:hover { background: rgba(239, 68, 68, 0.5) !important; }
 
         .chat-bubble-box {
             background: #020617; border: 1px solid var(--border);
-            height: 255px; max-height: 270px; overflow-y: auto; padding: 10px;
-            display: flex; flex-direction: column; gap: 8px; text-align: left;
+            height: 300px; max-height: 320px; overflow-y: auto; padding: 12px;
+            display: flex; flex-direction: column; gap: 10px; text-align: left;
         }
         .chat-bubble {
             background: #0f172a; border: 1px solid var(--border);
-            padding: 7px 10px; font-size: 0.75rem; word-break: break-word;
+            padding: 8px 12px; font-size: 0.85rem; word-break: break-word;
         }
 
         #modal-site-viewer .card {
             width: 95vw !important; height: 95vh !important;
             max-width: 95vw !important; max-height: 95vh !important;
-            padding: 12px; display: flex; flex-direction: column;
+            padding: 15px; display: flex; flex-direction: column;
             background: #000000 !important; border: 2px solid #ef4444 !important;
-            box-shadow: 0 0 25px rgba(239, 68, 68, 0.4);
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.4);
         }
 
         #site-viewer-frame-container {
-            flex: 1; width: 100%; height: calc(95vh - 60px) !important;
+            flex: 1; width: 100%; height: calc(95vh - 70px) !important;
             border: 1px solid #ef4444; background: #ffffff; overflow: hidden; position: relative;
         }
 
@@ -183,12 +180,12 @@
 
         .banner-lockdown {
             background: rgba(234, 179, 8, 0.15); border: 1px solid var(--yellow) !important;
-            color: #fde047; padding: 10px; font-size: 0.72rem; text-align: left;
-            margin-bottom: 10px; line-height: 1.3;
+            color: #fde047; padding: 12px; font-size: 0.8rem; text-align: left;
+            margin-bottom: 12px; line-height: 1.4;
         }
 
         .avatar-btn {
-            width: 28px; height: 28px; border-radius: 50% !important;
+            width: 32px; height: 32px; border-radius: 50% !important;
             background: #cbd5e1; border: 1px solid var(--border);
             cursor: pointer; display: flex; align-items: center; justify-content: center;
             overflow: hidden; padding: 0; position: relative;
@@ -199,53 +196,48 @@
             display: flex; align-items: center; justify-content: center; position: relative;
         }
         .donut-head {
-            width: 10px; height: 10px; border-radius: 50% !important; background: #0f172a;
-            position: absolute; top: 4px;
+            width: 12px; height: 12px; border-radius: 50% !important; background: #0f172a;
+            position: absolute; top: 5px;
         }
         .donut-body {
-            width: 18px; height: 12px; border-radius: 10px 10px 0 0 !important; background: #0f172a;
+            width: 22px; height: 14px; border-radius: 12px 12px 0 0 !important; background: #0f172a;
             position: absolute; bottom: -2px;
         }
 
         .coin-icon {
-            width: 18px; height: 18px; border-radius: 50% !important;
+            width: 22px; height: 22px; border-radius: 50% !important;
             background: #eab308; border: 2px solid rgba(0,0,0,0.3);
             display: inline-flex; align-items: center; justify-content: center;
-            font-size: 0.55rem; font-weight: 900; color: #ffffff;
+            font-size: 0.65rem; font-weight: 900; color: #ffffff;
             text-shadow: 1px 1px 1px rgba(0,0,0,0.6); vertical-align: middle;
         }
 
-        .api-tag-client { color: #eab308; font-weight: bold; font-size: 0.72rem; }
-        .api-tag-server { color: #eab308; font-weight: bold; font-size: 0.72rem; }
-        .api-tag-both { color: #eab308; font-weight: bold; font-size: 0.72rem; }
+        .api-tag-client { color: #eab308; font-weight: bold; font-size: 0.8rem; }
+        .api-tag-server { color: #eab308; font-weight: bold; font-size: 0.8rem; }
+        .api-tag-both { color: #eab308; font-weight: bold; font-size: 0.8rem; }
 
-        .disclaimer { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--error) !important; color: #fca5a5; padding: 8px; font-size: 0.68rem; text-align: left; margin-bottom: 8px; }
+        .disclaimer { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--error) !important; color: #fca5a5; padding: 10px; font-size: 0.75rem; text-align: left; margin-bottom: 10px; }
 
         .pyterm-window {
             background: #000000; color: #ffffff; font-family: 'Courier New', Courier, monospace;
-            padding: 10px; border: 1px solid var(--border); height: 240px; max-height: 240px;
-            overflow-y: auto; text-align: left; font-size: 0.75rem; cursor: text; white-space: pre-wrap;
+            padding: 12px; border: 1px solid var(--border); height: 280px; max-height: 280px;
+            overflow-y: auto; text-align: left; font-size: 0.85rem; cursor: text; white-space: pre-wrap;
         }
 
         .rate-btn {
             background: #020617; border: 1px solid var(--border); color: #fff;
-            padding: 3px 7px; cursor: pointer; font-size: 0.68rem; transition: background 0.2s;
+            padding: 3px 8px; cursor: pointer; font-size: 0.75rem; transition: background 0.2s;
         }
         .rate-btn.active {
             background: #10b981 !important; color: #000 !important; border-color: #10b981 !important;
         }
 
         .tug-war-bar {
-            flex: 1; height: 7px; background: #ef4444; position: relative; overflow: hidden;
-            border: 1px solid #1e293b; min-width: 50px;
+            flex: 1; height: 8px; background: #ef4444; position: relative; overflow: hidden;
+            border: 1px solid #1e293b; min-width: 60px;
         }
         .tug-war-green {
             height: 100%; background: #10b981; width: 50%; transition: width 0.3s;
-        }
-
-        .hw-stats-banner {
-            background: #020617; border: 1px solid #1e293b; color: #38bdf8;
-            font-family: monospace; font-size: 0.65rem; padding: 5px; margin-bottom: 8px; text-align: center;
         }
     </style>
 </head>
@@ -253,29 +245,29 @@
 
     <canvas id="bg-canvas"></canvas>
 
-    <div style="position:fixed; bottom:8px; left:10px; z-index:99999; color:#ffffff; font-family:'Courier New', monospace; font-size:0.68rem; font-weight:bold; letter-spacing:1px; pointer-events:none; text-shadow:0 0 4px #000;">
+    <div style="position:fixed; bottom:10px; left:12px; z-index:99999; color:#ffffff; font-family:'Courier New', monospace; font-size:0.75rem; font-weight:bold; letter-spacing:1px; pointer-events:none; text-shadow:0 0 4px #000;">
         EzBridge - V2.2.5
     </div>
 
     <div id="overlay-sync" class="overlay">
         <div class="card">
             <h3>Connecting to EzBridge...</h3>
-            <div style="font-size:0.72rem; color:var(--muted);">Syncing credentials and loading data.</div>
+            <div style="font-size:0.8rem; color:var(--muted);">Syncing credentials and loading data.</div>
         </div>
     </div>
 
     <div id="modal-route-notify" class="overlay" style="display:none; z-index:3200;">
         <div class="card" style="border-color: var(--accent);">
             <h3 id="route-notify-title" style="color:var(--accent);">Connecting to the site</h3>
-            <p id="route-notify-desc" style="font-size:0.75rem; color:#ffffff; margin:13px 0;">directing you to the existing URL...</p>
-            <div id="route-notify-actions" style="display:flex; gap:8px;"></div>
+            <p id="route-notify-desc" style="font-size:0.85rem; color:#ffffff; margin:15px 0;">directing you to the existing URL...</p>
+            <div id="route-notify-actions" style="display:flex; gap:10px;"></div>
         </div>
     </div>
 
     <div id="modal-flagged-notify" class="overlay" style="display:none; z-index:3300;">
         <div class="card" style="border-color: var(--error);">
             <h2 style="color:var(--error);">Your file has been flagged</h2>
-            <p id="flagged-notify-desc" style="font-size:0.75rem; color:#ffffff; margin:13px 0; line-height:1.4;">
+            <p id="flagged-notify-desc" style="font-size:0.85rem; color:#ffffff; margin:15px 0; line-height:1.4;">
                 it was detected that the Asset had hidden scripts or was corrupted, please ensure it is safe to be uploaded.
             </p>
             <button class="btn btn-secondary" onclick="closeFlaggedModal()">Dismiss</button>
@@ -285,14 +277,14 @@
     <div id="modal-missing-email" class="overlay" style="display:none; z-index:3120;">
         <div class="card">
             <h3>Link Your Email</h3>
-            <p style="font-size:0.75rem; color:#ffffff; margin:13px 0; line-height:1.4;">
+            <p style="font-size:0.85rem; color:#ffffff; margin:15px 0; line-height:1.4;">
                 Before you can continue, please enter your EMAIL to make your account more secure.
             </p>
             <div class="settings-item">
                 <label>New Email:</label>
                 <input type="email" id="missing-email-input" placeholder="example@gmail.com">
             </div>
-            <div style="display:flex; gap:8px; margin-top:13px;">
+            <div style="display:flex; gap:10px; margin-top:15px;">
                 <button class="btn btn-purple" onclick="submitMissingEmailValidate()">Validate</button>
                 <button class="btn btn-secondary" onclick="accountLogout()">Logout</button>
             </div>
@@ -302,57 +294,57 @@
     <div id="modal-cooldown-warning" class="overlay" style="display:none; backdrop-filter: blur(8px) brightness(50%); z-index: 999999;">
         <div class="card" style="border-color: var(--error);">
             <h2 style="color: var(--error);">⚠WARNING⚠</h2>
-            <p style="font-size:0.8rem; color:#ffffff; margin:13px 0;">This option is on cooldown and cannot be used now.</p>
-            <div style="font-weight:bold; color:var(--accent); margin-bottom:13px;" id="cooldown-warning-time">00:00:00</div>
+            <p style="font-size:0.9rem; color:#ffffff; margin:15px 0;">This option is on cooldown and cannot be used now.</p>
+            <div style="font-weight:bold; color:var(--accent); margin-bottom:15px;" id="cooldown-warning-time">00:00:00</div>
             <button class="btn btn-secondary" onclick="closeCooldownWarningModal()">Dismiss</button>
         </div>
     </div>
 
     <div id="modal-daily-rewards" class="overlay" style="display:none; z-index: 999990;">
-        <div class="card" style="max-width: 375px;">
+        <div class="card" style="max-width: 440px;">
             <h3>DAILY REWARDS | <span id="daily-streak-badge" style="color:var(--orange);">🔥 1</span></h3>
-            <div style="font-size: 1.9rem; font-weight:bold; color:var(--yellow); margin:13px 0;">
-                <span id="daily-reward-coins">0</span> <span class="coin-icon" style="width:27px; height:27px; font-size:0.75rem;">EZ</span>
+            <div style="font-size: 2.2rem; font-weight:bold; color:var(--yellow); margin:15px 0;">
+                <span id="daily-reward-coins">5</span> <span class="coin-icon" style="width:32px; height:32px; font-size:0.9rem;">EZ</span>
             </div>
-            <p style="font-size:0.75rem; color:#ffffff; line-height:1.4;">
-                Congratulations! you got <span id="daily-reward-coins-txt">0</span> EzCoins for entering EzBridge, Join more frequently and your rewards will significantly increase, so don't break your streak!
+            <p style="font-size:0.85rem; color:#ffffff; line-height:1.5;">
+                Congratulations! you got <span id="daily-reward-coins-txt">5</span> EzCoins for entering EzBridge, Join more frequently and your rewards will significantly increase, so don't break your streak!
             </p>
-            <button class="btn btn-purple" style="font-size:0.9rem; padding:12px;" onclick="claimDailyRewardSubmit()">-> Collect Reward <-</button>
-            <div style="font-size:0.68rem; color:var(--muted); margin-top:8px;">Server's timezone: <span id="daily-server-time">00:00 - 0/0/0</span></div>
-            <div style="font-size:0.65rem; color:var(--muted); margin-top:3px;">- miss one day and your streak returns to 0, the higher the streak, the higher your rewards can be.</div>
+            <button class="btn btn-purple" style="font-size:1.05rem; padding:14px;" onclick="claimDailyRewardSubmit()">-> Collect Reward <-</button>
+            <div style="font-size:0.75rem; color:var(--muted); margin-top:10px;">Server's timezone: <span id="daily-server-time">00:00 - 0/0/0</span></div>
+            <div style="font-size:0.7rem; color:var(--muted); margin-top:4px;">- miss one day and your streak returns to 0, the higher the streak, the higher your rewards can be.</div>
         </div>
     </div>
 
     <div id="modal-shop" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 440px; max-height:85vh; display:flex; flex-direction:column;">
+        <div class="card" style="max-width: 520px; max-height:85vh; display:flex; flex-direction:column;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <h3 style="margin:0;">Shopping Menu</h3>
-                <div style="font-size:0.75rem; font-weight:bold;"><span class="coin-icon">EZ</span> <span id="shop-user-coins">0</span> EzCoins</div>
+                <div style="font-size:0.85rem; font-weight:bold;"><span class="coin-icon">EZ</span> <span id="shop-user-coins">0</span> EzCoins</div>
             </div>
-            <p style="font-size:0.68rem; color:var(--muted); text-align:left; margin:6px 0;">V-Batteries</p>
+            <p style="font-size:0.75rem; color:var(--muted); text-align:left; margin:8px 0;">V-Batteries</p>
             <div class="settings-grid" style="flex:1;">
-                <div class="domain-item"><span>50mb+ V-Battery | 25 EzCoins</span><button class="btn btn-purple" style="width:auto; margin:0; padding:3px 10px;" onclick="buyBatteryProduct('bat_50')">Buy</button></div>
-                <div class="domain-item"><span>100mb+ V-Battery | 50 EzCoins</span><button class="btn btn-purple" style="width:auto; margin:0; padding:3px 10px;" onclick="buyBatteryProduct('bat_100')">Buy</button></div>
-                <div class="domain-item"><span>200mb+ V-Battery | 100 EzCoins</span><button class="btn btn-purple" style="width:auto; margin:0; padding:3px 10px;" onclick="buyBatteryProduct('bat_200')">Buy</button></div>
-                <div class="domain-item"><span>350mb+ V-Battery | 150 EzCoins</span><button class="btn btn-purple" style="width:auto; margin:0; padding:3px 10px;" onclick="buyBatteryProduct('bat_350')">Buy</button></div>
-                <div class="domain-item"><span>500mb+ V-Battery | 250 EzCoins</span><button class="btn btn-purple" style="width:auto; margin:0; padding:3px 10px;" onclick="buyBatteryProduct('bat_500')">Buy</button></div>
-                <div class="domain-item"><span>750mb+ V-Battery | 375 EzCoins</span><button class="btn btn-purple" style="width:auto; margin:0; padding:3px 10px;" onclick="buyBatteryProduct('bat_750')">Buy</button></div>
-                <div class="domain-item"><span>1000mb+ V-Battery | 500 EzCoins</span><button class="btn btn-purple" style="width:auto; margin:0; padding:3px 10px;" onclick="buyBatteryProduct('bat_1000')">Buy</button></div>
+                <div class="domain-item"><span>50mb+ V-Battery | 25 EzCoins</span><button class="btn btn-purple" style="width:auto; margin:0; padding:4px 12px;" onclick="buyBatteryProduct('bat_50')">Buy</button></div>
+                <div class="domain-item"><span>100mb+ V-Battery | 50 EzCoins</span><button class="btn btn-purple" style="width:auto; margin:0; padding:4px 12px;" onclick="buyBatteryProduct('bat_100')">Buy</button></div>
+                <div class="domain-item"><span>200mb+ V-Battery | 100 EzCoins</span><button class="btn btn-purple" style="width:auto; margin:0; padding:4px 12px;" onclick="buyBatteryProduct('bat_200')">Buy</button></div>
+                <div class="domain-item"><span>350mb+ V-Battery | 150 EzCoins</span><button class="btn btn-purple" style="width:auto; margin:0; padding:4px 12px;" onclick="buyBatteryProduct('bat_350')">Buy</button></div>
+                <div class="domain-item"><span>500mb+ V-Battery | 250 EzCoins</span><button class="btn btn-purple" style="width:auto; margin:0; padding:4px 12px;" onclick="buyBatteryProduct('bat_500')">Buy</button></div>
+                <div class="domain-item"><span>750mb+ V-Battery | 375 EzCoins</span><button class="btn btn-purple" style="width:auto; margin:0; padding:4px 12px;" onclick="buyBatteryProduct('bat_750')">Buy</button></div>
+                <div class="domain-item"><span>1000mb+ V-Battery | 500 EzCoins</span><button class="btn btn-purple" style="width:auto; margin:0; padding:4px 12px;" onclick="buyBatteryProduct('bat_1000')">Buy</button></div>
             </div>
-            <button class="btn btn-secondary" style="margin-top:8px;" onclick="closeShopModal()">Close</button>
+            <button class="btn btn-secondary" style="margin-top:10px;" onclick="closeShopModal()">Close</button>
         </div>
     </div>
 
     <div id="overlay-profile-loading" class="overlay" style="display:none;">
         <div class="card">
             <h3>Loading Profile, wait...</h3>
-            <div style="font-size:0.72rem; color:var(--muted); margin:10px 0;">loaded <span id="profile-load-curr">0.0</span>mb out of <span id="profile-load-total">0.0</span>mb packets.</div>
+            <div style="font-size:0.8rem; color:var(--muted); margin:12px 0;">loaded <span id="profile-load-curr">0.0</span>mb out of <span id="profile-load-total">0.0</span>mb packets.</div>
             <button class="btn btn-secondary" onclick="cancelProfileLoad()">Cancel</button>
         </div>
     </div>
 
     <div id="modal-profile" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 390px;">
+        <div class="card" style="max-width: 460px;">
             <h3>Customize your profile</h3>
             <div class="settings-grid" style="max-height:none;">
                 <div class="settings-item">
@@ -370,7 +362,7 @@
     </div>
 
     <div id="modal-owner-set-coins" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 375px;">
+        <div class="card" style="max-width: 440px;">
             <h3>Set User Coins (Owner Tool)</h3>
             <div class="settings-grid" style="max-height:none;">
                 <div class="settings-item">
@@ -388,24 +380,24 @@
     </div>
 
     <div id="modal-assets" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 580px; width:95%; max-height:85vh; display:flex; flex-direction:column;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <div class="card" style="max-width: 680px; width:95%; max-height:85vh; display:flex; flex-direction:column;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                 <div>
                     <h3 style="margin:0;">Assets</h3>
-                    <div style="font-size:0.68rem; color:var(--accent); font-weight:bold;" id="asset-storage-indicator">500MB remaining</div>
+                    <div style="font-size:0.75rem; color:var(--accent); font-weight:bold;" id="asset-storage-indicator">500MB remaining</div>
                 </div>
-                <button class="btn btn-purple" id="btn-open-asset-upload" style="width:auto; margin:0; padding:5px 12px;" onclick="openAssetUploadModal()">Upload</button>
+                <button class="btn btn-purple" id="btn-open-asset-upload" style="width:auto; margin:0; padding:6px 14px;" onclick="openAssetUploadModal()">Upload</button>
             </div>
             <div id="assets-list-container" class="settings-grid" style="flex:1; max-height:none;"></div>
-            <button class="btn btn-secondary" style="margin-top:8px;" onclick="closeAssetsModal()">Back to EzBridge</button>
+            <button class="btn btn-secondary" style="margin-top:10px;" onclick="closeAssetsModal()">Back to EzBridge</button>
         </div>
     </div>
 
     <div id="modal-asset-edit" class="overlay" style="display:none; z-index:2200;">
-        <div class="card" style="max-width: 440px; width:95%;">
+        <div class="card" style="max-width: 520px; width:95%;">
             <h3 id="asset-edit-title">Upload Asset</h3>
             <div class="settings-grid" style="max-height:none;">
-                <div id="asset-preview-box" style="margin-bottom:8px; text-align:center;"></div>
+                <div id="asset-preview-box" style="margin-bottom:10px; text-align:center;"></div>
                 <div class="settings-item">
                     <label>Asset name (2-20 chars):</label>
                     <input type="text" id="asset-name-field" maxlength="20" placeholder="My Epic Asset">
@@ -416,12 +408,12 @@
                 </div>
             </div>
 
-            <div id="asset-upload-progress" class="progress-container" style="display:none; margin-top:8px;">
+            <div id="asset-upload-progress" class="progress-container" style="display:none; margin-top:10px;">
                 <div id="asset-progress-bar" class="progress-bar"></div>
                 <div class="progress-text">Uploading Asset: <span id="asset-progress-val">0</span>%</div>
             </div>
 
-            <div style="display:flex; gap:8px; margin-top:13px;">
+            <div style="display:flex; gap:10px; margin-top:15px;">
                 <button class="btn btn-purple" id="btn-submit-asset" onclick="submitAssetUpload()">Apply changes</button>
                 <button class="btn btn-danger" id="btn-delete-asset-form" style="display:none;" onclick="deleteCurrentAssetSubmit()">Delete Asset</button>
                 <button class="btn btn-secondary" onclick="closeAssetEditModal()">Cancel</button>
@@ -430,19 +422,19 @@
     </div>
 
     <div id="modal-email-verify" class="overlay" style="display:none; z-index:3100;">
-        <div class="card" style="max-width: 375px;">
+        <div class="card" style="max-width: 440px;">
             <h3>Enter the generated 6-chars code</h3>
-            <p style="font-size:0.72rem; color:var(--muted); line-height:1.4; margin:8px 0;">
+            <p style="font-size:0.8rem; color:var(--muted); line-height:1.4; margin:10px 0;">
                 A code was sent to your provided email, please check your SPAM or inbox and search for a ezbridge bot, there is your generated code.
             </p>
-            <div style="font-size:0.68rem; color:var(--accent); font-weight:bold; margin-bottom:8px;">
+            <div style="font-size:0.75rem; color:var(--accent); font-weight:bold; margin-bottom:10px;">
                 (Expires in <span id="email-expire-timer">30:00</span>)
             </div>
-            <input type="text" id="email-verify-code-input" maxlength="6" placeholder="6-chars code" style="text-transform:uppercase; text-align:center; font-size:1.05rem; font-weight:bold; letter-spacing:3px;">
-            <div style="margin: 8px 0;">
-                <button id="btn-resend-email-code" style="opacity:0.3; font-size:0.72rem; background:transparent; border:none; color:var(--muted); cursor:pointer;" onclick="resendEmailCodeSubmit()">i didn't receive the email</button>
+            <input type="text" id="email-verify-code-input" maxlength="6" placeholder="6-chars code" style="text-transform:uppercase; text-align:center; font-size:1.2rem; font-weight:bold; letter-spacing:4px;">
+            <div style="margin: 10px 0;">
+                <button id="btn-resend-email-code" style="opacity:0.3; font-size:0.8rem; background:transparent; border:none; color:var(--muted); cursor:pointer;" onclick="resendEmailCodeSubmit()">i didn't receive the email</button>
             </div>
-            <div style="display:flex; gap:8px; margin-top:8px;">
+            <div style="display:flex; gap:10px; margin-top:10px;">
                 <button class="btn btn-purple" onclick="validateEmailCodeSubmit()">Validate</button>
                 <button class="btn btn-secondary" onclick="closeEmailVerifyModal()">Go back</button>
             </div>
@@ -450,17 +442,17 @@
     </div>
 
     <div id="modal-delete-confirm" class="overlay" style="display:none; z-index:3150;">
-        <div class="card" style="max-width: 375px; border-color: var(--error);">
+        <div class="card" style="max-width: 440px; border-color: var(--error);">
             <h3 style="color: var(--error);">Delete EzBridge Account</h3>
-            <p style="font-size:0.72rem; color:var(--muted); line-height:1.4;">
+            <p style="font-size:0.8rem; color:var(--muted); line-height:1.5;">
                 An 8-character verification code will be sent to your linked email address. This action permanently deletes your account and server.
             </p>
             <button class="btn btn-secondary" id="btn-request-del-code" onclick="requestDeleteAccountCodeSubmit()">Send Deletion Code to Email</button>
-            <div id="del-code-timer-label" style="display:none; font-size:0.68rem; color:var(--accent); font-weight:bold; margin: 7px 0;">
+            <div id="del-code-timer-label" style="display:none; font-size:0.75rem; color:var(--accent); font-weight:bold; margin: 8px 0;">
                 Code expires in: <span id="del-expire-timer">05:00</span>
             </div>
-            <input type="text" id="delete-8char-code-input" maxlength="8" placeholder="Enter 8-char Code" style="text-transform:uppercase; text-align:center; font-size:1rem; font-weight:bold; letter-spacing:3px; margin-top:7px;">
-            <div style="display:flex; gap:8px; margin-top:13px;">
+            <input type="text" id="delete-8char-code-input" maxlength="8" placeholder="Enter 8-char Code" style="text-transform:uppercase; text-align:center; font-size:1.1rem; font-weight:bold; letter-spacing:3px; margin-top:8px;">
+            <div style="display:flex; gap:10px; margin-top:15px;">
                 <button class="btn btn-danger" onclick="confirmDeleteAccountSubmit()">Confirm & Delete Account</button>
                 <button class="btn btn-secondary" onclick="closeDeleteAccountConfirmModal()">Cancel</button>
             </div>
@@ -468,39 +460,39 @@
     </div>
 
     <div id="modal-pyterminal" class="overlay" style="display:none; z-index:2700;">
-        <div class="card" style="max-width: 550px; width:95%; max-height:85vh; display:flex; flex-direction:column;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:7px;">
+        <div class="card" style="max-width: 650px; width:95%; max-height:85vh; display:flex; flex-direction:column;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                 <h3 style="margin:0; color:var(--green);">Python Terminal</h3>
-                <button class="btn btn-secondary" style="width:auto; margin:0; padding:3px 10px;" onclick="closePyTerminalModal()">Close</button>
+                <button class="btn btn-secondary" style="width:auto; margin:0; padding:4px 12px;" onclick="closePyTerminalModal()">Close</button>
             </div>
             <div id="pyterminal-display" class="pyterm-window" onclick="focusPyTermInput()"></div>
-            <div style="display:flex; gap:5px; margin-top:7px;">
-                <span style="color:var(--green); font-weight:bold; font-family:monospace; padding-top:6px;">&gt;</span>
+            <div style="display:flex; gap:6px; margin-top:8px;">
+                <span style="color:var(--green); font-weight:bold; font-family:monospace; padding-top:8px;">&gt;</span>
                 <input type="text" id="pyterminal-input" placeholder="Type command or /exe..." style="flex:1;" onkeypress="handlePyTermKey(event)">
-                <button class="btn btn-green" style="width:auto; margin:0; padding:5px 12px;" onclick="sendPyTermCommand()">Send</button>
+                <button class="btn btn-green" style="width:auto; margin:0; padding:6px 14px;" onclick="sendPyTermCommand()">Send</button>
             </div>
         </div>
     </div>
 
     <div id="modal-ai-billing" class="overlay" style="display:none; z-index:2800;">
-        <div class="card" style="max-width: 375px;">
+        <div class="card" style="max-width: 440px;">
             <h3>AI access billing</h3>
-            <p style="font-size:0.72rem; color:var(--muted); line-height:1.4; margin:10px 0;">
+            <p style="font-size:0.8rem; color:var(--muted); line-height:1.4; margin:10px 0;">
                 Each month your AI key is active, the server checks it's usage inside each month and gives you a certain amount of EzCoins you have to pay for the API stay active.
             </p>
-            <div style="font-size:0.8rem; margin:10px 0; display:flex; flex-direction:column; gap:4px;">
-                <div>Last Month: <span id="billing-last-tokens" style="font-weight:bold; color:var(--accent);">0</span> tokens</div>
-                <div>Current price: <span id="billing-price" style="font-weight:bold; color:var(--yellow);">0</span> <span class="coin-icon" style="width:16px; height:16px; font-size:0.5rem;">EZ</span></div>
+            <div style="text-align:left; font-size:0.85rem; margin:15px 0; display:flex; flex-direction:column; gap:6px;">
+                <div>Last Month: <span id="billing-last-tokens" style="color:#fff; font-weight:bold;">0</span> tokens</div>
+                <div>Current price: <span id="billing-current-price" style="color:var(--yellow); font-weight:bold;">0</span> <span class="coin-icon">EZ</span></div>
             </div>
-            <button class="btn btn-purple" id="btn-pay-ai-billing" style="display:none;" onclick="payAiBillSubmit()">Pay</button>
-            <button class="btn btn-secondary" style="margin-top:7px;" onclick="closeAiBillingModal()">Close</button>
+            <button class="btn btn-purple" id="btn-pay-ai-bill" style="display:none; margin-bottom:8px;" onclick="payAIBillSubmit()">Pay</button>
+            <button class="btn btn-secondary" onclick="closeAIBillingModal()">Close</button>
         </div>
     </div>
 
     <div id="overlay-fetching-sites" class="overlay" style="display:none;">
         <div class="card">
             <h3>Fetching sites...</h3>
-            <div class="progress-container" style="margin:17px 0;">
+            <div class="progress-container" style="margin:20px 0;">
                 <div id="site-fetch-bar" class="progress-bar"></div>
                 <div class="progress-text"><span id="site-fetch-pct">0</span>%</div>
             </div>
@@ -511,7 +503,7 @@
     <div id="overlay-fetching-site-data" class="overlay" style="display:none;">
         <div class="card">
             <h3>Fetching previous site settings...</h3>
-            <div class="progress-container" style="margin:17px 0;">
+            <div class="progress-container" style="margin:20px 0;">
                 <div id="site-data-bar" class="progress-bar"></div>
                 <div class="progress-text"><span id="site-data-pct">0</span>%</div>
             </div>
@@ -519,31 +511,31 @@
     </div>
 
     <div id="modal-see-publish" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 580px; width:95%; max-height:85vh; display:flex; flex-direction:column;">
+        <div class="card" style="max-width: 680px; width:95%; max-height:85vh; display:flex; flex-direction:column;">
             <h3>SEE AND PUBLISH</h3>
-            <div style="display:flex; gap:8px; margin-bottom:8px; align-items:center; flex-wrap:wrap;">
-                <label style="font-size:0.72rem; font-weight:bold;">Sort by:</label>
-                <select id="site-sort-select" onchange="triggerAutoSiteSearch()" style="padding:5px; background:#020617; color:#fff; border:1px solid var(--border);">
+            <div style="display:flex; gap:10px; margin-bottom:10px; align-items:center; flex-wrap:wrap;">
+                <label style="font-size:0.8rem; font-weight:bold;">Sort by:</label>
+                <select id="site-sort-select" onchange="triggerAutoSiteSearch()" style="padding:6px; background:#020617; color:#fff; border:1px solid var(--border);">
                     <option value="hottest" selected>Hottest 🔥</option>
                     <option value="most_liked">Most liked</option>
                     <option value="visits">Most accessed</option>
                     <option value="newest">Newest</option>
                 </select>
-                <input type="text" id="site-search-input" placeholder="Search site name or 20-digit ID..." maxlength="30" oninput="triggerAutoSiteSearch()" style="flex:1; padding:5px;">
+                <input type="text" id="site-search-input" placeholder="Search site name or 20-digit ID..." maxlength="30" oninput="triggerAutoSiteSearch()" style="flex:1; padding:6px;">
             </div>
 
-            <div id="search-fetching-indicator" style="display:none; color:var(--accent); font-size:0.75rem; font-weight:bold; margin:8px 0;">Fetching sites...</div>
+            <div id="search-fetching-indicator" style="display:none; color:var(--accent); font-size:0.85rem; font-weight:bold; margin:10px 0;">Fetching sites...</div>
 
             <div id="published-sites-container" class="settings-grid" style="flex:1; max-height:none;"></div>
 
-            <button class="btn btn-purple" id="btn-create-update-site" style="margin-top:8px;" onclick="handleCreateOrUpdateSiteClick()">Create site</button>
-            <button class="btn btn-secondary" id="btn-sites-back-login" style="display:none; margin-top:5px;" onclick="returnToLoginFromSites()">Go back to login</button>
-            <button class="btn btn-secondary" id="btn-sites-close" style="margin-top:5px;" onclick="closeSeeAndPublishModal()">Close</button>
+            <button class="btn btn-purple" id="btn-create-update-site" style="margin-top:10px;" onclick="handleCreateOrUpdateSiteClick()">Create site</button>
+            <button class="btn btn-secondary" id="btn-sites-back-login" style="display:none; margin-top:6px;" onclick="returnToLoginFromSites()">Go back to login</button>
+            <button class="btn btn-secondary" id="btn-sites-close" style="margin-top:6px;" onclick="closeSeeAndPublishModal()">Close</button>
         </div>
     </div>
 
     <div id="modal-create-site" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 490px; width:95%;">
+        <div class="card" style="max-width: 580px; width:95%;">
             <h3 id="create-site-title">CREATE SITE</h3>
             <div class="settings-grid" style="max-height:none;">
                 <div class="settings-item">
@@ -577,12 +569,12 @@
                 </div>
             </div>
 
-            <div id="site-upload-progress" class="progress-container" style="display:none; margin-top:8px;">
+            <div id="site-upload-progress" class="progress-container" style="display:none; margin-top:10px;">
                 <div id="site-progress-bar" class="progress-bar"></div>
                 <div class="progress-text">Publishing Site: <span id="site-progress-val">0</span>%</div>
             </div>
 
-            <div style="display:flex; gap:8px; margin-top:13px;">
+            <div style="display:flex; gap:10px; margin-top:15px;">
                 <button class="btn" id="submit-site-btn" onclick="submitPublishSite()">Create site</button>
                 <button class="btn btn-secondary" onclick="closeCreateSiteModal()">Cancel</button>
             </div>
@@ -591,9 +583,9 @@
 
     <div id="modal-site-viewer" class="overlay" style="display:none;">
         <div class="card">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                 <h3 id="site-viewer-title" style="margin:0;">Site Viewer</h3>
-                <button class="btn btn-secondary" id="site-viewer-back-btn" style="width:auto; margin:0; padding:5px 14px;" onclick="closeSiteViewerModal()">Back to EzBridge</button>
+                <button class="btn btn-secondary" id="site-viewer-back-btn" style="width:auto; margin:0; padding:6px 16px;" onclick="closeSiteViewerModal()">Back to EzBridge</button>
             </div>
             <div id="site-viewer-frame-container"></div>
         </div>
@@ -602,7 +594,7 @@
     <div id="overlay-banned-app" class="overlay" style="display:none;">
         <div class="card" style="border-color: var(--error);">
             <h1 style="color: var(--error);">BANNED FROM EZBRIDGE</h1>
-            <p style="font-size:0.8rem; color:var(--muted); line-height:1.4; margin:13px 0;">
+            <p style="font-size:0.9rem; color:var(--muted); line-height:1.5; margin:15px 0;">
                 You are banned from EzBridge.<br>
                 Days remaining: <span id="ban-days-text" style="color:#fff; font-weight:bold;">-</span>
             </p>
@@ -613,7 +605,7 @@
     <div id="overlay-timeout-error" class="overlay" style="display:none;">
         <div class="card" style="border-color: var(--error);">
             <h2 style="color: var(--error);">ERROR!</h2>
-            <p style="font-size:0.75rem; color:var(--muted); line-height:1.4;">
+            <p style="font-size:0.85rem; color:var(--muted); line-height:1.5;">
                 No response from server, the server might be temporarily down or an error occured, try refreshing your page or checking your internet connection.
             </p>
             <button class="btn btn-secondary" onclick="location.reload()">Refresh Page</button>
@@ -623,55 +615,55 @@
     <div id="overlay-loading" class="overlay" style="display:none; z-index:3000;">
         <div class="card">
             <h3 id="loading-msg">Processing request...</h3>
-            <div style="font-size:0.72rem; color:var(--muted);">Creating/Updating your server.. wait while your client does its job.</div>
+            <div style="font-size:0.8rem; color:var(--muted);">Creating/Updating your server.. wait while your client does its job.</div>
         </div>
     </div>
 
     <div id="overlay-ezbridge-logging" class="overlay" style="display:none; z-index:3000;">
         <div class="card" style="border-color: var(--error);">
             <h3 style="color: var(--error);">Wait, the server is logging you into the inserted account.</h3>
-            <div style="font-size:0.72rem; color:var(--muted); margin-top:7px;">Safely synchronizing account data, coins, server and profile...</div>
+            <div style="font-size:0.8rem; color:var(--muted); margin-top:8px;">Safely synchronizing account data, coins, server and profile...</div>
         </div>
     </div>
 
     <div id="overlay-captcha" class="overlay" style="display:none;">
         <div class="card">
             <h1>EzBridge</h1>
-            <p style="font-size:0.75rem; color:var(--muted); line-height:1.4;">
+            <p style="font-size:0.85rem; color:var(--muted); line-height:1.5;">
                 Please solve the puzzle below to continue.
             </p>
-            <div style="display: flex; justify-content: center; margin: 17px 0;">
+            <div style="display: flex; justify-content: center; margin: 20px 0;">
                 <div class="g-recaptcha" data-sitekey="6Lf8VTMtAAAAAAMXrs6lk-tLBjuW0u8ZV5LevzMz" data-callback="captchaSolved"></div>
             </div>
-            <button class="btn" style="background:#ffffff !important; color:#000000 !important; font-weight:bold; margin-top:8px;" onclick="exploreSitesAsGuest()">Explore Sites</button>
+            <button class="btn" style="background:#ffffff !important; color:#000000 !important; font-weight:bold; margin-top:10px;" onclick="exploreSitesAsGuest()">Explore Sites</button>
         </div>
     </div>
 
     <div id="overlay-google-auth" class="overlay" style="display:none;">
         <div class="card">
             <h1>Sign In Required</h1>
-            <p style="font-size:0.75rem; color:var(--muted); line-height:1.4; margin-bottom:17px;">
+            <p style="font-size:0.85rem; color:var(--muted); line-height:1.5; margin-bottom:20px;">
                 You must sign in or register before creating a new virtual server.
             </p>
-            <div style="display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:13px;">
+            <div style="display:flex; flex-direction:column; align-items:center; gap:12px; margin-bottom:15px;">
                 <div id="g_id_onload"
                      data-client_id="596211651893-5vddbq1vee4uv9oq26vqmcu807umlaqt.apps.googleusercontent.com"
                      data-callback="handleGoogleLogin">
                 </div>
                 <div class="g_id_signin" data-type="standard" data-shape="pill" data-theme="filled_blue"></div>
                 
-                <div style="font-size:0.72rem; color:var(--muted); font-weight:bold;">OR</div>
+                <div style="font-size:0.8rem; color:var(--muted); font-weight:bold;">OR</div>
                 
                 <button class="btn btn-danger" style="width:100%;" onclick="openEzBridgeAuthChoice()">Use EzBridge</button>
             </div>
-            <button class="btn" style="background:#ffffff !important; color:#000000 !important; font-weight:bold; margin-top:8px;" onclick="exploreSitesAsGuest()">Explore Sites</button>
+            <button class="btn" style="background:#ffffff !important; color:#000000 !important; font-weight:bold; margin-top:10px;" onclick="exploreSitesAsGuest()">Explore Sites</button>
         </div>
     </div>
 
     <div id="modal-ezbridge-auth-choice" class="overlay" style="display:none;">
         <div class="card">
             <h3>What would you like to do?</h3>
-            <div style="display:flex; gap:8px; margin:17px 0;">
+            <div style="display:flex; gap:10px; margin:20px 0;">
                 <button class="btn btn-purple" onclick="openEzBridgeSignUp()">Sign up (New here)</button>
                 <button class="btn btn-secondary" onclick="openEzBridgeLogIn()">Log in (Been here before)</button>
             </div>
@@ -680,18 +672,18 @@
     </div>
 
     <div id="modal-ezbridge-signup" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 390px;">
+        <div class="card" style="max-width: 460px;">
             <h3>EzBridge Sign Up</h3>
             <div class="settings-grid" style="max-height:none;">
                 <div class="settings-item">
                     <label>Your username:</label>
                     <input type="text" id="eb-signup-user" placeholder="10-30 chars, letters/numbers/spaces" oninput="handleEzBridgeFieldValidate('signup', 'user')">
-                    <div id="eb-signup-user-status" style="font-size:0.68rem; text-align:left; min-height:14px;"></div>
+                    <div id="eb-signup-user-status" style="font-size:0.75rem; text-align:left; min-height:16px;"></div>
                 </div>
                 <div class="settings-item">
                     <label>Your password:</label>
                     <input type="password" id="eb-signup-pass" placeholder="8-30 chars, supported symbols" oninput="handleEzBridgeFieldValidate('signup', 'pass')">
-                    <div id="eb-signup-pass-status" style="font-size:0.68rem; text-align:left; min-height:14px;"></div>
+                    <div id="eb-signup-pass-status" style="font-size:0.75rem; text-align:left; min-height:16px;"></div>
                 </div>
                 <div class="settings-item">
                     <label>Your Email (Required for verification):</label>
@@ -704,18 +696,18 @@
     </div>
 
     <div id="modal-ezbridge-login" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 390px;">
+        <div class="card" style="max-width: 460px;">
             <h3>EzBridge Log In</h3>
             <div class="settings-grid" style="max-height:none;">
                 <div class="settings-item">
                     <label>Your username:</label>
                     <input type="text" id="eb-login-user" placeholder="Enter your username" oninput="handleEzBridgeFieldValidate('login', 'user')">
-                    <div id="eb-login-user-status" style="font-size:0.68rem; text-align:left; min-height:14px;"></div>
+                    <div id="eb-login-user-status" style="font-size:0.75rem; text-align:left; min-height:16px;"></div>
                 </div>
                 <div class="settings-item">
                     <label>Your password:</label>
                     <input type="password" id="eb-login-pass" placeholder="Enter your password" oninput="handleEzBridgeFieldValidate('login', 'pass')">
-                    <div id="eb-login-pass-status" style="font-size:0.68rem; text-align:left; min-height:14px;"></div>
+                    <div id="eb-login-pass-status" style="font-size:0.75rem; text-align:left; min-height:16px;"></div>
                 </div>
             </div>
             <button class="btn btn-purple" id="btn-submit-login" onclick="submitEzBridgeLogIn()">Log in</button>
@@ -724,7 +716,7 @@
     </div>
 
     <div id="modal-change-username" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 375px;">
+        <div class="card" style="max-width: 440px;">
             <h3>Change Account Username</h3>
             <div class="settings-grid" style="max-height:none;">
                 <div class="settings-item">
@@ -738,7 +730,7 @@
     </div>
 
     <div id="modal-change-password" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 375px;">
+        <div class="card" style="max-width: 440px;">
             <h3>Change Account Password</h3>
             <div class="settings-grid" style="max-height:none;">
                 <div class="settings-item">
@@ -758,13 +750,13 @@
     <div id="overlay-start" class="overlay" style="display:none;">
         <div class="card">
             <h1>EzBridge</h1>
-            <p style="color:var(--muted); font-size:0.8rem; margin-bottom:21px;">Create and implement a server to your apps for free!</p>
+            <p style="color:var(--muted); font-size:0.9rem; margin-bottom:25px;">Create and implement a server to your apps for free!</p>
             <button class="btn" onclick="openSetupUI()">CLICK HERE TO BEGIN</button>
         </div>
     </div>
 
     <div id="overlay-setup" class="overlay" style="display:none; z-index:2000;">
-        <div class="card" style="max-width: 440px;">
+        <div class="card" style="max-width: 520px;">
             <h2 id="setup-title">Setup Your Server</h2>
             <div class="settings-grid">
                 <div class="settings-item">
@@ -788,10 +780,10 @@
                     </select>
                 </div>
 
-                <div id="domain-whitelist-panel" style="display:block; background:#020617; padding:8px; border:1px solid var(--border);">
+                <div id="domain-whitelist-panel" style="display:block; background:#020617; padding:10px; border:1px solid var(--border);">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <label style="font-size:0.65rem; color:var(--muted); font-weight:bold;">WHITELISTED DOMAINS (<span id="domain-count">0</span>/10)</label>
-                        <button class="btn" style="width:auto; margin:0; padding:3px 8px; font-size:0.72rem;" onclick="addDomainPrompt()">+ Add Domain</button>
+                        <label style="font-size:0.75rem; color:var(--muted); font-weight:bold;">WHITELISTED DOMAINS (<span id="domain-count">0</span>/10)</label>
+                        <button class="btn" style="width:auto; margin:0; padding:4px 10px; font-size:0.8rem;" onclick="addDomainPrompt()">+ Add Domain</button>
                     </div>
                     <div id="domain-list" class="domain-list"></div>
                 </div>
@@ -807,9 +799,9 @@
     </div>
 
     <div id="modal-script" class="overlay" style="display:none; z-index:2200;">
-        <div class="card" style="max-width: 550px;">
+        <div class="card" style="max-width: 650px;">
             <h3>ServerScript Editor (REQUIRED)</h3>
-            <p style="font-size:0.72rem; color:var(--muted);">At least 1 character is strictly required for the server to operate.</p>
+            <p style="font-size:0.8rem; color:var(--muted);">At least 1 character is strictly required for the server to operate.</p>
             <div class="code-container">
                 <div id="serverscript-lines" class="line-numbers">1</div>
                 <textarea id="script-editor" class="code-textarea" rows="12" placeholder="// ServerScript is mandatory!&#10;Server.on('player_update', (evt) => {&#10;    Server.broadcast('state_update', evt.data);&#10;});" oninput="updateLineNumbers('script-editor', 'serverscript-lines')" onscroll="syncScroll('script-editor', 'serverscript-lines')"></textarea>
@@ -820,7 +812,7 @@
                 <div class="progress-text">Uploading Script: <span id="script-progress-val">0</span>%</div>
             </div>
 
-            <div style="display:flex; gap:8px; margin-top:8px;">
+            <div style="display:flex; gap:10px; margin-top:10px;">
                 <button class="btn" id="save-script-btn" onclick="startScriptChunkUpload()">Save ServerScript</button>
                 <button class="btn btn-secondary" onclick="closeScriptEditorModal()">Close</button>
             </div>
@@ -828,37 +820,37 @@
     </div>
 
     <div id="modal-console" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 510px;">
+        <div class="card" style="max-width: 600px;">
             <h3>Server Console Logs</h3>
             <div id="console-logs-display" class="console-box"></div>
             
-            <div id="console-perf-container" style="display:none; margin:8px 0;">
-                <div style="font-size:0.68rem; color:var(--muted); margin-bottom:3px; display:flex; justify-content:space-between;">
+            <div id="console-perf-container" style="display:none; margin:10px 0;">
+                <div style="font-size:0.75rem; color:var(--muted); margin-bottom:4px; display:flex; justify-content:space-between;">
                     <span>Live Performance (3s window)</span>
                     <span><span style="color:#10b981;">■ Rx</span> <span style="color:#eab308;">■ Tx</span> <span style="color:#ef4444;">■ RAM</span></span>
                 </div>
-                <canvas id="console-perf-canvas" width="460" height="100" style="width:100%; height:100px; background:#000; border:1px solid #1e293b;"></canvas>
+                <canvas id="console-perf-canvas" width="540" height="120" style="width:100%; height:120px; background:#000; border:1px solid #1e293b;"></canvas>
             </div>
 
-            <div style="display:flex; gap:8px;">
-                <button class="btn btn-purple" id="btn-console-perf-toggle" style="width:95px;" onclick="toggleConsolePerf()">Performance</button>
+            <div style="display:flex; gap:10px;">
+                <button class="btn btn-purple" id="btn-console-perf-toggle" style="width:110px;" onclick="toggleConsolePerf()">Performance</button>
                 <button class="btn btn-green" style="flex:1;" onclick="openPyTerminalModal()">Python Terminal</button>
                 <button class="btn" style="flex:1;" onclick="copyConsoleLogs()">Copy Logs</button>
                 <button class="btn btn-purple" style="flex:1;" onclick="openServerStorageModal()">See Storage</button>
-                <button class="btn btn-secondary" style="width:70px;" onclick="closeConsoleModal()">Close</button>
+                <button class="btn btn-secondary" style="width:80px;" onclick="closeConsoleModal()">Close</button>
             </div>
         </div>
     </div>
 
     <div id="modal-server-storage" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 550px; width:95%; max-height:85vh; display:flex; flex-direction:column;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+        <div class="card" style="max-width: 650px; width:95%; max-height:85vh; display:flex; flex-direction:column;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                 <h3 style="margin:0;">Server 100MB Storage Data</h3>
-                <button class="btn" style="width:auto; margin:0; padding:3px 8px; font-size:0.68rem; background:#ffffff !important; color:#000000 !important;" onclick="wipeServerStorageSubmit()">WIPE DATA</button>
+                <button class="btn" style="width:auto; margin:0; padding:4px 10px; font-size:0.75rem; background:#ffffff !important; color:#000000 !important;" onclick="wipeServerStorageSubmit()">WIPE DATA</button>
             </div>
-            <div style="font-size:0.68rem; color:var(--accent); margin-bottom:5px; text-align:left;">Storage Usage: <span id="storage-modal-usage">0.0 MB</span> / 100 MB</div>
+            <div style="font-size:0.75rem; color:var(--accent); margin-bottom:6px; text-align:left;">Storage Usage: <span id="storage-modal-usage">0.0 MB</span> / 100 MB</div>
             <textarea id="server-storage-display" class="code-box" readonly rows="12" style="flex:1; width:100%; resize:none;"></textarea>
-            <div style="display:flex; gap:8px; margin-top:8px;">
+            <div style="display:flex; gap:10px; margin-top:10px;">
                 <button class="btn" onclick="copyText('server-storage-display')">Copy Storage Content</button>
                 <button class="btn btn-secondary" onclick="closeServerStorageModal()">Close</button>
             </div>
@@ -866,7 +858,7 @@
     </div>
 
     <div id="modal-choose-session" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 360px;">
+        <div class="card" style="max-width: 420px;">
             <h3>Choose a session</h3>
             <div class="session-btn-list">
                 <button class="session-btn" onclick="navigateToPath('chat/s1')">S. 1</button>
@@ -885,24 +877,24 @@
     </div>
 
     <div id="modal-chat-room" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 440px; width:95%; max-height:85vh; display:flex; flex-direction:column;">
+        <div class="card" style="max-width: 500px; width:95%; max-height:85vh; display:flex; flex-direction:column;">
             <h3 id="chat-session-title">Session S. 1</h3>
             <div id="chat-messages-container" class="chat-bubble-box"></div>
-            <div id="chat-typing-status" style="font-size:0.68rem; color:var(--muted); text-align:left; min-height:16px; margin: 3px 0;"></div>
+            <div id="chat-typing-status" style="font-size:0.75rem; color:var(--muted); text-align:left; min-height:18px; margin: 4px 0;"></div>
 
-            <div style="display:flex; gap:7px;">
+            <div style="display:flex; gap:8px;">
                 <input type="text" id="chat-textbox" placeholder="Type a message (max 250 chars)..." maxlength="250" style="flex:1;">
-                <button class="btn" style="width:auto; margin:0; padding:0 14px;" onclick="sendChatMessage()">Send</button>
+                <button class="btn" style="width:auto; margin:0; padding:0 16px;" onclick="sendChatMessage()">Send</button>
             </div>
-            <button class="btn btn-secondary" style="margin-top:8px;" onclick="closeChatRoomModal()">Close</button>
+            <button class="btn btn-secondary" style="margin-top:10px;" onclick="closeChatRoomModal()">Close</button>
         </div>
     </div>
 
     <div id="modal-view-script" class="overlay" style="display:none; z-index:2600;">
-        <div class="card" style="max-width: 550px;">
+        <div class="card" style="max-width: 650px;">
             <h3>View ServerScript</h3>
-            <textarea id="view-script-textarea" class="code-box" readonly rows="12" style="width:100%; height:220px; resize:none;" placeholder="Loading script chunks..."></textarea>
-            <div style="display:flex; gap:8px; margin-top:8px;">
+            <textarea id="view-script-textarea" class="code-box" readonly rows="12" style="width:100%; height:250px; resize:none;" placeholder="Loading script chunks..."></textarea>
+            <div style="display:flex; gap:10px; margin-top:10px;">
                 <button class="btn" onclick="copyText('view-script-textarea')">Copy Script</button>
                 <button class="btn btn-secondary" onclick="closeViewScriptModal()">Close</button>
             </div>
@@ -910,16 +902,16 @@
     </div>
 
     <div id="modal-account-settings" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 375px;">
+        <div class="card" style="max-width: 440px;">
             <h3>Account Settings</h3>
-            <div style="display:flex; flex-direction:column; gap:8px; margin:17px 0;">
+            <div style="display:flex; flex-direction:column; gap:10px; margin:20px 0;">
                 <button class="btn btn-secondary" onclick="accountLogout()">Logout</button>
                 <button class="btn btn-secondary" id="btn-regen-userid" onclick="accountRegenUserId()">Regenerate User ID</button>
                 
                 <button class="btn btn-purple" id="btn-change-username" style="display:none;" onclick="openChangeUsernameModal()">Change Account Username</button>
                 <button class="btn btn-purple" id="btn-change-password" style="display:none;" onclick="openChangePasswordModal()">Change Account Password</button>
 
-                <div class="settings-item" style="text-align:left; margin-top:4px;">
+                <div class="settings-item" style="text-align:left; margin-top:5px;">
                     <label>logging requires email verification (6 chars code):</label>
                     <select id="cfg-login-2fa" onchange="toggleLogin2FASubmit(this.value)">
                         <option value="true" selected>Enabled</option>
@@ -938,12 +930,12 @@
     </div>
 
     <div id="modal-universal-panel" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 390px;">
-            <div id="univ-hw-stats" class="hw-stats-banner">RAM: 0% | CPU: 0% | BATTERY: 100% | TEMPERATURE: 0.0 | DATE: 0/0/0 00:00:00</div>
+        <div class="card" style="max-width: 520px;">
             <h3>Universal Server Panel</h3>
-            <div style="display:flex; flex-direction:column; gap:8px; margin:17px 0;">
-                <button class="btn btn-purple" id="btn-owner-upd-univ" onclick="openUpdateUnivServerModal()">Update univserver</button>
-                <button class="btn btn-purple" id="btn-owner-set-coins" onclick="openOwnerSetCoinsModal()">Set User Coins</button>
+            <div id="univ-telemetry-display" style="font-size:0.75rem; color:var(--accent); font-family:monospace; margin-bottom:12px; line-height:1.4;">RAM: 0% | CPU: 0% | BATTERY: 100% | TEMPERATURE: 0.0 | DATE: 0/0/0 00:00:00</div>
+            <div style="display:flex; flex-direction:column; gap:10px; margin:10px 0;">
+                <button class="btn btn-purple" id="btn-univ-update" onclick="openUpdateUnivServerModal()">Update univserver</button>
+                <button class="btn btn-purple" id="btn-univ-coins" onclick="openOwnerSetCoinsModal()">Set User Coins</button>
                 <button class="btn btn-secondary" onclick="restartNodeOnly()">Restart node</button>
             </div>
             <button class="btn btn-secondary" onclick="closeUniversalPanelModal()">Close</button>
@@ -951,17 +943,17 @@
     </div>
 
     <div id="modal-update-univserver" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 550px;">
+        <div class="card" style="max-width: 650px;">
             <h3>Update Universal Server Script</h3>
-            <p style="font-size:0.72rem; color:var(--muted);">Paste the new univserver.js code below. Tested for 5s before switching over.</p>
-            <textarea id="univserver-script-editor" class="code-box" rows="12" style="width:100%; height:190px; resize:none;" placeholder="// Paste new univserver.js here..."></textarea>
+            <p style="font-size:0.8rem; color:var(--muted);">Paste the new univserver.js code below. Tested for 5s before switching over.</p>
+            <textarea id="univserver-script-editor" class="code-box" rows="12" style="width:100%; height:220px; resize:none;" placeholder="// Paste new univserver.js here..."></textarea>
             
             <div id="univ-upload-progress" class="progress-container" style="display:none;">
                 <div id="univ-progress-bar" class="progress-bar"></div>
                 <div class="progress-text">Uploading in 50KB Chunks: <span id="univ-progress-val">0</span>%</div>
             </div>
 
-            <div style="display:flex; gap:8px; margin-top:8px;">
+            <div style="display:flex; gap:10px; margin-top:10px;">
                 <button class="btn" onclick="startUnivServerChunkUpload()">Update</button>
                 <button class="btn btn-secondary" onclick="closeUpdateUnivServerModal()">Cancel</button>
             </div>
@@ -969,7 +961,7 @@
     </div>
 
     <div id="modal-ban-user" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 375px;">
+        <div class="card" style="max-width: 440px;">
             <h3>BAN User Panel</h3>
             <div class="settings-grid" style="max-height:none;">
                 <div class="settings-item">
@@ -987,7 +979,7 @@
     </div>
 
     <div id="modal-role-mgr" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 375px;">
+        <div class="card" style="max-width: 440px;">
             <h3>Role Manager</h3>
             <div class="settings-grid" style="max-height:none;">
                 <div class="settings-item">
@@ -1009,53 +1001,65 @@
     </div>
 
     <div id="modal-server-mgmt" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 550px; max-height:85vh; display:flex; flex-direction:column;">
+        <div class="card" style="max-width: 650px; max-height:85vh; display:flex; flex-direction:column;">
             <h3>Server Management</h3>
-            <div id="server-mgmt-list" style="flex:1; overflow-y:auto; margin:13px 0; text-align:left; display:flex; flex-direction:column; gap:8px;"></div>
+            <div id="server-mgmt-list" style="flex:1; overflow-y:auto; margin:15px 0; text-align:left; display:flex; flex-direction:column; gap:10px;"></div>
             <button class="btn btn-secondary" onclick="closeServerMgmtModal()">Close</button>
         </div>
     </div>
 
-    <div id="dashboard" class="card" style="display:none; width: 410px;">
+    <div id="modal-new-userid" class="overlay" style="display:none;">
+        <div class="card" style="max-width: 420px;">
+            <h3>User ID Regenerated</h3>
+            <p style="font-size:0.8rem; color:var(--muted);">Your new unique User ID is:</p>
+            <input type="text" id="new-userid-display" readonly style="font-size:1rem; font-weight:bold; color:var(--accent);">
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <button class="btn" onclick="copyText('new-userid-display')">Copy</button>
+                <button class="btn btn-secondary" onclick="closeNewUserIdModal()">Dismiss</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="dashboard" class="card" style="display:none; width: 480px;">
         <div id="lockdown-banner-display" class="banner-lockdown" style="display:none;">
-            <div style="font-weight:bold; margin-bottom:3px;">⚠YOUR SERVER HAS EXCEEDED IT'S RAM LIMIT⚠</div>
+            <div style="font-weight:bold; margin-bottom:4px;">⚠YOUR SERVER HAS EXCEEDED IT'S RAM LIMIT⚠</div>
             <div>- your server has been temporarily disabled because it has exceeded the Ram limit, do not worry, your server will return back after a certain amount of time. You can still edit and manage it, but won't be able to communicate with it.</div>
-            <div style="font-weight:bold; margin-top:5px; color:#fff;" id="lockdown-countdown-text">0:00 Left</div>
+            <div style="font-weight:bold; margin-top:6px; color:#fff;" id="lockdown-countdown-text">0:00 Left</div>
         </div>
 
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 3px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 4px;">
             <button class="avatar-btn" id="dashboard-pfp-btn" title="Customize profile" onclick="openProfileModal()">
                 <div class="default-avatar-donut" id="donut-avatar-view"><div class="donut-head"></div><div class="donut-body"></div></div>
                 <img id="custom-avatar-view" class="avatar-img" style="display:none;">
             </button>
 
-            <div style="display:flex; align-items:center; gap:7px;">
-                <button class="btn-icon" title="Shopping Menu" onclick="openShopModal()" style="padding:2px 7px; font-size:0.75rem;">🛒</button>
-                <div style="font-size:0.75rem; font-weight:bold;"><span class="coin-icon">EZ</span> <span id="dashboard-coins-count">0</span></div>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <button class="btn-icon" title="Shopping Menu" onclick="openShopModal()" style="padding:2px 8px; font-size:0.85rem;">🛒</button>
+                <div style="font-size:0.85rem; font-weight:bold;"><span class="coin-icon">EZ</span> <span id="dashboard-coins-count">0</span></div>
             </div>
         </div>
 
-        <div id="metrics-bar" style="font-size: 0.68rem; color: var(--accent); font-weight: bold; margin-bottom: 7px;">
+        <div id="metrics-bar" style="font-size: 0.75rem; color: var(--accent); font-weight: bold; margin-bottom: 8px;">
             PING: <span id="metric-ping">50</span>ms | Data received: <span id="metric-rx">0.0</span>kbs↓ | Data sent: <span id="metric-tx">0.0</span>kbps↑
         </div>
 
-        <div style="margin-bottom:10px; text-align:left;">
-            <div style="font-size:0.65rem; color:var(--muted); font-weight:bold; margin-bottom:3px;">V-Battery left:</div>
-            <div class="progress-container" style="height:15px; margin:0; background:#020617; border-color:var(--green) !important;">
-                <div id="battery-progress-fill" class="progress-bar" style="background:var(--green); width:2%;"></div>
-                <div class="progress-text" style="color:#ffffff; font-size:0.6rem;"><span id="battery-curr-val">100.0</span>mb | 25000mb</div>
+        <div style="margin-bottom:12px; text-align:left;">
+            <div style="font-size:0.75rem; color:var(--muted); font-weight:bold; margin-bottom:3px;">V-Battery left:</div>
+            <div class="progress-container" style="height:18px; margin:0; background:#020617; border-color:var(--green) !important;">
+                <div id="battery-progress-fill" class="progress-bar" style="background:var(--green); width:0.4%;"></div>
+                <div class="progress-text" style="color:#ffffff; font-size:0.7rem;"><span id="battery-curr-val">100.0</span>mb | 25000mb</div>
             </div>
         </div>
 
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:13px;">
-            <div style="display:flex; align-items:center; gap:5px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <div style="display:flex; align-items:center; gap:6px;">
                 <h2 style="margin:0;">EzBridge Control</h2>
                 <span id="role-tag-display"></span>
             </div>
-            <div style="display:flex; gap:5px; align-items:center;">
+            <div style="display:flex; gap:6px; align-items:center;">
                 <button class="btn-icon" title="Global Chat Sessions" onclick="openChooseSessionModal()">💬</button>
                 <button class="btn-icon" id="terminal-btn" style="display:none;" onclick="openUniversalPanelModal()">>_</button>
-                <button class="btn" style="width:auto; margin:0; padding:5px 8px; font-size:0.68rem;" onclick="copyUserId()">Copy Client ID</button>
+                <button class="btn" style="width:auto; margin:0; padding:6px 10px; font-size:0.75rem;" onclick="copyUserId()">Copy Client ID</button>
                 <div id="dashboard-google-container" style="display:none;">
                     <div class="g_id_signin" data-type="icon" data-shape="circle"></div>
                 </div>
@@ -1067,20 +1071,20 @@
             <span>Server status: <span id="server-status-text">OFFLINE</span></span>
         </div>
 
-        <div style="margin: 13px 0; text-align: left; font-size: 0.75rem; color: var(--muted); display:flex; flex-direction:column; gap:5px;">
-            <div id="account-email-display" style="color:var(--accent); font-size:0.68rem; font-weight:bold; display:flex; justify-content:space-between; align-items:center;">
+        <div style="margin: 15px 0; text-align: left; font-size: 0.85rem; color: var(--muted); display:flex; flex-direction:column; gap:6px;">
+            <div id="account-email-display" style="color:var(--accent); font-size:0.75rem; font-weight:bold; display:flex; justify-content:space-between; align-items:center;">
                 <span>Linked Account: <span id="user-email-text">-</span></span>
-                <div style="display:flex; gap:5px; align-items:center;">
-                    <button class="btn" style="width:auto; margin:0; padding:2px 7px; font-size:0.68rem; background:#ffffff !important; color:#000000 !important;" onclick="navigateToPath('assets')">Assets</button>
+                <div style="display:flex; gap:6px; align-items:center;">
+                    <button class="btn" style="width:auto; margin:0; padding:2px 8px; font-size:0.75rem; background:#ffffff !important; color:#000000 !important;" onclick="navigateToPath('assets')">Assets</button>
                     <button class="btn-icon" onclick="openAccountSettingsModal()">⋮</button>
                 </div>
             </div>
             <div>Users online on your server: <span id="online-users-count" style="color:var(--accent); font-weight:bold;">0</span></div>
             <div>Active ServerScripts: <span id="active-scripts-count" style="color:var(--accent); font-weight:bold;">0</span></div>
             
-            <div style="display:flex; align-items:center; gap:7px;">
+            <div style="display:flex; align-items:center; gap:8px;">
                 <span>RAM usage: <span id="ram-usage-text" style="color:var(--accent); font-weight:bold;">0.0 KB</span></span>
-                <div style="flex:1; background:#000000; border:1px solid var(--border); height:10px; overflow:hidden;">
+                <div style="flex:1; background:#000000; border:1px solid var(--border); height:12px; overflow:hidden;">
                     <div id="ram-progress-fill" style="width:0%; height:100%; background:#ef4444; transition:width 0.2s;"></div>
                 </div>
             </div>
@@ -1090,100 +1094,100 @@
 
         <div class="dashboard-row">
             <button class="btn" style="flex: 1;" onclick="toggleServerState()">Start/Stop Server</button>
-            <button class="btn btn-purple" style="width: 75px;" onclick="openConsoleModal()">Console</button>
-            <button class="btn btn-secondary" style="width: 42px;" onclick="openEditSettings()">⚙</button>
+            <button class="btn btn-purple" style="width: 90px;" onclick="openConsoleModal()">Console</button>
+            <button class="btn btn-secondary" style="width: 50px;" onclick="openEditSettings()">⚙</button>
         </div>
         <div class="dashboard-row">
-            <button class="btn btn-secondary" style="flex: 1;" onclick="openHowToUse()">Help & Auth Keys</button>
+            <button class="btn btn-secondary" id="btn-how-to-use" style="flex: 1;" onclick="openHowToUse()">Help & Auth Keys</button>
         </div>
 
-        <button class="btn" style="background:#ffffff !important; color:#000000 !important; font-weight:bold; margin-top:13px;" onclick="navigateToPath('sites')">SEE AND PUBLISH</button>
+        <button class="btn" style="background:#ffffff !important; color:#000000 !important; font-weight:bold; margin-top:15px;" onclick="navigateToPath('sites')">SEE AND PUBLISH</button>
     </div>
 
     <div id="modal-howto" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 510px;">
-            <h3 style="margin-bottom:13px;">Help & Auth Keys</h3>
+        <div class="card" style="max-width: 600px;">
+            <h3 style="margin-bottom:15px;">Help & Auth Keys</h3>
             <div style="text-align:left;">
-                <button class="btn btn-purple" style="margin-bottom:13px;" onclick="copyAIPrompt()">Copy AI Prompt</button>
-                
+                <button class="btn btn-purple" style="margin-bottom:15px;" onclick="copyAIPrompt()">Copy AI Prompt</button>
                 <div class="settings-item">
                     <label>1. Server Auth Key</label>
-                    <div style="display:flex; gap:8px;">
+                    <div style="display:flex; gap:10px;">
                         <button class="btn btn-secondary" id="btn-regen-server-key" style="width:auto; margin:0;" onclick="regenerateServerKeySubmit()">Regenerate Key</button>
                         <input type="text" id="copy-key" readonly style="flex-grow:1;">
                         <button class="btn" style="width:auto; margin:0;" onclick="copyText('copy-key')">Copy</button>
                     </div>
                 </div>
-
-                <div class="settings-item" style="margin-top:8px;">
+                <div class="settings-item" style="margin-top:10px;">
                     <label>2. Current Cloudflare Link</label>
-                    <div style="display:flex; gap:8px;">
+                    <div style="display:flex; gap:10px;">
                         <input type="text" id="copy-link" readonly style="flex-grow:1;">
                         <button class="btn" style="width:auto; margin:0;" onclick="copyText('copy-link')">Copy</button>
                     </div>
                 </div>
-
-                <div class="settings-item" style="margin-top:8px;">
+                <div class="settings-item" style="margin-top:10px;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <label>3 - AI auth key</label>
-                        <span id="ai-key-status-label" style="font-size:0.65rem; font-weight:bold; color:var(--muted);">Status: None</span>
+                        <label>3. AI Auth Key</label>
+                        <span id="ai-key-status-badge" style="font-size:0.75rem; color:var(--green); font-weight:bold; display:none;">Status: Active</span>
                     </div>
-                    <div style="display:flex; gap:8px; align-items:center;">
-                        <button class="btn btn-secondary" id="btn-gen-ai-key" style="flex:1; margin:0;" onclick="generateAiKeySubmit()">Generate AI key</button>
-                        <input type="text" id="copy-ai-key" readonly style="flex-grow:1; display:none;">
-                        <button class="btn" id="btn-copy-ai-key" style="width:auto; margin:0; display:none;" onclick="copyText('copy-ai-key')">Copy</button>
-                        <button class="btn" id="btn-open-ai-billing" style="width:auto; margin:0; background:#ffffff !important; color:#000000 !important; display:none;" onclick="openAiBillingModal()">Billing</button>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <div id="ai-key-slot" style="flex-grow:1;">
+                            <button class="btn btn-purple" id="btn-gen-ai-key" style="margin:0;" onclick="generateAIKeySubmit()">Generate AI key</button>
+                            <div id="ai-key-display-box" style="display:none; gap:10px;">
+                                <input type="text" id="copy-ai-key" readonly style="flex-grow:1;">
+                                <button class="btn" style="width:auto; margin:0;" onclick="copyText('copy-ai-key')">Copy</button>
+                            </div>
+                        </div>
+                        <button class="btn" id="btn-ai-billing" style="width:auto; margin:0; background:#ffffff !important; color:#000000 !important; display:none;" onclick="openAIBillingModal()">Billing</button>
                     </div>
                 </div>
-
-                <div style="display:flex; gap:8px; margin-top:13px;">
+                <div style="display:flex; gap:10px; margin-top:15px;">
                     <button class="btn btn-secondary" style="flex:1;" onclick="openCommandsModal()">API Commands</button>
                     <button class="btn btn-secondary" style="flex:1;" onclick="openGameCode()">View Game Example</button>
                 </div>
             </div>
-            <button class="btn btn-secondary" style="margin-top:13px;" onclick="closeHowToUse()">Close</button>
+            <button class="btn btn-secondary" style="margin-top:15px;" onclick="closeHowToUse()">Close</button>
         </div>
     </div>
 
     <div id="modal-commands" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 550px; max-height: 85vh; display: flex; flex-direction: column;">
+        <div class="card" style="max-width: 650px; max-height: 85vh; display: flex; flex-direction: column;">
             <h3>EzBridge API Commands</h3>
-            <div id="api-commands-box" class="code-box" style="flex: 1; max-height: 50vh; overflow-y: auto;"></div>
-            <button class="btn btn-secondary" style="margin-top: 8px;" onclick="closeCommandsModal()">Back</button>
+            <div id="api-commands-box" class="code-box" style="flex: 1; max-height: 55vh; overflow-y: auto;"></div>
+            <button class="btn btn-secondary" style="margin-top: 10px;" onclick="closeCommandsModal()">Back</button>
         </div>
     </div>
 
     <div id="modal-code" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 640px; max-height: 85vh; display: flex; flex-direction: column; overflow-y: auto;">
+        <div class="card" style="max-width: 750px; max-height: 85vh; display: flex; flex-direction: column; overflow-y: auto;">
             <h3>Code Examples</h3>
             <div id="http-disclaimer" class="disclaimer" style="display:none;">
                 DISCLAIMER: it's recommended that the client should have a temporary identifier so your scripts and projects know who's sending them, its optional.
             </div>
             
-            <div style="text-align:left; font-size:0.75rem; font-weight:bold; color:var(--accent);">1. Multiplayer Coin Collector - Client HTML:</div>
-            <textarea id="example-coin-client" class="code-box" readonly rows="8" style="width:100%; height:135px; border:none; resize:none;"></textarea>
+            <div style="text-align:left; font-size:0.85rem; font-weight:bold; color:var(--accent);">1. Multiplayer Coin Collector - Client HTML:</div>
+            <textarea id="example-coin-client" class="code-box" readonly rows="8" style="width:100%; height:160px; border:none; resize:none;"></textarea>
 
-            <div style="text-align:left; font-size:0.75rem; font-weight:bold; color:var(--accent); margin-top:8px;">1. Multiplayer Coin Collector - ServerScript:</div>
-            <textarea id="example-coin-server" class="code-box" readonly rows="8" style="width:100%; height:135px; border:none; resize:none;"></textarea>
+            <div style="text-align:left; font-size:0.85rem; font-weight:bold; color:var(--accent); margin-top:10px;">1. Multiplayer Coin Collector - ServerScript:</div>
+            <textarea id="example-coin-server" class="code-box" readonly rows="8" style="width:100%; height:160px; border:none; resize:none;"></textarea>
 
-            <div style="text-align:left; font-size:0.75rem; font-weight:bold; color:var(--accent); margin-top:12px; border-top:1px solid var(--border); padding-top:8px;">2. Test Your Guns - Client Script:</div>
-            <textarea id="example-code-client" class="code-box" readonly rows="8" style="width:100%; height:135px; border:none; resize:none;"></textarea>
+            <div style="text-align:left; font-size:0.85rem; font-weight:bold; color:var(--accent); margin-top:14px; border-top:1px solid var(--border); padding-top:10px;">2. Test Your Guns - Client Script:</div>
+            <textarea id="example-code-client" class="code-box" readonly rows="8" style="width:100%; height:160px; border:none; resize:none;"></textarea>
             
-            <div style="text-align:left; font-size:0.75rem; font-weight:bold; color:var(--accent); margin-top:8px;">2. Test Your Guns - ServerScript:</div>
-            <textarea id="example-code-server" class="code-box" readonly rows="8" style="width:100%; height:135px; border:none; resize:none;"></textarea>
+            <div style="text-align:left; font-size:0.85rem; font-weight:bold; color:var(--accent); margin-top:10px;">2. Test Your Guns - ServerScript:</div>
+            <textarea id="example-code-server" class="code-box" readonly rows="8" style="width:100%; height:160px; border:none; resize:none;"></textarea>
 
-            <div id="http-extra-example-container" style="display:none; margin-top:12px; border-top:1px solid var(--border); padding-top:8px;">
-                <div style="text-align:left; font-size:0.75rem; font-weight:bold; color:var(--accent);">3. HTTP State-Based Global Chat - Client Script:</div>
-                <textarea id="example-http-chat-client" class="code-box" readonly rows="8" style="width:100%; height:135px; border:none; resize:none;"></textarea>
+            <div id="http-extra-example-container" style="display:none; margin-top:14px; border-top:1px solid var(--border); padding-top:10px;">
+                <div style="text-align:left; font-size:0.85rem; font-weight:bold; color:var(--accent);">3. HTTP State-Based Global Chat - Client Script:</div>
+                <textarea id="example-http-chat-client" class="code-box" readonly rows="8" style="width:100%; height:160px; border:none; resize:none;"></textarea>
 
-                <div style="text-align:left; font-size:0.75rem; font-weight:bold; color:var(--accent); margin-top:5px;">3. HTTP State-Based Global Chat - ServerScript:</div>
-                <textarea id="example-http-chat-server" class="code-box" readonly rows="8" style="width:100%; height:135px; border:none; resize:none;"></textarea>
+                <div style="text-align:left; font-size:0.85rem; font-weight:bold; color:var(--accent); margin-top:6px;">3. HTTP State-Based Global Chat - ServerScript:</div>
+                <textarea id="example-http-chat-server" class="code-box" readonly rows="8" style="width:100%; height:160px; border:none; resize:none;"></textarea>
             </div>
 
-            <div style="text-align:left; font-size:0.75rem; font-weight:bold; color:var(--accent); margin-top:12px; border-top:1px solid var(--border); padding-top:8px;">Auto Fetch Tunnel From Repo (HTTP):</div>
-            <textarea id="example-auto-tunnel" class="code-box" readonly rows="8" style="width:100%; height:135px; border:none; resize:none;"></textarea>
+            <div style="text-align:left; font-size:0.85rem; font-weight:bold; color:var(--accent); margin-top:14px; border-top:1px solid var(--border); padding-top:10px;">Dynamic Tunnel URL Auto-Loader (HTTP/WS):</div>
+            <textarea id="example-dynamic-tunnel" class="code-box" readonly rows="6" style="width:100%; height:130px; border:none; resize:none;"></textarea>
 
-            <div style="display:flex; gap:8px; margin-top:8px;">
+            <div style="display:flex; gap:10px; margin-top:10px;">
                 <button class="btn" onclick="copyText('example-coin-client')">Copy Coin Collector Client</button>
                 <button class="btn btn-secondary" onclick="closeGameCode()">Back</button>
             </div>
@@ -1191,7 +1195,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://mae-certified-bedroom-salvation.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://invitations-infants-ref-forum.trycloudflare.com";
     const BASE_SITE_URL = "https://terminatorsbdev.github.io/EzBridge/";
 
     let ownerId = getCookie("eb_owner_id") || "";
@@ -1202,6 +1206,8 @@
     let activeUserId = "";
     let userRole = "None";
     let serverKey = "";
+    let userAIKey = null;
+    let userAIKeyStatus = null;
     let serverActive = false;
     let isServerSleeping = false;
     let serverSleepReason = null;
@@ -1226,8 +1232,6 @@
 
     let userTotalAssetBytes = 0;
     const MAX_ASSET_BYTES = 500 * 1024 * 1024;
-
-    let userAiKeyData = null;
 
     let isServerLockdown = false;
     let lockdownUntilTime = 0;
@@ -1492,12 +1496,16 @@
         activeUserId = data.userId || data.ownerId;
         userRole = data.role || "None";
         userLinkedEmail = data.email || null;
+        userAIKey = data.aiKey || null;
+        userAIKeyStatus = data.aiKeyStatus || null;
         setCookie("eb_owner_id", ownerId, 365);
         isCaptchaTagged = true;
 
         if (data.username) ezbridgeUsername = data.username;
         if (data.profile) updateLocalProfileUI(data.profile);
         if (data.coins !== undefined) updateCoinsDisplay(data.coins);
+
+        updateAIKeyDashboardDisplay();
 
         if (data.hasServer && data.server) {
             serverKey = data.server.key;
@@ -1520,7 +1528,6 @@
             applyRolePermissions();
             showDashboard();
             checkInitialUrlRouting();
-            socket.emit('eb_get_ai_billing');
         } else {
             openSetupUI();
         }
@@ -1594,6 +1601,9 @@
             if (data.email) userLinkedEmail = data.email;
             if (data.profile) updateLocalProfileUI(data.profile);
             if (data.coins !== undefined) updateCoinsDisplay(data.coins);
+            userAIKey = data.aiKey || null;
+            userAIKeyStatus = data.aiKeyStatus || null;
+            updateAIKeyDashboardDisplay();
             if (ownerId && (data.username || data.userId)) isCaptchaTagged = true;
             document.getElementById('overlay-captcha').style.display = 'flex';
             checkInitialUrlRouting();
@@ -1696,15 +1706,15 @@
         }
     });
 
-    socket.on('eb_server_hw_stats', (data) => {
-        const el = document.getElementById('univ-hw-stats');
-        if (el && data && data.stats) el.innerText = data.stats;
-    });
-
     socket.on('eb_perf_tick', (data) => {
         perfHistory.push(data);
         if (perfHistory.length > 30) perfHistory.shift();
         if (perfGraphVisible) drawConsolePerfGraph();
+    });
+
+    socket.on('eb_system_telemetry', (data) => {
+        const el = document.getElementById('univ-telemetry-display');
+        if (el && data.line) el.innerText = data.line;
     });
 
     function toggleConsolePerf() {
@@ -1722,7 +1732,7 @@
 
         gCtx.strokeStyle = '#1e293b';
         gCtx.lineWidth = 1;
-        for (let y = 20; y < cvs.height; y += 25) {
+        for (let y = 20; y < cvs.height; y += 30) {
             gCtx.beginPath();
             gCtx.moveTo(0, y);
             gCtx.lineTo(cvs.width, y);
@@ -1884,59 +1894,132 @@
         }
     });
 
-    socket.on('eb_ai_billing_response', (data) => {
-        const btnGen = document.getElementById('btn-gen-ai-key');
-        const inpKey = document.getElementById('copy-ai-key');
-        const btnCopy = document.getElementById('btn-copy-ai-key');
-        const btnBill = document.getElementById('btn-open-ai-billing');
-        const statusLbl = document.getElementById('ai-key-status-label');
+    socket.on('eb_chat_history_chunk', (data) => {
+        if (data.session !== currentChatSession) return;
+        if (data.index === 0) chatHistoryChunks = [];
+        chatHistoryChunks.push(data.chunk);
 
-        if (data && data.hasKey && data.data) {
-            userAiKeyData = data.data;
-            btnGen.style.display = 'none';
-            inpKey.value = data.data.key;
-            inpKey.style.display = 'block';
-            btnCopy.style.display = 'block';
-            btnBill.style.display = 'block';
-            statusLbl.innerText = `Status: ${data.data.status || 'Active'}`;
-            statusLbl.style.color = (data.data.status === 'Blocked') ? 'var(--error)' : 'var(--green)';
-
-            document.getElementById('billing-last-tokens').innerText = data.data.lastMonthTokens || 0;
-            document.getElementById('billing-price').innerText = data.data.currentPrice || 0;
-            const payBtn = document.getElementById('btn-pay-ai-billing');
-            if (payBtn) payBtn.style.display = (data.data.currentPrice > 0) ? 'block' : 'none';
-        } else {
-            btnGen.style.display = 'block';
-            inpKey.style.display = 'none';
-            btnCopy.style.display = 'none';
-            btnBill.style.display = 'none';
-            statusLbl.innerText = 'Status: None';
-            statusLbl.style.color = 'var(--muted)';
+        if (chatHistoryChunks.length === data.total) {
+            try {
+                const fullList = JSON.parse(chatHistoryChunks.join(''));
+                renderChatHistory(fullList);
+            } catch(e) {}
         }
     });
 
-    socket.on('eb_ai_key_data', (data) => {
-        if (data && data.aiKey) {
-            socket.emit('eb_get_ai_billing');
+    socket.on('eb_chat_msg_out', (data) => {
+        if (data.session === currentChatSession && data.msg) {
+            appendSingleChatMessage(data.msg);
         }
     });
 
-    function generateAiKeySubmit() {
-        socket.emit('eb_generate_ai_key');
-    }
+    socket.on('eb_chat_typing_count', (data) => {
+        if (data.session === currentChatSession) {
+            const el = document.getElementById('chat-typing-status');
+            if (el) {
+                if (data.count > 0) {
+                    el.innerText = `${data.count} ${data.count === 1 ? 'user is' : 'users are'} typing . . .`;
+                } else {
+                    el.innerText = "";
+                }
+            }
+        }
+    });
 
-    function openAiBillingModal() {
-        socket.emit('eb_get_ai_billing');
-        document.getElementById('modal-ai-billing').style.display = 'flex';
-    }
+    socket.on('eb_published_sites_chunk', (data) => {
+        if (data.index === 0) siteFetchChunks = [];
+        siteFetchChunks.push(data.chunk);
 
-    function closeAiBillingModal() {
-        document.getElementById('modal-ai-billing').style.display = 'none';
-    }
+        const pct = Math.floor(((data.index + 1) / data.total) * 100);
+        document.getElementById('site-fetch-pct').innerText = pct;
+        document.getElementById('site-fetch-bar').style.width = `${pct}%`;
 
-    function payAiBillSubmit() {
-        socket.emit('eb_pay_ai_bill');
-    }
+        if (siteFetchChunks.length === data.total) {
+            try {
+                publishedSitesCache = JSON.parse(siteFetchChunks.join(''));
+                isUserHasSite = Boolean(data.userHasSite);
+                
+                document.getElementById('overlay-fetching-sites').style.display = 'none';
+                document.getElementById('search-fetching-indicator').style.display = 'none';
+                document.getElementById('modal-see-publish').style.display = 'flex';
+                
+                updateCreateUpdateSiteBtnText();
+                applySiteSearchAndSort();
+            } catch(e) {
+                document.getElementById('overlay-fetching-sites').style.display = 'none';
+                document.getElementById('search-fetching-indicator').style.display = 'none';
+            }
+        }
+    });
+
+    socket.on('eb_user_site_data_chunk', (data) => {
+        if (!data.success) {
+            document.getElementById('overlay-fetching-site-data').style.display = 'none';
+            openCreateSiteModalForm();
+            return;
+        }
+
+        if (data.index === 0) userSiteDataChunks = [];
+        userSiteDataChunks.push(data.chunkPiece || data.chunk);
+
+        const pct = Math.floor(((data.index + 1) / data.total) * 100);
+        document.getElementById('site-data-pct').innerText = pct;
+        document.getElementById('site-data-bar').style.width = `${pct}%`;
+
+        if (userSiteDataChunks.length === data.total) {
+            try {
+                const parsed = JSON.parse(userSiteDataChunks.join(''));
+                document.getElementById('overlay-fetching-site-data').style.display = 'none';
+
+                openCreateSiteModalForm();
+
+                document.getElementById('site-title-field').value = parsed.site.title || "";
+                document.getElementById('site-html-field').value = parsed.site.htmlScript || "";
+                updateLineNumbers('site-html-field', 'site-code-lines');
+                document.getElementById('site-vis-field').value = parsed.site.visibility || "public";
+                document.getElementById('site-auto-tunnel-field').value = String(parsed.site.autoUpdateTunnel !== false);
+                generatedSiteIdVal = parsed.site.id || "";
+
+                if (parsed.remCooldownMs > 0) {
+                    startSiteIdGenCooldown(parsed.remCooldownMs / 1000);
+                } else if (generatedSiteIdVal) {
+                    const btn = document.getElementById('btn-gen-site-id');
+                    btn.disabled = false;
+                    btn.innerText = `ID generated.`;
+                    btn.style.background = "#10b981 !important";
+                    btn.style.color = "#000000 !important";
+                }
+            } catch(e) {
+                document.getElementById('overlay-fetching-site-data').style.display = 'none';
+                openCreateSiteModalForm();
+            }
+        }
+    });
+
+    socket.on('eb_site_id_generated', (data) => {
+        generatedSiteIdVal = data.siteId;
+        startSiteIdGenCooldown(data.cooldownMs / 1000);
+    });
+
+    socket.on('eb_site_chunk_ack', (data) => {
+        const pct = Math.floor((data.received / data.total) * 100);
+        document.getElementById('site-progress-bar').style.width = `${pct}%`;
+        document.getElementById('site-progress-val').innerText = pct;
+    });
+
+    socket.on('eb_site_publish_complete', (data) => {
+        isUploadingSiteScript = false;
+        document.getElementById('site-upload-progress').style.display = 'none';
+        alert("Site published/updated successfully!");
+        closeCreateSiteModal();
+        openSeeAndPublishModal();
+    });
+
+    socket.on('eb_site_data_response', (data) => {
+        if (data.site) {
+            renderSiteFrame(data.site);
+        }
+    });
 
     socket.on('eb_site_rated_response', (data) => {
         const item = publishedSitesCache.find(s => s.id === data.siteId);
@@ -1983,7 +2066,7 @@
         }
 
         if (!data.assets || data.assets.length === 0) {
-            container.innerHTML = `<div style="color:var(--muted); font-size:0.75rem; padding:12px;">No assets found. Upload audio, image or video above!</div>`;
+            container.innerHTML = `<div style="color:var(--muted); font-size:0.85rem; padding:15px;">No assets found. Upload audio, image or video above!</div>`;
             return;
         }
 
@@ -1992,19 +2075,19 @@
             itemDiv.className = "domain-item";
             itemDiv.style.alignItems = "center";
 
-            let assetPreview = `<div id="asset-slot-${a.id}" style="width:30px; height:30px; background:#0f172a; border:1px solid #334155; display:flex; align-items:center; justify-content:center; font-size:0.65rem;">...</div>`;
+            let assetPreview = `<div id="asset-slot-${a.id}" style="width:36px; height:36px; background:#0f172a; border:1px solid #334155; display:flex; align-items:center; justify-content:center; font-size:0.7rem;">...</div>`;
 
             itemDiv.innerHTML = `
-                <div style="display:flex; align-items:center; gap:8px;">
+                <div style="display:flex; align-items:center; gap:10px;">
                     ${assetPreview}
                     <div>
-                        <div style="font-weight:bold; font-size:0.75rem;">${escapeHtml(a.name)}</div>
-                        <div style="font-size:0.65rem; color:var(--muted);">ID: #${a.id} | ${(a.size / 1024).toFixed(1)} KB</div>
+                        <div style="font-weight:bold; font-size:0.85rem;">${escapeHtml(a.name)}</div>
+                        <div style="font-size:0.7rem; color:var(--muted);">ID: #${a.id} | ${(a.size / 1024).toFixed(1)} KB</div>
                     </div>
                 </div>
-                <div style="display:flex; gap:5px;">
-                    <button class="btn-secondary" style="padding:3px 7px; font-size:0.68rem;" onclick="copyTextValue('${a.id}')">Copy asset ID</button>
-                    <button class="btn-purple" style="padding:3px 7px; font-size:0.68rem;" onclick="navigateToPath('assets/edit/${a.id}')">edit</button>
+                <div style="display:flex; gap:6px;">
+                    <button class="btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="copyTextValue('${a.id}')">Copy asset ID</button>
+                    <button class="btn-purple" style="padding:4px 8px; font-size:0.75rem;" onclick="navigateToPath('assets/edit/${a.id}')">edit</button>
                 </div>
             `;
             container.appendChild(itemDiv);
@@ -2045,9 +2128,9 @@
         const isVideo = type.includes('video') || type.includes('mp4') || type.includes('webm');
 
         if (isAudio) {
-            slot.innerHTML = `<button class="btn-icon" style="padding:3px 7px; font-size:0.8rem;" onclick="playCachedAudio('${assetId}')">▶</button>`;
+            slot.innerHTML = `<button class="btn-icon" style="padding:4px 8px; font-size:0.9rem;" onclick="playCachedAudio('${assetId}')">▶</button>`;
         } else if (isVideo) {
-            slot.innerHTML = `<button class="btn-icon" style="padding:3px 7px; font-size:0.8rem;" onclick="playCachedVideo('${assetId}')">🎬</button>`;
+            slot.innerHTML = `<button class="btn-icon" style="padding:4px 8px; font-size:0.9rem;" onclick="playCachedVideo('${assetId}')">🎬</button>`;
         } else {
             slot.innerHTML = `<img src="${base64Data}" style="width:100%; height:100%; object-fit:cover;">`;
         }
@@ -2090,7 +2173,7 @@
         document.getElementById('modal-asset-edit').style.display = 'flex';
 
         if (cachedAssetsRam[assetId]) {
-            document.getElementById('asset-preview-box').innerHTML = `<img src="${cachedAssetsRam[assetId]}" style="max-height:85px; max-width:100%;">`;
+            document.getElementById('asset-preview-box').innerHTML = `<img src="${cachedAssetsRam[assetId]}" style="max-height:100px; max-width:100%;">`;
         }
     }
 
@@ -2129,7 +2212,7 @@
                 const submitBtn = document.getElementById('btn-submit-asset');
 
                 if (isImage) {
-                    preview.innerHTML = `<img src="${stagedAssetBase64}" style="max-height:85px; max-width:100%;">`;
+                    preview.innerHTML = `<img src="${stagedAssetBase64}" style="max-height:100px; max-width:100%;">`;
                     submitBtn.innerHTML = currentEditingAssetId ? "Apply changes" : "Upload Asset";
                 } else if (isAudio) {
                     preview.innerHTML = `<audio id="staging-audio" controls src="${stagedAssetBase64}" style="width:100%;"></audio>`;
@@ -2145,8 +2228,8 @@
                     }, 500);
                 } else if (isVideo) {
                     currentAssetCost = Math.max(1, Math.ceil(file.size / (100 * 1024)));
-                    preview.innerHTML = `<video controls src="${stagedAssetBase64}" style="max-height:100px; max-width:100%;"></video>`;
-                    submitBtn.innerHTML = `${currentEditingAssetId ? "Apply changes" : "Upload Asset"} | ${currentAssetCost} <span class="coin-icon" style="width:14px; height:14px; font-size:0.45rem;">EZ</span>`;
+                    preview.innerHTML = `<video controls src="${stagedAssetBase64}" style="max-height:120px; max-width:100%;"></video>`;
+                    submitBtn.innerHTML = `${currentEditingAssetId ? "Apply changes" : "Upload Asset"} | ${currentAssetCost} <span class="coin-icon" style="width:16px; height:16px; font-size:0.5rem;">EZ</span>`;
                 }
             };
             reader.readAsDataURL(file);
@@ -2370,6 +2453,78 @@
     function toggleLogin2FASubmit(val) {
         socket.emit('eb_toggle_login_2fa', { enabled: val === 'true' });
     }
+
+    function generateAIKeySubmit() {
+        socket.emit('eb_generate_ai_key');
+    }
+
+    socket.on('eb_ai_key_response', (data) => {
+        userAIKey = data.key;
+        userAIKeyStatus = data.status;
+        updateAIKeyDashboardDisplay();
+    });
+
+    function updateAIKeyDashboardDisplay() {
+        const genBtn = document.getElementById('btn-gen-ai-key');
+        const box = document.getElementById('ai-key-display-box');
+        const inp = document.getElementById('copy-ai-key');
+        const badge = document.getElementById('ai-key-status-badge');
+        const billBtn = document.getElementById('btn-ai-billing');
+
+        if (userAIKey) {
+            if (genBtn) genBtn.style.display = "none";
+            if (box) box.style.display = "flex";
+            if (inp) inp.value = userAIKey;
+            if (billBtn) billBtn.style.display = "block";
+            if (badge) {
+                badge.style.display = "inline-block";
+                badge.innerText = `Status: ${userAIKeyStatus || 'Active'}`;
+                badge.style.color = (userAIKeyStatus === 'Blocked') ? 'var(--error)' : 'var(--green)';
+            }
+        } else {
+            if (genBtn) genBtn.style.display = "block";
+            if (box) box.style.display = "none";
+            if (billBtn) billBtn.style.display = "none";
+            if (badge) badge.style.display = "none";
+        }
+    }
+
+    function openAIBillingModal() {
+        if (!userAIKey) return alert("Please generate an AI key first.");
+        socket.emit('eb_get_ai_billing', { key: userAIKey });
+        document.getElementById('modal-ai-billing').style.display = "flex";
+    }
+
+    function closeAIBillingModal() {
+        document.getElementById('modal-ai-billing').style.display = "none";
+    }
+
+    socket.on('eb_ai_billing_chunk', (data) => {
+        try {
+            const parsed = JSON.parse(data.chunk);
+            document.getElementById('billing-last-tokens').innerText = parsed.lastMonthTokens || 0;
+            document.getElementById('billing-current-price').innerText = parsed.currentPriceCoins || 0;
+            const payBtn = document.getElementById('btn-pay-ai-bill');
+            if (parsed.currentPriceCoins > 0) {
+                payBtn.style.display = "block";
+            } else {
+                payBtn.style.display = "none";
+            }
+        } catch(e) {}
+    });
+
+    function payAIBillSubmit() {
+        if (!userAIKey) return;
+        socket.emit('eb_pay_ai_bill', { key: userAIKey });
+    }
+
+    socket.on('eb_ai_billing_paid', (data) => {
+        userAIKeyStatus = data.status;
+        updateAIKeyDashboardDisplay();
+        document.getElementById('billing-current-price').innerText = "0";
+        document.getElementById('btn-pay-ai-bill').style.display = "none";
+        if (data.newCoins !== undefined) updateCoinsDisplay(data.newCoins);
+    });
 
     function openDeleteAccountConfirmModal() {
         closeAccountSettingsModal();
@@ -2808,15 +2963,11 @@
         const btnRoleMgr = document.getElementById('btn-role-mgr');
         const btnChangeUser = document.getElementById('btn-change-username');
         const btnChangePass = document.getElementById('btn-change-password');
-        const btnOwnerUpdUniv = document.getElementById('btn-owner-upd-univ');
-        const btnOwnerSetCoins = document.getElementById('btn-owner-set-coins');
 
         termBtn.style.display = 'none';
         btnServerMgmt.style.display = 'none';
         btnBanUser.style.display = 'none';
         btnRoleMgr.style.display = 'none';
-        if (btnOwnerUpdUniv) btnOwnerUpdUniv.style.display = 'none';
-        if (btnOwnerSetCoins) btnOwnerSetCoins.style.display = 'none';
         
         if (ezbridgeUsername) {
             btnChangeUser.style.display = 'block';
@@ -2832,8 +2983,6 @@
             btnServerMgmt.style.display = 'block';
             btnBanUser.style.display = 'block';
             btnRoleMgr.style.display = 'block';
-            if (btnOwnerUpdUniv) btnOwnerUpdUniv.style.display = 'block';
-            if (btnOwnerSetCoins) btnOwnerSetCoins.style.display = 'block';
         } else if (userRole === 'Dev') {
             tag.innerHTML = `<span class="role-tag role-dev">DEVELOPER</span>`;
             termBtn.style.display = 'block';
@@ -2950,7 +3099,7 @@
         container.innerHTML = "";
 
         if (sites.length === 0) {
-            container.innerHTML = `<div style="color:var(--muted); padding:20px; font-size:0.75rem;">No published sites found.</div>`;
+            container.innerHTML = `<div style="color:var(--muted); padding:20px; font-size:0.85rem;">No published sites found.</div>`;
             return;
         }
 
@@ -2959,12 +3108,12 @@
             div.className = 'domain-item';
             div.style.flexDirection = 'column';
             div.style.alignItems = 'flex-start';
-            div.style.gap = '5px';
+            div.style.gap = '6px';
 
             const canDelete = (userRole === 'Owner' || userRole === 'Dev' || userRole === 'Admin');
-            const deleteBtnHTML = canDelete ? `<button class="btn btn-danger" style="width:auto; margin:0; padding:2px 7px; font-size:0.65rem;" onclick="deletePublishedSite('${s.id}')">DELETE</button>` : '';
+            const deleteBtnHTML = canDelete ? `<button class="btn btn-danger" style="width:auto; margin:0; padding:2px 8px; font-size:0.7rem;" onclick="deletePublishedSite('${s.id}')">DELETE</button>` : '';
 
-            const pfpHTML = (s.ownerPfpData && s.ownerPfpData !== "default") ? `<img src="${s.ownerPfpData}" style="width:16px; height:16px; border-radius:50% !important; vertical-align:middle; margin-left:3px; object-fit:cover;">` : `<span class="coin-icon" style="width:16px; height:16px; font-size:0.5rem; margin-left:3px; border-radius:50% !important;">👤</span>`;
+            const pfpHTML = (s.ownerPfpData && s.ownerPfpData !== "default") ? `<img src="${s.ownerPfpData}" style="width:18px; height:18px; border-radius:50% !important; vertical-align:middle; margin-left:4px; object-fit:cover;">` : `<span class="coin-icon" style="width:18px; height:18px; font-size:0.55rem; margin-left:4px; border-radius:50% !important;">👤</span>`;
 
             const totalVotes = (s.likes || 0) + (s.dislikes || 0);
             const greenPct = totalVotes > 0 ? ((s.likes || 0) / totalVotes) * 100 : 50;
@@ -2974,19 +3123,19 @@
 
             div.innerHTML = `
                 <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
-                    <span><b>${escapeHtml(s.title)}</b> <button class="btn-secondary" style="padding:2px 5px; font-size:0.6rem;" onclick="copyTextValue('${s.id}')">COPY ID</button> by <b>${escapeHtml(s.ownerDisplayName || s.ownerUserId)}</b> ${pfpHTML}</span>
+                    <span><b>${escapeHtml(s.title)}</b> <button class="btn-secondary" style="padding:2px 6px; font-size:0.65rem;" onclick="copyTextValue('${s.id}')">COPY ID</button> by <b>${escapeHtml(s.ownerDisplayName || s.ownerUserId)}</b> ${pfpHTML}</span>
                     ${deleteBtnHTML}
                 </div>
-                <div style="font-size:0.68rem; color:var(--muted);">
+                <div style="font-size:0.75rem; color:var(--muted);">
                     Latest update: ${s.dateStr || '0/0/0'} | <b>${s.onlineCount || 0}</b> people online in it! | visits: <b>${s.visits || 0}</b>
                 </div>
-                <div style="display:flex; gap:7px; width:100%; align-items:center; margin-top:2px;">
+                <div style="display:flex; gap:8px; width:100%; align-items:center; margin-top:2px;">
                     <button class="rate-btn ${likeActive}" onclick="rateSite('${s.id}', 'like')">👍 ${s.likes || 0}</button>
                     <button class="rate-btn ${dislikeActive}" onclick="rateSite('${s.id}', 'dislike')">👎 ${s.dislikes || 0}</button>
                     <div class="tug-war-bar">
                         <div class="tug-war-green" style="width:${greenPct}%;"></div>
                     </div>
-                    <button class="btn" style="width:auto; margin:0; padding:3px 12px; font-size:0.75rem;" onclick="accessSite('${s.id}')">access</button>
+                    <button class="btn" style="width:auto; margin:0; padding:4px 14px; font-size:0.8rem;" onclick="accessSite('${s.id}')">access</button>
                 </div>
             `;
             container.appendChild(div);
@@ -3225,17 +3374,17 @@
         else if (msg.role === 'Admin') roleTagHTML = `<span class="role-tag role-admin">ADMIN</span>`;
 
         const canCopyId = (userRole === 'Owner' || userRole === 'Dev' || userRole === 'Admin');
-        const copyBtnHTML = canCopyId ? `<button class="btn-secondary" style="padding:2px 5px; font-size:0.6rem; margin-left:5px;" onclick="copyTextValue('${msg.userId}')">Copy ID</button>` : '';
+        const copyBtnHTML = canCopyId ? `<button class="btn-secondary" style="padding:2px 6px; font-size:0.65rem; margin-left:6px;" onclick="copyTextValue('${msg.userId}')">Copy ID</button>` : '';
 
         const resolvedProfile = cachedUserProfiles[msg.userId] || { displayName: msg.displayName, pfpData: msg.pfpData };
         if (!cachedUserProfiles[msg.userId] && msg.userId !== "Guest") {
             socket.emit('eb_get_profile', { targetUserId: msg.userId });
         }
 
-        const pfpHTML = (resolvedProfile.pfpData && resolvedProfile.pfpData !== "default") ? `<img class="chat-pfp-img" src="${resolvedProfile.pfpData}" style="width:16px; height:16px; border-radius:50% !important; vertical-align:middle; margin-right:3px; object-fit:cover;">` : `<span class="coin-icon chat-pfp-icon" style="width:16px; height:16px; font-size:0.5rem; margin-right:3px; border-radius:50% !important;">👤</span>`;
+        const pfpHTML = (resolvedProfile.pfpData && resolvedProfile.pfpData !== "default") ? `<img class="chat-pfp-img" src="${resolvedProfile.pfpData}" style="width:18px; height:18px; border-radius:50% !important; vertical-align:middle; margin-right:4px; object-fit:cover;">` : `<span class="coin-icon chat-pfp-icon" style="width:18px; height:18px; font-size:0.55rem; margin-right:4px; border-radius:50% !important;">👤</span>`;
 
         bubble.innerHTML = `
-            <div style="font-size:0.68rem; font-weight:bold; color:var(--accent); margin-bottom:3px; display:flex; align-items:center;">
+            <div style="font-size:0.75rem; font-weight:bold; color:var(--accent); margin-bottom:4px; display:flex; align-items:center;">
                 <span class="chat-pfp-slot">${pfpHTML}</span> <span class="chat-name-slot">${escapeHtml(resolvedProfile.displayName || msg.displayName || msg.userId || 'Guest')}</span> ${roleTagHTML} ${copyBtnHTML}
             </div>
             <div>${escapeHtml(msg.text)}</div>
@@ -3255,9 +3404,9 @@
             if (nameSlot) nameSlot.innerText = profile.displayName;
             if (pfpSlot) {
                 if (profile.pfpData && profile.pfpData !== 'default') {
-                    pfpSlot.innerHTML = `<img class="chat-pfp-img" src="${profile.pfpData}" style="width:16px; height:16px; border-radius:50% !important; vertical-align:middle; margin-right:3px; object-fit:cover;">`;
+                    pfpSlot.innerHTML = `<img class="chat-pfp-img" src="${profile.pfpData}" style="width:18px; height:18px; border-radius:50% !important; vertical-align:middle; margin-right:4px; object-fit:cover;">`;
                 } else {
-                    pfpSlot.innerHTML = `<span class="coin-icon chat-pfp-icon" style="width:16px; height:16px; font-size:0.5rem; margin-right:3px; border-radius:50% !important;">👤</span>`;
+                    pfpSlot.innerHTML = `<span class="coin-icon chat-pfp-icon" style="width:18px; height:18px; font-size:0.55rem; margin-right:4px; border-radius:50% !important;">👤</span>`;
                 }
             }
         });
@@ -3273,8 +3422,16 @@
     }
 
     function openUniversalPanelModal() {
-        if (userRole !== 'Owner' && userRole !== 'Dev') return alert("Permission denied!");
-        applyRolePermissions();
+        if (userRole !== 'Owner' && userRole !== 'Dev') return alert("Permission denied! Dev/Owner only.");
+        const updateBtn = document.getElementById('btn-univ-update');
+        const coinsBtn = document.getElementById('btn-univ-coins');
+        if (userRole === 'Dev') {
+            if (updateBtn) updateBtn.style.display = 'none';
+            if (coinsBtn) coinsBtn.style.display = 'none';
+        } else {
+            if (updateBtn) updateBtn.style.display = 'block';
+            if (coinsBtn) coinsBtn.style.display = 'block';
+        }
         document.getElementById('modal-universal-panel').style.display = 'flex';
     }
     function closeUniversalPanelModal() {
@@ -3353,6 +3510,57 @@
         document.getElementById('modal-new-userid').style.display = 'none';
     }
 
+    function openPyTerminalModal() {
+        closeConsoleModal();
+        document.getElementById('modal-pyterminal').style.display = 'flex';
+        document.getElementById('pyterminal-display').innerText = "Connecting to Python worker...";
+        socket.emit('eb_pyterminal_start', { serverKey: serverKey });
+    }
+
+    function closePyTerminalModal() {
+        document.getElementById('modal-pyterminal').style.display = 'none';
+        openConsoleModal();
+    }
+
+    function focusPyTermInput() {
+        const inp = document.getElementById('pyterminal-input');
+        if (inp) inp.focus();
+    }
+
+    function handlePyTermKey(e) {
+        if (e.key === 'Enter') sendPyTermCommand();
+    }
+
+    function sendPyTermCommand() {
+        const inp = document.getElementById('pyterminal-input');
+        const text = inp.value.trim();
+        if (!text) return;
+        inp.value = "";
+
+        if (text === '/exe') {
+            const script = prompt("Paste your python script to execute here:");
+            if (script) {
+                socket.emit('eb_pyterminal_input', { serverKey: serverKey, text: '/exe', scriptCode: script });
+            }
+            return;
+        }
+
+        socket.emit('eb_pyterminal_input', { serverKey: serverKey, text: text });
+    }
+
+    socket.on('eb_pyterminal_chunk', (data) => {
+        const disp = document.getElementById('pyterminal-display');
+        if (data.index === 0) disp.innerText = "";
+        disp.innerText += data.chunk;
+        disp.scrollTop = disp.scrollHeight;
+    });
+
+    socket.on('eb_pyterminal_update', (data) => {
+        const disp = document.getElementById('pyterminal-display');
+        disp.innerText += data.text;
+        disp.scrollTop = disp.scrollHeight;
+    });
+
     function openBanUserModal() {
         closeAccountSettingsModal();
         document.getElementById('modal-ban-user').style.display = 'flex';
@@ -3407,18 +3615,18 @@
             div.className = 'domain-item';
             div.style.flexDirection = 'column';
             div.style.alignItems = 'flex-start';
-            div.style.gap = '5px';
+            div.style.gap = '6px';
 
             const statusText = sv.isLockdown ? `<span style="color:var(--yellow)">LOCKDOWN</span>` : (sv.isSleeping ? `<span style="color:var(--orange)">SLEEPING (${sv.sleepReason || 'Configuring'})</span>` : (sv.active ? `<span style="color:var(--green)">ONLINE</span>` : `<span style="color:var(--error)">OFFLINE</span>`));
 
             div.innerHTML = `
                 <div><b>${sv.clientId}'s server</b> status: ${statusText} - RAM usage: ${kb}kb / 250mb</div>
-                <div style="font-size:0.68rem; color:var(--muted);">
+                <div style="font-size:0.75rem; color:var(--muted);">
                     settings: Type: ${sv.serverType.toUpperCase()} - 
-                    ServerScript <button class="btn btn-secondary" style="width:auto; margin:0; padding:2px 7px; font-size:0.68rem;" onclick="requestServerScriptChunks('${sv.key}')">Look Script</button> - 
+                    ServerScript <button class="btn btn-secondary" style="width:auto; margin:0; padding:2px 8px; font-size:0.75rem;" onclick="requestServerScriptChunks('${sv.key}')">Look Script</button> - 
                     Owner/Email: ${sv.email} - Auth Key: ${sv.key}
                 </div>
-                <button class="btn btn-danger" style="width:auto; margin:0; padding:3px 8px; font-size:0.68rem;" onclick="shutdownServer('${sv.key}')">SHUTDOWN</button>
+                <button class="btn btn-danger" style="width:auto; margin:0; padding:4px 10px; font-size:0.75rem;" onclick="shutdownServer('${sv.key}')">SHUTDOWN</button>
             `;
             container.appendChild(div);
         });
@@ -3474,7 +3682,7 @@
         document.getElementById('domain-count').innerText = whitelistedDomains.length;
         container.innerHTML = "";
         whitelistedDomains.forEach((d, i) => {
-            container.innerHTML += `<div class="domain-item"><span>${d}</span><button class="btn btn-danger" style="width:auto; margin:0; padding:2px 5px; font-size:0.65rem;" onclick="removeDomain(${i})">REMOVE DOMAIN</button></div>`;
+            container.innerHTML += `<div class="domain-item"><span>${d}</span><button class="btn btn-danger" style="width:auto; margin:0; padding:2px 6px; font-size:0.7rem;" onclick="removeDomain(${i})">REMOVE DOMAIN</button></div>`;
         });
     }
 
@@ -3802,7 +4010,7 @@
     function openHowToUse() {
         document.getElementById('copy-key').value = serverKey;
         document.getElementById('copy-link').value = PUBLIC_TUNNEL_URL;
-        socket.emit('eb_get_ai_billing');
+        updateAIKeyDashboardDisplay();
         document.getElementById('modal-howto').style.display = 'flex';
     }
 
@@ -4418,31 +4626,28 @@ Server.on('collect_coin', (evt) => {
     }
 });
 
-Server.onTick((dt) => {
-    for (let id in players) {
-        if (players[id].vx && players[id].vy) {
-            players[id].x += players[id].vx * dt;
-            players[id].y += players[id].vy * dt;
-        }
-    }
-});
-
-setInterval(() => {
+Server.on('tick', (dt) => {
     Server.broadcast('state_update', { players, coins });
-}, 1000 / 30);`;
+});`;
 
-        const autoTunnelCode = 
-`async function getLatestTunnel() {
-    const response = await fetch("https://raw.githubusercontent.com/TerminatorSBDEV/ebtunnel/main/tunnel");
-    const tunnelUrl = (await response.text()).trim();
-    console.log("Current EzBridge Tunnel URL:", tunnelUrl);
-    return tunnelUrl;
+        const dynamicTunnelCode = 
+`async function fetchCurrentEzBridgeTunnel() {
+    try {
+        const response = await fetch("https://raw.githubusercontent.com/TerminatorSBDEV/ebtunnel/main/tunnel");
+        if (response.ok) {
+            const rawUrl = (await response.text()).trim();
+            console.log("Current EzBridge Tunnel URL:", rawUrl);
+            return rawUrl;
+        }
+    } catch(err) {
+        console.error("Failed to load dynamic tunnel:", err);
+    }
+    return null;
 }
+fetchCurrentEzBridgeTunnel();
+-- use this example of you don't want to keep updating the tunnel everytime a new one generates`;
 
-getLatestTunnel();
-// -- use this example of you don't want to keep updating the tunnel everytime a new one generates`;
-
-        return { coinClientCode, coinServerCode, autoTunnelCode, clientCode: coinClientCode, serverCode: coinServerCode };
+        return { coinClientCode, coinServerCode, clientCode: coinClientCode, serverCode: coinServerCode, dynamicTunnelCode };
     }
 
     function copyAIPrompt() {
@@ -4475,15 +4680,14 @@ ${serverType === 'websocket' ?
   * Server.storage.set(data) - Save up to 100MB of persistent server data.
   * Server.storage.get() - Retrieve stored server data.
   * Server.storage.getUsageBytes() - Get current storage usage in bytes.
-- ServerScript API: [SERVER-SIDED API] Write sandboxed backend JS code (Server.on('event', fn), Server.onTick((dt) => {}), Server.broadcast('event', data)).
-- Server.eb_callai: [SERVER-SIDED API] Call local or cloud AI models (qwen2.5:0.5b, qwen2.5:1.5b, or gemma-4-26b-a4b-it). Requires AI Auth Key.
+- ServerScript API: [SERVER-SIDED API] Write sandboxed backend JS code (Server.on('event', fn), Server.broadcast('event', data), Server.on('tick', fn)).
+- Server.eb_callai: [SERVER-SIDED API] Call AI generation inside ServerScript with parameter key: { key: "AI_KEY", model: "gemma3:1b", Temp: 0, Mtokens: 28, Instruction: "...", Prompt: "..." }.
 
 4 - Learn More About EzBridge
 - Max Packet Size: 10MB per packet.
 - Request Limit: Up to 60 requests/sec.
 - Server Memory: Configured at 250MB.
 - Server Target Ping: Configurable between 50ms and 1000ms.
-- Physics Tickrate: Fixed 33 Hz execution.
 
 here are some examples so you understand more about making online apps:
 1 - html script (Coin Collector Example)
@@ -4492,8 +4696,8 @@ ${coinClientCode}
 2 - serverscript (Coin Collector Example)
 ${coinServerCode}`;
 
-        if (userAiKeyData && userAiKeyData.key) {
-            promptText += `\n\nAnd if you are going to add an AI feature to the project, here's my AI key: ${userAiKeyData.key}`;
+        if (userAIKey) {
+            promptText += `\n\nAnd if you are going to add an AI feature to the project, here's my AI key: ${userAIKey}`;
         }
 
         navigator.clipboard.writeText(promptText);
@@ -4511,7 +4715,6 @@ GET ${PUBLIC_TUNNEL_URL}/getstatus
 
 <span class="api-tag-both">CLIENT AND SERVER API (both clients and servers can use this API)</span>
 2. GET CLIENT PROFILE:
-// GET request: ${PUBLIC_TUNNEL_URL}/eb_profile_get_{clientid}
 async function fetchUserProfile(targetClientId) {
     const res = await fetch("${PUBLIC_TUNNEL_URL}/eb_profile_get_" + targetClientId);
     const profile = await res.json();
@@ -4523,8 +4726,6 @@ async function fetchUserProfile(targetClientId) {
 
 <span class="api-tag-both">CLIENT AND SERVER API (both clients and servers can use this API)</span>
 3. GET ASSET DATA:
-// GET request: ${PUBLIC_TUNNEL_URL}/eb_asset_get_{assetid}
-// Can be used without server key or authority
 async function fetchAssetData(assetId) {
     const res = await fetch("${PUBLIC_TUNNEL_URL}/eb_asset_get_" + assetId);
     const asset = await res.json();
@@ -4540,23 +4741,21 @@ async function fetchAssetData(assetId) {
 }
 
 <span class="api-tag-both">CLIENT AND SERVER API (both clients and servers can use this API)</span>
-4. HTTP STANDALONE AI API (Requires AI Key, No Server Key Needed):
-// POST request: ${PUBLIC_TUNNEL_URL}/ai
-// Headers: { "Content-Type": "application/json", "ai-key": "YOUR_AI_KEY" }
+4. CALL AI DIRECTLY (Requires AI Key, no Server Key needed):
 async function requestAI(promptText) {
-    const res = await fetch("${PUBLIC_TUNNEL_URL}/ai", {
+    const res = await fetch("${PUBLIC_TUNNEL_URL}/eb_callai", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "ai-key": "YOUR_AI_KEY" },
+        headers: { "Content-Type": "application/json", "ai-key": "${userAIKey || 'YOUR_AI_KEY'}" },
         body: JSON.stringify({
-            model: "qwen2.5:0.5b", // "qwen2.5:0.5b", "qwen2.5:1.5b", or "gemma-4-26b-a4b-it"
-            Prompt: promptText,
-            Instruction: "You are a helpful assistant.",
+            model: "gemma-4-26b-a4b-it",
             Temp: 0.7,
-            Mtokens: 1500
+            Mtokens: 1500,
+            Instruction: "You are a helpful assistant.",
+            Prompt: promptText
         })
     });
     const data = await res.json();
-    console.log("AI Response:", data.text);
+    console.log("AI Answer:", data.text);
 }
 
 <span class="api-tag-client">CLIENT-SIDED API (only the client can use this)</span>
@@ -4577,29 +4776,19 @@ async function sendHttpEvent(type, data) {
 }
 
 <span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
-6. SERVERSCRIPT 100MB DEDICATED STORAGE API:
-// Server.storage.set("any string or JSON data up to 100MB");
-// const storedData = Server.storage.get();
-// const usedBytes = Server.storage.getUsageBytes();
-
-<span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
-7. SERVERSCRIPT AI API (Requires AI Key in parameters):
+6. SERVERSCRIPT AI EXECUTION:
 Server.eb_callai({
-    aiKey: "YOUR_AI_KEY",
-    model: "qwen2.5:0.5b", // "qwen2.5:0.5b", "qwen2.5:1.5b", or "gemma-4-26b-a4b-it"
-    Temp: 0.7,
-    Mtokens: 500,
-    Instruction: "You are a helpful assistant.",
-    Prompt: "what's the capital of France?",
+    key: "${userAIKey || 'YOUR_AI_KEY'}",
+    model: "gemma-4-26b-a4b-it",
+    Temp: 0.5,
+    Mtokens: 1000,
+    Instruction: "You are an NPC.",
+    Prompt: "Greet the traveler.",
     Streaming: false
 }, (res) => {
     if (res.error) console.log("AI Error:", res.error);
-    else console.log("AI Answer Text:", res.text);
-});
-
-Server.stopAILatest();
-Server.stopAIAll();
-Server.stopAIId("4c1a");`;
+    else console.log("NPC Dialog:", res.text);
+});`;
         } else {
             box.innerHTML = `<span class="api-tag-client">CLIENT-SIDED API (only the client can use this)</span>
 1. CONNECT & JOIN ROOM:
@@ -4618,7 +4807,6 @@ socket.on("RemoteEvent", (pkt) => {
 
 <span class="api-tag-both">CLIENT AND SERVER API (both clients and servers can use this API)</span>
 3. GET ASSET IN 180KB CHUNKS:
-// Can be used without server key or authority
 socket.emit("RemoteEvent", { type: "eb_asset_get_1" });
 let assetChunks = [];
 socket.on("RemoteEvent", (pkt) => {
@@ -4637,48 +4825,34 @@ socket.on("RemoteEvent", (pkt) => {
     }
 });
 
-<span class="api-tag-client">CLIENT-SIDED API (only the client can use this)</span>
-4. SEND REMOTE EVENT:
-socket.emit("RemoteEvent", { type: "player_join", data: { id: "usr_123" } });
-
-<span class="api-tag-client">CLIENT-SIDED API (only the client can use this)</span>
-5. GET CLIENT USER ID:
-socket.emit("RemoteEvent", { type: "ebuserid_get" });
-socket.on("RemoteEvent", (pkt) => {
-    if (pkt.type === "userid_response") console.log("User ID:", pkt.userId || pkt.message);
+<span class="api-tag-both">CLIENT AND SERVER API (both clients and servers can use this API)</span>
+4. DIRECT WEBSOCKET AI CALL (Requires AI Key):
+socket.emit("eb_callai_direct", {
+    key: "${userAIKey || 'YOUR_AI_KEY'}",
+    model: "qwen2.5:1.5b",
+    Temp: 0.7,
+    Mtokens: 1500,
+    Instruction: "You are a helpful companion.",
+    Prompt: "Hello!",
+    Streaming: true
+});
+socket.on("eb_ai_response", (data) => {
+    if (data.text) console.log("AI:", data.text);
 });
 
 <span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
-6. SERVERSCRIPT 100MB DEDICATED STORAGE API:
-// Server.storage.set("any string or JSON data up to 100MB");
-// const storedData = Server.storage.get();
-// const usedBytes = Server.storage.getUsageBytes();
-
-<span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
-7. SERVERSCRIPT FIXED 33 HZ PHYSICS TICK HOOK:
-Server.onTick((dt) => {
-    // dt is ~0.0303s, maintain deterministic speed
-    player.x += player.vx * dt;
-});
-
-<span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
-8. SERVERSCRIPT AI API (Requires AI Key in parameters):
+5. SERVERSCRIPT AI EXECUTION:
 Server.eb_callai({
-    aiKey: "YOUR_AI_KEY",
-    model: "qwen2.5:0.5b", // "qwen2.5:0.5b", "qwen2.5:1.5b", or "gemma-4-26b-a4b-it"
+    key: "${userAIKey || 'YOUR_AI_KEY'}",
+    model: "gemma-4-26b-a4b-it",
     Temp: 0.7,
     Mtokens: 500,
-    Instruction: "You are a helpful assistant.",
-    Prompt: "what's the capital of France?",
-    Streaming: false
+    Instruction: "Assistant.",
+    Prompt: "What is 2+2?"
 }, (res) => {
     if (res.error) console.log("AI Error:", res.error);
-    else console.log("AI Answer Text:", res.text);
-});
-
-Server.stopAILatest();
-Server.stopAIAll();
-Server.stopAIId("4c1a");`;
+    else console.log("Answer:", res.text);
+});`;
         }
 
         document.getElementById('modal-commands').style.display = 'flex';
@@ -4691,13 +4865,13 @@ Server.stopAIId("4c1a");`;
         document.getElementById('http-disclaimer').style.display = isHttp ? 'block' : 'none';
         document.getElementById('http-extra-example-container').style.display = isHttp ? 'block' : 'none';
 
-        const { coinClientCode, coinServerCode, autoTunnelCode } = getGameExamples();
+        const { coinClientCode, coinServerCode, dynamicTunnelCode } = getGameExamples();
 
         document.getElementById('example-coin-client').value = coinClientCode;
         document.getElementById('example-coin-server').value = coinServerCode;
         document.getElementById('example-code-client').value = coinClientCode;
         document.getElementById('example-code-server').value = coinServerCode;
-        document.getElementById('example-auto-tunnel').value = autoTunnelCode;
+        document.getElementById('example-dynamic-tunnel').value = dynamicTunnelCode;
 
         document.getElementById('modal-code').style.display = 'flex';
     }
