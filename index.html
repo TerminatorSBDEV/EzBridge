@@ -421,22 +421,6 @@
         </div>
     </div>
 
-    <div id="modal-ai-billing" class="overlay" style="display:none; z-index:2800;">
-        <div class="card" style="max-width: 440px;">
-            <h3>AI access billing</h3>
-            <p style="font-size:0.8rem; color:var(--muted); line-height:1.4; margin:12px 0;">
-                Each month your AI key is active, the server checks it's usage inside each month and gives you a certain amount of EzCoins you have to pay for the API stay active.
-            </p>
-            <div style="font-size:0.85rem; text-align:left; margin:10px 0; display:flex; flex-direction:column; gap:6px;">
-                <div>Last Month: <b id="ai-bill-tokens" style="color:var(--accent);">0 tokens</b></div>
-                <div>Current price: <b id="ai-bill-price" style="color:var(--yellow);">0</b> <span class="coin-icon" style="width:16px; height:16px; font-size:0.5rem;">EZ</span></div>
-                <div>Status: <b id="ai-bill-status" style="color:var(--green);">Active</b></div>
-            </div>
-            <button class="btn btn-purple" id="btn-pay-ai-billing" style="display:none;" onclick="payAiBillingSubmit()">Pay</button>
-            <button class="btn btn-secondary" onclick="closeAiBillingModal()">Close</button>
-        </div>
-    </div>
-
     <div id="modal-email-verify" class="overlay" style="display:none; z-index:3100;">
         <div class="card" style="max-width: 440px;">
             <h3>Enter the generated 6-chars code</h3>
@@ -471,6 +455,24 @@
             <div style="display:flex; gap:10px; margin-top:15px;">
                 <button class="btn btn-danger" onclick="confirmDeleteAccountSubmit()">Confirm & Delete Account</button>
                 <button class="btn btn-secondary" onclick="closeDeleteAccountConfirmModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-ai-billing" class="overlay" style="display:none; z-index:2800;">
+        <div class="card" style="max-width: 460px;">
+            <h3>AI access billing</h3>
+            <p style="font-size:0.8rem; color:var(--muted); line-height:1.4; margin:12px 0;">
+                Each month your AI key is active, the server checks it's usage inside each month and gives you a certain amount of EzCoins you have to pay for the API stay active.
+            </p>
+            <div style="text-align:left; background:#020617; padding:12px; border:1px solid var(--border); margin:10px 0; font-size:0.85rem; display:flex; flex-direction:column; gap:6px;">
+                <div>Last Month: <span id="ai-bill-last-tokens" style="color:var(--accent); font-weight:bold;">0</span> tokens</div>
+                <div>Current Month Tokens: <span id="ai-bill-curr-tokens" style="color:var(--accent); font-weight:bold;">0</span> tokens</div>
+                <div>Current price: <span id="ai-bill-price" style="color:var(--yellow); font-weight:bold;">0</span> <span class="coin-icon" style="width:18px; height:18px; font-size:0.55rem;">EZ</span></div>
+            </div>
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <button class="btn btn-purple" id="btn-pay-ai-bill" style="display:none;" onclick="payAiBillSubmit()">Pay</button>
+                <button class="btn btn-secondary" onclick="closeAiBillingModal()">Close</button>
             </div>
         </div>
     </div>
@@ -931,12 +933,12 @@
     </div>
 
     <div id="modal-universal-panel" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 500px;">
-            <h3>Universal Server Panel</h3>
-            <div id="terminal-host-metrics" style="font-size:0.75rem; color:var(--accent); font-weight:bold; font-family:monospace; margin-bottom:12px; background:#000; padding:6px; border:1px solid #1e293b;">
+        <div class="card" style="max-width: 460px;">
+            <div id="univ-panel-hw-stats" style="font-size:0.75rem; color:var(--accent); font-weight:bold; margin-bottom:12px; line-height:1.4;">
                 RAM: 0% | CPU: 0% | BATTERY: 100% | TEMPERATURE: 0.0 | DATE: 0/0/0 00:00:00
             </div>
-            <div style="display:flex; flex-direction:column; gap:10px; margin:10px 0;">
+            <h3>Universal Server Panel</h3>
+            <div style="display:flex; flex-direction:column; gap:10px; margin:15px 0;">
                 <button class="btn btn-purple" id="btn-univ-update-script" onclick="openUpdateUnivServerModal()">Update univserver</button>
                 <button class="btn btn-purple" id="btn-univ-set-coins" onclick="openOwnerSetCoinsModal()">Set User Coins</button>
                 <button class="btn btn-secondary" onclick="restartNodeOnly()">restart node</button>
@@ -1049,7 +1051,7 @@
         <div style="margin-bottom:12px; text-align:left;">
             <div style="font-size:0.75rem; color:var(--muted); font-weight:bold; margin-bottom:3px;">V-Battery left:</div>
             <div class="progress-container" style="height:18px; margin:0; background:#020617; border-color:var(--green) !important;">
-                <div id="battery-progress-fill" class="progress-bar" style="background:var(--green); width:2%;"></div>
+                <div id="battery-progress-fill" class="progress-bar" style="background:var(--green); width:0.4%;"></div>
                 <div class="progress-text" style="color:#ffffff; font-size:0.7rem;"><span id="battery-curr-val">100.0</span>mb | 25000mb</div>
             </div>
         </div>
@@ -1127,18 +1129,20 @@
                         <button class="btn" style="width:auto; margin:0;" onclick="copyText('copy-link')">Copy</button>
                     </div>
                 </div>
+                
                 <div class="settings-item" style="margin-top:10px;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <label>3 - AI auth key</label>
-                        <span id="ai-key-status-label" style="font-size:0.75rem; color:var(--muted); font-weight:bold;">Status: None</span>
+                        <span id="ai-key-status-label" style="font-size:0.7rem; font-weight:bold; color:var(--green); display:none;">Status: Active</span>
                     </div>
-                    <div style="display:flex; gap:10px; margin-top:4px;">
-                        <div id="ai-key-slot" style="flex-grow:1;">
-                            <button class="btn btn-secondary" style="margin:0;" onclick="generateAiKeySubmit()">Generate AI key</button>
-                        </div>
-                        <button class="btn" style="width:auto; margin:0; background:#ffffff !important; color:#000000 !important;" onclick="openAiBillingModal()">Billing</button>
+                    <div id="ai-key-container" style="display:flex; gap:8px;">
+                        <button class="btn btn-secondary" id="btn-generate-ai-key" style="margin:0;" onclick="generateAiKeySubmit()">Generate AI key</button>
+                        <input type="text" id="display-ai-key-val" readonly style="flex-grow:1; display:none;">
+                        <button class="btn" id="btn-copy-ai-key" style="width:auto; margin:0; display:none;" onclick="copyText('display-ai-key-val')">Copy</button>
+                        <button class="btn" id="btn-open-ai-billing" style="width:auto; margin:0; background:#ffffff !important; color:#000000 !important; display:none;" onclick="openAiBillingModal()">Billing</button>
                     </div>
                 </div>
+
                 <div style="display:flex; gap:10px; margin-top:15px;">
                     <button class="btn btn-secondary" style="flex:1;" onclick="openCommandsModal()">API Commands</button>
                     <button class="btn btn-secondary" style="flex:1;" onclick="openGameCode()">View Game Example</button>
@@ -1183,18 +1187,18 @@
                 <textarea id="example-http-chat-server" class="code-box" readonly rows="8" style="width:100%; height:160px; border:none; resize:none;"></textarea>
             </div>
 
-            <div style="text-align:left; font-size:0.85rem; font-weight:bold; color:var(--accent); margin-top:14px; border-top:1px solid var(--border); padding-top:10px;">4. Dynamic Tunnel Fetcher Example:</div>
-            <textarea id="example-auto-tunnel-fetch" class="code-box" readonly rows="8" style="width:100%; height:160px; border:none; resize:none;"></textarea>
+            <div style="text-align:left; font-size:0.85rem; font-weight:bold; color:var(--accent); margin-top:14px; border-top:1px solid var(--border); padding-top:10px;">4. Dynamic Tunnel Auto-Fetch:</div>
+            <textarea id="example-tunnel-fetch" class="code-box" readonly rows="8" style="width:100%; height:160px; border:none; resize:none;"></textarea>
 
             <div style="display:flex; gap:10px; margin-top:10px;">
-                <button class="btn" onclick="copyText('example-auto-tunnel-fetch')">Copy Tunnel Fetcher</button>
+                <button class="btn" onclick="copyText('example-coin-client')">Copy Coin Collector Client</button>
                 <button class="btn btn-secondary" onclick="closeGameCode()">Back</button>
             </div>
         </div>
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://emerald-rocks-unable-karaoke.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://invitations-infants-ref-forum.trycloudflare.com";
     const BASE_SITE_URL = "https://terminatorsbdev.github.io/EzBridge/";
 
     let ownerId = getCookie("eb_owner_id") || "";
@@ -1206,7 +1210,7 @@
     let userRole = "None";
     let serverKey = "";
     let userAiKeyVal = "";
-    let userAiKeyStatus = "None";
+    let userAiKeyStatus = "Active";
     let serverActive = false;
     let isServerSleeping = false;
     let serverSleepReason = null;
@@ -1374,11 +1378,6 @@
         const hashStr = window.location.hash || '';
         const clean = hashStr.replace(/^#?\/?/g, '').replace(/\/+$/, '');
         if (clean) {
-            if (clean.startsWith('site/')) {
-                const sId = clean.replace('site/', '').trim();
-                socket.emit('eb_visit_site', { siteId: sId });
-                return;
-            }
             showRouteConnectingModal();
             socket.emit('changeurl', { path: clean });
         }
@@ -1537,8 +1536,6 @@
         } else {
             restorePendingVerificationCheck();
         }
-
-        socket.emit('eb_generate_ai_key');
 
         if (data.dailyReward && data.dailyReward.pendingReward) {
             document.getElementById('daily-streak-badge').innerText = `🔥 ${data.dailyReward.streak}`;
@@ -1705,13 +1702,6 @@
         }
     });
 
-    socket.on('eb_server_sys_info', (data) => {
-        const el = document.getElementById('terminal-host-metrics');
-        if (el) {
-            el.innerText = `RAM: ${data.ram}% | CPU: ${data.cpu}% | BATTERY: ${data.battery}% | TEMPERATURE: ${data.temperature} | DATE: ${data.date}`;
-        }
-    });
-
     socket.on('eb_perf_tick', (data) => {
         perfHistory.push(data);
         if (perfHistory.length > 30) perfHistory.shift();
@@ -1795,81 +1785,6 @@
         document.getElementById('copy-key').value = serverKey;
         alert("Server Auth Key regenerated successfully!");
     });
-
-    socket.on('eb_ai_key_response', (data) => {
-        userAiKeyVal = data.aiKey || "";
-        userAiKeyStatus = data.status || "None";
-        updateAiKeyDisplay();
-    });
-
-    function updateAiKeyDisplay() {
-        const slot = document.getElementById('ai-key-slot');
-        const statusLabel = document.getElementById('ai-key-status-label');
-        if (statusLabel) statusLabel.innerText = `Status: ${userAiKeyStatus}`;
-        if (!slot) return;
-
-        if (userAiKeyVal) {
-            slot.innerHTML = `
-                <div style="display:flex; gap:6px;">
-                    <input type="text" id="ai-key-display-field" readonly value="${userAiKeyVal}" style="flex:1;">
-                    <button class="btn btn-secondary" style="width:auto; margin:0;" onclick="copyText('ai-key-display-field')">Copy</button>
-                </div>
-            `;
-        } else {
-            slot.innerHTML = `<button class="btn btn-secondary" style="margin:0;" onclick="generateAiKeySubmit()">Generate AI key</button>`;
-        }
-    }
-
-    function generateAiKeySubmit() {
-        socket.emit('eb_generate_ai_key');
-    }
-
-    function openAiBillingModal() {
-        document.getElementById('modal-ai-billing').style.display = 'flex';
-        socket.emit('eb_get_ai_billing');
-    }
-
-    function closeAiBillingModal() {
-        document.getElementById('modal-ai-billing').style.display = 'none';
-    }
-
-    socket.on('eb_ai_billing_chunk', (data) => {
-        if (data.index === 0) window.aiBillingDataChunks = [];
-        window.aiBillingDataChunks.push(data.chunk);
-
-        if (window.aiBillingDataChunks.length === data.total) {
-            try {
-                const parsed = JSON.parse(window.aiBillingDataChunks.join(''));
-                document.getElementById('ai-bill-tokens').innerText = `${parsed.lastMonthTokens || 0} tokens`;
-                document.getElementById('ai-bill-price').innerText = parsed.currentPriceCoins || 0;
-                document.getElementById('ai-bill-status').innerText = parsed.status || "Active";
-                document.getElementById('ai-bill-status').style.color = parsed.status === "Blocked" ? "var(--error)" : "var(--green)";
-
-                const payBtn = document.getElementById('btn-pay-ai-billing');
-                if (payBtn) payBtn.style.display = (parsed.currentPriceCoins > 0) ? "block" : "none";
-            } catch(e) {}
-        }
-    });
-
-    socket.on('eb_ai_billing_response', (data) => {
-        if (!data.hasKey) {
-            document.getElementById('ai-bill-tokens').innerText = "0 tokens";
-            document.getElementById('ai-bill-price').innerText = "0";
-            document.getElementById('ai-bill-status').innerText = "None";
-            document.getElementById('btn-pay-ai-billing').style.display = "none";
-            return;
-        }
-        document.getElementById('ai-bill-tokens').innerText = `${data.lastMonthTokens || 0} tokens`;
-        document.getElementById('ai-bill-price').innerText = data.currentPriceCoins || 0;
-        document.getElementById('ai-bill-status').innerText = data.status || "Active";
-        document.getElementById('ai-bill-status').style.color = data.status === "Blocked" ? "var(--error)" : "var(--green)";
-        const payBtn = document.getElementById('btn-pay-ai-billing');
-        if (payBtn) payBtn.style.display = (data.currentPriceCoins > 0) ? "block" : "none";
-    });
-
-    function payAiBillingSubmit() {
-        socket.emit('eb_pay_ai_billing');
-    }
 
     socket.on('eb_server_storage_chunk', (data) => {
         if (data.index === 0) serverStorageChunks = [];
@@ -2576,6 +2491,71 @@
         socket.emit('eb_confirm_delete_account', { key: serverKey, ownerId, code });
     }
 
+    function generateAiKeySubmit() {
+        socket.emit('eb_generate_ai_key');
+    }
+
+    socket.on('eb_ai_key_data', (data) => {
+        if (data.aiKey) {
+            userAiKeyVal = data.aiKey.key;
+            userAiKeyStatus = data.aiKey.status || 'Active';
+            updateAiKeyDisplay();
+        }
+    });
+
+    function updateAiKeyDisplay() {
+        const genBtn = document.getElementById('btn-generate-ai-key');
+        const valInp = document.getElementById('display-ai-key-val');
+        const copyBtn = document.getElementById('btn-copy-ai-key');
+        const billBtn = document.getElementById('btn-open-ai-billing');
+        const statLabel = document.getElementById('ai-key-status-label');
+
+        if (userAiKeyVal) {
+            genBtn.style.display = 'none';
+            valInp.style.display = 'block';
+            valInp.value = userAiKeyVal;
+            copyBtn.style.display = 'block';
+            billBtn.style.display = 'block';
+            statLabel.style.display = 'block';
+            statLabel.innerText = `Status: ${userAiKeyStatus}`;
+            statLabel.style.color = (userAiKeyStatus === 'Active') ? 'var(--green)' : 'var(--error)';
+        } else {
+            genBtn.style.display = 'block';
+            valInp.style.display = 'none';
+            copyBtn.style.display = 'none';
+            billBtn.style.display = 'none';
+            statLabel.style.display = 'none';
+        }
+    }
+
+    function openAiBillingModal() {
+        socket.emit('eb_get_ai_billing');
+        document.getElementById('modal-ai-billing').style.display = 'flex';
+    }
+
+    function closeAiBillingModal() {
+        document.getElementById('modal-ai-billing').style.display = 'none';
+    }
+
+    socket.on('eb_ai_billing_response', (data) => {
+        if (data.hasKey && data.data) {
+            document.getElementById('ai-bill-last-tokens').innerText = data.data.lastMonthTokens || 0;
+            document.getElementById('ai-bill-curr-tokens').innerText = data.data.currentMonthTokens || 0;
+            const price = data.data.currentPrice || 0;
+            document.getElementById('ai-bill-price').innerText = price;
+            const payBtn = document.getElementById('btn-pay-ai-bill');
+            if (price > 0) {
+                payBtn.style.display = 'block';
+            } else {
+                payBtn.style.display = 'none';
+            }
+        }
+    });
+
+    function payAiBillSubmit() {
+        socket.emit('eb_pay_ai_bill');
+    }
+
     function openPyTerminalModal() {
         closeConsoleModal();
         document.getElementById('modal-pyterminal').style.display = 'flex';
@@ -2627,814 +2607,30 @@
         disp.scrollTop = disp.scrollHeight;
     });
 
-    function showCooldownWarningModal(actionName, remMs) {
-        if (cooldownTimerCountdown) clearInterval(cooldownTimerCountdown);
-        let remSeconds = Math.max(1, Math.ceil(remMs / 1000));
-
-        function updateWarnText() {
-            const h = String(Math.floor(remSeconds / 3600)).padStart(2, '0');
-            const m = String(Math.floor((remSeconds % 3600) / 60)).padStart(2, '0');
-            const s = String(remSeconds % 60).padStart(2, '0');
-            document.getElementById('cooldown-warning-time').innerText = `${h}:${m}:${s}`;
-        }
-        updateWarnText();
-
-        cooldownTimerCountdown = setInterval(() => {
-            remSeconds--;
-            if (remSeconds <= 0) {
-                clearInterval(cooldownTimerCountdown);
-                closeCooldownWarningModal();
-            } else {
-                updateWarnText();
-            }
-        }, 1000);
-
-        document.getElementById('modal-cooldown-warning').style.display = 'flex';
-    }
-
-    function closeCooldownWarningModal() {
-        if (cooldownTimerCountdown) clearInterval(cooldownTimerCountdown);
-        document.getElementById('modal-cooldown-warning').style.display = 'none';
-    }
-
-    function openProfileModal() {
-        document.getElementById('profile-name-input').value = currentProfile.displayName || "";
-        document.getElementById('modal-profile').style.display = 'flex';
-    }
-    function closeProfileModal() {
-        document.getElementById('modal-profile').style.display = 'none';
-    }
-    function handlePfpFileSelect(input) {
-        if (input.files && input.files[0]) {
-            const file = input.files[0];
-            if (file.size > 500 * 1024) {
-                alert("Profile picture must be lower than 500kb!");
-                input.value = "";
-                return;
-            }
-            const reader = new FileReader();
-            reader.onload = (e) => { stagedPfpBase64 = e.target.result; };
-            reader.readAsDataURL(file);
-        }
-    }
-    function submitProfileUpdate() {
-        const nameVal = document.getElementById('profile-name-input').value.trim();
-        const pfpDataToSend = stagedPfpBase64 || currentProfile.pfpData || "default";
-
-        const totalChunks = Math.max(1, Math.ceil(pfpDataToSend.length / (192 * 1024)));
-        for (let i = 0; i < totalChunks; i++) {
-            const chunk = pfpDataToSend.slice(i * 192 * 1024, (i + 1) * 192 * 1024);
-            socket.emit('eb_upload_profile_chunk', {
-                index: i,
-                total: totalChunks,
-                chunk: chunk,
-                displayName: nameVal
-            });
-        }
-    }
-    function updateLocalProfileUI(profile) {
-        currentProfile = profile;
-        const customImg = document.getElementById('custom-avatar-view');
-        const donutView = document.getElementById('donut-avatar-view');
-        if (profile.pfpData && profile.pfpData !== "default") {
-            customImg.src = profile.pfpData;
-            customImg.style.display = 'block';
-            donutView.style.display = 'none';
-        } else {
-            customImg.style.display = 'none';
-            donutView.style.display = 'flex';
-        }
-    }
-
-    function openShopModal() {
-        document.getElementById('shop-user-coins').innerText = currentCoins;
-        document.getElementById('modal-shop').style.display = 'flex';
-    }
-    function closeShopModal() {
-        document.getElementById('modal-shop').style.display = 'none';
-    }
-    function buyBatteryProduct(itemId) {
-        socket.emit('eb_buy_battery', { itemId: itemId, serverKey: serverKey });
-    }
-    function updateCoinsDisplay(coins) {
-        currentCoins = coins;
-        const dashCoins = document.getElementById('dashboard-coins-count');
-        const shopCoins = document.getElementById('shop-user-coins');
-        if (dashCoins) dashCoins.innerText = coins;
-        if (shopCoins) shopCoins.innerText = coins;
-    }
-    function updateBatteryDisplay(batteryMb) {
-        currentBatteryMb = batteryMb;
-        const valEl = document.getElementById('battery-curr-val');
-        const fillEl = document.getElementById('battery-progress-fill');
-        if (valEl) valEl.innerText = batteryMb.toFixed(1);
-        if (fillEl) {
-            const pct = Math.min(100, Math.max(0, (batteryMb / 25000) * 100));
-            fillEl.style.width = `${pct}%`;
-        }
-    }
-
-    function openOwnerSetCoinsModal() {
-        closeUniversalPanelModal();
-        document.getElementById('owner-coins-target-id').value = "";
-        document.getElementById('owner-coins-val').value = "50";
-        document.getElementById('modal-owner-set-coins').style.display = 'flex';
-    }
-    function closeOwnerSetCoinsModal() {
-        document.getElementById('modal-owner-set-coins').style.display = 'none';
-    }
-    function submitOwnerSetCoins() {
-        const targetId = document.getElementById('owner-coins-target-id').value.trim();
-        const amount = parseFloat(document.getElementById('owner-coins-val').value) || 50;
-        socket.emit('eb_owner_set_coins', { targetUserId: targetId, amount: amount });
-        closeOwnerSetCoinsModal();
-    }
-
-    function handleGoogleLogin(response) {
-        if (!isCaptchaTagged) {
-            return alert("⚠Request rejected⚠\nYou must verify yourself to prove you're not a bot.");
-        }
-
-        const base64Url = response.credential.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-        const payload = JSON.parse(jsonPayload);
-
-        googleSub = payload.sub;
-        googleEmail = payload.email;
-
-        showLoadingScreen("Wait, the server is logging you into the inserted account.");
-        socket.emit('eb_google_login', { googleSub, email: googleEmail, ownerId });
-    }
-
-    function openEzBridgeAuthChoice() {
-        document.getElementById('overlay-google-auth').style.display = 'none';
-        document.getElementById('modal-ezbridge-auth-choice').style.display = 'flex';
-    }
-
-    function closeEzBridgeAuthChoice() {
-        document.getElementById('modal-ezbridge-auth-choice').style.display = 'none';
-        document.getElementById('overlay-google-auth').style.display = 'flex';
-    }
-
-    function openEzBridgeSignUp() {
-        document.getElementById('modal-ezbridge-auth-choice').style.display = 'none';
-        document.getElementById('eb-signup-user').value = "";
-        document.getElementById('eb-signup-pass').value = "";
-        document.getElementById('eb-signup-email').value = "";
-        document.getElementById('eb-signup-user-status').innerText = "";
-        document.getElementById('eb-signup-pass-status').innerText = "";
-        document.getElementById('modal-ezbridge-signup').style.display = 'flex';
-    }
-
-    function closeEzBridgeSignUp() {
-        document.getElementById('modal-ezbridge-signup').style.display = 'none';
-        openEzBridgeAuthChoice();
-    }
-
-    function openEzBridgeLogIn() {
-        document.getElementById('modal-ezbridge-auth-choice').style.display = 'none';
-        document.getElementById('eb-login-user').value = "";
-        document.getElementById('eb-login-pass').value = "";
-        document.getElementById('eb-login-user-status').innerText = "";
-        document.getElementById('eb-login-pass-status').innerText = "";
-        document.getElementById('modal-ezbridge-login').style.display = 'flex';
-    }
-
-    function closeEzBridgeLogIn() {
-        document.getElementById('modal-ezbridge-login').style.display = 'none';
-        openEzBridgeAuthChoice();
-    }
-
-    function handleEzBridgeFieldValidate(mode, field) {
-        if (field === 'user') {
-            const userVal = document.getElementById(`eb-${mode}-user`).value;
-            const statusEl = document.getElementById(`eb-${mode}-user-status`);
-            statusEl.style.color = "#ffffff";
-            statusEl.innerText = "*Checking..*";
-            socket.emit('eb_check_username', { username: userVal, mode });
-        } else if (field === 'pass') {
-            const passVal = document.getElementById(`eb-${mode}-pass`).value;
-            socket.emit('eb_check_password', { password: passVal });
-        }
-    }
-
-    socket.on('eb_check_username_response', (data) => {
-        const statusEl = document.getElementById(`eb-${data.mode}-user-status`);
-        if (!statusEl) return;
-
-        if (data.mode === 'login') {
-            if (data.exists) {
-                statusEl.style.color = "var(--green)";
-                statusEl.innerText = `*Great, the Username ${data.username} exists in EzBridge.*`;
-            } else {
-                statusEl.style.color = "var(--error)";
-                statusEl.innerHTML = `*Incorrect chars. Please make sure they meet these requirements*<br>1 - has more than 10 chars<br>2 - has less than 30 chars<br>3 - does not have unsupported symbols<br>4 - make sure the Username exists`;
-            }
-        } else {
-            if (data.validFormat && !data.exists) {
-                statusEl.style.color = "var(--green)";
-                statusEl.innerText = `*Username is available.*`;
-            } else {
-                statusEl.style.color = "var(--error)";
-                statusEl.innerHTML = data.exists ? `*Username is already taken.*` : `*Incorrect chars. Please make sure they meet these requirements*<br>1 - has more than 10 chars<br>2 - has less than 30 chars<br>3 - does not have unsupported symbols`;
-            }
+    socket.on('eb_server_hw_stats', (data) => {
+        const lbl = document.getElementById('univ-panel-hw-stats');
+        if (lbl && data.stats) {
+            lbl.innerText = data.stats;
         }
     });
-
-    socket.on('eb_check_password_response', (data) => {
-        const signupPassStatus = document.getElementById('eb-signup-pass-status');
-        const loginPassStatus = document.getElementById('eb-login-pass-status');
-
-        if (signupPassStatus && document.getElementById('modal-ezbridge-signup').style.display === 'flex') {
-            if (!data.validFormat) {
-                signupPassStatus.style.color = "var(--error)";
-                signupPassStatus.innerText = "*Incorrect password format (8-30 chars, supported symbols only).*";
-            } else {
-                signupPassStatus.innerText = "";
-            }
-        }
-        if (loginPassStatus && document.getElementById('modal-ezbridge-login').style.display === 'flex') {
-            if (!data.validFormat) {
-                loginPassStatus.style.color = "var(--error)";
-                loginPassStatus.innerText = "*Incorrect password format.*";
-            } else {
-                loginPassStatus.innerText = "";
-            }
-        }
-    });
-
-    function submitEzBridgeLogIn() {
-        if (!isCaptchaTagged && !ezbridgeUsername && !googleSub) {
-            return alert("⚠Request rejected⚠\nYou must verify yourself to prove you're not a bot.");
-        }
-        const username = document.getElementById('eb-login-user').value.trim();
-        const password = document.getElementById('eb-login-pass').value;
-        document.getElementById('modal-ezbridge-login').style.display = 'none';
-        document.getElementById('overlay-ezbridge-logging').style.display = 'flex';
-        socket.emit('eb_ezbridge_login', { username, password });
-    }
-
-    function openChangeUsernameModal() {
-        closeAccountSettingsModal();
-        document.getElementById('change-user-val').value = "";
-        document.getElementById('modal-change-username').style.display = 'flex';
-    }
-    function closeChangeUsernameModal() {
-        document.getElementById('modal-change-username').style.display = 'none';
-    }
-    function submitChangeUsername() {
-        const newUsername = document.getElementById('change-user-val').value.trim();
-        socket.emit('eb_change_username', { newUsername, ownerId });
-        closeChangeUsernameModal();
-    }
-
-    function openChangePasswordModal() {
-        closeAccountSettingsModal();
-        document.getElementById('change-pass-current').value = "";
-        document.getElementById('change-pass-new').value = "";
-        document.getElementById('modal-change-password').style.display = 'flex';
-    }
-    function closeChangePasswordModal() {
-        document.getElementById('modal-change-password').style.display = 'none';
-    }
-    function submitChangePassword() {
-        const currentPassword = document.getElementById('change-pass-current').value;
-        const newPassword = document.getElementById('change-pass-new').value;
-        socket.emit('eb_change_password', { currentPassword, newPassword, ownerId });
-        closeChangePasswordModal();
-    }
-
-    function regenerateServerKeySubmit() {
-        socket.emit('eb_regen_server_key', { key: serverKey, ownerId, googleSub });
-    }
-
-    function openServerStorageModal() {
-        serverStorageChunks = [];
-        document.getElementById('modal-server-storage').style.display = 'flex';
-        socket.emit('eb_get_server_storage_chunks', { key: serverKey, ownerId, googleSub });
-
-        if (serverStoragePollInterval) clearInterval(serverStoragePollInterval);
-        serverStoragePollInterval = setInterval(() => {
-            if (document.getElementById('modal-server-storage').style.display === 'flex') {
-                socket.emit('eb_get_server_storage_chunks', { key: serverKey, ownerId, googleSub });
-            } else {
-                clearInterval(serverStoragePollInterval);
-            }
-        }, 5000);
-    }
-
-    function closeServerStorageModal() {
-        if (serverStoragePollInterval) clearInterval(serverStoragePollInterval);
-        document.getElementById('modal-server-storage').style.display = 'none';
-    }
-
-    function wipeServerStorageSubmit() {
-        if (confirm("Are you sure you want to WIPE the entire server storage? This cannot be undone.")) {
-            socket.emit('eb_storage_wipe', { key: serverKey, ownerId, googleSub });
-        }
-    }
-
-    function captchaSolved() {
-        socket.emit('eb_verify_captcha');
-        isCaptchaTagged = true;
-        document.getElementById('overlay-captcha').style.display = 'none';
-        if (!googleSub && !ezbridgeUsername) {
-            document.getElementById('overlay-google-auth').style.display = 'flex';
-        } else {
-            document.getElementById('overlay-start').style.display = 'flex';
-        }
-    }
-
-    function exploreSitesAsGuest() {
-        isGuestMode = true;
-        document.getElementById('overlay-captcha').style.display = 'none';
-        document.getElementById('overlay-google-auth').style.display = 'none';
-        navigateToPath('sites');
-    }
-
-    function returnToLoginFromSites() {
-        closeSeeAndPublishModal();
-        isGuestMode = false;
-        navigateToPath('login');
-    }
-
-    function applyRolePermissions() {
-        const tag = document.getElementById('role-tag-display');
-        const termBtn = document.getElementById('terminal-btn');
-        const btnServerMgmt = document.getElementById('btn-server-mgmt');
-        const btnBanUser = document.getElementById('btn-ban-user');
-        const btnRoleMgr = document.getElementById('btn-role-mgr');
-        const btnChangeUser = document.getElementById('btn-change-username');
-        const btnChangePass = document.getElementById('btn-change-password');
-        const univUpdateBtn = document.getElementById('btn-univ-update-script');
-        const univSetCoinsBtn = document.getElementById('btn-univ-set-coins');
-
-        termBtn.style.display = 'none';
-        btnServerMgmt.style.display = 'none';
-        btnBanUser.style.display = 'none';
-        btnRoleMgr.style.display = 'none';
-        
-        if (ezbridgeUsername) {
-            btnChangeUser.style.display = 'block';
-            btnChangePass.style.display = 'block';
-        } else {
-            btnChangeUser.style.display = 'none';
-            btnChangePass.style.display = 'none';
-        }
-
-        if (userRole === 'Owner') {
-            tag.innerHTML = `<span class="role-tag role-owner">OWNER</span>`;
-            termBtn.style.display = 'block';
-            btnServerMgmt.style.display = 'block';
-            btnBanUser.style.display = 'block';
-            btnRoleMgr.style.display = 'block';
-            if (univUpdateBtn) univUpdateBtn.style.display = 'block';
-            if (univSetCoinsBtn) univSetCoinsBtn.style.display = 'block';
-        } else if (userRole === 'Dev') {
-            tag.innerHTML = `<span class="role-tag role-dev">DEVELOPER</span>`;
-            termBtn.style.display = 'block';
-            btnServerMgmt.style.display = 'block';
-            btnBanUser.style.display = 'block';
-            btnRoleMgr.style.display = 'block';
-            if (univUpdateBtn) univUpdateBtn.style.display = 'none';
-            if (univSetCoinsBtn) univSetCoinsBtn.style.display = 'none';
-        } else if (userRole === 'Admin') {
-            tag.innerHTML = `<span class="role-tag role-admin">ADMIN</span>`;
-            btnServerMgmt.style.display = 'block';
-            btnBanUser.style.display = 'block';
-        } else {
-            tag.innerHTML = "";
-        }
-    }
-
-    function triggerAutoSiteSearch() {
-        document.getElementById('published-sites-container').innerHTML = "";
-        document.getElementById('search-fetching-indicator').style.display = 'block';
-
-        if (siteSearchDebounce) clearTimeout(siteSearchDebounce);
-        siteSearchDebounce = setTimeout(() => {
-            socket.emit('eb_get_published_sites', {
-                ownerId, googleSub,
-                search: document.getElementById('site-search-input').value.trim(),
-                sortBy: document.getElementById('site-sort-select').value
-            });
-        }, 300);
-    }
-
-    function openSeeAndPublishModal() {
-        siteFetchChunks = [];
-        document.getElementById('site-fetch-pct').innerText = '0';
-        document.getElementById('site-fetch-bar').style.width = '0%';
-        document.getElementById('overlay-fetching-sites').style.display = 'flex';
-
-        const btnCreateSite = document.getElementById('btn-create-update-site');
-        const btnBackLogin = document.getElementById('btn-sites-back-login');
-        const btnClose = document.getElementById('btn-sites-close');
-
-        if (isGuestMode) {
-            if (btnCreateSite) btnCreateSite.style.display = 'none';
-            if (btnBackLogin) btnBackLogin.style.display = 'block';
-            if (btnClose) btnClose.style.display = 'none';
-        } else {
-            if (btnCreateSite) btnCreateSite.style.display = 'block';
-            if (btnBackLogin) btnBackLogin.style.display = 'none';
-            if (btnClose) btnClose.style.display = 'block';
-        }
-
-        socket.emit('eb_get_published_sites', {
-            ownerId, googleSub,
-            search: document.getElementById('site-search-input') ? document.getElementById('site-search-input').value : '',
-            sortBy: document.getElementById('site-sort-select') ? document.getElementById('site-sort-select').value : 'hottest'
-        });
-    }
-
-    function cancelSiteFetch() {
-        document.getElementById('overlay-fetching-sites').style.display = 'none';
-        if (isGuestMode) {
-            returnToLoginFromSites();
-        }
-    }
-
-    function closeSeeAndPublishModal() {
-        if (siteSearchDebounce) clearTimeout(siteSearchDebounce);
-        document.getElementById('modal-see-publish').style.display = 'none';
-        navigateToPath('main');
-    }
-
-    function updateCreateUpdateSiteBtnText() {
-        const btn = document.getElementById('btn-create-update-site');
-        const submitBtn = document.getElementById('submit-site-btn');
-        const titleHeader = document.getElementById('create-site-title');
-
-        if (isUserHasSite) {
-            if (btn) btn.innerText = "UPDATE SITE";
-            if (submitBtn) submitBtn.innerText = "UPDATE SITE";
-            if (titleHeader) titleHeader.innerText = "UPDATE SITE";
-        } else {
-            if (btn) btn.innerText = "Create site";
-            if (submitBtn) submitBtn.innerText = "Create site";
-            if (titleHeader) titleHeader.innerText = "CREATE SITE";
-        }
-    }
-
-    function applySiteSearchAndSort() {
-        const searchVal = document.getElementById('site-search-input').value.trim().toLowerCase();
-        const sortVal = document.getElementById('site-sort-select').value;
-
-        let filtered = publishedSitesCache.filter(s => {
-            if (!searchVal) return s.visibility === 'public';
-            return s.id === searchVal || s.title.toLowerCase().includes(searchVal);
-        });
-
-        if (sortVal === 'hottest') {
-            filtered.sort((a, b) => {
-                const sA = (a.onlineCount * 10) + (a.likes * 2) + a.visits;
-                const sB = (b.onlineCount * 10) + (b.likes * 2) + b.visits;
-                return sB - sA;
-            });
-        } else if (sortVal === 'most_liked') {
-            filtered.sort((a, b) => (b.likes || 0) - (a.likes || 0));
-        } else if (sortVal === 'newest') {
-            filtered.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
-        } else {
-            filtered.sort((a, b) => (b.visits || 0) - (a.visits || 0));
-        }
-
-        renderPublishedSitesList(filtered);
-    }
-
-    function renderPublishedSitesList(sites) {
-        const container = document.getElementById('published-sites-container');
-        container.innerHTML = "";
-
-        if (sites.length === 0) {
-            container.innerHTML = `<div style="color:var(--muted); padding:20px; font-size:0.85rem;">No published sites found.</div>`;
-            return;
-        }
-
-        sites.forEach(s => {
-            const div = document.createElement('div');
-            div.className = 'domain-item';
-            div.style.flexDirection = 'column';
-            div.style.alignItems = 'flex-start';
-            div.style.gap = '6px';
-
-            const canDelete = (userRole === 'Owner' || userRole === 'Dev' || userRole === 'Admin');
-            const deleteBtnHTML = canDelete ? `<button class="btn btn-danger" style="width:auto; margin:0; padding:2px 8px; font-size:0.7rem;" onclick="deletePublishedSite('${s.id}')">DELETE</button>` : '';
-
-            const pfpHTML = (s.ownerPfpData && s.ownerPfpData !== "default") ? `<img src="${s.ownerPfpData}" style="width:18px; height:18px; border-radius:50% !important; vertical-align:middle; margin-left:4px; object-fit:cover;">` : `<span class="coin-icon" style="width:18px; height:18px; font-size:0.55rem; margin-left:4px; border-radius:50% !important;">👤</span>`;
-
-            const totalVotes = (s.likes || 0) + (s.dislikes || 0);
-            const greenPct = totalVotes > 0 ? ((s.likes || 0) / totalVotes) * 100 : 50;
-
-            const likeActive = s.userRating === 'like' ? 'active' : '';
-            const dislikeActive = s.userRating === 'dislike' ? 'active' : '';
-
-            div.innerHTML = `
-                <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
-                    <span><b>${escapeHtml(s.title)}</b> <button class="btn-secondary" style="padding:2px 6px; font-size:0.65rem;" onclick="copyTextValue('${s.id}')">COPY ID</button> by <b>${escapeHtml(s.ownerDisplayName || s.ownerUserId)}</b> ${pfpHTML}</span>
-                    ${deleteBtnHTML}
-                </div>
-                <div style="font-size:0.75rem; color:var(--muted);">
-                    Latest update: ${s.dateStr || '0/0/0'} | <b>${s.onlineCount || 0}</b> people online in it! | visits: <b>${s.visits || 0}</b>
-                </div>
-                <div style="display:flex; gap:8px; width:100%; align-items:center; margin-top:2px;">
-                    <button class="rate-btn ${likeActive}" onclick="rateSite('${s.id}', 'like')">👍 ${s.likes || 0}</button>
-                    <button class="rate-btn ${dislikeActive}" onclick="rateSite('${s.id}', 'dislike')">👎 ${s.dislikes || 0}</button>
-                    <div class="tug-war-bar">
-                        <div class="tug-war-green" style="width:${greenPct}%;"></div>
-                    </div>
-                    <button class="btn" style="width:auto; margin:0; padding:4px 14px; font-size:0.8rem;" onclick="accessSite('${s.id}')">access</button>
-                </div>
-            `;
-            container.appendChild(div);
-        });
-    }
-
-    function deletePublishedSite(siteId) {
-        if (confirm(`Delete site ${siteId} permanently?`)) {
-            socket.emit('eb_delete_site', { siteId, ownerId, googleSub });
-            setTimeout(openSeeAndPublishModal, 500);
-        }
-    }
-
-    function accessSite(siteId) {
-        closeSeeAndPublishModal();
-        navigateToPath(`site/${siteId}`);
-    }
-
-    function renderSiteFrame(site) {
-        document.getElementById('site-viewer-title').innerText = `${site.title} (${site.id})`;
-        const backBtn = document.getElementById('site-viewer-back-btn');
-        if (backBtn) {
-            backBtn.innerText = isGuestMode ? "Return to MENU" : "Back to EzBridge";
-        }
-
-        const container = document.getElementById('site-viewer-frame-container');
-        container.innerHTML = "";
-
-        const iframe = document.createElement('iframe');
-        iframe.className = 'site-frame';
-        iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-downloads');
-        iframe.setAttribute('allow', 'autoplay; fullscreen; geolocation');
-        container.appendChild(iframe);
-
-        const doc = iframe.contentWindow.document;
-        doc.open();
-        doc.write(site.htmlScript);
-        doc.close();
-
-        document.getElementById('modal-site-viewer').style.display = 'flex';
-    }
-
-    function closeSiteViewerModal() {
-        const container = document.getElementById('site-viewer-frame-container');
-        if (container) {
-            const iframe = container.querySelector('iframe');
-            if (iframe) {
-                try { iframe.src = 'about:blank'; } catch(e) {}
-            }
-            container.innerHTML = "";
-        }
-
-        document.getElementById('modal-site-viewer').style.display = 'none';
-        navigateToPath('sites');
-    }
-
-    function handleCreateOrUpdateSiteClick() {
-        closeSeeAndPublishModal();
-        if (isUserHasSite) {
-            userSiteDataChunks = [];
-            document.getElementById('site-data-pct').innerText = '0';
-            document.getElementById('site-data-bar').style.width = '0%';
-            document.getElementById('overlay-fetching-site-data').style.display = 'flex';
-
-            const fallbackTimeout = setTimeout(() => {
-                document.getElementById('overlay-fetching-site-data').style.display = 'none';
-                openCreateSiteModalForm();
-            }, 3000);
-
-            socket.once('eb_user_site_data_chunk', () => {
-                clearTimeout(fallbackTimeout);
-            });
-
-            socket.emit('eb_get_user_site_data', { key: serverKey, ownerId, googleSub });
-        } else {
-            openCreateSiteModalForm();
-        }
-    }
-
-    function openCreateSiteModalForm() {
-        updateCreateUpdateSiteBtnText();
-        document.getElementById('modal-create-site').style.display = 'flex';
-    }
-
-    function closeCreateSiteModal() {
-        document.getElementById('modal-create-site').style.display = 'none';
-    }
-
-    function generateSiteIdSubmit() {
-        socket.emit('eb_generate_site_id', { key: serverKey, ownerId, googleSub });
-    }
-
-    function startSiteIdGenCooldown(seconds) {
-        const btn = document.getElementById('btn-gen-site-id');
-        btn.disabled = true;
-        btn.style.background = "#10b981 !important";
-        btn.style.color = "#000000 !important";
-
-        let remaining = Math.floor(seconds);
-        if (siteGenCooldownTimer) clearInterval(siteGenCooldownTimer);
-
-        siteGenCooldownTimer = setInterval(() => {
-            const mins = Math.floor(remaining / 60);
-            const secs = String(remaining % 60).padStart(2, '0');
-            btn.innerText = `ID generated. ${mins}:${secs} left until next use`;
-
-            remaining--;
-            if (remaining < 0) {
-                clearInterval(siteGenCooldownTimer);
-                btn.disabled = false;
-                btn.innerText = "Generate site ID";
-                btn.style.background = "";
-                btn.style.color = "";
-            }
-        }, 1000);
-    }
-
-    function submitPublishSite() {
-        const title = document.getElementById('site-title-field').value.trim();
-        const htmlScript = document.getElementById('site-html-field').value;
-        const visibility = document.getElementById('site-vis-field').value;
-        const autoUpdateTunnel = document.getElementById('site-auto-tunnel-field').value === 'true';
-
-        if (!title || title.length < 2 || title.length > 20 || !/^[a-zA-Z0-9 ]+$/.test(title)) {
-            return alert("Title must be between 2 and 20 characters with NO symbols!");
-        }
-
-        if (!htmlScript || htmlScript.length < 100) {
-            return alert("HTML script must be at least 100 characters long!");
-        }
-
-        if (!isUserHasSite && !generatedSiteIdVal) {
-            return alert("You MUST click 'Generate site ID' before creating the site!");
-        }
-
-        const totalChunks = Math.ceil(htmlScript.length / SITE_CHUNK_SIZE);
-        isUploadingSiteScript = true;
-        document.getElementById('site-upload-progress').style.display = 'block';
-
-        sendSiteChunk(0, totalChunks, htmlScript, title, visibility, generatedSiteIdVal, autoUpdateTunnel);
-    }
-
-    function sendSiteChunk(index, total, fullScript, title, visibility, siteId, autoUpdateTunnel) {
-        if (!isUploadingSiteScript) return;
-        const start = index * SITE_CHUNK_SIZE;
-        const end = Math.min(start + SITE_CHUNK_SIZE, fullScript.length);
-        const chunk = fullScript.slice(start, end);
-
-        socket.emit('eb_upload_site_chunk', {
-            index, total, chunk,
-            siteId: siteId,
-            title: title,
-            visibility: visibility,
-            autoUpdateTunnel: autoUpdateTunnel,
-            key: serverKey,
-            ownerId, googleSub
-        });
-    }
-
-    function openChooseSessionModal() {
-        document.getElementById('modal-choose-session').style.display = 'flex';
-    }
-    function closeChooseSessionModal() {
-        document.getElementById('modal-choose-session').style.display = 'none';
-        navigateToPath('main');
-    }
-
-    function openChatRoomModal(sessionNum) {
-        closeChooseSessionModal();
-        currentChatSession = sessionNum;
-        document.getElementById('chat-session-title').innerText = `Session S. ${sessionNum}`;
-        document.getElementById('chat-messages-container').innerHTML = "";
-        document.getElementById('chat-textbox').value = "";
-        document.getElementById('chat-typing-status').innerText = "";
-        document.getElementById('modal-chat-room').style.display = 'flex';
-
-        socket.emit('eb_join_chat_session', { session: sessionNum });
-        setupChatTextboxEvents();
-    }
-
-    function closeChatRoomModal() {
-        if (currentChatSession) {
-            socket.emit('eb_leave_chat_session', { session: currentChatSession });
-        }
-        currentChatSession = null;
-        document.getElementById('modal-chat-room').style.display = 'none';
-        navigateToPath('main');
-    }
-
-    function setupChatTextboxEvents() {
-        const input = document.getElementById('chat-textbox');
-        input.oninput = () => {
-            if (input.value.length > 250) {
-                input.value = input.value.substring(0, 250);
-            }
-
-            socket.emit('eb_chat_typing', { session: currentChatSession, isTyping: true });
-
-            if (chatTypingTimeout) clearTimeout(chatTypingTimeout);
-            chatTypingTimeout = setTimeout(() => {
-                socket.emit('eb_chat_typing', { session: currentChatSession, isTyping: false });
-            }, 3000);
-        };
-
-        input.onkeypress = (e) => {
-            if (e.key === "Enter") sendChatMessage();
-        };
-    }
-
-    function sendChatMessage() {
-        const input = document.getElementById('chat-textbox');
-        let text = input.value.trim();
-        if (!text || text.length === 0 || !currentChatSession) return;
-
-        if (text.length > 250) text = text.substring(0, 250);
-        input.value = "";
-
-        socket.emit('eb_send_chat_msg', { session: currentChatSession, text: text });
-    }
-
-    function renderChatHistory(messagesList) {
-        const box = document.getElementById('chat-messages-container');
-        box.innerHTML = "";
-        messagesList.forEach(msg => appendSingleChatMessage(msg));
-    }
-
-    function appendSingleChatMessage(msg) {
-        const box = document.getElementById('chat-messages-container');
-        const bubble = document.createElement('div');
-        bubble.className = 'chat-bubble';
-        bubble.setAttribute('data-sender-id', msg.userId);
-
-        let roleTagHTML = "";
-        if (msg.role === 'Owner') roleTagHTML = `<span class="role-tag role-owner">OWNER</span>`;
-        else if (msg.role === 'Dev') roleTagHTML = `<span class="role-tag role-dev">DEVELOPER</span>`;
-        else if (msg.role === 'Admin') roleTagHTML = `<span class="role-tag role-admin">ADMIN</span>`;
-
-        const canCopyId = (userRole === 'Owner' || userRole === 'Dev' || userRole === 'Admin');
-        const copyBtnHTML = canCopyId ? `<button class="btn-secondary" style="padding:2px 6px; font-size:0.65rem; margin-left:6px;" onclick="copyTextValue('${msg.userId}')">Copy ID</button>` : '';
-
-        const resolvedProfile = cachedUserProfiles[msg.userId] || { displayName: msg.displayName, pfpData: msg.pfpData };
-        if (!cachedUserProfiles[msg.userId] && msg.userId !== "Guest") {
-            socket.emit('eb_get_profile', { targetUserId: msg.userId });
-        }
-
-        const pfpHTML = (resolvedProfile.pfpData && resolvedProfile.pfpData !== "default") ? `<img class="chat-pfp-img" src="${resolvedProfile.pfpData}" style="width:18px; height:18px; border-radius:50% !important; vertical-align:middle; margin-right:4px; object-fit:cover;">` : `<span class="coin-icon chat-pfp-icon" style="width:18px; height:18px; font-size:0.55rem; margin-right:4px; border-radius:50% !important;">👤</span>`;
-
-        bubble.innerHTML = `
-            <div style="font-size:0.75rem; font-weight:bold; color:var(--accent); margin-bottom:4px; display:flex; align-items:center;">
-                <span class="chat-pfp-slot">${pfpHTML}</span> <span class="chat-name-slot">${escapeHtml(resolvedProfile.displayName || msg.displayName || msg.userId || 'Guest')}</span> ${roleTagHTML} ${copyBtnHTML}
-            </div>
-            <div>${escapeHtml(msg.text)}</div>
-        `;
-
-        box.appendChild(bubble);
-        box.scrollTop = box.scrollHeight;
-    }
-
-    function refreshChatAvatars(userId) {
-        if (!cachedUserProfiles[userId]) return;
-        const profile = cachedUserProfiles[userId];
-        const bubbles = document.querySelectorAll(`.chat-bubble[data-sender-id="${userId}"]`);
-        bubbles.forEach(b => {
-            const nameSlot = b.querySelector('.chat-name-slot');
-            const pfpSlot = b.querySelector('.chat-pfp-slot');
-            if (nameSlot) nameSlot.innerText = profile.displayName;
-            if (pfpSlot) {
-                if (profile.pfpData && profile.pfpData !== 'default') {
-                    pfpSlot.innerHTML = `<img class="chat-pfp-img" src="${profile.pfpData}" style="width:18px; height:18px; border-radius:50% !important; vertical-align:middle; margin-right:4px; object-fit:cover;">`;
-                } else {
-                    pfpSlot.innerHTML = `<span class="coin-icon chat-pfp-icon" style="width:18px; height:18px; font-size:0.55rem; margin-right:4px; border-radius:50% !important;">👤</span>`;
-                }
-            }
-        });
-    }
-
-    function escapeHtml(str) {
-        return String(str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    }
-
-    function copyTextValue(text) {
-        navigator.clipboard.writeText(text);
-        alert(`Copied to clipboard: ${text}`);
-    }
 
     function openUniversalPanelModal() {
-        if (userRole !== 'Owner' && userRole !== 'Dev') return alert("Permission denied! Owner or Developer only.");
+        const role = userRole;
+        if (role !== 'Owner' && role !== 'Dev') return alert("Permission denied! Dev or Owner only.");
+
+        const updateBtn = document.getElementById('btn-univ-update-script');
+        const setCoinsBtn = document.getElementById('btn-univ-set-coins');
+        if (role === 'Dev') {
+            if (updateBtn) updateBtn.style.display = 'none';
+            if (setCoinsBtn) setCoinsBtn.style.display = 'none';
+        } else {
+            if (updateBtn) updateBtn.style.display = 'block';
+            if (setCoinsBtn) setCoinsBtn.style.display = 'block';
+        }
+
         document.getElementById('modal-universal-panel').style.display = 'flex';
     }
+
     function closeUniversalPanelModal() {
         document.getElementById('modal-universal-panel').style.display = 'none';
     }
@@ -3510,57 +2706,6 @@
     function closeNewUserIdModal() {
         document.getElementById('modal-new-userid').style.display = 'none';
     }
-
-    function openPyTerminalModal() {
-        closeConsoleModal();
-        document.getElementById('modal-pyterminal').style.display = 'flex';
-        document.getElementById('pyterminal-display').innerText = "Connecting to Python worker...";
-        socket.emit('eb_pyterminal_start', { serverKey: serverKey });
-    }
-
-    function closePyTerminalModal() {
-        document.getElementById('modal-pyterminal').style.display = 'none';
-        openConsoleModal();
-    }
-
-    function focusPyTermInput() {
-        const inp = document.getElementById('pyterminal-input');
-        if (inp) inp.focus();
-    }
-
-    function handlePyTermKey(e) {
-        if (e.key === 'Enter') sendPyTermCommand();
-    }
-
-    function sendPyTermCommand() {
-        const inp = document.getElementById('pyterminal-input');
-        const text = inp.value.trim();
-        if (!text) return;
-        inp.value = "";
-
-        if (text === '/exe') {
-            const script = prompt("Paste your python script to execute here:");
-            if (script) {
-                socket.emit('eb_pyterminal_input', { serverKey: serverKey, text: '/exe', scriptCode: script });
-            }
-            return;
-        }
-
-        socket.emit('eb_pyterminal_input', { serverKey: serverKey, text: text });
-    }
-
-    socket.on('eb_pyterminal_chunk', (data) => {
-        const disp = document.getElementById('pyterminal-display');
-        if (data.index === 0) disp.innerText = "";
-        disp.innerText += data.chunk;
-        disp.scrollTop = disp.scrollHeight;
-    });
-
-    socket.on('eb_pyterminal_update', (data) => {
-        const disp = document.getElementById('pyterminal-display');
-        disp.innerText += data.text;
-        disp.scrollTop = disp.scrollHeight;
-    });
 
     function openBanUserModal() {
         closeAccountSettingsModal();
@@ -3812,6 +2957,7 @@
 
         if (serverKey) {
             socket.emit('eb_heartbeat', { key: serverKey, ownerId });
+            socket.emit('eb_get_ai_billing');
         }
 
         setInterval(() => {
@@ -4208,7 +3354,20 @@
         });
 
         function update() {
-            if (!isServerSided) {
+            if (isServerSided) {
+                let moveX = 0;
+                let moveY = 0;
+                if (isMobile) {
+                    moveX = joyVector.x;
+                    moveY = joyVector.y;
+                } else {
+                    if (keys.w) moveY -= 1;
+                    if (keys.s) moveY += 1;
+                    if (keys.a) moveX -= 1;
+                    if (keys.d) moveX += 1;
+                }
+                sendRemote("server_char_input", { id: myId, moveX: moveX, moveY: moveY });
+            } else {
                 let speed = 5;
                 if (isMobile) {
                     myPos.x += joyVector.x * speed;
@@ -4223,9 +3382,11 @@
                 myPos.x = Math.max(0, Math.min(2000, myPos.x));
                 myPos.y = Math.max(0, Math.min(2000, myPos.y));
 
+                sendRemote("player_update", { id: myId, x: myPos.x, y: myPos.y, color: myColor });
+
                 coins.forEach(coin => {
                     if (Math.hypot(coin.x - myPos.x, coin.y - myPos.y) < 25) {
-                        syncHttp("collect_coin", { playerId: myId, coinId: coin.id });
+                        sendRemote("collect_coin", { playerId: myId, coinId: coin.id });
                     }
                 });
             }
@@ -4285,260 +3446,11 @@
         loop();
     <\/script>
 </body>
-</html>` : 
-`<!-- EzBridge Multiplayer Coin Collector (WebSocket) -->
-<!DOCTYPE html>
-<html>
-<head>
-    <title>EzBridge Multiplayer Coin Collector (WebSocket)</title>
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"><\/script>
-    <style>
-        body { margin: 0; background: #0f172a; color: #fff; font-family: sans-serif; overflow: hidden; user-select: none; }
-        canvas { display: block; background: #1e293b; }
-        #ui { position: absolute; top: 10px; left: 10px; pointer-events: none; font-weight: bold; font-size: 1.2rem; text-shadow: 1px 1px 2px #000; }
-        #toggle-container { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); padding: 8px 12px; border-radius: 8px; font-family: sans-serif; font-weight: bold; font-size: 0.9rem; z-index: 10; }
-        #toggle-container label { cursor: pointer; display: flex; align-items: center; gap: 8px; }
-        #joystick { position: absolute; bottom: 40px; left: 40px; width: 120px; height: 120px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; display: none; touch-action: none; }
-        #stick { position: absolute; top: 35px; left: 35px; width: 50px; height: 50px; background: rgba(255,255,255,0.4); border-radius: 50%; pointer-events: none; }
-    </style>
-</head>
-<body>
-    <div id="ui">Score: <span id="score">0</span> | Status: <span id="status">Connecting...</span></div>
-    <div id="toggle-container">
-        <label>
-            <input type="checkbox" id="serverCharToggle">
-            Serversided character test
-        </label>
-    </div>
-    <div id="joystick"><div id="stick"></div></div>
-    <canvas id="gameCanvas"></canvas>
-
-    <script>
-        const canvas = document.getElementById("gameCanvas");
-        const ctx = canvas.getContext("2d");
-
-        function resize() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        window.addEventListener("resize", resize);
-        resize();
-
-        const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-        if (isMobile) {
-            document.getElementById("joystick").style.display = "block";
-        }
-
-        const link = "${PUBLIC_TUNNEL_URL}";
-        const key = "${serverKey}";
-        const socket = io(link, { auth: { token: "default_key" } });
-
-        let myId = Math.random().toString(36).substring(2, 6);
-        let myColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
-        let myPos = { x: Math.random() * 2000, y: Math.random() * 2000 };
-        let myScore = 0;
-
-        let isServerSided = false;
-        let isClientCharDeleted = false;
-
-        const keys = { w: false, a: false, s: false, d: false };
-        let players = {};
-        let coins = [];
-
-        let joyActive = false;
-        let joyVector = { x: 0, y: 0 };
-
-        socket.on("connect", () => {
-            socket.emit("join_virtual_server", { key });
-        });
-
-        socket.on("joined_successfully", () => {
-            document.getElementById("status").innerText = "Connected";
-            socket.emit("RemoteEvent", { type: "player_join", data: { id: myId, color: myColor, x: myPos.x, y: myPos.y } });
-        });
-
-        socket.on("RemoteEvent", (pkt) => {
-            handleServerEvent(pkt);
-        });
-
-        function sendRemote(eventType, customData) {
-            socket.emit("RemoteEvent", { type: eventType, data: customData });
-        }
-
-        function handleServerEvent(pkt) {
-            if (pkt.type === "state_update") {
-                const serverPlayers = pkt.data.players;
-                coins = pkt.data.coins || [];
-                for (let id in serverPlayers) {
-                    if (id === myId) {
-                        myScore = serverPlayers[id].score;
-                        document.getElementById("score").innerText = myScore;
-                        if (isServerSided) {
-                            myPos.x = serverPlayers[id].x;
-                            myPos.y = serverPlayers[id].y;
-                        }
-                    }
-                    players[id] = serverPlayers[id];
-                }
-            } else if (pkt.type === "server_char_created") {
-                if (pkt.data.clientId === myId) {
-                    isClientCharDeleted = true;
-                }
-            }
-        }
-
-        document.getElementById("serverCharToggle").addEventListener("change", (e) => {
-            isServerSided = e.target.checked;
-            if (isServerSided) {
-                sendRemote("create_server_char", { name: myId });
-            } else {
-                isClientCharDeleted = false;
-            }
-        });
-
-        window.addEventListener("keydown", (e) => {
-            if (e.key.toLowerCase() === 'w') keys.w = true;
-            if (e.key.toLowerCase() === 'a') keys.a = true;
-            if (e.key.toLowerCase() === 's') keys.s = true;
-            if (e.key.toLowerCase() === 'd') keys.d = true;
-        });
-
-        window.addEventListener("keyup", (e) => {
-            if (e.key.toLowerCase() === 'w') keys.w = false;
-            if (e.key.toLowerCase() === 'a') keys.a = false;
-            if (e.key.toLowerCase() === 's') keys.s = false;
-            if (e.key.toLowerCase() === 'd') keys.d = false;
-        });
-
-        const joystickEl = document.getElementById("joystick");
-        const stickEl = document.getElementById("stick");
-        let joyCenter = { x: 0, y: 0 };
-
-        joystickEl.addEventListener("touchstart", (e) => {
-            joyActive = true;
-            const rect = joystickEl.getBoundingClientRect();
-            joyCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-        });
-
-        window.addEventListener("touchmove", (e) => {
-            if (!joyActive) return;
-            const touch = e.touches[0];
-            const dx = touch.clientX - joyCenter.x;
-            const dy = touch.clientY - joyCenter.y;
-            const dist = Math.min(50, Math.hypot(dx, dy));
-            const angle = Math.atan2(dy, dx);
-
-            joyVector.x = Math.cos(angle) * (dist / 50);
-            joyVector.y = Math.sin(angle) * (dist / 50);
-
-            stickEl.style.transform = \`translate(\${Math.cos(angle)*dist}px, \${Math.sin(angle)*dist}px)\`;
-        });
-
-        window.addEventListener("touchend", (e) => {
-            if (joyActive) {
-                joyActive = false;
-                joyVector = { x: 0, y: 0 };
-                stickEl.style.transform = \`translate(0px, 0px)\`;
-            }
-        });
-
-        function update() {
-            if (isServerSided) {
-                let moveX = 0;
-                let moveY = 0;
-                if (isMobile) {
-                    moveX = joyVector.x;
-                    moveY = joyVector.y;
-                } else {
-                    if (keys.w) moveY -= 1;
-                    if (keys.s) moveY += 1;
-                    if (keys.a) moveX -= 1;
-                    if (keys.d) moveX += 1;
-                }
-                sendRemote("server_char_input", { id: myId, moveX: moveX, moveY: moveY });
-            } else {
-                let speed = 5;
-                if (isMobile) {
-                    myPos.x += joyVector.x * speed;
-                    myPos.y += joyVector.y * speed;
-                } else {
-                    if (keys.w) myPos.y -= speed;
-                    if (keys.s) myPos.y += speed;
-                    if (keys.a) myPos.x -= speed;
-                    if (keys.d) myPos.x += speed;
-                }
-
-                myPos.x = Math.max(0, Math.min(2000, myPos.x));
-                myPos.y = Math.max(0, Math.min(2000, myPos.y));
-
-                sendRemote("player_update", { id: myId, x: myPos.x, y: myPos.y, color: myColor });
-
-                coins.forEach(coin => {
-                    if (Math.hypot(coin.x - myPos.x, coin.y - myPos.y) < 25) {
-                        sendRemote("collect_coin", { playerId: myId, coinId: coin.id });
-                    }
-                });
-            }
-        }
-
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            ctx.save();
-            ctx.translate(canvas.width / 2 - myPos.x, canvas.height / 2 - myPos.y);
-
-            ctx.strokeStyle = "#475569";
-            ctx.lineWidth = 4;
-            ctx.strokeRect(0, 0, 2000, 2000);
-
-            if (!isClientCharDeleted) {
-                ctx.fillStyle = myColor;
-                ctx.beginPath();
-                ctx.arc(myPos.x, myPos.y, 20, 0, Math.PI * 2);
-                ctx.fill();
-
-                ctx.fillStyle = "#ffffff";
-                ctx.font = "bold 14px sans-serif";
-                ctx.textAlign = "center";
-                ctx.fillText(`Coins: ${myScore}`, myPos.x, myPos.y - 30);
-            }
-
-            for (let id in players) {
-                if (id === myId && !isClientCharDeleted) continue;
-                let p = players[id];
-                ctx.fillStyle = p.color || '#fff';
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, 20, 0, Math.PI * 2);
-                ctx.fill();
-
-                ctx.fillStyle = "#ffffff";
-                ctx.font = "bold 14px sans-serif";
-                ctx.textAlign = "center";
-                ctx.fillText(`Coins: ${p.score || 0}`, p.x, p.y - 30);
-            }
-
-            ctx.fillStyle = "#facc15";
-            coins.forEach(c => {
-                ctx.beginPath();
-                ctx.arc(c.x, c.y, 10, 0, Math.PI * 2);
-                ctx.fill();
-            });
-
-            ctx.restore();
-        }
-
-        function loop() {
-            update();
-            draw();
-            requestAnimationFrame(loop);
-        }
-        loop();
-    <\/script>
-</body>
 </html>`;
 
         const coinServerCode = 
-`let players = {};
+`// --- EzBridge Multiplayer Coin Collector (ServerScript) ---
+let players = {};
 let coins = [];
 
 function spawnCoin() {
@@ -4629,757 +3541,30 @@ Server.on('collect_coin', (evt) => {
     }
 });
 
-setInterval(() => {
+Server.onTick((dt) => {
     Server.broadcast('state_update', { players, coins });
-}, 1000 / 30);`;
-
-        const gunsClientCode = isHttp ? 
-`<!DOCTYPE html>
-<html>
-<head>
-    <title>Test Your Guns (HTTP)</title>
-    <style>
-        body { margin: 0; background: #0f172a; color: #fff; font-family: sans-serif; overflow: hidden; user-select: none; }
-        canvas { display: block; background: #1e293b; }
-        #ui { position: absolute; top: 10px; left: 10px; pointer-events: none; font-weight: bold; font-size: 1.2rem; text-shadow: 1px 1px 2px #000; }
-        #joystick { position: absolute; bottom: 40px; left: 40px; width: 120px; height: 120px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; display: none; touch-action: none; }
-        #stick { position: absolute; top: 35px; left: 35px; width: 50px; height: 50px; background: rgba(255,255,255,0.4); border-radius: 50%; pointer-events: none; }
-    </style>
-</head>
-<body>
-    <div id="ui">Health: <span id="hp">100</span> | Mode: <span id="status">HTTP REST</span></div>
-    <div id="joystick"><div id="stick"></div></div>
-    <canvas id="gameCanvas"></canvas>
-
-    <script>
-        const canvas = document.getElementById("gameCanvas");
-        const ctx = canvas.getContext("2d");
-
-        function resize() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        window.addEventListener("resize", resize);
-        resize();
-
-        const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-        if (isMobile) {
-            document.getElementById("joystick").style.display = "block";
-        }
-
-        const link = "${PUBLIC_TUNNEL_URL}/remote";
-        const key = "${serverKey}";
-
-        let myId = Math.random().toString(36).substring(2, 7);
-        let myColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
-        let myPos = { x: Math.random() * 1500, y: Math.random() * 1500 };
-        let myHp = 100;
-        let isDead = false;
-        let lastShot = 0;
-        let aimAngle = 0;
-
-        const keys = { w: false, a: false, s: false, d: false };
-        let players = {};
-        let bullets = [];
-
-        let joyActive = false;
-        let joyVector = { x: 0, y: 0 };
-
-        let isHttpBusy = false;
-        async function syncHttp(eventType, customData) {
-            if (isHttpBusy && !customData) return;
-            isHttpBusy = true;
-            try {
-                const payload = customData ? { type: eventType, data: customData } : {
-                    type: "player_update",
-                    data: { id: myId, x: myPos.x, y: myPos.y, angle: aimAngle, color: myColor }
-                };
-
-                const res = await fetch(link, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json", "auth-token": key },
-                    body: JSON.stringify(payload)
-                });
-
-                if (res.ok) {
-                    const json = await res.json();
-                    if (json.events && Array.isArray(json.events)) {
-                        json.events.forEach(handleServerEvent);
-                    }
-                }
-            } catch(e) {}
-            isHttpBusy = false;
-        }
-
-        function handleServerEvent(pkt) {
-            if (pkt.type === "state_update") {
-                const serverPlayers = pkt.data.players;
-                for (let id in serverPlayers) {
-                    if (id === myId) {
-                        myHp = serverPlayers[id].hp;
-                        document.getElementById("hp").innerText = myHp;
-                        if (myHp <= 0 && !isDead) {
-                            isDead = true;
-                            setTimeout(() => {
-                                isDead = false;
-                                myPos = { x: Math.random() * 1500, y: Math.random() * 1500 };
-                                syncHttp("respawn", { id: myId, x: myPos.x, y: myPos.y });
-                            }, 3000);
-                        }
-                    } else {
-                        players[id] = serverPlayers[id];
-                    }
-                }
-            } else if (pkt.type === "spawn_bullet") {
-                if (pkt.data.shooterId !== myId) {
-                    bullets.push(pkt.data);
-                }
-            }
-        }
-
-        syncHttp("player_join", { id: myId, color: myColor, x: myPos.x, y: myPos.y });
-
-        setInterval(() => {
-            if (!isDead) syncHttp();
-        }, 50);
-
-        window.addEventListener("keydown", (e) => {
-            if (e.key.toLowerCase() === 'w') keys.w = true;
-            if (e.key.toLowerCase() === 'a') keys.a = true;
-            if (e.key.toLowerCase() === 's') keys.s = true;
-            if (e.key.toLowerCase() === 'd') keys.d = true;
-        });
-
-        window.addEventListener("keyup", (e) => {
-            if (e.key.toLowerCase() === 'w') keys.w = false;
-            if (e.key.toLowerCase() === 'a') keys.a = false;
-            if (e.key.toLowerCase() === 's') keys.s = false;
-            if (e.key.toLowerCase() === 'd') keys.d = false;
-        });
-
-        let mousePos = { x: canvas.width / 2, y: canvas.height / 2 };
-        window.addEventListener("mousemove", (e) => {
-            mousePos.x = e.clientX;
-            mousePos.y = e.clientY;
-        });
-
-        window.addEventListener("mousedown", (e) => {
-            if (e.button === 2 && !isDead) {
-                shoot();
-            }
-        });
-        window.addEventListener("contextmenu", (e) => e.preventDefault());
-
-        const joystickEl = document.getElementById("joystick");
-        const stickEl = document.getElementById("stick");
-        let joyCenter = { x: 0, y: 0 };
-
-        joystickEl.addEventListener("touchstart", (e) => {
-            joyActive = true;
-            const rect = joystickEl.getBoundingClientRect();
-            joyCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-        });
-
-        window.addEventListener("touchmove", (e) => {
-            if (!joyActive) return;
-            const touch = e.touches[0];
-            const dx = touch.clientX - joyCenter.x;
-            const dy = touch.clientY - joyCenter.y;
-            const dist = Math.min(50, Math.hypot(dx, dy));
-            const angle = Math.atan2(dy, dx);
-
-            joyVector.x = Math.cos(angle) * (dist / 50);
-            joyVector.y = Math.sin(angle) * (dist / 50);
-
-            stickEl.style.transform = \`translate(\${Math.cos(angle)*dist}px, \${Math.sin(angle)*dist}px)\`;
-        });
-
-        window.addEventListener("touchend", (e) => {
-            if (joyActive) {
-                joyActive = false;
-                joyVector = { x: 0, y: 0 };
-                stickEl.style.transform = \`translate(0px, 0px)\`;
-            }
-        });
-
-        function shoot() {
-            const now = Date.now();
-            if (now - lastShot < 200) return;
-            lastShot = now;
-
-            const bullet = {
-                x: myPos.x,
-                y: myPos.y,
-                vx: Math.cos(aimAngle) * 12,
-                vy: Math.sin(aimAngle) * 12,
-                damage: 13,
-                shooterId: myId
-            };
-
-            bullets.push(bullet);
-            syncHttp("fire_bullet", bullet);
-        }
-
-        function update() {
-            if (!isDead) {
-                let speed = 4;
-                if (isMobile) {
-                    myPos.x += joyVector.x * speed;
-                    myPos.y += joyVector.y * speed;
-                } else {
-                    if (keys.w) myPos.y -= speed;
-                    if (keys.s) myPos.y += speed;
-                    if (keys.a) myPos.x -= speed;
-                    if (keys.d) myPos.x += speed;
-                }
-
-                myPos.x = Math.max(0, Math.min(3000, myPos.x));
-                myPos.y = Math.max(0, Math.min(3000, myPos.y));
-
-                const screenCenterX = canvas.width / 2;
-                const screenCenterY = canvas.height / 2;
-                aimAngle = Math.atan2(mousePos.y - screenCenterY, mousePos.x - screenCenterX);
-            }
-
-            for (let i = bullets.length - 1; i >= 0; i--) {
-                let b = bullets[i];
-                b.x += b.vx;
-                b.y += b.vy;
-
-                if (b.x < 0 || b.x > 3000 || b.y < 0 || b.y > 3000) {
-                    bullets.splice(i, 1);
-                    continue;
-                }
-
-                if (b.shooterId === myId) {
-                    for (let id in players) {
-                        let p = players[id];
-                        if (p.hp > 0 && Math.abs(p.x - b.x) < 25 && Math.abs(p.y - b.y) < 25) {
-                            syncHttp("apply_damage", { targetId: id, damage: b.damage });
-                            bullets.splice(i, 1);
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            ctx.save();
-            if (!isDead) {
-                ctx.translate(canvas.width / 2 - myPos.x, canvas.height / 2 - myPos.y);
-            }
-
-            ctx.strokeStyle = "#475569";
-            ctx.lineWidth = 4;
-            ctx.strokeRect(0, 0, 3000, 3000);
-
-            if (!isDead) {
-                ctx.save();
-                ctx.translate(myPos.x, myPos.y);
-                ctx.fillStyle = myColor;
-                ctx.fillRect(-20, -20, 40, 40);
-
-                ctx.fillStyle = "#ef4444";
-                ctx.fillRect(-20, -32, 40, 6);
-                ctx.fillStyle = "#22c55e";
-                ctx.fillRect(-20, -32, 40 * (myHp / 100), 6);
-
-                ctx.rotate(aimAngle);
-                ctx.fillStyle = "#94a3b8";
-                ctx.fillRect(0, -6, 30, 12);
-                ctx.restore();
-            }
-
-            for (let id in players) {
-                let p = players[id];
-                if (p.hp <= 0) continue;
-
-                ctx.save();
-                ctx.translate(p.x, p.y);
-                ctx.fillStyle = p.color || '#fff';
-                ctx.fillRect(-20, -20, 40, 40);
-
-                ctx.fillStyle = "#ef4444";
-                ctx.fillRect(-20, -32, 40, 6);
-                ctx.fillStyle = "#22c55e";
-                ctx.fillRect(-20, -32, 40 * (p.hp / 100), 6);
-
-                ctx.rotate(p.angle);
-                ctx.fillStyle = "#94a3b8";
-                ctx.fillRect(0, -6, 30, 12);
-                ctx.restore();
-            }
-
-            ctx.fillStyle = "#facc15";
-            bullets.forEach(b => {
-                ctx.beginPath();
-                ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
-                ctx.fill();
-            });
-
-            ctx.restore();
-        }
-
-        function loop() {
-            update();
-            draw();
-            requestAnimationFrame(loop);
-        }
-        loop();
-    <\/script>
-</body>
-</html>` : 
-`<!DOCTYPE html>
-<html>
-<head>
-    <title>Test Your Guns</title>
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"><\/script>
-    <style>
-        body { margin: 0; background: #0f172a; color: #fff; font-family: sans-serif; overflow: hidden; user-select: none; }
-        canvas { display: block; background: #1e293b; }
-        #ui { position: absolute; top: 10px; left: 10px; pointer-events: none; font-weight: bold; font-size: 1.2rem; text-shadow: 1px 1px 2px #000; }
-        #joystick { position: absolute; bottom: 40px; left: 40px; width: 120px; height: 120px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; display: none; touch-action: none; }
-        #stick { position: absolute; top: 35px; left: 35px; width: 50px; height: 50px; background: rgba(255,255,255,0.4); border-radius: 50%; pointer-events: none; }
-    </style>
-</head>
-<body>
-    <div id="ui">Health: <span id="hp">100</span> | Status: <span id="status">Connecting...</span></div>
-    <div id="joystick"><div id="stick"></div></div>
-    <canvas id="gameCanvas"></canvas>
-
-    <script>
-        const canvas = document.getElementById("gameCanvas");
-        const ctx = canvas.getContext("2d");
-
-        function resize() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        window.addEventListener("resize", resize);
-        resize();
-
-        const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-        if (isMobile) {
-            document.getElementById("joystick").style.display = "block";
-        }
-
-        const link = "${PUBLIC_TUNNEL_URL}";
-        const key = "${serverKey}";
-        const socket = io(link, { auth: { token: "default_key" } });
-
-        let myId = Math.random().toString(36).substring(2, 7);
-        let myColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
-        let myPos = { x: Math.random() * 1500, y: Math.random() * 1500 };
-        let myHp = 100;
-        let isDead = false;
-        let lastShot = 0;
-        let aimAngle = 0;
-
-        const keys = { w: false, a: false, s: false, d: false };
-        let players = {};
-        let bullets = [];
-
-        let joyActive = false;
-        let joyVector = { x: 0, y: 0 };
-
-        socket.on("connect", () => {
-            socket.emit("join_virtual_server", { key });
-        });
-
-        socket.on("joined_successfully", () => {
-            document.getElementById("status").innerText = "Connected";
-            socket.emit("RemoteEvent", { type: "player_join", data: { id: myId, color: myColor, x: myPos.x, y: myPos.y } });
-        });
-
-        socket.on("RemoteEvent", (pkt) => {
-            if (pkt.type === "state_update") {
-                const serverPlayers = pkt.data.players;
-                for (let id in serverPlayers) {
-                    if (id === myId) {
-                        myHp = serverPlayers[id].hp;
-                        document.getElementById("hp").innerText = myHp;
-                        if (myHp <= 0 && !isDead) {
-                            isDead = true;
-                            setTimeout(() => {
-                                isDead = false;
-                                myPos = { x: Math.random() * 1500, y: Math.random() * 1500 };
-                                socket.emit("RemoteEvent", { type: "respawn", data: { id: myId, x: myPos.x, y: myPos.y } });
-                            }, 3000);
-                        }
-                    } else {
-                        players[id] = serverPlayers[id];
-                    }
-                }
-            } else if (pkt.type === "spawn_bullet") {
-                if (pkt.data.shooterId !== myId) {
-                    bullets.push(pkt.data);
-                }
-            }
-        });
-
-        window.addEventListener("keydown", (e) => {
-            if (e.key.toLowerCase() === 'w') keys.w = true;
-            if (e.key.toLowerCase() === 'a') keys.a = true;
-            if (e.key.toLowerCase() === 's') keys.s = true;
-            if (e.key.toLowerCase() === 'd') keys.d = true;
-        });
-
-        window.addEventListener("keyup", (e) => {
-            if (e.key.toLowerCase() === 'w') keys.w = false;
-            if (e.key.toLowerCase() === 'a') keys.a = false;
-            if (e.key.toLowerCase() === 's') keys.s = false;
-            if (e.key.toLowerCase() === 'd') keys.d = false;
-        });
-
-        let mousePos = { x: canvas.width / 2, y: canvas.height / 2 };
-        window.addEventListener("mousemove", (e) => {
-            mousePos.x = e.clientX;
-            mousePos.y = e.clientY;
-        });
-
-        window.addEventListener("mousedown", (e) => {
-            if (e.button === 2 && !isDead) {
-                shoot();
-            }
-        });
-        window.addEventListener("contextmenu", (e) => e.preventDefault());
-
-        const joystickEl = document.getElementById("joystick");
-        const stickEl = document.getElementById("stick");
-        let joyCenter = { x: 0, y: 0 };
-
-        joystickEl.addEventListener("touchstart", (e) => {
-            joyActive = true;
-            const rect = joystickEl.getBoundingClientRect();
-            joyCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-        });
-
-        window.addEventListener("touchmove", (e) => {
-            if (!joyActive) return;
-            const touch = e.touches[0];
-            const dx = touch.clientX - joyCenter.x;
-            const dy = touch.clientY - joyCenter.y;
-            const dist = Math.min(50, Math.hypot(dx, dy));
-            const angle = Math.atan2(dy, dx);
-
-            joyVector.x = Math.cos(angle) * (dist / 50);
-            joyVector.y = Math.sin(angle) * (dist / 50);
-
-            stickEl.style.transform = \`translate(\${Math.cos(angle)*dist}px, \${Math.sin(angle)*dist}px)\`;
-        });
-
-        window.addEventListener("touchend", (e) => {
-            if (joyActive) {
-                joyActive = false;
-                joyVector = { x: 0, y: 0 };
-                stickEl.style.transform = \`translate(0px, 0px)\`;
-            }
-        });
-
-        function shoot() {
-            const now = Date.now();
-            if (now - lastShot < 200) return;
-            lastShot = now;
-
-            const bullet = {
-                x: myPos.x,
-                y: myPos.y,
-                vx: Math.cos(aimAngle) * 12,
-                vy: Math.sin(aimAngle) * 12,
-                damage: 13,
-                shooterId: myId
-            };
-
-            bullets.push(bullet);
-            socket.emit("RemoteEvent", { type: "fire_bullet", data: bullet });
-        }
-
-        function update() {
-            if (!isDead) {
-                let speed = 4;
-                if (isMobile) {
-                    myPos.x += joyVector.x * speed;
-                    myPos.y += joyVector.y * speed;
-                } else {
-                    if (keys.w) myPos.y -= speed;
-                    if (keys.s) myPos.y += speed;
-                    if (keys.a) myPos.x -= speed;
-                    if (keys.d) myPos.x += speed;
-                }
-
-                myPos.x = Math.max(0, Math.min(3000, myPos.x));
-                myPos.y = Math.max(0, Math.min(3000, myPos.y));
-
-                const screenCenterX = canvas.width / 2;
-                const screenCenterY = canvas.height / 2;
-                aimAngle = Math.atan2(mousePos.y - screenCenterY, mousePos.x - screenCenterX);
-
-                socket.emit("RemoteEvent", { type: "player_update", data: { id: myId, x: myPos.x, y: myPos.y, angle: aimAngle, color: myColor } });
-            }
-
-            for (let i = bullets.length - 1; i >= 0; i--) {
-                let b = bullets[i];
-                b.x += b.vx;
-                b.y += b.vy;
-
-                if (b.x < 0 || b.x > 3000 || b.y < 0 || b.y > 3000) {
-                    bullets.splice(i, 1);
-                    continue;
-                }
-
-                if (b.shooterId === myId) {
-                    for (let id in players) {
-                        let p = players[id];
-                        if (p.hp > 0 && Math.abs(p.x - b.x) < 25 && Math.abs(p.y - b.y) < 25) {
-                            socket.emit("RemoteEvent", { type: "apply_damage", data: { targetId: id, damage: b.damage } });
-                            bullets.splice(i, 1);
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            ctx.save();
-            if (!isDead) {
-                ctx.translate(canvas.width / 2 - myPos.x, canvas.height / 2 - myPos.y);
-            }
-
-            ctx.strokeStyle = "#475569";
-            ctx.lineWidth = 4;
-            ctx.strokeRect(0, 0, 3000, 3000);
-
-            if (!isDead) {
-                ctx.save();
-                ctx.translate(myPos.x, myPos.y);
-                ctx.fillStyle = myColor;
-                ctx.fillRect(-20, -20, 40, 40);
-
-                ctx.fillStyle = "#ef4444";
-                ctx.fillRect(-20, -32, 40, 6);
-                ctx.fillStyle = "#22c55e";
-                ctx.fillRect(-20, -32, 40 * (myHp / 100), 6);
-
-                ctx.rotate(aimAngle);
-                ctx.fillStyle = "#94a3b8";
-                ctx.fillRect(0, -6, 30, 12);
-                ctx.restore();
-            }
-
-            for (let id in players) {
-                let p = players[id];
-                if (p.hp <= 0) continue;
-
-                ctx.save();
-                ctx.translate(p.x, p.y);
-                ctx.fillStyle = p.color || '#fff';
-                ctx.fillRect(-20, -20, 40, 40);
-
-                ctx.fillStyle = "#ef4444";
-                ctx.fillRect(-20, -32, 40, 6);
-                ctx.fillStyle = "#22c55e";
-                ctx.fillRect(-20, -32, 40 * (p.hp / 100), 6);
-
-                ctx.rotate(p.angle);
-                ctx.fillStyle = "#94a3b8";
-                ctx.fillRect(0, -6, 30, 12);
-                ctx.restore();
-            }
-
-            ctx.fillStyle = "#facc15";
-            bullets.forEach(b => {
-                ctx.beginPath();
-                ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
-                ctx.fill();
-            });
-
-            ctx.restore();
-        }
-
-        function loop() {
-            update();
-            draw();
-            requestAnimationFrame(loop);
-        }
-        loop();
-    <\/script>
-</body>
-</html>`;
-
-        const gunsServerCode = 
-`let players = {};
-
-Server.on('player_join', (evt) => {
-    const id = evt.data.id;
-    players[id] = {
-        id: id,
-        x: evt.data.x || 1500,
-        y: evt.data.y || 1500,
-        color: evt.data.color || '#ffffff',
-        angle: 0,
-        hp: 100
-    };
-});
-
-Server.on('player_update', (evt) => {
-    const data = evt.data;
-    if (players[data.id]) {
-        players[data.id].x = data.x;
-        players[data.id].y = data.y;
-        players[data.id].angle = data.angle;
-        players[data.id].color = data.color;
-    }
-});
-
-Server.on('fire_bullet', (evt) => {
-    Server.broadcast('spawn_bullet', evt.data);
-});
-
-Server.on('apply_damage', (evt) => {
-    const { targetId, damage } = evt.data;
-    if (players[targetId]) {
-        players[targetId].hp = Math.max(0, players[targetId].hp - damage);
-    }
-});
-
-Server.on('respawn', (evt) => {
-    const id = evt.data.id;
-    if (players[id]) {
-        players[id].hp = 100;
-        players[id].x = evt.data.x;
-        players[id].y = evt.data.y;
-    }
-});
-
-setInterval(() => {
-    Server.broadcast('state_update', { players });
-}, 1000 / 30);`;
-
-        const httpChatClientCode = 
-`<!DOCTYPE html>
-<html>
-<head>
-    <title>HTTP Global Chat</title>
-    <style>
-        body { background: #0f172a; color: #fff; font-family: sans-serif; padding: 20px; }
-        #chat { height: 200px; overflow-y: auto; background: #1e293b; padding: 10px; }
-        input { width: 70%; padding: 8px; }
-        button { padding: 8px 16px; background: #ef4444; color:#fff; border: none; font-weight: bold; cursor: pointer; }
-    </style>
-</head>
-<body>
-    <h2>HTTP Global Chat</h2>
-    <div id="chat"></div>
-    <br>
-    <input type="text" id="msgInput" placeholder="Type a message...">
-    <button onclick="sendMsg()">Send</button>
-
-    <script>
-        const link = "${PUBLIC_TUNNEL_URL}/remote";
-        const key = "${serverKey}";
-        const mySender = "Guest_" + Math.floor(Math.random() * 8999 + 1000);
-        let pendingText = null;
-        let isSyncing = false;
-
-        async function httpSync() {
-            if (isSyncing) return;
-            isSyncing = true;
-            try {
-                const payload = pendingText ? 
-                    { type: "send_message", data: { sender: mySender, text: pendingText } } :
-                    { type: "get_messages", data: {} };
-                pendingText = null;
-
-                const res = await fetch(link, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json", "auth-token": key },
-                    body: JSON.stringify(payload)
-                });
-
-                if (res.ok) {
-                    const json = await res.json();
-                    if (json.events && Array.isArray(json.events)) {
-                        json.events.forEach(evt => {
-                            if (evt.type === 'send_message_reply' || evt.type === 'get_messages_reply') {
-                                renderChat(evt.data.messages);
-                            }
-                        });
-                    }
-                }
-            } catch(e) {}
-            isSyncing = false;
-        }
-
-        function sendMsg() {
-            const input = document.getElementById('msgInput');
-            if (input.value.trim()) {
-                pendingText = input.value.trim();
-                input.value = "";
-                httpSync();
-            }
-        }
-
-        function renderChat(messages) {
-            const box = document.getElementById('chat');
-            box.innerHTML = messages.map(m => \`<div><b>\${m.sender}:</b> \${m.text}</div>\`).join('');
-            box.scrollTop = box.scrollHeight;
-        }
-
-        setInterval(httpSync, 50);
-    <\/script>
-</body>
-</html>`;
-
-        const httpChatServerCode = 
-`if (!Server.state.messages) {
-    Server.state.messages = [];
-}
-
-Server.on('send_message', (evt) => {
-    if (evt.data && evt.data.text) {
-        Server.state.messages.push({
-            sender: evt.data.sender || 'Guest',
-            text: evt.data.text
-        });
-        if (Server.state.messages.length > 50) {
-            Server.state.messages.shift();
-        }
-    }
-    evt.reply({ messages: Server.state.messages });
-});
-
-Server.on('get_messages', (evt) => {
-    evt.reply({ messages: Server.state.messages });
 });`;
 
-        const autoTunnelFetchCode = 
-`local HttpService = game:GetService("HttpService")
-local response = HttpService:GetAsync("https://raw.githubusercontent.com/TerminatorSBDEV/ebtunnel/main/tunnel")
-local currentTunnel = string.gsub(response, "%s+", "")
-print("EzBridge Current Tunnel: " .. currentTunnel)
+        const tunnelFetchCode = 
+`async function getLiveTunnel() {
+    try {
+        const res = await fetch("https://raw.githubusercontent.com/TerminatorSBDEV/ebtunnel/main/tunnel");
+        const tunnelUrl = (await res.text()).trim();
+        console.log("Current EzBridge Tunnel:", tunnelUrl);
+        return tunnelUrl;
+    } catch(err) {
+        console.error("Failed to fetch tunnel:", err);
+    }
+}
+getLiveTunnel();
 -- use this example of you don't want to keep updating the tunnel everytime a new one generates`;
 
-        return { 
-            coinClientCode, 
-            coinServerCode, 
-            gunsClientCode, 
-            gunsServerCode, 
-            httpChatClientCode, 
-            httpChatServerCode, 
-            autoTunnelFetchCode 
-        };
+        return { coinClientCode, coinServerCode, clientCode: coinClientCode, serverCode: coinServerCode, tunnelFetchCode };
     }
 
     function copyAIPrompt() {
         const { coinClientCode, coinServerCode } = getGameExamples();
-        const aiKeyNotice = userAiKeyVal ? `\nAnd if you are going to add an AI feature to the project, here's my AI key: ${userAiKeyVal}` : "";
-        const promptText = `*How to implement EzBridge's universal server on your online project*
+        let promptText = `*How to implement EzBridge's universal server on your online project*
 EzBridge server is a universal server that is also free and can be used to make multiplayer and online apps, if you want to implement it on your project, please follow these steps:
 
 1 - Connecting
@@ -5407,22 +3592,26 @@ ${serverType === 'websocket' ?
   * Server.storage.set(data) - Save up to 100MB of persistent server data.
   * Server.storage.get() - Retrieve stored server data.
   * Server.storage.getUsageBytes() - Get current storage usage in bytes.
-- ServerScript API: [SERVER-SIDED API] Write sandboxed backend JS code (Server.on('event', fn), Server.broadcast('event', data), Server.onTick((dt) => { ... })).
-- Server.eb_callai: [SERVER-SIDED API] Call local or cloud AI models (qwen2.5:0.5b, gemma3:1b, llama3.2:1b, qwen2.5:1.5b, gemma-4-26b-a4b-it).
+- ServerScript API: [SERVER-SIDED API] Write sandboxed backend JS code (Server.on('event', fn), Server.onTick((dt) => { ... }), Server.broadcast('event', data)).
+- Server.eb_callai: [SERVER-SIDED API] Call local or cloud AI models (qwen2.5:0.5b, qwen2.5:1.5b, or gemma-4-26b-a4b-it) using your generated AI key: Server.eb_callai({ aiKey: "${userAiKeyVal || "YOUR_AI_KEY"}", model: "qwen2.5:0.5b", Temp: 0, Mtokens: 28, Instruction: "...", Prompt: "..." }).
 
 4 - Learn More About EzBridge
 - Max Packet Size: 10MB per packet.
 - Request Limit: Up to 60 requests/sec.
 - Server Memory: Configured at 250MB.
-- Server Target Ping: Configurable between 50ms and 1000ms.
-- Physics Engine Tickrate: 33 Hz fixed delta time simulation.
+- Universal Tick & Minimum Ping: 50ms.
+- Physics Simulation Tickrate: 33 Hz.
 
 here are some examples so you understand more about making online apps:
 1 - html script (Coin Collector Example)
 ${coinClientCode}
 
 2 - serverscript (Coin Collector Example)
-${coinServerCode}${aiKeyNotice}`;
+${coinServerCode}`;
+
+        if (userAiKeyVal) {
+            promptText += `\n\nAnd if you are going to add an AI feature to the project, here's my AI key: ${userAiKeyVal}`;
+        }
 
         navigator.clipboard.writeText(promptText);
         alert("AI Prompt copied to clipboard! Paste it into your AI chat.");
@@ -5459,36 +3648,16 @@ async function fetchAssetData(assetId) {
     console.log("Asset Name:", asset.name, "Type:", asset.type);
     if (asset.type.includes('image')) {
         document.getElementById("imgSlot").src = asset.data;
+    } else if (asset.type.includes('video')) {
+        document.getElementById("vidSlot").src = asset.data;
     } else if (asset.type.includes('audio')) {
         const audio = new Audio(asset.data);
         audio.play();
-    } else if (asset.type.includes('video')) {
-        document.getElementById("vidSlot").src = asset.data;
     }
 }
 
-<span class="api-tag-both">CLIENT AND SERVER API (both clients and servers can use this API)</span>
-4. DIRECT AI REST API (Requires AI Key):
-async function askAI(prompt) {
-    const res = await fetch("${PUBLIC_TUNNEL_URL}/ai", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "ai-key": "${userAiKeyVal || 'YOUR_AI_KEY'}"
-        },
-        body: JSON.stringify({
-            model: "gemma-4-26b-a4b-it",
-            Prompt: prompt,
-            Temp: 0.7,
-            Mtokens: 1500
-        })
-    });
-    const data = await res.json();
-    console.log("AI Response:", data.text);
-}
-
 <span class="api-tag-client">CLIENT-SIDED API (only the client can use this)</span>
-5. SEND REMOTE EVENT & LISTEN TO RESPONSES:
+4. SEND REMOTE EVENT & LISTEN TO RESPONSES:
 async function sendHttpEvent(type, data) {
     const res = await fetch("${PUBLIC_TUNNEL_URL}/remote", {
         method: "POST",
@@ -5504,6 +3673,29 @@ async function sendHttpEvent(type, data) {
     }
 }
 
+<span class="api-tag-both">CLIENT AND SERVER API (both clients and servers can use this API)</span>
+5. HTTP AI MODEL CALL:
+// POST request: ${PUBLIC_TUNNEL_URL}/ai
+// Requires 'ai-key' header. Max temperature is 1.0. All models available (qwen2.5:0.5b, qwen2.5:1.5b, gemma-4-26b-a4b-it).
+async function callAi(promptText) {
+    const res = await fetch("${PUBLIC_TUNNEL_URL}/ai", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "ai-key": "${userAiKeyVal || "YOUR_AI_KEY"}"
+        },
+        body: JSON.stringify({
+            model: "qwen2.5:0.5b",
+            Prompt: promptText,
+            Instruction: "You are a helpful assistant.",
+            Temp: 0.7,
+            Mtokens: 1500
+        })
+    });
+    const data = await res.json();
+    console.log("AI Output:", data.text);
+}
+
 <span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
 6. SERVERSCRIPT 100MB DEDICATED STORAGE API:
 // Server.storage.set("any string or JSON data up to 100MB");
@@ -5512,16 +3704,17 @@ async function sendHttpEvent(type, data) {
 
 <span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
 7. SERVERSCRIPT LOCAL OR CLOUD AI API:
+// Models: qwen2.5:0.5b, qwen2.5:1.5b, or gemma-4-26b-a4b-it
 Server.eb_callai({
-    model: "gemma-4-26b-a4b-it",
-    Temp: 0.7,
-    Mtokens: 1500,
+    aiKey: "${userAiKeyVal || "YOUR_AI_KEY"}",
+    model: "qwen2.5:0.5b",
+    Temp: 0,
+    Mtokens: 28,
     Instruction: "You are a helpful assistant.",
-    Prompt: "what's the capital of France?",
-    Streaming: false
+    Prompt: "what's the capital of France?"
 }, (res) => {
     if (res.error) console.log("AI Error:", res.error);
-    else console.log("AI Answer Text:", res.text, "Tracking ID:", res.id);
+    else console.log("AI Answer Text:", res.text);
 });
 
 Server.stopAILatest();
@@ -5545,6 +3738,7 @@ socket.on("RemoteEvent", (pkt) => {
 
 <span class="api-tag-both">CLIENT AND SERVER API (both clients and servers can use this API)</span>
 3. GET ASSET IN 180KB CHUNKS:
+// Can be used without server key or authority
 socket.emit("RemoteEvent", { type: "eb_asset_get_1" });
 let assetChunks = [];
 socket.on("RemoteEvent", (pkt) => {
@@ -5574,13 +3768,23 @@ socket.on("RemoteEvent", (pkt) => {
     if (pkt.type === "userid_response") console.log("User ID:", pkt.userId || pkt.message);
 });
 
-<span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
-6. SERVERSCRIPT FIXED 33 HZ ENGINE TICK HOOK:
-Server.onTick((dt) => {
-    // Runs at 33 Hz fixed delta time
-    for (let id in players) {
-        players[id].x += players[id].vx * dt;
+<span class="api-tag-both">CLIENT AND SERVER API (both clients and servers can use this API)</span>
+6. WEBSOCKET AI CALL:
+// Models: qwen2.5:0.5b, qwen2.5:1.5b, or gemma-4-26b-a4b-it
+socket.emit("RemoteEvent", {
+    type: "eb_callai",
+    data: {
+        aiKey: "${userAiKeyVal || "YOUR_AI_KEY"}",
+        model: "qwen2.5:0.5b",
+        Prompt: "Hello AI",
+        Instruction: "Be concise.",
+        Temp: 0.7,
+        Mtokens: 1000,
+        Streaming: true
     }
+});
+socket.on("RemoteEvent", (pkt) => {
+    if (pkt.type === "eb_ai_response") console.log(pkt.data.text);
 });
 
 <span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
@@ -5590,17 +3794,17 @@ Server.onTick((dt) => {
 // const usedBytes = Server.storage.getUsageBytes();
 
 <span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
-8. SERVERSCRIPT AI API (Ollama qwen2.5:0.5b / qwen2.5:1.5b / Google gemma-4-26b-a4b-it):
+8. SERVERSCRIPT LOCAL OR CLOUD AI API:
 Server.eb_callai({
+    aiKey: "${userAiKeyVal || "YOUR_AI_KEY"}",
     model: "qwen2.5:1.5b",
-    Temp: 0.7,
-    Mtokens: 1500,
+    Temp: 0.5,
+    Mtokens: 50,
     Instruction: "You are a helpful assistant.",
-    Prompt: "what's the capital of France?",
-    Streaming: false
+    Prompt: "what's the capital of France?"
 }, (res) => {
     if (res.error) console.log("AI Error:", res.error);
-    else console.log("AI Answer Text:", res.text, "Tracking ID:", res.id);
+    else console.log("AI Answer Text:", res.text);
 });
 
 Server.stopAILatest();
@@ -5618,26 +3822,13 @@ Server.stopAIId("4c1a");`;
         document.getElementById('http-disclaimer').style.display = isHttp ? 'block' : 'none';
         document.getElementById('http-extra-example-container').style.display = isHttp ? 'block' : 'none';
 
-        const { 
-            coinClientCode, 
-            coinServerCode, 
-            gunsClientCode, 
-            gunsServerCode, 
-            httpChatClientCode, 
-            httpChatServerCode, 
-            autoTunnelFetchCode 
-        } = getGameExamples();
+        const { coinClientCode, coinServerCode, tunnelFetchCode } = getGameExamples();
 
         document.getElementById('example-coin-client').value = coinClientCode;
         document.getElementById('example-coin-server').value = coinServerCode;
-        document.getElementById('example-code-client').value = gunsClientCode;
-        document.getElementById('example-code-server').value = gunsServerCode;
-        document.getElementById('example-auto-tunnel-fetch').value = autoTunnelFetchCode;
-
-        if (isHttp) {
-            document.getElementById('example-http-chat-client').value = httpChatClientCode;
-            document.getElementById('example-http-chat-server').value = httpChatServerCode;
-        }
+        document.getElementById('example-code-client').value = coinClientCode;
+        document.getElementById('example-code-server').value = coinServerCode;
+        document.getElementById('example-tunnel-fetch').value = tunnelFetchCode;
 
         document.getElementById('modal-code').style.display = 'flex';
     }
