@@ -94,7 +94,7 @@
             border: 1px solid var(--border) !important; font-size: 0.85rem; font-weight: bold;
             display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 15px;
         }
-        .dot { width: 8px; height: 8px; border-radius: 0px !important; background: var(--error); }
+        .dot { width: 8px; height: 8px; border-radius: 0px !important; background: var(--error); box-shadow: none !important; }
         .dot.online { background: var(--green); }
         .dot.lockdown { background: var(--yellow); }
         .dot.sleeping { background: var(--orange); }
@@ -310,7 +310,7 @@
                 Congratulations! you got <span id="daily-reward-coins-txt">5</span> EzCoins for entering EzBridge, Join more frequently and your rewards will significantly increase, so don't break your streak!
             </p>
             <button class="btn btn-purple" style="font-size:1.05rem; padding:14px;" onclick="claimDailyRewardSubmit()">-> Collect Reward <-</button>
-            <div style="font-size:0.75rem; color:var(--muted); margin-top:10px;">Server's timezone: <span id="daily-server-time">00:00 - 0/0/0</span></div>
+            <div style="font-size:0.75rem; color:var(--muted); margin-top:10px;">Server's timezone: <span id="daily-server-time">00:00:00 - 0/0/0</span></div>
             <div style="font-size:0.7rem; color:var(--muted); margin-top:4px;">- miss one day and your streak returns to 0, the higher the streak, the higher your rewards can be.</div>
         </div>
     </div>
@@ -462,18 +462,15 @@
     <div id="modal-ai-billing" class="overlay" style="display:none; z-index:2800;">
         <div class="card" style="max-width: 460px;">
             <h3>AI access billing</h3>
-            <p style="font-size:0.8rem; color:var(--muted); line-height:1.4; margin:12px 0;">
+            <p style="font-size:0.8rem; color:var(--muted); line-height:1.5; text-align:left;">
                 Each month your AI key is active, the server checks it's usage inside each month and gives you a certain amount of EzCoins you have to pay for the API stay active.
             </p>
-            <div style="text-align:left; background:#020617; padding:12px; border:1px solid var(--border); margin:10px 0; font-size:0.85rem; display:flex; flex-direction:column; gap:6px;">
-                <div>Last Month: <span id="ai-bill-last-tokens" style="color:var(--accent); font-weight:bold;">0</span> tokens</div>
-                <div>Current Month Tokens: <span id="ai-bill-curr-tokens" style="color:var(--accent); font-weight:bold;">0</span> tokens</div>
-                <div>Current price: <span id="ai-bill-price" style="color:var(--yellow); font-weight:bold;">0</span> <span class="coin-icon" style="width:18px; height:18px; font-size:0.55rem;">EZ</span></div>
+            <div style="text-align:left; margin:15px 0; font-size:0.9rem;">
+                <div>Last Month: <span id="ai-billing-last-tokens" style="font-weight:bold; color:var(--accent);">0</span> tokens</div>
+                <div style="margin-top:6px;">Current price: <span id="ai-billing-price" style="font-weight:bold; color:var(--yellow);">0</span> <span class="coin-icon" style="width:18px; height:18px; font-size:0.55rem;">EZ</span></div>
             </div>
-            <div style="display:flex; gap:10px; margin-top:15px;">
-                <button class="btn btn-purple" id="btn-pay-ai-bill" style="display:none;" onclick="payAiBillSubmit()">Pay</button>
-                <button class="btn btn-secondary" onclick="closeAiBillingModal()">Close</button>
-            </div>
+            <button class="btn btn-purple" id="btn-pay-ai-bill" style="display:none; margin-bottom:8px;" onclick="submitPayAiBill()">Pay</button>
+            <button class="btn btn-secondary" onclick="closeAiBillingModal()">Close</button>
         </div>
     </div>
 
@@ -933,12 +930,12 @@
     </div>
 
     <div id="modal-universal-panel" class="overlay" style="display:none;">
-        <div class="card" style="max-width: 460px;">
-            <div id="univ-panel-hw-stats" style="font-size:0.75rem; color:var(--accent); font-weight:bold; margin-bottom:12px; line-height:1.4;">
+        <div class="card" style="max-width: 480px;">
+            <h3>Universal Server Panel</h3>
+            <div id="universal-panel-hw-stats" style="font-family:monospace; font-size:0.75rem; color:var(--yellow); background:#020617; padding:8px; border:1px solid #1e293b; margin-bottom:12px; text-align:left; word-break:break-all;">
                 RAM: 0% | CPU: 0% | BATTERY: 100% | TEMPERATURE: 0.0 | DATE: 0/0/0 00:00:00
             </div>
-            <h3>Universal Server Panel</h3>
-            <div style="display:flex; flex-direction:column; gap:10px; margin:15px 0;">
+            <div style="display:flex; flex-direction:column; gap:10px; margin:10px 0;">
                 <button class="btn btn-purple" id="btn-univ-update-script" onclick="openUpdateUnivServerModal()">Update univserver</button>
                 <button class="btn btn-purple" id="btn-univ-set-coins" onclick="openOwnerSetCoinsModal()">Set User Coins</button>
                 <button class="btn btn-secondary" onclick="restartNodeOnly()">restart node</button>
@@ -1129,20 +1126,20 @@
                         <button class="btn" style="width:auto; margin:0;" onclick="copyText('copy-link')">Copy</button>
                     </div>
                 </div>
-                
                 <div class="settings-item" style="margin-top:10px;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <label>3 - AI auth key</label>
-                        <span id="ai-key-status-label" style="font-size:0.7rem; font-weight:bold; color:var(--green); display:none;">Status: Active</span>
+                        <span id="ai-key-status-label" style="font-size:0.75rem; color:var(--muted); font-weight:bold;">Status: Not Generated</span>
                     </div>
-                    <div id="ai-key-container" style="display:flex; gap:8px;">
-                        <button class="btn btn-secondary" id="btn-generate-ai-key" style="margin:0;" onclick="generateAiKeySubmit()">Generate AI key</button>
-                        <input type="text" id="display-ai-key-val" readonly style="flex-grow:1; display:none;">
-                        <button class="btn" id="btn-copy-ai-key" style="width:auto; margin:0; display:none;" onclick="copyText('display-ai-key-val')">Copy</button>
-                        <button class="btn" id="btn-open-ai-billing" style="width:auto; margin:0; background:#ffffff !important; color:#000000 !important; display:none;" onclick="openAiBillingModal()">Billing</button>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <div id="ai-key-action-container" style="flex-grow:1;">
+                            <button class="btn btn-purple" id="btn-gen-ai-key" style="margin:0;" onclick="generateAiKeySubmit()">Generate AI key</button>
+                            <input type="text" id="copy-ai-key" readonly style="width:100%; display:none;">
+                        </div>
+                        <button class="btn" id="btn-copy-ai-key" style="width:auto; margin:0; display:none;" onclick="copyText('copy-ai-key')">Copy</button>
+                        <button class="btn" id="btn-open-ai-billing" style="width:auto; margin:0; background:#ffffff !important; color:#000000 !important; font-weight:bold; display:none;" onclick="openAiBillingModal()">Billing</button>
                     </div>
                 </div>
-
                 <div style="display:flex; gap:10px; margin-top:15px;">
                     <button class="btn btn-secondary" style="flex:1;" onclick="openCommandsModal()">API Commands</button>
                     <button class="btn btn-secondary" style="flex:1;" onclick="openGameCode()">View Game Example</button>
@@ -1187,8 +1184,8 @@
                 <textarea id="example-http-chat-server" class="code-box" readonly rows="8" style="width:100%; height:160px; border:none; resize:none;"></textarea>
             </div>
 
-            <div style="text-align:left; font-size:0.85rem; font-weight:bold; color:var(--accent); margin-top:14px; border-top:1px solid var(--border); padding-top:10px;">4. Dynamic Tunnel Auto-Fetch:</div>
-            <textarea id="example-tunnel-fetch" class="code-box" readonly rows="8" style="width:100%; height:160px; border:none; resize:none;"></textarea>
+            <div style="text-align:left; font-size:0.85rem; font-weight:bold; color:var(--accent); margin-top:14px; border-top:1px solid var(--border); padding-top:10px;">4. Auto-Fetch Tunnel from GitHub Repo (ebtunnel/tunnel):</div>
+            <textarea id="example-fetch-tunnel" class="code-box" readonly rows="8" style="width:100%; height:160px; border:none; resize:none;"></textarea>
 
             <div style="display:flex; gap:10px; margin-top:10px;">
                 <button class="btn" onclick="copyText('example-coin-client')">Copy Coin Collector Client</button>
@@ -1209,8 +1206,6 @@
     let activeUserId = "";
     let userRole = "None";
     let serverKey = "";
-    let userAiKeyVal = "";
-    let userAiKeyStatus = "Active";
     let serverActive = false;
     let isServerSleeping = false;
     let serverSleepReason = null;
@@ -1232,6 +1227,9 @@
     let stagedAssetBase64 = null;
     let currentEditingAssetId = null;
     let currentAssetCost = 0;
+
+    let activeAiKeyVal = "";
+    let activeAiKeyData = null;
 
     let userTotalAssetBytes = 0;
     const MAX_ASSET_BYTES = 500 * 1024 * 1024;
@@ -1530,6 +1528,8 @@
         } else {
             openSetupUI();
         }
+
+        socket.emit('eb_get_ai_billing');
 
         if (data.emailRequired) {
             openMissingEmailModal();
@@ -2496,65 +2496,63 @@
     }
 
     socket.on('eb_ai_key_data', (data) => {
-        if (data.aiKey) {
-            userAiKeyVal = data.aiKey.key;
-            userAiKeyStatus = data.aiKey.status || 'Active';
-            updateAiKeyDisplay();
+        if (data && data.aiKey) {
+            updateAiKeyUI(data.aiKey);
         }
     });
 
-    function updateAiKeyDisplay() {
-        const genBtn = document.getElementById('btn-generate-ai-key');
-        const valInp = document.getElementById('display-ai-key-val');
+    socket.on('eb_ai_billing_response', (data) => {
+        if (data && data.hasKey) {
+            updateAiKeyUI(data.data);
+            document.getElementById('ai-billing-last-tokens').innerText = data.data.lastMonthTokens || 0;
+            document.getElementById('ai-billing-price').innerText = data.data.currentPrice || 0;
+            const payBtn = document.getElementById('btn-pay-ai-bill');
+            if (payBtn) payBtn.style.display = (data.data.currentPrice > 0) ? 'block' : 'none';
+        }
+    });
+
+    function updateAiKeyUI(keyData) {
+        activeAiKeyData = keyData;
+        activeAiKeyVal = keyData.key;
+
+        const genBtn = document.getElementById('btn-gen-ai-key');
+        const keyInp = document.getElementById('copy-ai-key');
         const copyBtn = document.getElementById('btn-copy-ai-key');
         const billBtn = document.getElementById('btn-open-ai-billing');
-        const statLabel = document.getElementById('ai-key-status-label');
+        const statusLbl = document.getElementById('ai-key-status-label');
 
-        if (userAiKeyVal) {
-            genBtn.style.display = 'none';
-            valInp.style.display = 'block';
-            valInp.value = userAiKeyVal;
-            copyBtn.style.display = 'block';
-            billBtn.style.display = 'block';
-            statLabel.style.display = 'block';
-            statLabel.innerText = `Status: ${userAiKeyStatus}`;
-            statLabel.style.color = (userAiKeyStatus === 'Active') ? 'var(--green)' : 'var(--error)';
-        } else {
-            genBtn.style.display = 'block';
-            valInp.style.display = 'none';
-            copyBtn.style.display = 'none';
-            billBtn.style.display = 'none';
-            statLabel.style.display = 'none';
+        if (genBtn) genBtn.style.display = 'none';
+        if (keyInp) {
+            keyInp.value = keyData.key;
+            keyInp.style.display = 'block';
+        }
+        if (copyBtn) copyBtn.style.display = 'block';
+        if (billBtn) billBtn.style.display = 'block';
+        if (statusLbl) {
+            statusLbl.innerText = `Status: ${keyData.status || 'Active'}`;
+            statusLbl.style.color = (keyData.status === 'Blocked') ? 'var(--error)' : 'var(--green)';
         }
     }
 
     function openAiBillingModal() {
-        socket.emit('eb_get_ai_billing');
         document.getElementById('modal-ai-billing').style.display = 'flex';
+        socket.emit('eb_get_ai_billing');
     }
 
     function closeAiBillingModal() {
         document.getElementById('modal-ai-billing').style.display = 'none';
     }
 
-    socket.on('eb_ai_billing_response', (data) => {
-        if (data.hasKey && data.data) {
-            document.getElementById('ai-bill-last-tokens').innerText = data.data.lastMonthTokens || 0;
-            document.getElementById('ai-bill-curr-tokens').innerText = data.data.currentMonthTokens || 0;
-            const price = data.data.currentPrice || 0;
-            document.getElementById('ai-bill-price').innerText = price;
-            const payBtn = document.getElementById('btn-pay-ai-bill');
-            if (price > 0) {
-                payBtn.style.display = 'block';
-            } else {
-                payBtn.style.display = 'none';
-            }
-        }
-    });
-
-    function payAiBillSubmit() {
+    function submitPayAiBill() {
         socket.emit('eb_pay_ai_bill');
     }
+
+    socket.on('eb_server_hw_stats', (data) => {
+        const statsEl = document.getElementById('universal-panel-hw-stats');
+        if (statsEl && data && data.stats) {
+            statsEl.innerText = data.stats;
+        }
+    });
 
     function openPyTerminalModal() {
         closeConsoleModal();
@@ -2607,104 +2605,385 @@
         disp.scrollTop = disp.scrollHeight;
     });
 
-    socket.on('eb_server_hw_stats', (data) => {
-        const lbl = document.getElementById('univ-panel-hw-stats');
-        if (lbl && data.stats) {
-            lbl.innerText = data.stats;
+    function showCooldownWarningModal(actionName, remMs) {
+        if (cooldownTimerCountdown) clearInterval(cooldownTimerCountdown);
+        let remSeconds = Math.max(1, Math.ceil(remMs / 1000));
+
+        function updateWarnText() {
+            const h = String(Math.floor(remSeconds / 3600)).padStart(2, '0');
+            const m = String(Math.floor((remSeconds % 3600) / 60)).padStart(2, '0');
+            const s = String(remSeconds % 60).padStart(2, '0');
+            document.getElementById('cooldown-warning-time').innerText = `${h}:${m}:${s}`;
         }
-    });
+        updateWarnText();
 
-    function openUniversalPanelModal() {
-        const role = userRole;
-        if (role !== 'Owner' && role !== 'Dev') return alert("Permission denied! Dev or Owner only.");
+        cooldownTimerCountdown = setInterval(() => {
+            remSeconds--;
+            if (remSeconds <= 0) {
+                clearInterval(cooldownTimerCountdown);
+                closeCooldownWarningModal();
+            } else {
+                updateWarnText();
+            }
+        }, 1000);
 
-        const updateBtn = document.getElementById('btn-univ-update-script');
-        const setCoinsBtn = document.getElementById('btn-univ-set-coins');
-        if (role === 'Dev') {
-            if (updateBtn) updateBtn.style.display = 'none';
-            if (setCoinsBtn) setCoinsBtn.style.display = 'none';
+        document.getElementById('modal-cooldown-warning').style.display = 'flex';
+    }
+
+    function closeCooldownWarningModal() {
+        if (cooldownTimerCountdown) clearInterval(cooldownTimerCountdown);
+        document.getElementById('modal-cooldown-warning').style.display = 'none';
+    }
+
+    function openProfileModal() {
+        document.getElementById('profile-name-input').value = currentProfile.displayName || "";
+        document.getElementById('modal-profile').style.display = 'flex';
+    }
+    function closeProfileModal() {
+        document.getElementById('modal-profile').style.display = 'none';
+    }
+    function handlePfpFileSelect(input) {
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            if (file.size > 500 * 1024) {
+                alert("Profile picture must be lower than 500kb!");
+                input.value = "";
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (e) => { stagedPfpBase64 = e.target.result; };
+            reader.readAsDataURL(file);
+        }
+    }
+    function submitProfileUpdate() {
+        const nameVal = document.getElementById('profile-name-input').value.trim();
+        const pfpDataToSend = stagedPfpBase64 || currentProfile.pfpData || "default";
+
+        const totalChunks = Math.max(1, Math.ceil(pfpDataToSend.length / (192 * 1024)));
+        for (let i = 0; i < totalChunks; i++) {
+            const chunk = pfpDataToSend.slice(i * 192 * 1024, (i + 1) * 192 * 1024);
+            socket.emit('eb_upload_profile_chunk', {
+                index: i,
+                total: totalChunks,
+                chunk: chunk,
+                displayName: nameVal
+            });
+        }
+    }
+    function updateLocalProfileUI(profile) {
+        currentProfile = profile;
+        const customImg = document.getElementById('custom-avatar-view');
+        const donutView = document.getElementById('donut-avatar-view');
+        if (profile.pfpData && profile.pfpData !== "default") {
+            customImg.src = profile.pfpData;
+            customImg.style.display = 'block';
+            donutView.style.display = 'none';
         } else {
-            if (updateBtn) updateBtn.style.display = 'block';
-            if (setCoinsBtn) setCoinsBtn.style.display = 'block';
+            customImg.style.display = 'none';
+            donutView.style.display = 'flex';
         }
-
-        document.getElementById('modal-universal-panel').style.display = 'flex';
     }
 
-    function closeUniversalPanelModal() {
-        document.getElementById('modal-universal-panel').style.display = 'none';
+    function openShopModal() {
+        document.getElementById('shop-user-coins').innerText = currentCoins;
+        document.getElementById('modal-shop').style.display = 'flex';
+    }
+    function closeShopModal() {
+        document.getElementById('modal-shop').style.display = 'none';
+    }
+    function buyBatteryProduct(itemId) {
+        socket.emit('eb_buy_battery', { itemId: itemId, serverKey: serverKey });
+    }
+    function updateCoinsDisplay(coins) {
+        currentCoins = coins;
+        const dashCoins = document.getElementById('dashboard-coins-count');
+        const shopCoins = document.getElementById('shop-user-coins');
+        if (dashCoins) dashCoins.innerText = coins;
+        if (shopCoins) shopCoins.innerText = coins;
+    }
+    function updateBatteryDisplay(batteryMb) {
+        currentBatteryMb = batteryMb;
+        const valEl = document.getElementById('battery-curr-val');
+        const fillEl = document.getElementById('battery-progress-fill');
+        if (valEl) valEl.innerText = batteryMb.toFixed(1);
+        if (fillEl) {
+            const pct = Math.min(100, Math.max(0, (batteryMb / 25000) * 100));
+            fillEl.style.width = `${pct}%`;
+        }
     }
 
-    function openUpdateUnivServerModal() {
+    function openOwnerSetCoinsModal() {
         closeUniversalPanelModal();
-        document.getElementById('univserver-script-editor').value = "";
-        document.getElementById('modal-update-univserver').style.display = 'flex';
+        document.getElementById('owner-coins-target-id').value = "";
+        document.getElementById('owner-coins-val').value = "50";
+        document.getElementById('modal-owner-set-coins').style.display = 'flex';
     }
-    function closeUpdateUnivServerModal() {
-        document.getElementById('modal-update-univserver').style.display = 'none';
+    function closeOwnerSetCoinsModal() {
+        document.getElementById('modal-owner-set-coins').style.display = 'none';
+    }
+    function submitOwnerSetCoins() {
+        const targetId = document.getElementById('owner-coins-target-id').value.trim();
+        const amount = parseFloat(document.getElementById('owner-coins-val').value) || 50;
+        socket.emit('eb_owner_set_coins', { targetUserId: targetId, amount: amount });
+        closeOwnerSetCoinsModal();
     }
 
-    function startUnivServerChunkUpload() {
-        const scriptText = document.getElementById('univserver-script-editor').value;
-        if (!scriptText || scriptText.trim().length === 0) {
-            return alert("Script text cannot be empty!");
+    function handleGoogleLogin(response) {
+        if (!isCaptchaTagged) {
+            return alert("⚠Request rejected⚠\nYou must verify yourself to prove you're not a bot.");
         }
 
-        const totalChunks = Math.ceil(scriptText.length / UNIV_CHUNK_SIZE);
-        isUploadingUnivScript = true;
-        document.getElementById('univ-upload-progress').style.display = 'block';
+        const base64Url = response.credential.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+        const payload = JSON.parse(jsonPayload);
 
-        sendUnivChunk(0, totalChunks, scriptText);
+        googleSub = payload.sub;
+        googleEmail = payload.email;
+
+        showLoadingScreen("Wait, the server is logging you into the inserted account.");
+        socket.emit('eb_google_login', { googleSub, email: googleEmail, ownerId });
     }
 
-    function sendUnivChunk(index, total, fullText) {
-        if (!isUploadingUnivScript) return;
-        const start = index * UNIV_CHUNK_SIZE;
-        const end = Math.min(start + UNIV_CHUNK_SIZE, fullText.length);
-        const chunk = fullText.slice(start, end);
-
-        socket.emit('eb_update_univserver_chunk', { index, total, chunk, ownerId, googleSub });
+    function openEzBridgeAuthChoice() {
+        document.getElementById('overlay-google-auth').style.display = 'none';
+        document.getElementById('modal-ezbridge-auth-choice').style.display = 'flex';
     }
 
-    socket.on('eb_univserver_chunk_ack', (data) => {
-        const pct = Math.floor((data.received / data.total) * 100);
-        document.getElementById('univ-progress-bar').style.width = `${pct}%`;
-        document.getElementById('univ-progress-val').innerText = pct;
+    function closeEzBridgeAuthChoice() {
+        document.getElementById('modal-ezbridge-auth-choice').style.display = 'none';
+        document.getElementById('overlay-google-auth').style.display = 'flex';
+    }
 
-        if (data.received < data.total && isUploadingUnivScript) {
-            const scriptText = document.getElementById('univserver-script-editor').value;
-            sendUnivChunk(data.received, data.total, scriptText);
+    function openEzBridgeSignUp() {
+        document.getElementById('modal-ezbridge-auth-choice').style.display = 'none';
+        document.getElementById('eb-signup-user').value = "";
+        document.getElementById('eb-signup-pass').value = "";
+        document.getElementById('eb-signup-email').value = "";
+        document.getElementById('eb-signup-user-status').innerText = "";
+        document.getElementById('eb-signup-pass-status').innerText = "";
+        document.getElementById('modal-ezbridge-signup').style.display = 'flex';
+    }
+
+    function closeEzBridgeSignUp() {
+        document.getElementById('modal-ezbridge-signup').style.display = 'none';
+        openEzBridgeAuthChoice();
+    }
+
+    function openEzBridgeLogIn() {
+        document.getElementById('modal-ezbridge-auth-choice').style.display = 'none';
+        document.getElementById('eb-login-user').value = "";
+        document.getElementById('eb-login-pass').value = "";
+        document.getElementById('eb-login-user-status').innerText = "";
+        document.getElementById('eb-login-pass-status').innerText = "";
+        document.getElementById('modal-ezbridge-login').style.display = 'flex';
+    }
+
+    function closeEzBridgeLogIn() {
+        document.getElementById('modal-ezbridge-login').style.display = 'none';
+        openEzBridgeAuthChoice();
+    }
+
+    function handleEzBridgeFieldValidate(mode, field) {
+        if (field === 'user') {
+            const userVal = document.getElementById(`eb-${mode}-user`).value;
+            const statusEl = document.getElementById(`eb-${mode}-user-status`);
+            statusEl.style.color = "#ffffff";
+            statusEl.innerText = "*Checking..*";
+            socket.emit('eb_check_username', { username: userVal, mode });
+        } else if (field === 'pass') {
+            const passVal = document.getElementById(`eb-${mode}-pass`).value;
+            socket.emit('eb_check_password', { password: passVal });
+        }
+    }
+
+    socket.on('eb_check_username_response', (data) => {
+        const statusEl = document.getElementById(`eb-${data.mode}-user-status`);
+        if (!statusEl) return;
+
+        if (data.mode === 'login') {
+            if (data.exists) {
+                statusEl.style.color = "var(--green)";
+                statusEl.innerText = `*Great, the Username ${data.username} exists in EzBridge.*`;
+            } else {
+                statusEl.style.color = "var(--error)";
+                statusEl.innerHTML = `*Incorrect chars. Please make sure they meet these requirements*<br>1 - has more than 10 chars<br>2 - has less than 30 chars<br>3 - does not have unsupported symbols<br>4 - make sure the Username exists`;
+            }
+        } else {
+            if (data.validFormat && !data.exists) {
+                statusEl.style.color = "var(--green)";
+                statusEl.innerText = `*Username is available.*`;
+            } else {
+                statusEl.style.color = "var(--error)";
+                statusEl.innerHTML = data.exists ? `*Username is already taken.*` : `*Incorrect chars. Please make sure they meet these requirements*<br>1 - has more than 10 chars<br>2 - has less than 30 chars<br>3 - does not have unsupported symbols`;
+            }
         }
     });
 
-    function restartNodeOnly() {
-        if (confirm("Restart Node server only?")) {
-            socket.emit('eb_restart_node_only', { ownerId, googleSub });
-            closeUniversalPanelModal();
+    socket.on('eb_check_password_response', (data) => {
+        const signupPassStatus = document.getElementById('eb-signup-pass-status');
+        const loginPassStatus = document.getElementById('eb-login-pass-status');
+
+        if (signupPassStatus && document.getElementById('modal-ezbridge-signup').style.display === 'flex') {
+            if (!data.validFormat) {
+                signupPassStatus.style.color = "var(--error)";
+                signupPassStatus.innerText = "*Incorrect password format (8-30 chars, supported symbols only).*";
+            } else {
+                signupPassStatus.innerText = "";
+            }
+        }
+        if (loginPassStatus && document.getElementById('modal-ezbridge-login').style.display === 'flex') {
+            if (!data.validFormat) {
+                loginPassStatus.style.color = "var(--error)";
+                loginPassStatus.innerText = "*Incorrect password format.*";
+            } else {
+                loginPassStatus.innerText = "";
+            }
+        }
+    });
+
+    function submitEzBridgeLogIn() {
+        if (!isCaptchaTagged && !ezbridgeUsername && !googleSub) {
+            return alert("⚠Request rejected⚠\nYou must verify yourself to prove you're not a bot.");
+        }
+        const username = document.getElementById('eb-login-user').value.trim();
+        const password = document.getElementById('eb-login-pass').value;
+        document.getElementById('modal-ezbridge-login').style.display = 'none';
+        document.getElementById('overlay-ezbridge-logging').style.display = 'flex';
+        socket.emit('eb_ezbridge_login', { username, password });
+    }
+
+    function openChangeUsernameModal() {
+        closeAccountSettingsModal();
+        document.getElementById('change-user-val').value = "";
+        document.getElementById('modal-change-username').style.display = 'flex';
+    }
+    function closeChangeUsernameModal() {
+        document.getElementById('modal-change-username').style.display = 'none';
+    }
+    function submitChangeUsername() {
+        const newUsername = document.getElementById('change-user-val').value.trim();
+        socket.emit('eb_change_username', { newUsername, ownerId });
+        closeChangeUsernameModal();
+    }
+
+    function openChangePasswordModal() {
+        closeAccountSettingsModal();
+        document.getElementById('change-pass-current').value = "";
+        document.getElementById('change-pass-new').value = "";
+        document.getElementById('modal-change-password').style.display = 'flex';
+    }
+    function closeChangePasswordModal() {
+        document.getElementById('modal-change-password').style.display = 'none';
+    }
+    function submitChangePassword() {
+        const currentPassword = document.getElementById('change-pass-current').value;
+        const newPassword = document.getElementById('change-pass-new').value;
+        socket.emit('eb_change_password', { currentPassword, newPassword, ownerId });
+        closeChangePasswordModal();
+    }
+
+    function regenerateServerKeySubmit() {
+        socket.emit('eb_regen_server_key', { key: serverKey, ownerId, googleSub });
+    }
+
+    function openServerStorageModal() {
+        serverStorageChunks = [];
+        document.getElementById('modal-server-storage').style.display = 'flex';
+        socket.emit('eb_get_server_storage_chunks', { key: serverKey, ownerId, googleSub });
+
+        if (serverStoragePollInterval) clearInterval(serverStoragePollInterval);
+        serverStoragePollInterval = setInterval(() => {
+            if (document.getElementById('modal-server-storage').style.display === 'flex') {
+                socket.emit('eb_get_server_storage_chunks', { key: serverKey, ownerId, googleSub });
+            } else {
+                clearInterval(serverStoragePollInterval);
+            }
+        }, 5000);
+    }
+
+    function closeServerStorageModal() {
+        if (serverStoragePollInterval) clearInterval(serverStoragePollInterval);
+        document.getElementById('modal-server-storage').style.display = 'none';
+    }
+
+    function wipeServerStorageSubmit() {
+        if (confirm("Are you sure you want to WIPE the entire server storage? This cannot be undone.")) {
+            socket.emit('eb_storage_wipe', { key: serverKey, ownerId, googleSub });
         }
     }
 
-    function openAccountSettingsModal() {
-        applyRolePermissions();
-        document.getElementById('modal-account-settings').style.display = 'flex';
-    }
-    function closeAccountSettingsModal() {
-        document.getElementById('modal-account-settings').style.display = 'none';
-    }
-
-    function accountLogout() {
-        setCookie("eb_owner_id", "", -1);
-        localStorage.clear();
-        location.reload();
+    function captchaSolved() {
+        socket.emit('eb_verify_captcha');
+        isCaptchaTagged = true;
+        document.getElementById('overlay-captcha').style.display = 'none';
+        if (!googleSub && !ezbridgeUsername) {
+            document.getElementById('overlay-google-auth').style.display = 'flex';
+        } else {
+            document.getElementById('overlay-start').style.display = 'flex';
+        }
     }
 
-    function accountRegenUserId() {
-        socket.emit('eb_regen_user_id', { key: serverKey, ownerId, googleSub });
-        closeAccountSettingsModal();
+    function exploreSitesAsGuest() {
+        isGuestMode = true;
+        document.getElementById('overlay-captcha').style.display = 'none';
+        document.getElementById('overlay-google-auth').style.display = 'none';
+        navigateToPath('sites');
     }
 
-    function closeNewUserIdModal() {
-        document.getElementById('modal-new-userid').style.display = 'none';
+    function returnToLoginFromSites() {
+        closeSeeAndPublishModal();
+        isGuestMode = false;
+        navigateToPath('login');
+    }
+
+    function applyRolePermissions() {
+        const tag = document.getElementById('role-tag-display');
+        const termBtn = document.getElementById('terminal-btn');
+        const btnServerMgmt = document.getElementById('btn-server-mgmt');
+        const btnBanUser = document.getElementById('btn-ban-user');
+        const btnRoleMgr = document.getElementById('btn-role-mgr');
+        const btnChangeUser = document.getElementById('btn-change-username');
+        const btnChangePass = document.getElementById('btn-change-password');
+        const btnUnivUpdate = document.getElementById('btn-univ-update-script');
+        const btnUnivSetCoins = document.getElementById('btn-univ-set-coins');
+
+        termBtn.style.display = 'none';
+        btnServerMgmt.style.display = 'none';
+        btnBanUser.style.display = 'none';
+        btnRoleMgr.style.display = 'none';
+        if (btnUnivUpdate) btnUnivUpdate.style.display = 'none';
+        if (btnUnivSetCoins) btnUnivSetCoins.style.display = 'none';
+        
+        if (ezbridgeUsername) {
+            btnChangeUser.style.display = 'block';
+            btnChangePass.style.display = 'block';
+        } else {
+            btnChangeUser.style.display = 'none';
+            btnChangePass.style.display = 'none';
+        }
+
+        if (userRole === 'Owner') {
+            tag.innerHTML = `<span class="role-tag role-owner">OWNER</span>`;
+            termBtn.style.display = 'block';
+            btnServerMgmt.style.display = 'block';
+            btnBanUser.style.display = 'block';
+            btnRoleMgr.style.display = 'block';
+            if (btnUnivUpdate) btnUnivUpdate.style.display = 'block';
+            if (btnUnivSetCoins) btnUnivSetCoins.style.display = 'block';
+        } else if (userRole === 'Dev') {
+            tag.innerHTML = `<span class="role-tag role-dev">DEVELOPER</span>`;
+            termBtn.style.display = 'block';
+            btnServerMgmt.style.display = 'block';
+            btnBanUser.style.display = 'block';
+            btnRoleMgr.style.display = 'block';
+        } else if (userRole === 'Admin') {
+            tag.innerHTML = `<span class="role-tag role-admin">ADMIN</span>`;
+            btnServerMgmt.style.display = 'block';
+            btnBanUser.style.display = 'block';
+        } else {
+            tag.innerHTML = "";
+        }
     }
 
     function openBanUserModal() {
@@ -2957,7 +3236,6 @@
 
         if (serverKey) {
             socket.emit('eb_heartbeat', { key: serverKey, ownerId });
-            socket.emit('eb_get_ai_billing');
         }
 
         setInterval(() => {
@@ -3157,8 +3435,8 @@
     function openHowToUse() {
         document.getElementById('copy-key').value = serverKey;
         document.getElementById('copy-link').value = PUBLIC_TUNNEL_URL;
-        updateAiKeyDisplay();
         document.getElementById('modal-howto').style.display = 'flex';
+        socket.emit('eb_get_ai_billing');
     }
 
     function closeHowToUse() { document.getElementById('modal-howto').style.display = 'none'; }
@@ -3354,20 +3632,7 @@
         });
 
         function update() {
-            if (isServerSided) {
-                let moveX = 0;
-                let moveY = 0;
-                if (isMobile) {
-                    moveX = joyVector.x;
-                    moveY = joyVector.y;
-                } else {
-                    if (keys.w) moveY -= 1;
-                    if (keys.s) moveY += 1;
-                    if (keys.a) moveX -= 1;
-                    if (keys.d) moveX += 1;
-                }
-                sendRemote("server_char_input", { id: myId, moveX: moveX, moveY: moveY });
-            } else {
+            if (!isServerSided) {
                 let speed = 5;
                 if (isMobile) {
                     myPos.x += joyVector.x * speed;
@@ -3382,11 +3647,9 @@
                 myPos.x = Math.max(0, Math.min(2000, myPos.x));
                 myPos.y = Math.max(0, Math.min(2000, myPos.y));
 
-                sendRemote("player_update", { id: myId, x: myPos.x, y: myPos.y, color: myColor });
-
                 coins.forEach(coin => {
                     if (Math.hypot(coin.x - myPos.x, coin.y - myPos.y) < 25) {
-                        sendRemote("collect_coin", { playerId: myId, coinId: coin.id });
+                        syncHttp("collect_coin", { playerId: myId, coinId: coin.id });
                     }
                 });
             }
@@ -3445,6 +3708,256 @@
         }
         loop();
     <\/script>
+</body>
+</html>` : 
+`<!-- EzBridge Multiplayer Coin Collector (WebSocket) -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>EzBridge Multiplayer Coin Collector (WebSocket)</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"><\/script>
+    <style>
+        body { margin: 0; background: #0f172a; color: #fff; font-family: sans-serif; overflow: hidden; user-select: none; }
+        canvas { display: block; background: #1e293b; }
+        #ui { position: absolute; top: 10px; left: 10px; pointer-events: none; font-weight: bold; font-size: 1.2rem; text-shadow: 1px 1px 2px #000; }
+        #toggle-container { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); padding: 8px 12px; border-radius: 8px; font-family: sans-serif; font-weight: bold; font-size: 0.9rem; z-index: 10; }
+        #toggle-container label { cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        #joystick { position: absolute; bottom: 40px; left: 40px; width: 120px; height: 120px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; display: none; touch-action: none; }
+        #stick { position: absolute; top: 35px; left: 35px; width: 50px; height: 50px; background: rgba(255,255,255,0.4); border-radius: 50%; pointer-events: none; }
+    </style>
+</head>
+<body>
+    <div id="ui">Score: <span id="score">0</span> | Status: <span id="status">Connecting...</span></div>
+    <div id="toggle-container">
+        <label>
+            <input type="checkbox" id="serverCharToggle">
+            Serversided character test
+        </label>
+    </div>
+    <div id="joystick"><div id="stick"></div></div>
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener("resize", resize);
+        resize();
+
+        const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        if (isMobile) {
+            document.getElementById("joystick").style.display = "block";
+        }
+
+        const link = "${PUBLIC_TUNNEL_URL}";
+        const key = "${serverKey}";
+        const socket = io(link, { auth: { token: "default_key" } });
+
+        let myId = Math.random().toString(36).substring(2, 6);
+        let myColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+        let myPos = { x: Math.random() * 2000, y: Math.random() * 2000 };
+        let myScore = 0;
+
+        let isServerSided = false;
+        let isClientCharDeleted = false;
+
+        const keys = { w: false, a: false, s: false, d: false };
+        let players = {};
+        let coins = [];
+
+        let joyActive = false;
+        let joyVector = { x: 0, y: 0 };
+
+        socket.on("connect", () => {
+            socket.emit("join_virtual_server", { key });
+        });
+
+        socket.on("joined_successfully", () => {
+            document.getElementById("status").innerText = "Connected";
+            socket.emit("RemoteEvent", { type: "player_join", data: { id: myId, color: myColor, x: myPos.x, y: myPos.y } });
+        });
+
+        socket.on("RemoteEvent", (pkt) => {
+            handleServerEvent(pkt);
+        });
+
+        function sendRemote(eventType, customData) {
+            socket.emit("RemoteEvent", { type: eventType, data: customData });
+        }
+
+        function handleServerEvent(pkt) {
+            if (pkt.type === "state_update") {
+                const serverPlayers = pkt.data.players;
+                coins = pkt.data.coins || [];
+                for (let id in serverPlayers) {
+                    if (id === myId) {
+                        myScore = serverPlayers[id].score;
+                        document.getElementById("score").innerText = myScore;
+                        if (isServerSided) {
+                            myPos.x = serverPlayers[id].x;
+                            myPos.y = serverPlayers[id].y;
+                        }
+                    }
+                    players[id] = serverPlayers[id];
+                }
+            } else if (pkt.type === "server_char_created") {
+                if (pkt.data.clientId === myId) {
+                    isClientCharDeleted = true;
+                }
+            }
+        }
+
+        document.getElementById("serverCharToggle").addEventListener("change", (e) => {
+            isServerSided = e.target.checked;
+            if (isServerSided) {
+                sendRemote("create_server_char", { name: myId });
+            } else {
+                isClientCharDeleted = false;
+            }
+        });
+
+        window.addEventListener("keydown", (e) => {
+            if (e.key.toLowerCase() === 'w') keys.w = true;
+            if (e.key.toLowerCase() === 'a') keys.a = true;
+            if (e.key.toLowerCase() === 's') keys.s = true;
+            if (e.key.toLowerCase() === 'd') keys.d = true;
+        });
+
+        window.addEventListener("keyup", (e) => {
+            if (e.key.toLowerCase() === 'w') keys.w = false;
+            if (e.key.toLowerCase() === 'a') keys.a = false;
+            if (e.key.toLowerCase() === 's') keys.s = false;
+            if (e.key.toLowerCase() === 'd') keys.d = false;
+        });
+
+        const joystickEl = document.getElementById("joystick");
+        const stickEl = document.getElementById("stick");
+        let joyCenter = { x: 0, y: 0 };
+
+        joystickEl.addEventListener("touchstart", (e) => {
+            joyActive = true;
+            const rect = joystickEl.getBoundingClientRect();
+            joyCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+        });
+
+        window.addEventListener("touchmove", (e) => {
+            if (!joyActive) return;
+            const touch = e.touches[0];
+            const dx = touch.clientX - joyCenter.x;
+            const dy = touch.clientY - joyCenter.y;
+            const dist = Math.min(50, Math.hypot(dx, dy));
+            const angle = Math.atan2(dy, dx);
+
+            joyVector.x = Math.cos(angle) * (dist / 50);
+            joyVector.y = Math.sin(angle) * (dist / 50);
+
+            stickEl.style.transform = `translate(${Math.cos(angle)*dist}px, ${Math.sin(angle)*dist}px)`;
+        });
+
+        window.addEventListener("touchend", (e) => {
+            if (joyActive) {
+                joyActive = false;
+                joyVector = { x: 0, y: 0 };
+                stickEl.style.transform = `translate(0px, 0px)`;
+            }
+        });
+
+        function update() {
+            if (isServerSided) {
+                let moveX = 0;
+                let moveY = 0;
+                if (isMobile) {
+                    moveX = joyVector.x;
+                    moveY = joyVector.y;
+                } else {
+                    if (keys.w) moveY -= 1;
+                    if (keys.s) moveY += 1;
+                    if (keys.a) moveX -= 1;
+                    if (keys.d) moveX += 1;
+                }
+                sendRemote("server_char_input", { id: myId, moveX: moveX, moveY: moveY });
+            } else {
+                let speed = 5;
+                if (isMobile) {
+                    myPos.x += joyVector.x * speed;
+                    myPos.y += joyVector.y * speed;
+                } else {
+                    if (keys.w) myPos.y -= speed;
+                    if (keys.s) myPos.y += speed;
+                    if (keys.a) myPos.x -= speed;
+                    if (keys.d) myPos.x += speed;
+                }
+
+                myPos.x = Math.max(0, Math.min(2000, myPos.x));
+                myPos.y = Math.max(0, Math.min(2000, myPos.y));
+
+                sendRemote("player_update", { id: myId, x: myPos.x, y: myPos.y, color: myColor });
+
+                coins.forEach(coin => {
+                    if (Math.hypot(coin.x - myPos.x, coin.y - myPos.y) < 25) {
+                        sendRemote("collect_coin", { playerId: myId, coinId: coin.id });
+                    }
+                });
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.save();
+            ctx.translate(canvas.width / 2 - myPos.x, canvas.height / 2 - myPos.y);
+
+            ctx.strokeStyle = "#475569";
+            ctx.lineWidth = 4;
+            ctx.strokeRect(0, 0, 2000, 2000);
+
+            if (!isClientCharDeleted) {
+                ctx.fillStyle = myColor;
+                ctx.beginPath();
+                ctx.arc(myPos.x, myPos.y, 20, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "bold 14px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText(`Coins: ${myScore}`, myPos.x, myPos.y - 30);
+            }
+
+            for (let id in players) {
+                if (id === myId && !isClientCharDeleted) continue;
+                let p = players[id];
+                ctx.fillStyle = p.color || '#fff';
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 20, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "bold 14px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText(`Coins: ${p.score || 0}`, p.x, p.y - 30);
+            }
+
+            ctx.fillStyle = "#facc15";
+            coins.forEach(c => {
+                ctx.beginPath();
+                ctx.arc(c.x, c.y, 10, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            ctx.restore();
+        }
+
+        function loop() {
+            update();
+            draw();
+            requestAnimationFrame(loop);
+        }
+        loop();
+    </script>
 </body>
 </html>`;
 
@@ -3541,25 +4054,28 @@ Server.on('collect_coin', (evt) => {
     }
 });
 
-Server.onTick((dt) => {
+setInterval(() => {
     Server.broadcast('state_update', { players, coins });
-});`;
+}, 1000 / 30);`;
 
-        const tunnelFetchCode = 
-`async function getLiveTunnel() {
+        const autoFetchTunnelCode = 
+`async function getLatestTunnel() {
     try {
-        const res = await fetch("https://raw.githubusercontent.com/TerminatorSBDEV/ebtunnel/main/tunnel");
-        const tunnelUrl = (await res.text()).trim();
-        console.log("Current EzBridge Tunnel:", tunnelUrl);
-        return tunnelUrl;
-    } catch(err) {
+        const response = await fetch("https://raw.githubusercontent.com/TerminatorSBDEV/ebtunnel/main/tunnel");
+        if (response.ok) {
+            const tunnelUrl = (await response.text()).trim();
+            console.log("Current EzBridge Tunnel URL:", tunnelUrl);
+            return tunnelUrl;
+        }
+    } catch (err) {
         console.error("Failed to fetch tunnel:", err);
     }
 }
-getLiveTunnel();
--- use this example of you don't want to keep updating the tunnel everytime a new one generates`;
 
-        return { coinClientCode, coinServerCode, clientCode: coinClientCode, serverCode: coinServerCode, tunnelFetchCode };
+getLatestTunnel();
+// -- use this example of you don't want to keep updating the tunnel everytime a new one generates`;
+
+        return { coinClientCode, coinServerCode, autoFetchTunnelCode };
     }
 
     function copyAIPrompt() {
@@ -3592,15 +4108,15 @@ ${serverType === 'websocket' ?
   * Server.storage.set(data) - Save up to 100MB of persistent server data.
   * Server.storage.get() - Retrieve stored server data.
   * Server.storage.getUsageBytes() - Get current storage usage in bytes.
-- ServerScript API: [SERVER-SIDED API] Write sandboxed backend JS code (Server.on('event', fn), Server.onTick((dt) => { ... }), Server.broadcast('event', data)).
-- Server.eb_callai: [SERVER-SIDED API] Call local or cloud AI models (qwen2.5:0.5b, qwen2.5:1.5b, or gemma-4-26b-a4b-it) using your generated AI key: Server.eb_callai({ aiKey: "${userAiKeyVal || "YOUR_AI_KEY"}", model: "qwen2.5:0.5b", Temp: 0, Mtokens: 28, Instruction: "...", Prompt: "..." }).
+- ServerScript API: [SERVER-SIDED API] Write sandboxed backend JS code (Server.on('event', fn), Server.broadcast('event', data), Server.onTick((dt) => { ... })).
+- Server.eb_callai: [SERVER-SIDED API] Call local or cloud AI models (qwen2.5:0.5b, qwen2.5:1.5b, or gemma-4-26b-a4b-it). Requires AI Auth Key.
 
 4 - Learn More About EzBridge
 - Max Packet Size: 10MB per packet.
 - Request Limit: Up to 60 requests/sec.
 - Server Memory: Configured at 250MB.
 - Universal Tick & Minimum Ping: 50ms.
-- Physics Simulation Tickrate: 33 Hz.
+- Physics Simulation Tickrate: 33 Hz (dt = 0.0303s).
 
 here are some examples so you understand more about making online apps:
 1 - html script (Coin Collector Example)
@@ -3609,8 +4125,8 @@ ${coinClientCode}
 2 - serverscript (Coin Collector Example)
 ${coinServerCode}`;
 
-        if (userAiKeyVal) {
-            promptText += `\n\nAnd if you are going to add an AI feature to the project, here's my AI key: ${userAiKeyVal}`;
+        if (activeAiKeyVal) {
+            promptText += `\n\nAnd if you are going to add an AI feature to the project, here's my AI key: ${activeAiKeyVal}`;
         }
 
         navigator.clipboard.writeText(promptText);
@@ -3648,11 +4164,11 @@ async function fetchAssetData(assetId) {
     console.log("Asset Name:", asset.name, "Type:", asset.type);
     if (asset.type.includes('image')) {
         document.getElementById("imgSlot").src = asset.data;
-    } else if (asset.type.includes('video')) {
-        document.getElementById("vidSlot").src = asset.data;
     } else if (asset.type.includes('audio')) {
         const audio = new Audio(asset.data);
         audio.play();
+    } else if (asset.type.includes('video')) {
+        document.getElementById("vidSlot").src = asset.data;
     }
 }
 
@@ -3673,53 +4189,48 @@ async function sendHttpEvent(type, data) {
     }
 }
 
-<span class="api-tag-both">CLIENT AND SERVER API (both clients and servers can use this API)</span>
-5. HTTP AI MODEL CALL:
-// POST request: ${PUBLIC_TUNNEL_URL}/ai
-// Requires 'ai-key' header. Max temperature is 1.0. All models available (qwen2.5:0.5b, qwen2.5:1.5b, gemma-4-26b-a4b-it).
-async function callAi(promptText) {
-    const res = await fetch("${PUBLIC_TUNNEL_URL}/ai", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "ai-key": "${userAiKeyVal || "YOUR_AI_KEY"}"
-        },
-        body: JSON.stringify({
-            model: "qwen2.5:0.5b",
-            Prompt: promptText,
-            Instruction: "You are a helpful assistant.",
-            Temp: 0.7,
-            Mtokens: 1500
-        })
-    });
-    const data = await res.json();
-    console.log("AI Output:", data.text);
-}
-
 <span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
-6. SERVERSCRIPT 100MB DEDICATED STORAGE API:
+5. SERVERSCRIPT 100MB DEDICATED STORAGE API:
 // Server.storage.set("any string or JSON data up to 100MB");
 // const storedData = Server.storage.get();
 // const usedBytes = Server.storage.getUsageBytes();
 
+<span class="api-tag-both">CLIENT AND SERVER API (both clients and servers can use this API)</span>
+6. DIRECT HTTP AI CALL (STANDALONE WITH AI KEY):
+// POST request: ${PUBLIC_TUNNEL_URL}/ai
+// Header 'ai-key: YOUR_AI_KEY'
+async function callDirectAi(promptText) {
+    const res = await fetch("${PUBLIC_TUNNEL_URL}/ai", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "ai-key": "${activeAiKeyVal || 'YOUR_AI_KEY'}"
+        },
+        body: JSON.stringify({
+            model: "qwen2.5:0.5b",
+            Prompt: promptText,
+            Temp: 0.7,
+            Mtokens: 250
+        })
+    });
+    const data = await res.json();
+    console.log("AI Response:", data.text);
+}
+
 <span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
-7. SERVERSCRIPT LOCAL OR CLOUD AI API:
-// Models: qwen2.5:0.5b, qwen2.5:1.5b, or gemma-4-26b-a4b-it
+7. SERVERSCRIPT AI API (WITH AI KEY):
 Server.eb_callai({
-    aiKey: "${userAiKeyVal || "YOUR_AI_KEY"}",
+    aiKey: "${activeAiKeyVal || 'YOUR_AI_KEY'}",
     model: "qwen2.5:0.5b",
-    Temp: 0,
+    Temp: 0.7,
     Mtokens: 28,
     Instruction: "You are a helpful assistant.",
-    Prompt: "what's the capital of France?"
+    Prompt: "what is the capital of France?",
+    Streaming: false
 }, (res) => {
     if (res.error) console.log("AI Error:", res.error);
     else console.log("AI Answer Text:", res.text);
-});
-
-Server.stopAILatest();
-Server.stopAIAll();
-Server.stopAIId("4c1a");`;
+});`;
         } else {
             box.innerHTML = `<span class="api-tag-client">CLIENT-SIDED API (only the client can use this)</span>
 1. CONNECT & JOIN ROOM:
@@ -3768,48 +4279,33 @@ socket.on("RemoteEvent", (pkt) => {
     if (pkt.type === "userid_response") console.log("User ID:", pkt.userId || pkt.message);
 });
 
-<span class="api-tag-both">CLIENT AND SERVER API (both clients and servers can use this API)</span>
-6. WEBSOCKET AI CALL:
-// Models: qwen2.5:0.5b, qwen2.5:1.5b, or gemma-4-26b-a4b-it
-socket.emit("RemoteEvent", {
-    type: "eb_callai",
-    data: {
-        aiKey: "${userAiKeyVal || "YOUR_AI_KEY"}",
-        model: "qwen2.5:0.5b",
-        Prompt: "Hello AI",
-        Instruction: "Be concise.",
-        Temp: 0.7,
-        Mtokens: 1000,
-        Streaming: true
-    }
-});
-socket.on("RemoteEvent", (pkt) => {
-    if (pkt.type === "eb_ai_response") console.log(pkt.data.text);
-});
-
 <span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
-7. SERVERSCRIPT 100MB DEDICATED STORAGE API:
+6. SERVERSCRIPT 100MB DEDICATED STORAGE API:
 // Server.storage.set("any string or JSON data up to 100MB");
 // const storedData = Server.storage.get();
 // const usedBytes = Server.storage.getUsageBytes();
 
 <span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
-8. SERVERSCRIPT LOCAL OR CLOUD AI API:
+7. SERVERSCRIPT AI API (WITH AI KEY):
 Server.eb_callai({
-    aiKey: "${userAiKeyVal || "YOUR_AI_KEY"}",
-    model: "qwen2.5:1.5b",
-    Temp: 0.5,
-    Mtokens: 50,
+    aiKey: "${activeAiKeyVal || 'YOUR_AI_KEY'}",
+    model: "qwen2.5:0.5b",
+    Temp: 0.7,
+    Mtokens: 28,
     Instruction: "You are a helpful assistant.",
-    Prompt: "what's the capital of France?"
+    Prompt: "what is the capital of France?",
+    Streaming: false
 }, (res) => {
     if (res.error) console.log("AI Error:", res.error);
     else console.log("AI Answer Text:", res.text);
 });
 
-Server.stopAILatest();
-Server.stopAIAll();
-Server.stopAIId("4c1a");`;
+<span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
+8. SERVERSCRIPT 33 HZ FIXED TICK RATE:
+Server.onTick((dt) => {
+    // dt is ~0.0303s (33 ticks per second)
+    // Run authoritative physics here
+});`;
         }
 
         document.getElementById('modal-commands').style.display = 'flex';
@@ -3822,13 +4318,13 @@ Server.stopAIId("4c1a");`;
         document.getElementById('http-disclaimer').style.display = isHttp ? 'block' : 'none';
         document.getElementById('http-extra-example-container').style.display = isHttp ? 'block' : 'none';
 
-        const { coinClientCode, coinServerCode, tunnelFetchCode } = getGameExamples();
+        const { coinClientCode, coinServerCode, autoFetchTunnelCode } = getGameExamples();
 
         document.getElementById('example-coin-client').value = coinClientCode;
         document.getElementById('example-coin-server').value = coinServerCode;
         document.getElementById('example-code-client').value = coinClientCode;
         document.getElementById('example-code-server').value = coinServerCode;
-        document.getElementById('example-tunnel-fetch').value = tunnelFetchCode;
+        document.getElementById('example-fetch-tunnel').value = autoFetchTunnelCode;
 
         document.getElementById('modal-code').style.display = 'flex';
     }
