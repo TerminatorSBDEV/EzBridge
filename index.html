@@ -106,7 +106,6 @@
         .progress-bar { width: 0%; height: 100%; background: var(--accent); transition: width 0.1s ease; }
         .progress-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; }
 
-        .domain-list { display: flex; flex-direction: column; gap: 6px; margin-top: 5px; }
         .domain-item { display: flex; justify-content: space-between; align-items: center; background: #020617; padding: 6px 10px; font-size: 0.8rem; border: 1px solid var(--border) !important; }
 
         .code-container {
@@ -773,14 +772,6 @@
                     <input type="range" id="cfg-target-ping" min="50" max="1000" step="10" value="50" oninput="document.getElementById('cfg-target-ping-val').innerText = this.value">
                 </div>
 
-                <div id="domain-whitelist-panel" style="display:block; background:#020617; padding:10px; border:1px solid var(--border);">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <label style="font-size:0.75rem; color:var(--muted); font-weight:bold;">WHITELISTED DOMAINS (<span id="domain-count">0</span>/10)</label>
-                        <button class="btn" style="width:auto; margin:0; padding:4px 10px; font-size:0.8rem;" onclick="addDomainPrompt()">+ Add Domain</button>
-                    </div>
-                    <div id="domain-list" class="domain-list"></div>
-                </div>
-
                 <div>
                     <button class="btn btn-secondary" type="button" onclick="openScriptEditorModal()">Create ServerScript (REQUIRED)</button>
                 </div>
@@ -1207,7 +1198,6 @@
     let serverType = "websocket";
     let serverSettings = {};
     let currentServerScript = "";
-    let whitelistedDomains = [];
     let consoleLogsCache = [];
 
     let isCaptchaTagged = false;
@@ -1513,7 +1503,6 @@
             googleEmail = data.server.email || null;
             userLinkedEmail = data.server.email || userLinkedEmail;
             ezbridgeUsername = data.server.ezbridgeUsername || ezbridgeUsername;
-            whitelistedDomains = serverSettings.whitelistedDomains || [];
 
             isServerLockdown = Boolean(data.server.isLockdown);
             lockdownUntilTime = data.server.ramStats ? data.server.ramStats.lockdownUntil : 0;
@@ -1886,6 +1875,10 @@
             cachedUserProfiles[data.targetUserId] = { displayName: data.displayName, pfpData: pfp };
             refreshChatAvatars(data.targetUserId);
         }
+    });
+
+    socket.on('eb_ai_started', (data) => {
+        currentAiGenId = data.id;
     });
 
     socket.on('eb_chat_history_chunk', (data) => {
@@ -3648,39 +3641,6 @@
         setTimeout(fetchServerMgmtList, 500);
     }
 
-    function toggleDomainWhitelistUI() {
-        document.getElementById('domain-whitelist-panel').style.display = 'block';
-    }
-
-    function addDomainPrompt() {
-        if (whitelistedDomains.length >= 10) return alert("Maximum 10 domains allowed!");
-        let dom = prompt("Enter domain URL (e.g., https://mygame.github.io/game):");
-        if (!dom) return;
-
-        dom = dom.trim();
-        if (dom.length > 64) return alert("Domain length exceeds 64 characters!");
-        if (dom.toLowerCase().includes('terminatorsbdev.github.io/ezbridge')) {
-            return alert("EzBridge's own domain cannot be added to the custom whitelist.");
-        }
-
-        whitelistedDomains.push(dom);
-        renderDomains();
-    }
-
-    function removeDomain(idx) {
-        whitelistedDomains.splice(idx, 1);
-        renderDomains();
-    }
-
-    function renderDomains() {
-        const container = document.getElementById('domain-list');
-        document.getElementById('domain-count').innerText = whitelistedDomains.length;
-        container.innerHTML = "";
-        whitelistedDomains.forEach((d, i) => {
-            container.innerHTML += `<div class="domain-item"><span>${d}</span><button class="btn btn-danger" style="width:auto; margin:0; padding:2px 6px; font-size:0.7rem;" onclick="removeDomain(${i})">REMOVE DOMAIN</button></div>`;
-        });
-    }
-
     function openScriptEditorModal() {
         document.getElementById('script-editor').value = currentServerScript;
         updateLineNumbers('script-editor', 'serverscript-lines');
@@ -3750,7 +3710,6 @@
     function openSetupUI() {
         document.getElementById('overlay-start').style.display = 'none';
         document.getElementById('overlay-setup').style.display = 'flex';
-        renderDomains();
     }
 
     function closeSetupUI() {
@@ -3781,7 +3740,6 @@
         const targetPing = parseInt(document.getElementById('cfg-target-ping').value) || 50;
 
         const settings = {
-            whitelistedDomains: whitelistedDomains,
             targetPing: targetPing,
             ramLimitMB: 250
         };
@@ -3979,9 +3937,6 @@
         document.getElementById('cfg-target-ping-val').innerText = settings.targetPing || 50;
         document.getElementById('script-editor').value = script;
         updateLineNumbers('script-editor', 'serverscript-lines');
-
-        toggleDomainWhitelistUI();
-        renderDomains();
     }
 
     function showLoadingScreen(msg) {
@@ -4143,7 +4098,7 @@
             syncHttp();
         }, 16);
 
-        document.getElementById("serverCharToggle").addEventListener("change", (e) => {
+    document.getElementById("serverCharToggle").addEventListener("change", (e) => {
             isServerSided = e.target.checked;
             if (isServerSided) {
                 syncHttp("create_server_char", { name: myId });
@@ -4187,14 +4142,14 @@
             joyVector.x = Math.cos(angle) * (dist / 50);
             joyVector.y = Math.sin(angle) * (dist / 50);
 
-            stickEl.style.transform = \`translate(\${Math.cos(angle)*dist}px, \${Math.sin(angle)*dist}px)\`;
+            stickEl.style.transform = `translate(${Math.cos(angle)*dist}px, ${Math.sin(angle)*dist}px)`;
         });
 
         window.addEventListener("touchend", (e) => {
             if (joyActive) {
                 joyActive = false;
                 joyVector = { x: 0, y: 0 };
-                stickEl.style.transform = \`translate(0px, 0px)\`;
+                stickEl.style.transform = `translate(0px, 0px)`;
             }
         });
 
@@ -4241,7 +4196,7 @@
                 ctx.fillStyle = "#ffffff";
                 ctx.font = "bold 14px sans-serif";
                 ctx.textAlign = "center";
-                ctx.fillText(\`Coins: \${myScore}\`, myPos.x, myPos.y - 30);
+                ctx.fillText(`Coins: ${myScore}`, myPos.x, myPos.y - 30);
             }
 
             for (let id in players) {
@@ -4255,7 +4210,7 @@
                 ctx.fillStyle = "#ffffff";
                 ctx.font = "bold 14px sans-serif";
                 ctx.textAlign = "center";
-                ctx.fillText(\`Coins: \${p.score || 0}\`, p.x, p.y - 30);
+                ctx.fillText(`Coins: ${p.score || 0}`, p.x, p.y - 30);
             }
 
             ctx.fillStyle = "#facc15";
@@ -4421,14 +4376,14 @@
             joyVector.x = Math.cos(angle) * (dist / 50);
             joyVector.y = Math.sin(angle) * (dist / 50);
 
-            stickEl.style.transform = \`translate(\${Math.cos(angle)*dist}px, \${Math.sin(angle)*dist}px)\`;
+            stickEl.style.transform = `translate(${Math.cos(angle)*dist}px, ${Math.sin(angle)*dist}px)`;
         });
 
         window.addEventListener("touchend", (e) => {
             if (joyActive) {
                 joyActive = false;
                 joyVector = { x: 0, y: 0 };
-                stickEl.style.transform = \`translate(0px, 0px)\`;
+                stickEl.style.transform = `translate(0px, 0px)`;
             }
         });
 
@@ -4490,7 +4445,7 @@
                 ctx.fillStyle = "#ffffff";
                 ctx.font = "bold 14px sans-serif";
                 ctx.textAlign = "center";
-                ctx.fillText(\`Coins: \${myScore}\`, myPos.x, myPos.y - 30);
+                ctx.fillText(`Coins: ${myScore}`, myPos.x, myPos.y - 30);
             }
 
             for (let id in players) {
@@ -4504,7 +4459,7 @@
                 ctx.fillStyle = "#ffffff";
                 ctx.font = "bold 14px sans-serif";
                 ctx.textAlign = "center";
-                ctx.fillText(\`Coins: \${p.score || 0}\`, p.x, p.y - 30);
+                ctx.fillText(`Coins: ${p.score || 0}`, p.x, p.y - 30);
             }
 
             ctx.fillStyle = "#facc15";
@@ -4828,11 +4783,11 @@ socket.on("RemoteEvent", (pkt) => {
 });
 
 <span class="api-tag-both">CLIENT AND SERVER API (both clients and servers can use this API)</span>
-4. DIRECT WEBSOCKET AI CALL (Requires AI Key, no Server Key needed):
+4. DIRECT WEBSOCKET AI CALL (Requires AI Key):
 // Available models: "gemma4:26b", "qwen2.5:0.5b", "qwen2.5:1.5b"
 socket.emit("eb_callai_direct", {
     key: "${userAIKey || 'YOUR_AI_KEY'}",
-    model: "gemma4:26b",
+    model: "qwen2.5:1.5b",
     Temp: 0.7,
     Mtokens: 1500,
     Instruction: "You are a helpful companion.",
@@ -4848,7 +4803,7 @@ socket.on("eb_ai_response", (data) => {
 5. SERVERSCRIPT AI EXECUTION:
 Server.eb_callai({
     key: "${userAIKey || 'YOUR_AI_KEY'}",
-    model: "qwen2.5:0.5b",
+    model: "gemma4:26b",
     Temp: 0.7,
     Mtokens: 500,
     Instruction: "Assistant.",
