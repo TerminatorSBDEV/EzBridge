@@ -399,8 +399,8 @@
             <div class="settings-grid" style="max-height:none;">
                 <div id="asset-preview-box" style="margin-bottom:10px; text-align:center;"></div>
                 <div class="settings-item">
-                    <label>Asset name (2-20 chars):</label>
-                    <input type="text" id="asset-name-field" maxlength="20" placeholder="My Epic Asset">
+                    <label>Asset name (2-35 chars):</label>
+                    <input type="text" id="asset-name-field" maxlength="35" placeholder="My Epic Asset">
                 </div>
                 <div class="settings-item">
                     <label>Asset file (Audio < 10min, Images < 5MB, Videos < 50MB):</label>
@@ -771,14 +771,6 @@
                 <div class="settings-item">
                     <label>Server target Ping: <span id="cfg-target-ping-val">50</span>ms (50 - 1000)</label>
                     <input type="range" id="cfg-target-ping" min="50" max="1000" step="10" value="50" oninput="document.getElementById('cfg-target-ping-val').innerText = this.value">
-                </div>
-
-                <div class="settings-item">
-                    <label>Allow Use On Private Projects</label>
-                    <select id="cfg-private" onchange="toggleDomainWhitelistUI()">
-                        <option value="false" selected>Off (Restricted to Whitelisted Domains)</option>
-                        <option value="true">On (Allow Any App/Local Files)</option>
-                    </select>
                 </div>
 
                 <div id="domain-whitelist-panel" style="display:block; background:#020617; padding:10px; border:1px solid var(--border);">
@@ -1344,7 +1336,8 @@
 
     let socket = io(PUBLIC_TUNNEL_URL, {
         auth: { token: "default_key" },
-        transports: ['websocket']
+        transports: ['websocket'],
+        maxHttpBufferSize: 1e8
     });
 
     const origEmit = socket.emit;
@@ -2239,8 +2232,8 @@
 
     function submitAssetUpload() {
         const nameVal = document.getElementById('asset-name-field').value.trim();
-        if (nameVal.length < 2 || nameVal.length > 20) {
-            return alert("Asset name must have at least 2 chars and less than 20.");
+        if (nameVal.length < 2 || nameVal.length > 35) {
+            return alert("Asset name must have at least 2 chars and no more than 35 chars.");
         }
 
         if (!stagedAssetBase64 && !currentEditingAssetId) {
@@ -3656,8 +3649,7 @@
     }
 
     function toggleDomainWhitelistUI() {
-        const isPrivate = document.getElementById('cfg-private').value === 'true';
-        document.getElementById('domain-whitelist-panel').style.display = isPrivate ? 'none' : 'block';
+        document.getElementById('domain-whitelist-panel').style.display = 'block';
     }
 
     function addDomainPrompt() {
@@ -3789,7 +3781,6 @@
         const targetPing = parseInt(document.getElementById('cfg-target-ping').value) || 50;
 
         const settings = {
-            allowPrivate: document.getElementById('cfg-private').value === 'true',
             whitelistedDomains: whitelistedDomains,
             targetPing: targetPing,
             ramLimitMB: 250
@@ -3986,7 +3977,6 @@
         document.getElementById('cfg-server-type').value = type;
         document.getElementById('cfg-target-ping').value = settings.targetPing || 50;
         document.getElementById('cfg-target-ping-val').innerText = settings.targetPing || 50;
-        document.getElementById('cfg-private').value = String(settings.allowPrivate);
         document.getElementById('script-editor').value = script;
         updateLineNumbers('script-editor', 'serverscript-lines');
 
@@ -4026,7 +4016,7 @@
 `<!DOCTYPE html>
 <html>
 <head>
-    <title>EzBridge Multiplayer Coin Collector</title>
+    <title>EzBridge Multiplayer Coin Collector (HTTP)</title>
     <style>
         body { margin: 0; background: #0f172a; color: #fff; font-family: sans-serif; overflow: hidden; user-select: none; }
         canvas { display: block; background: #1e293b; }
@@ -4331,7 +4321,7 @@
 
         const link = "${PUBLIC_TUNNEL_URL}";
         const key = "${serverKey}";
-        const socket = io(link, { auth: { token: "default_key" } });
+        const socket = io(link, { auth: { token: "default_key" }, maxHttpBufferSize: 1e8 });
 
         let myId = Math.random().toString(36).substring(2, 6);
         let myColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
@@ -4675,24 +4665,31 @@ ${serverType === 'websocket' ?
 - Send JSON body { type: 'your_event', data: payload }
 - Receive returned events array in the JSON response: { status: "success", events: [ ... ] }`}
 
-3 - APIs You Can Use
+3 - Models Available in EzBridge
+- "gemma4:26b": Ultra-intelligent cloud model via Google API (shortcut ID for gemma-4-26b-a4b-it). High logic and detailed responses. Non-streaming.
+- "qwen2.5:0.5b": Fast and responsive local model running at 4 threads. Supports streaming.
+- "qwen2.5:1.5b": Advanced local model running at 3 threads. Exclusive to users with a Client ID on WebSocket and HTTP. Supports streaming.
+
+4 - APIs You Can Use
 - 'ebuserid_get' / 'eb_id_get': [CLIENT-SIDED API] Send RemoteEvent type 'ebuserid_get' to get the client's permanent unique User ID (15-30 chars).
 - 'eb_profile_get_{clientid}': [CLIENT AND SERVER API] Fetch any user's profile display name and avatar (sent in 500KB chunks).
 - 'eb_asset_get_{assetid}': [CLIENT AND SERVER API] Fetch any uploaded audio, image or video asset by sequential ID in 180KB chunks. Can be used without server key.
+- Direct AI Calling: [CLIENT AND SERVER API] Call AI over HTTP POST to ${PUBLIC_TUNNEL_URL}/eb_callai or WebSocket emit 'eb_callai_direct' with { key: "AI_KEY", model: "gemma4:26b", Temp: 0.7, Mtokens: 1500, Prompt: "..." }. No Server Key is needed, only an AI key.
 - Server.storage API: [SERVER-SIDED API]
   * Server.storage.set(data) - Save up to 100MB of persistent server data.
   * Server.storage.get() - Retrieve stored server data.
   * Server.storage.getUsageBytes() - Get current storage usage in bytes.
 - ServerScript API: [SERVER-SIDED API] Write sandboxed backend JS code (Server.on('event', fn), Server.broadcast('event', data), Server.on('tick', fn)).
-- Server.eb_callai: [SERVER-SIDED API] Call AI generation inside ServerScript with parameter key: { key: "AI_KEY", model: "gemma4-26b", Temp: 0, Mtokens: 28, Instruction: "...", Prompt: "..." }.
+- Server.eb_callai: [SERVER-SIDED API] Call AI generation inside ServerScript: Server.eb_callai({ key: "AI_KEY", model: "gemma4:26b", Temp: 0, Mtokens: 50, Instruction: "...", Prompt: "..." }, callback).
 
-4 - Learn More About EzBridge
-- Max Packet Size: 10MB per packet.
+5 - Learn More About EzBridge
+- Max Packet Size: 10MB per packet. Supports requests larger than 200KB.
 - Request Limit: Up to 60 requests/sec.
 - Server Memory: Configured at 250MB.
 - Server Target Ping: Configurable between 50ms and 1000ms.
+- Physics Simulation: 33 Hz fixed time-step speed consistency.
 
-here are some examples so you understand more about making online apps:
+Here are code examples for making online apps:
 1 - html script (Coin Collector Example)
 ${coinClientCode}
 
@@ -4745,20 +4742,22 @@ async function fetchAssetData(assetId) {
 
 <span class="api-tag-both">CLIENT AND SERVER API (both clients and servers can use this API)</span>
 4. CALL AI DIRECTLY (Requires AI Key, no Server Key needed):
+// Available models: "gemma4:26b", "qwen2.5:0.5b", "qwen2.5:1.5b"
 async function requestAI(promptText) {
     const res = await fetch("${PUBLIC_TUNNEL_URL}/eb_callai", {
         method: "POST",
         headers: { "Content-Type": "application/json", "ai-key": "${userAIKey || 'YOUR_AI_KEY'}" },
         body: JSON.stringify({
-            model: "gemma4-26b",
+            model: "gemma4:26b",
             Temp: 0.7,
             Mtokens: 1500,
-            Instruction: "You are a helpful assistant.",
+            Instruction: "You are an assistant.",
             Prompt: promptText
         })
     });
     const data = await res.json();
-    console.log("AI Answer:", data.text);
+    if (data.error) console.error(data.error);
+    else console.log("AI Answer:", data.text);
 }
 
 <span class="api-tag-client">CLIENT-SIDED API (only the client can use this)</span>
@@ -4782,7 +4781,7 @@ async function sendHttpEvent(type, data) {
 6. SERVERSCRIPT AI EXECUTION:
 Server.eb_callai({
     key: "${userAIKey || 'YOUR_AI_KEY'}",
-    model: "gemma4-26b",
+    model: "gemma4:26b",
     Temp: 0.5,
     Mtokens: 1000,
     Instruction: "You are an NPC.",
@@ -4795,7 +4794,7 @@ Server.eb_callai({
         } else {
             box.innerHTML = `<span class="api-tag-client">CLIENT-SIDED API (only the client can use this)</span>
 1. CONNECT & JOIN ROOM:
-const socket = io("${PUBLIC_TUNNEL_URL}", { auth: { token: "default_key" } });
+const socket = io("${PUBLIC_TUNNEL_URL}", { auth: { token: "default_key" }, maxHttpBufferSize: 1e8 });
 socket.emit("join_virtual_server", { key: "${serverKey}" });
 
 <span class="api-tag-both">CLIENT AND SERVER API (both clients and servers can use this API)</span>
@@ -4829,25 +4828,27 @@ socket.on("RemoteEvent", (pkt) => {
 });
 
 <span class="api-tag-both">CLIENT AND SERVER API (both clients and servers can use this API)</span>
-4. DIRECT WEBSOCKET AI CALL (Requires AI Key):
+4. DIRECT WEBSOCKET AI CALL (Requires AI Key, no Server Key needed):
+// Available models: "gemma4:26b", "qwen2.5:0.5b", "qwen2.5:1.5b"
 socket.emit("eb_callai_direct", {
     key: "${userAIKey || 'YOUR_AI_KEY'}",
-    model: "qwen2.5:1.5b",
+    model: "gemma4:26b",
     Temp: 0.7,
     Mtokens: 1500,
     Instruction: "You are a helpful companion.",
     Prompt: "Hello!",
-    Streaming: true
+    Streaming: false
 });
 socket.on("eb_ai_response", (data) => {
-    if (data.text) console.log("AI:", data.text);
+    if (data.error) console.error(data.error);
+    else if (data.text) console.log("AI:", data.text);
 });
 
 <span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
 5. SERVERSCRIPT AI EXECUTION:
 Server.eb_callai({
     key: "${userAIKey || 'YOUR_AI_KEY'}",
-    model: "gemma4-26b",
+    model: "qwen2.5:0.5b",
     Temp: 0.7,
     Mtokens: 500,
     Instruction: "Assistant.",
