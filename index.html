@@ -481,6 +481,7 @@
                 Each month your AI key is active, the server checks it's usage inside each month and gives you a certain amount of EzCoins you have to pay for the API stay active.
             </p>
             <div style="text-align:left; font-size:0.85rem; margin:15px 0; display:flex; flex-direction:column; gap:6px;">
+                <div>Tokens used this month: <span id="billing-curr-tokens" style="color:var(--accent); font-weight:bold;">0</span> tokens</div>
                 <div>Last Month: <span id="billing-last-tokens" style="color:#fff; font-weight:bold;">0</span> tokens</div>
                 <div>Current price: <span id="billing-current-price" style="color:var(--yellow); font-weight:bold;">0</span> <span class="coin-icon">EZ</span></div>
             </div>
@@ -1195,7 +1196,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://labeled-blah-retrieval-ralph.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://invitations-infants-ref-forum.trycloudflare.com";
     const BASE_SITE_URL = "https://terminatorsbdev.github.io/EzBridge/";
 
     let ownerId = getCookie("eb_owner_id") || "";
@@ -2502,10 +2503,11 @@
     socket.on('eb_ai_billing_chunk', (data) => {
         try {
             const parsed = JSON.parse(data.chunk);
+            document.getElementById('billing-curr-tokens').innerText = parsed.tokensThisMonth || 0;
             document.getElementById('billing-last-tokens').innerText = parsed.lastMonthTokens || 0;
             document.getElementById('billing-current-price').innerText = parsed.currentPriceCoins || 0;
             const payBtn = document.getElementById('btn-pay-ai-bill');
-            if (parsed.currentPriceCoins > 0) {
+            if (parsed.inBillingState) {
                 payBtn.style.display = "block";
             } else {
                 payBtn.style.display = "none";
@@ -2521,6 +2523,7 @@
     socket.on('eb_ai_billing_paid', (data) => {
         userAIKeyStatus = data.status;
         updateAIKeyDashboardDisplay();
+        document.getElementById('billing-curr-tokens').innerText = "0";
         document.getElementById('billing-current-price').innerText = "0";
         document.getElementById('btn-pay-ai-bill').style.display = "none";
         if (data.newCoins !== undefined) updateCoinsDisplay(data.newCoins);
@@ -4681,7 +4684,7 @@ ${serverType === 'websocket' ?
   * Server.storage.get() - Retrieve stored server data.
   * Server.storage.getUsageBytes() - Get current storage usage in bytes.
 - ServerScript API: [SERVER-SIDED API] Write sandboxed backend JS code (Server.on('event', fn), Server.broadcast('event', data), Server.on('tick', fn)).
-- Server.eb_callai: [SERVER-SIDED API] Call AI generation inside ServerScript with parameter key: { key: "AI_KEY", model: "gemma3:1b", Temp: 0, Mtokens: 28, Instruction: "...", Prompt: "..." }.
+- Server.eb_callai: [SERVER-SIDED API] Call AI generation inside ServerScript with parameter key: { key: "AI_KEY", model: "gemma4-26b", Temp: 0, Mtokens: 28, Instruction: "...", Prompt: "..." }.
 
 4 - Learn More About EzBridge
 - Max Packet Size: 10MB per packet.
@@ -4747,7 +4750,7 @@ async function requestAI(promptText) {
         method: "POST",
         headers: { "Content-Type": "application/json", "ai-key": "${userAIKey || 'YOUR_AI_KEY'}" },
         body: JSON.stringify({
-            model: "gemma-4-26b-a4b-it",
+            model: "gemma4-26b",
             Temp: 0.7,
             Mtokens: 1500,
             Instruction: "You are a helpful assistant.",
@@ -4779,7 +4782,7 @@ async function sendHttpEvent(type, data) {
 6. SERVERSCRIPT AI EXECUTION:
 Server.eb_callai({
     key: "${userAIKey || 'YOUR_AI_KEY'}",
-    model: "gemma-4-26b-a4b-it",
+    model: "gemma4-26b",
     Temp: 0.5,
     Mtokens: 1000,
     Instruction: "You are an NPC.",
@@ -4844,7 +4847,7 @@ socket.on("eb_ai_response", (data) => {
 5. SERVERSCRIPT AI EXECUTION:
 Server.eb_callai({
     key: "${userAIKey || 'YOUR_AI_KEY'}",
-    model: "gemma-4-26b-a4b-it",
+    model: "gemma4-26b",
     Temp: 0.7,
     Mtokens: 500,
     Instruction: "Assistant.",
