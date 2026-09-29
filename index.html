@@ -1179,7 +1179,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://invitations-infants-ref-forum.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://committee-greensboro-purse-metallic.trycloudflare.com";
     const BASE_SITE_URL = "https://terminatorsbdev.github.io/EzBridge/";
 
     let ownerId = getCookie("eb_owner_id") || "";
@@ -4098,7 +4098,7 @@
             syncHttp();
         }, 16);
 
-        document.getElementById("serverCharToggle").addEventListener("change", (e) => {
+    document.getElementById("serverCharToggle").addEventListener("change", (e) => {
             isServerSided = e.target.checked;
             if (isServerSided) {
                 syncHttp("create_server_char", { name: myId });
@@ -4142,14 +4142,14 @@
             joyVector.x = Math.cos(angle) * (dist / 50);
             joyVector.y = Math.sin(angle) * (dist / 50);
 
-            stickEl.style.transform = `translate(${Math.cos(angle)*dist}px, ${Math.sin(angle)*dist}px)`;
+            stickEl.style.transform = \`translate(\${Math.cos(angle)*dist}px, \${Math.sin(angle)*dist}px)\`;
         });
 
         window.addEventListener("touchend", (e) => {
             if (joyActive) {
                 joyActive = false;
                 joyVector = { x: 0, y: 0 };
-                stickEl.style.transform = `translate(0px, 0px)`;
+                stickEl.style.transform = \`translate(0px, 0px)\`;
             }
         });
 
@@ -4196,7 +4196,7 @@
                 ctx.fillStyle = "#ffffff";
                 ctx.font = "bold 14px sans-serif";
                 ctx.textAlign = "center";
-                ctx.fillText(`Coins: ${myScore}`, myPos.x, myPos.y - 30);
+                ctx.fillText(\`Coins: \${myScore}\`, myPos.x, myPos.y - 30);
             }
 
             for (let id in players) {
@@ -4210,7 +4210,7 @@
                 ctx.fillStyle = "#ffffff";
                 ctx.font = "bold 14px sans-serif";
                 ctx.textAlign = "center";
-                ctx.fillText(`Coins: ${p.score || 0}`, p.x, p.y - 30);
+                ctx.fillText(\`Coins: \${p.score || 0}\`, p.x, p.y - 30);
             }
 
             ctx.fillStyle = "#facc15";
@@ -4376,14 +4376,14 @@
             joyVector.x = Math.cos(angle) * (dist / 50);
             joyVector.y = Math.sin(angle) * (dist / 50);
 
-            stickEl.style.transform = `translate(${Math.cos(angle)*dist}px, ${Math.sin(angle)*dist}px)`;
+            stickEl.style.transform = \`translate(\${Math.cos(angle)*dist}px, \${Math.sin(angle)*dist}px)\`;
         });
 
         window.addEventListener("touchend", (e) => {
             if (joyActive) {
                 joyActive = false;
                 joyVector = { x: 0, y: 0 };
-                stickEl.style.transform = `translate(0px, 0px)`;
+                stickEl.style.transform = \`translate(0px, 0px)\`;
             }
         });
 
@@ -4445,7 +4445,7 @@
                 ctx.fillStyle = "#ffffff";
                 ctx.font = "bold 14px sans-serif";
                 ctx.textAlign = "center";
-                ctx.fillText(`Coins: ${myScore}`, myPos.x, myPos.y - 30);
+                ctx.fillText(\`Coins: \${myScore}\`, myPos.x, myPos.y - 30);
             }
 
             for (let id in players) {
@@ -4459,7 +4459,7 @@
                 ctx.fillStyle = "#ffffff";
                 ctx.font = "bold 14px sans-serif";
                 ctx.textAlign = "center";
-                ctx.fillText(`Coins: ${p.score || 0}`, p.x, p.y - 30);
+                ctx.fillText(\`Coins: \${p.score || 0}\`, p.x, p.y - 30);
             }
 
             ctx.fillStyle = "#facc15";
