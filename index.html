@@ -1179,7 +1179,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://guy-fully-pure-coffee.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://invitations-infants-ref-forum.trycloudflare.com";
     const BASE_SITE_URL = "https://terminatorsbdev.github.io/EzBridge/";
 
     let ownerId = getCookie("eb_owner_id") || "";
@@ -1322,12 +1322,11 @@
     const initTimeout = setTimeout(() => {
         document.getElementById('overlay-sync').style.display = 'none';
         document.getElementById('overlay-timeout-error').style.display = 'flex';
-    }, 5000);
+    }, 15000);
 
     let socket = io(PUBLIC_TUNNEL_URL, {
         auth: { token: "default_key" },
-        transports: ['websocket'],
-        maxHttpBufferSize: 1e8
+        transports: ['websocket']
     });
 
     const origEmit = socket.emit;
@@ -1358,6 +1357,15 @@
     function checkInitialUrlRouting() {
         const hashStr = window.location.hash || '';
         const clean = hashStr.replace(/^#?\/?/g, '').replace(/\/+$/, '');
+        const hasSession = Boolean(serverKey || (ownerId && isCaptchaTagged));
+
+        if (!hasSession && (clean === 'main' || clean === 'chat' || clean.startsWith('chat/') || clean === 'assets' || clean.startsWith('assets/'))) {
+            window.location.hash = "#/login/";
+            document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
+            document.getElementById('overlay-captcha').style.display = 'flex';
+            return;
+        }
+
         if (clean) {
             showRouteConnectingModal();
             socket.emit('changeurl', { path: clean });
@@ -1601,9 +1609,9 @@
     socket.on('eb_ezbridge_auth_success', (data) => {
         document.getElementById('overlay-ezbridge-logging').style.display = 'none';
         clearPendingVerificationState();
+        hideLoadingScreen();
         if (!data.hasServer) {
             pendingDailyRewardForNewServer = data.dailyReward;
-            hideLoadingScreen();
             document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
             ownerId = data.ownerId;
             activeUserId = data.userId;
@@ -3487,7 +3495,9 @@
     function accountLogout() {
         setCookie("eb_owner_id", "", -1);
         localStorage.clear();
-        location.reload();
+        sessionStorage.clear();
+        window.location.hash = "#/login/";
+        window.location.reload();
     }
 
     function accountRegenUserId() {
@@ -3939,12 +3949,18 @@
         updateLineNumbers('script-editor', 'serverscript-lines');
     }
 
+    let loadingScreenTimeout = null;
     function showLoadingScreen(msg) {
         document.getElementById('loading-msg').innerText = msg;
         document.getElementById('overlay-loading').style.display = 'flex';
+        if (loadingScreenTimeout) clearTimeout(loadingScreenTimeout);
+        loadingScreenTimeout = setTimeout(() => {
+            hideLoadingScreen();
+        }, 15000);
     }
 
     function hideLoadingScreen() {
+        if (loadingScreenTimeout) clearTimeout(loadingScreenTimeout);
         document.getElementById('overlay-loading').style.display = 'none';
     }
 
@@ -4098,7 +4114,7 @@
             syncHttp();
         }, 16);
 
-    document.getElementById("serverCharToggle").addEventListener("change", (e) => {
+        document.getElementById("serverCharToggle").addEventListener("change", (e) => {
             isServerSided = e.target.checked;
             if (isServerSided) {
                 syncHttp("create_server_char", { name: myId });
@@ -4783,11 +4799,11 @@ socket.on("RemoteEvent", (pkt) => {
 });
 
 <span class="api-tag-both">CLIENT AND SERVER API (both clients and servers can use this API)</span>
-4. DIRECT WEBSOCKET AI CALL (Requires AI Key):
+4. DIRECT WEBSOCKET AI CALL (Requires AI Key, no Server Key needed):
 // Available models: "gemma4:26b", "qwen2.5:0.5b", "qwen2.5:1.5b"
 socket.emit("eb_callai_direct", {
     key: "${userAIKey || 'YOUR_AI_KEY'}",
-    model: "qwen2.5:1.5b",
+    model: "gemma4:26b",
     Temp: 0.7,
     Mtokens: 1500,
     Instruction: "You are a helpful companion.",
@@ -4803,7 +4819,7 @@ socket.on("eb_ai_response", (data) => {
 5. SERVERSCRIPT AI EXECUTION:
 Server.eb_callai({
     key: "${userAIKey || 'YOUR_AI_KEY'}",
-    model: "gemma4:26b",
+    model: "qwen2.5:0.5b",
     Temp: 0.7,
     Mtokens: 500,
     Instruction: "Assistant.",
