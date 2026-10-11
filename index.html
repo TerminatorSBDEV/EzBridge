@@ -1192,7 +1192,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://llc-anatomy-nurse-none.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://invitations-infants-ref-forum.trycloudflare.com";
     const BASE_SITE_URL = "https://terminatorsbdev.github.io/EzBridge/";
 
     let ownerId = getCookie("eb_owner_id") || "";
@@ -1393,23 +1393,15 @@
         const clean = hashStr.replace(/^#?\/?/g, '').replace(/\/+$/, '');
         const hasSession = Boolean(serverKey || (ownerId && isCaptchaTagged));
 
-        if (!hasSession && (clean === 'sites' || clean.startsWith('site/'))) {
-            isGuestMode = true;
-            document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
-            if (clean === 'sites') {
-                openSeeAndPublishModal();
-            } else {
-                const sId = clean.replace('site/', '').trim();
-                socket.emit('eb_visit_site', { siteId: sId });
-            }
-            return;
-        }
-
         if (!hasSession && (clean === 'main' || clean === 'chat' || clean.startsWith('chat/') || clean === 'assets' || clean.startsWith('assets/'))) {
             window.location.hash = "#/login/";
             document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
             document.getElementById('overlay-captcha').style.display = 'flex';
             return;
+        }
+
+        if (clean === 'sites' || clean.startsWith('site/')) {
+            document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
         }
 
         if (clean) {
@@ -1449,8 +1441,10 @@
                 document.getElementById('overlay-captcha').style.display = 'flex';
             }
         } else if (path === 'sites') {
+            document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
             openSeeAndPublishModal();
         } else if (path.startsWith('site/')) {
+            document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
             const sId = path.replace('site/', '').trim();
             socket.emit('eb_visit_site', { siteId: sId });
         } else if (path === 'chat') {
@@ -1630,10 +1624,6 @@
             return;
         }
 
-        const hashStr = window.location.hash || '';
-        const cleanPath = hashStr.replace(/^#?\/?/g, '').replace(/\/+$/, '');
-        const isPublicRoute = (cleanPath === 'sites' || cleanPath.startsWith('site/'));
-
         if (data.hasServer) {
             applyFullAuthState(data, false);
         } else {
@@ -1647,14 +1637,14 @@
             updateAIKeyDashboardDisplay();
             if (ownerId && (data.username || data.userId)) isCaptchaTagged = true;
 
-            if (isPublicRoute) {
-                isGuestMode = true;
-                document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
-                checkInitialUrlRouting();
-            } else {
+            const initialHash = (window.location.hash || '').replace(/^#?\/?/g, '').replace(/\/+$/, '');
+            const isPublicRoute = initialHash === 'sites' || initialHash.startsWith('site/');
+
+            if (!isPublicRoute) {
                 document.getElementById('overlay-captcha').style.display = 'flex';
-                checkInitialUrlRouting();
             }
+
+            checkInitialUrlRouting();
             restorePendingVerificationCheck();
         }
     });
@@ -4680,7 +4670,6 @@
         document.getElementById('univserver-script-editor').value = "";
         document.getElementById('modal-update-univserver').style.display = 'flex';
     }
-
     function closeUpdateUnivServerModal() {
         document.getElementById('modal-update-univserver').style.display = 'none';
     }
@@ -4729,7 +4718,6 @@
         applyRolePermissions();
         document.getElementById('modal-account-settings').style.display = 'flex';
     }
-
     function closeAccountSettingsModal() {
         document.getElementById('modal-account-settings').style.display = 'none';
     }
@@ -4757,11 +4745,9 @@
         document.getElementById('ban-days-val').value = "";
         document.getElementById('modal-ban-user').style.display = 'flex';
     }
-
     function closeBanUserModal() {
         document.getElementById('modal-ban-user').style.display = 'none';
     }
-
     function submitBanUser() {
         const targetUserId = document.getElementById('ban-target-userid').value.trim();
         const days = document.getElementById('ban-days-val').value.trim();
@@ -4776,11 +4762,9 @@
         document.getElementById('role-target-userid').value = "";
         document.getElementById('modal-role-mgr').style.display = 'flex';
     }
-
     function closeRoleManagerModal() {
         document.getElementById('modal-role-mgr').style.display = 'none';
     }
-
     function submitUpdateRole() {
         const targetUserId = document.getElementById('role-target-userid').value.trim();
         const newRole = document.getElementById('role-select').value;
@@ -4795,7 +4779,6 @@
         document.getElementById('modal-server-mgmt').style.display = 'flex';
         fetchServerMgmtList();
     }
-
     function closeServerMgmtModal() {
         document.getElementById('modal-server-mgmt').style.display = 'none';
     }
@@ -4841,7 +4824,6 @@
         document.getElementById('view-script-textarea').value = scriptText;
         document.getElementById('modal-view-script').style.display = 'flex';
     }
-
     function closeViewScriptModal() {
         document.getElementById('modal-view-script').style.display = 'none';
     }
@@ -5195,7 +5177,7 @@
         #toggle-container { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); padding: 8px 12px; border-radius: 8px; font-family: sans-serif; font-weight: bold; font-size: 0.9rem; z-index: 10; }
         #toggle-container label { cursor: pointer; display: flex; align-items: center; gap: 8px; }
         #joystick { position: absolute; bottom: 40px; left: 40px; width: 120px; height: 120px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; display: none; touch-action: none; }
-        #stick { position: absolute; top: 35px; left: 35px; width: 50px; height: 50px; background: rgba(255,255,255,0.4); border-radius: 50%; pointer-events: none; }
+        #stick { position: absolute; top: 35px; left: 35px; width: 50px; height: 50px; background: rgba(255,255,245,0.4); border-radius: 50%; pointer-events: none; }
     </style>
 </head>
 <body>
@@ -5460,7 +5442,7 @@
         #toggle-container { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); padding: 8px 12px; border-radius: 8px; font-family: sans-serif; font-weight: bold; font-size: 0.9rem; z-index: 10; }
         #toggle-container label { cursor: pointer; display: flex; align-items: center; gap: 8px; }
         #joystick { position: absolute; bottom: 40px; left: 40px; width: 120px; height: 120px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; display: none; touch-action: none; }
-        #stick { position: absolute; top: 35px; left: 35px; width: 50px; height: 50px; background: rgba(255,255,255,0.4); border-radius: 50%; pointer-events: none; }
+        #stick { position: absolute; top: 35px; left: 35px; width: 50px; height: 50px; background: rgba(255,255,245,0.4); border-radius: 50%; pointer-events: none; }
     </style>
 </head>
 <body>
