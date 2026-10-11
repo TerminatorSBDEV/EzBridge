@@ -4853,22 +4853,25 @@ Server.on('tick', (dt) => {
 fetchCurrentEzBridgeTunnel();
 -- use this example of you don't want to keep updating the tunnel everytime a new one generates`;
 
-        return { coinClientCode, coinServerCode, clientCode: coinClientCode, serverCode: coinServerCode, dynamicTunnelCode };
+        return { coinClientCode, coinServerCode, dynamicTunnelCode };
     }
 
     function copyAIPrompt() {
         const { coinClientCode, coinServerCode } = getGameExamples();
-        let promptText = `*How to implement EzBridge's universal server on your online project*
-EzBridge server is a universal server that is free and can be used to make multiplayer, networking, and online apps across any platform (Web browsers, Roblox, Lua scripts, Node.js, Python, or desktop apps). Follow these steps to implement it:
+        let promptText = `*HOW TO IMPLEMENT EZBRIDGE UNIVERSAL SERVER INTO YOUR ONLINE PROJECT*
 
-1 - Connecting
-To connect to an EzBridge virtual server, you need:
-1 - Tunnel Link: ${PUBLIC_TUNNEL_URL}
-2 - Server Auth Key: ${serverKey}
-Clients connect using either WebSocket or standard HTTP requests based on the server's configured mode.
+EzBridge is a high-performance, free universal server engine engineered for multiplayer games, interactive web applications, cross-platform Lua scripts (including Roblox HttpService), native desktop tools, and AI-driven systems.
+
+---
+
+### 1. CONNECTING TO THE SERVER
+To establish a connection to an EzBridge virtual server, you need two fundamental parameters:
+1. Tunnel URL: "${PUBLIC_TUNNEL_URL}"
+2. Server Auth Key: "${serverKey}"
 
 Automatic Dynamic Tunnel Loading (Recommended):
-If you do not want to hardcode or manually update the tunnel URL every time a new tunnel generates, use this dynamic fetch snippet:
+Whenever a server host restarts, Cloudflare may generate a fresh tunnel URL. To automatically connect to the newest active tunnel link without manual updates, use this helper:
+\`\`\`javascript
 async function fetchCurrentEzBridgeTunnel() {
     try {
         const response = await fetch("https://raw.githubusercontent.com/TerminatorSBDEV/ebtunnel/main/tunnel");
@@ -4883,69 +4886,132 @@ async function fetchCurrentEzBridgeTunnel() {
     return null;
 }
 fetchCurrentEzBridgeTunnel();
--- use this example of you don't want to keep updating the tunnel everytime a new one generates
+// -- use this example if you don't want to keep updating the tunnel everytime a new one generates
+\`\`\`
 
-2 - Sending Remotes
-Depending on the server type (${serverType.toUpperCase()}):
-${serverType === 'websocket' ? 
-`- Connect using a Socket.io client to the Tunnel URL.
-- Emit 'join_virtual_server' with payload { key: "${serverKey}" }.
-- Send data by emitting 'RemoteEvent' with payload: { type: 'your_event_name', data: your_payload }.
-- Listen for server broadcasts with: socket.on('RemoteEvent', (pkt) => { ... }).` :
-`- Send HTTP POST requests to: ${PUBLIC_TUNNEL_URL}/remote
-- Include request Header: 'auth-token: ${serverKey}'
-- Include JSON body: { type: 'your_event_name', data: your_payload }
-- Read the response JSON: { status: "success", events: [ { type: "...", data: ... } ] }`}
+---
 
-3 - Supported AI Models
-- "gemma4:26b": Ultra-intelligent cloud model via Google API (shortcut ID for gemma-4-26b-a4b-it). Advanced reasoning, coding, and multi-turn planning. Non-streaming.
-- "qwen2.5:0.5b": Fast and responsive local model running at 4 threads with 128 batch size. Supports streaming.
-- "qwen2.5:1.5b": High-quality local model running at 3 threads with 128 batch size. Exclusive to clients with a verified Client ID. Supports streaming.
+### 2. TRANSPORT PROTOCOLS
+EzBridge servers can run on either WebSocket (real-time) or HTTP (REST-based state sync).
 
-4 - Detailed API Documentation
-- 'ebuserid_get' or 'eb_id_get': [CLIENT-SIDED API]
-  Send RemoteEvent with type 'ebuserid_get'. The server responds with { type: 'userid_response', userId: '...' }, returning the client's permanent unique User ID (15-30 chars).
-- 'eb_profile_get_{clientid}': [CLIENT AND SERVER API]
-  Request a user's display name and avatar data over HTTP GET (${PUBLIC_TUNNEL_URL}/eb_profile_get_CLIENTID) or RemoteEvent. Avatar images are streamed in 500KB chunks.
-- 'eb_asset_get_{assetid}': [CLIENT AND SERVER API]
-  Fetch uploaded assets (audio, image, or video) by ID. Request over HTTP GET (${PUBLIC_TUNNEL_URL}/eb_asset_get_ASSETID) or RemoteEvent. Assets are delivered in 180KB chunks. Does not require a server auth key.
-- Direct AI Execution: [CLIENT AND SERVER API]
-  Execute AI prompts from the client without needing a server auth key. Send HTTP POST to ${PUBLIC_TUNNEL_URL}/eb_callai with header 'ai-key: YOUR_KEY' or WebSocket emit 'eb_callai_direct' with { key: 'YOUR_KEY', model: 'gemma4:26b', Temp: 0.7, Mtokens: 1500, Prompt: '...' }.
-- Server.storage API: [SERVER-SIDED API]
-  * Server.storage.set(data) - Persists up to 100MB of server data to storage.
-  * Server.storage.get() - Returns stored string data.
-  * Server.storage.getUsageBytes() - Returns exact current byte usage.
-- Server.py API: [SERVER-SIDED API]
-  Bi-directional bridge between the server's ServerScript and its isolated Python terminal:
-  * Server.py.send(eventName, data) - Sends an event to the server's running Python script.
-  * Server.py.on(eventName, callback) - Listens for events emitted by the Python script via 'from ezbridge import Server; Server.emit(eventName, data)'.
-- ServerScript Event Handling: [SERVER-SIDED API]
-  * Server.on(eventName, callback) - Subscribes to client remote events.
-  * Server.broadcast(eventName, data) - Dispatches an event to all connected clients and pipes to the Python terminal.
-  * Server.on('tick', (dt) => { ... }) - Runs on a fixed 33 Hz physics time-step (dt = 0.0303s) for cross-client speed consistency.
-- Server.eb_callai: [SERVER-SIDED API]
-  Call AI generation inside ServerScript: Server.eb_callai({ key: 'AI_KEY', model: 'gemma4:26b', Temp: 0.5, Mtokens: 100, Instruction: '...', Prompt: '...' }, callback).
+#### A. WebSocket (Real-Time Mode)
+- Connect using Socket.IO client (v4.x):
+  \`const socket = io(TUNNEL_URL, { auth: { token: "default_key" }, maxHttpBufferSize: 1e8 });\`
+- Join your assigned virtual room:
+  \`socket.emit("join_virtual_server", { key: "${serverKey}" });\`
+- Transmit custom events to the ServerScript:
+  \`socket.emit("RemoteEvent", { type: "player_action", data: { x: 100, y: 200 } });\`
+- Listen to ServerScript broadcasts:
+  \`socket.on("RemoteEvent", (packet) => { console.log(packet.type, packet.data); });\`
 
-5 - Specifications & Capacities
-- Max Packet Size: 10MB per packet (accepts large single payloads >200KB seamlessly).
-- Universal Accessibility: Can be connected from anywhere with no domain or host restrictions.
-- Server Memory Cap: 250MB active RAM ceiling.
-- Server Inactivity Rest: After 5 minutes of no packet activity, instances rest completely to 0MB RAM until a new packet wakes the server.
-- Fixed Physics Tick: 33 Hz simulation frequency.
+#### B. HTTP (REST Mode)
+- Send POST requests to \`\${TUNNEL_URL}/remote\`
+- Include header: \`auth-token: ${serverKey}\`
+- Request body: \`JSON.stringify({ type: "player_action", data: { ... } })\`
+- Response: Returns all queued broadcasts and direct event replies:
+  \`{ status: "success", events: [ { type: "state_update", data: { ... } } ] }\`
 
-Multiplayer Coin Collector Reference Implementation:
-1 - HTML Client:
+---
+
+### 3. COMPLETE CLIENT-SIDE API REFERENCE
+
+1. Permanent Client User ID:
+   - WebSocket: Emit \`RemoteEvent\` with \`{ type: "ebuserid_get" }\`. Listen on \`RemoteEvent\` with \`type: "userid_response"\`.
+   - Returns a unique, persistent 15-30 alphanumeric user identifier.
+
+2. User Profile Retrieval:
+   - GET request or WebSocket event: \`eb_profile_get_{clientid}\`
+   - Returns \`{ displayName: string, pfpData: string }\` (Base64 avatar image or default indicator).
+
+3. Universal Asset Retrieval (No Server Key Required):
+   - GET request to \`\${TUNNEL_URL}/eb_asset_get_{assetid}\` or WebSocket \`RemoteEvent\` with \`type: "eb_asset_get_{assetid}"\`.
+   - Delivers uploaded audio (MP3/OGG/WAV), images (PNG/JPEG), and video (MP4/WEBM) in chunks.
+
+4. Client-Side AI Invocation (Requires AI Key Only - No Server Key Required):
+   - HTTP: POST to \`\${TUNNEL_URL}/eb_callai\` with header \`ai-key: YOUR_AI_KEY\` and JSON body:
+     \`{ model: "gemma4:26b", Temp: 0.7, Mtokens: 1500, Instruction: "System prompt", Prompt: "User prompt" }\`
+   - WebSocket: Emit \`eb_callai_direct\` with \`{ key: "YOUR_AI_KEY", model: "gemma4:26b", Prompt: "..." }\`.
+
+---
+
+### 4. COMPLETE SERVERSCRIPT API REFERENCE (Backend JavaScript)
+
+Your virtual server runs inside a protected, persistent sandbox on the Node core:
+
+1. Event Handling:
+   - \`Server.on(eventName, (eventObj) => { ... })\`
+   - \`eventObj.senderId\`: Client ID of sender.
+   - \`eventObj.data\`: Incoming payload.
+   - \`eventObj.reply(responseData)\`: Sends an immediate response packet directly to the sender.
+
+2. Broadcasting:
+   - \`Server.broadcast(eventName, data)\`: Transmits data to all connected players in the server instance.
+
+3. Physics Engine Tick Rate (33 Hz):
+   - \`Server.on('tick', (dt) => { ... })\`
+   - Runs every ~30.3ms with a fixed delta time (\`dt = 1/33\`), guaranteeing exact physics simulation and consistent movement speed across all devices.
+
+4. Persistent Storage (100MB Capacity):
+   - \`Server.storage.set(dataString)\`: Saves up to 100MB of server data to persistent storage.
+   - \`Server.storage.get()\`: Retrieves current stored string.
+   - \`Server.storage.getUsageBytes()\`: Returns byte volume currently utilized.
+
+5. In-Server AI Generation:
+   - \`Server.eb_callai({ key: "YOUR_AI_KEY", model: "gemma4:26b", Temp: 0.7, Mtokens: 1000, Instruction: "...", Prompt: "..." }, (res) => { ... })\`
+   - Generates contextual responses directly within backend scripts.
+
+6. Bi-Directional Python Terminal Inter-Communication:
+   - Each virtual server has its own isolated Python environment. ServerScript and Python terminal can interact directly:
+   - ServerScript -> Python:
+     \`Server.py.send("process_physics", { velocity: 15.2 });\`
+   - ServerScript <- Python:
+     \`Server.py.on("computed_result", (data) => { console.log("Received from Python:", data); });\`
+   - In Python Terminal script (/exe):
+     \`\`\`python
+     from ezbridge import Server
+
+     def on_event(data):
+         print("Server sent data to Python:", data)
+         Server.emit("computed_result", {"status": "ok", "value": 42})
+
+     Server.on("process_physics", on_event)
+     \`\`\`
+
+---
+
+### 5. AVAILABLE AI MODELS IN EZBRIDGE
+1. "gemma4:26b": Google Cloud Gemma 4 26B (ID: \`gemma-4-26b-a4b-it\`). Maximum reasoning, complex logic, multi-turn reasoning. Non-streaming.
+2. "qwen2.5:0.5b": Ultra-fast local model running with 4 threads, 128 batch size, and mmap. Ideal for low-latency chat and streaming.
+3. "qwen2.5:1.5b": Instruct local model running with 3 threads. Exclusive to authenticated accounts with a Client ID.
+
+---
+
+### 6. ENGINE LIMITS & ARCHITECTURE
+- Max Packet Size: 10MB per packet (large packets >200KB are fully supported).
+- Server Memory: 250MB RAM limit per virtual server with active lockdown prevention.
+- Inactivity Sleep: ServerScript sleeps after 5 minutes of no packet traffic, setting active script count and RAM to 0 until incoming packets wake it up.
+- Asset Upload Limit: 500MB total per user account. Maximum file name length: 35 characters. Audio max duration: 10 minutes. Video max size: 50MB.
+
+---
+
+### 7. WORKING CODE EXAMPLES
+
+#### Client HTML (Multiplayer Coin Collector):
+\`\`\`html
 ${coinClientCode}
+\`\`\`
 
-2 - ServerScript:
-${coinServerCode}`;
+#### ServerScript (Multiplayer Coin Collector):
+\`\`\`javascript
+${coinServerCode}
+\`\`\``;
 
         if (userAIKey) {
             promptText += `\n\nAnd if you are going to add an AI feature to the project, here's my AI key: ${userAIKey}`;
         }
 
         navigator.clipboard.writeText(promptText);
-        alert("AI Prompt copied to clipboard! Paste it into your AI chat.");
+        alert("Comprehensive AI Prompt copied to clipboard! Paste it into your AI assistant.");
     }
 
     function openCommandsModal() {
@@ -4969,7 +5035,7 @@ async function fetchUserProfile(targetClientId) {
 }
 
 <span class="api-tag-both">CLIENT AND SERVER API (both clients and servers can use this API)</span>
-3. GET ASSET DATA (No server key needed):
+3. GET ASSET DATA:
 async function fetchAssetData(assetId) {
     const res = await fetch("${PUBLIC_TUNNEL_URL}/eb_asset_get_" + assetId);
     const asset = await res.json();
@@ -5037,10 +5103,10 @@ Server.eb_callai({
 });
 
 <span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
-7. SERVER-TO-PYTHON TERMINAL BRIDGE:
-Server.py.send("notify_python", { msg: "Hello from ServerScript!" });
-Server.py.on("from_python", (data) => {
-    console.log("Received from Python terminal:", data);
+7. PYTHON TERMINAL BRIDGE:
+Server.py.send("event_name", { data: 123 });
+Server.py.on("result_event", (data) => {
+    console.log("Python returned:", data);
 });`;
         } else {
             box.innerHTML = `<span class="api-tag-client">CLIENT-SIDED API (only the client can use this)</span>
@@ -5059,7 +5125,7 @@ socket.on("RemoteEvent", (pkt) => {
 });
 
 <span class="api-tag-both">CLIENT AND SERVER API (both clients and servers can use this API)</span>
-3. GET ASSET IN 180KB CHUNKS (No server key needed):
+3. GET ASSET IN 180KB CHUNKS:
 socket.emit("RemoteEvent", { type: "eb_asset_get_1" });
 let assetChunks = [];
 socket.on("RemoteEvent", (pkt) => {
@@ -5110,10 +5176,10 @@ Server.eb_callai({
 });
 
 <span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
-6. SERVER-TO-PYTHON TERMINAL BRIDGE:
-Server.py.send("notify_python", { msg: "Hello from ServerScript!" });
-Server.py.on("from_python", (data) => {
-    console.log("Received from Python terminal:", data);
+6. PYTHON TERMINAL BRIDGE:
+Server.py.send("event_name", { data: 123 });
+Server.py.on("result_event", (data) => {
+    console.log("Python returned:", data);
 });`;
         }
 
