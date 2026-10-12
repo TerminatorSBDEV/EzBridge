@@ -1192,7 +1192,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://danny-construct-difference-derek.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://invitations-infants-ref-forum.trycloudflare.com";
     const BASE_SITE_URL = "https://terminatorsbdev.github.io/EzBridge/";
 
     let ownerId = getCookie("eb_owner_id") || "";
@@ -1392,19 +1392,6 @@
         const hashStr = window.location.hash || '';
         const clean = hashStr.replace(/^#?\/?/g, '').replace(/\/+$/, '');
         const hasSession = Boolean(serverKey || (ownerId && isCaptchaTagged));
-        const isPublicRoute = (clean === 'sites' || clean.startsWith('site/'));
-
-        if (isPublicRoute && !hasSession) {
-            isGuestMode = true;
-            document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
-            if (clean === 'sites') {
-                openSeeAndPublishModal();
-            } else if (clean.startsWith('site/')) {
-                const sId = clean.replace('site/', '').trim();
-                socket.emit('eb_visit_site', { siteId: sId });
-            }
-            return;
-        }
 
         if (!hasSession && (clean === 'main' || clean === 'chat' || clean.startsWith('chat/') || clean === 'assets' || clean.startsWith('assets/'))) {
             window.location.hash = "#/login/";
@@ -1546,11 +1533,6 @@
 
         updateAIKeyDashboardDisplay();
 
-        if (data.requireEmail2FA !== undefined) {
-            const sel = document.getElementById('cfg-login-2fa');
-            if (sel) sel.value = String(data.requireEmail2FA);
-        }
-
         if (data.hasServer && data.server) {
             serverKey = data.server.key;
             serverActive = data.server.active;
@@ -1604,7 +1586,7 @@
         if (!email || !emailRegex.test(email) || /[()\\<>,;:]/.test(email)) {
             return alert("Please enter a valid email address with no special characters.");
         }
-        enqueueClientAction(() => socket.emit('eb_request_email_code', { email, is2FA: true }));
+        enqueueClientAction(() => socket.emit('eb_request_email_code', { email }));
         closeMissingEmailModal();
         openEmailVerifyModal(true, false, email);
     }
@@ -1636,15 +1618,6 @@
             return;
         }
 
-        if (data.requireEmail2FA !== undefined) {
-            const sel = document.getElementById('cfg-login-2fa');
-            if (sel) sel.value = String(data.requireEmail2FA);
-        }
-
-        const hashStr = window.location.hash || '';
-        const clean = hashStr.replace(/^#?\/?/g, '').replace(/\/+$/, '');
-        const isPublicRoute = (clean === 'sites' || clean.startsWith('site/'));
-
         if (data.hasServer) {
             applyFullAuthState(data, false);
         } else {
@@ -1657,12 +1630,7 @@
             userAIKeyStatus = data.aiKeyStatus || null;
             updateAIKeyDashboardDisplay();
             if (ownerId && (data.username || data.userId)) isCaptchaTagged = true;
-
-            if (!isPublicRoute) {
-                document.getElementById('overlay-captcha').style.display = 'flex';
-            } else {
-                isGuestMode = true;
-            }
+            document.getElementById('overlay-captcha').style.display = 'flex';
             checkInitialUrlRouting();
             restorePendingVerificationCheck();
         }
@@ -2501,7 +2469,7 @@
         }
 
         pendingSignupData = { user, pass, email };
-        enqueueClientAction(() => socket.emit('eb_request_email_code', { email, is2FA: false }));
+        enqueueClientAction(() => socket.emit('eb_request_email_code', { email }));
     }
 
     socket.on('eb_email_code_sent', (data) => {
@@ -2571,10 +2539,9 @@
 
     function resendEmailCodeSubmit() {
         if (emailResendCooldown > 0) return;
-        const is2FA = Boolean(window.emailVerifyState && (window.emailVerifyState.is2FA || window.emailVerifyState.isLinking));
         const email = window.emailVerifyState ? window.emailVerifyState.email : (pendingSignupData ? pendingSignupData.email : "");
         if (email) {
-            enqueueClientAction(() => socket.emit('eb_request_email_code', { email, is2FA }));
+            enqueueClientAction(() => socket.emit('eb_request_email_code', { email }));
         }
     }
 
@@ -3744,57 +3711,6 @@
         document.getElementById('modal-new-userid').style.display = 'none';
     }
 
-    function openPyTerminalModal() {
-        closeConsoleModal();
-        document.getElementById('modal-pyterminal').style.display = 'flex';
-        document.getElementById('pyterminal-display').innerText = "Connecting to Python worker...";
-        socket.emit('eb_pyterminal_start', { serverKey: serverKey });
-    }
-
-    function closePyTerminalModal() {
-        document.getElementById('modal-pyterminal').style.display = 'none';
-        openConsoleModal();
-    }
-
-    function focusPyTermInput() {
-        const inp = document.getElementById('pyterminal-input');
-        if (inp) inp.focus();
-    }
-
-    function handlePyTermKey(e) {
-        if (e.key === 'Enter') sendPyTermCommand();
-    }
-
-    function sendPyTermCommand() {
-        const inp = document.getElementById('pyterminal-input');
-        const text = inp.value.trim();
-        if (!text) return;
-        inp.value = "";
-
-        if (text === '/exe') {
-            const script = prompt("Paste your python script to execute here:");
-            if (script) {
-                socket.emit('eb_pyterminal_input', { serverKey: serverKey, text: '/exe', scriptCode: script });
-            }
-            return;
-        }
-
-        socket.emit('eb_pyterminal_input', { serverKey: serverKey, text: text });
-    }
-
-    socket.on('eb_pyterminal_chunk', (data) => {
-        const disp = document.getElementById('pyterminal-display');
-        if (data.index === 0) disp.innerText = "";
-        disp.innerText += data.chunk;
-        disp.scrollTop = disp.scrollHeight;
-    });
-
-    socket.on('eb_pyterminal_update', (data) => {
-        const disp = document.getElementById('pyterminal-display');
-        disp.innerText += data.text;
-        disp.scrollTop = disp.scrollHeight;
-    });
-
     function openBanUserModal() {
         closeAccountSettingsModal();
         document.getElementById('ban-target-userid').value = "";
@@ -4233,7 +4149,7 @@
         #toggle-container { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); padding: 8px 12px; border-radius: 8px; font-family: sans-serif; font-weight: bold; font-size: 0.9rem; z-index: 10; }
         #toggle-container label { cursor: pointer; display: flex; align-items: center; gap: 8px; }
         #joystick { position: absolute; bottom: 40px; left: 40px; width: 120px; height: 120px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; display: none; touch-action: none; }
-        #stick { position: absolute; top: 35px; left: 35px; width: 50px; height: 50px; background: rgba(255,255,255,0.4); border-radius: 50%; pointer-events: none; }
+        #stick { position: absolute; top: 35px; left: 35px; width: 50px; height: 50px; background: rgba(255,255,245,0.4); border-radius: 50%; pointer-events: none; }
     </style>
 </head>
 <body>
@@ -5156,10 +5072,7 @@ Server.py.on("pong", (data) => { console.log("Python replied:", data); });`;
     function setCookie(name, value, days) {
         const d = new Date();
         d.setTime(d.getTime() + (days*24*60*60*1000));
-        const expires = "expires=" + d.toUTCString();
-        document.cookie = name + "=" + value + ";" + expires + ";path=/";
-        document.cookie = name + "=" + value + ";" + expires + ";path=/EzBridge/";
-        document.cookie = name + "=" + value + ";" + expires + ";path=";
+        document.cookie = name + "=" + value + ";expires="+ d.toUTCString() + ";path=/";
     }
 
     function getCookie(name) {
