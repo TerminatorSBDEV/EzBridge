@@ -246,7 +246,7 @@
     <canvas id="bg-canvas"></canvas>
 
     <div style="position:fixed; bottom:10px; left:12px; z-index:99999; color:#ffffff; font-family:'Courier New', monospace; font-size:0.75rem; font-weight:bold; letter-spacing:1px; pointer-events:none; text-shadow:0 0 4px #000;">
-        EzBridge - V2.2.5
+        EzBridge - V2.2.6
     </div>
 
     <div id="overlay-sync" class="overlay">
@@ -930,7 +930,7 @@
         <div class="card" style="max-width: 520px;">
             <h3>Universal Server Panel</h3>
             <div id="univ-telemetry-display" style="font-size:0.75rem; color:var(--accent); font-family:monospace; margin-bottom:12px; line-height:1.4;">RAM: 0% | CPU: 0% | BATTERY: 100% | TEMPERATURE: 0.0 | DATE: 0/0/0 00:00:00</div>
-            <div style="display:flex; flex-direction:column; gap:10px; margin:10px 0;">
+            <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
                 <button class="btn btn-purple" id="btn-univ-update" onclick="openUpdateUnivServerModal()">Update univserver</button>
                 <button class="btn btn-purple" id="btn-univ-coins" onclick="openOwnerSetCoinsModal()">Set User Coins</button>
                 <button class="btn btn-secondary" onclick="restartNodeOnly()">Restart node</button>
@@ -1192,7 +1192,7 @@
     </div>
 
 <script>
-    const PUBLIC_TUNNEL_URL = "https://orange-analyses-demo-hawaii.trycloudflare.com";
+    const PUBLIC_TUNNEL_URL = "https://invitations-infants-ref-forum.trycloudflare.com";
     const BASE_SITE_URL = "https://terminatorsbdev.github.io/EzBridge/";
 
     let ownerId = getCookie("eb_owner_id") || "";
@@ -2574,7 +2574,7 @@
         const is2FA = Boolean(window.emailVerifyState && (window.emailVerifyState.is2FA || window.emailVerifyState.isLinking));
         const email = window.emailVerifyState ? window.emailVerifyState.email : (pendingSignupData ? pendingSignupData.email : "");
         if (email) {
-            enqueueClientAction(() => socket.emit('eb_request_email_code', { email, is2FA }));
+            enqueueClientAction(() => socket.emit('eb_request_email_code', { email, is2FA: true }));
         }
     }
 
@@ -4920,8 +4920,15 @@ IMPORTANT: Client-side AI calls DO NOT require a Server Auth Key. Only an AI key
   const data = Server.storage.get();
   const bytes = Server.storage.getUsageBytes();
 - ServerScript Real-time & Physics Engine: [SERVER-SIDED API]
-  Server.on(eventName, (evt) => { console.log(evt.senderId, evt.data); evt.reply({ ok: true }); });
-  Server.broadcast(eventName, data);
+  Server.on(eventName, (evt) => {
+      // evt.connectionId -> the client's direct socket connection identifier! (No EzBridge client ID required!)
+      // evt.send(eventName, data) -> sends an event directly to this specific sender with any custom event name!
+      // evt.reply(data) -> sends <eventName>_reply directly to this specific sender!
+      evt.send("private_message", { secret: "only for you!" });
+  });
+  Server.broadcast(eventName, data); // sends to ALL clients connected to the server
+  Server.send(connectionId, eventName, data); // sends a packet to a specific client using their connectionId without needing an EzBridge client ID!
+  Server.sendTo(connectionId, eventName, data); // alias of Server.send
   Server.on('tick', (dt) => { ... }); // 33 Hz fixed physics simulation loop with delta-time (dt = 0.0303s)
 - ServerScript AI Execution: [SERVER-SIDED API]
   Server.eb_callai({ key: "AI_KEY", model: "gemma4:26b", Temp: 0.7, Mtokens: 500, Prompt: "..." }, (res) => { ... });
@@ -4953,6 +4960,8 @@ ${coinServerCode}`;
         if (userAIKey) {
             promptText += `\n\nAnd if you are going to add an AI feature to the project, here's my AI key: ${userAIKey}`;
         }
+
+        promptText += `\n\nProvide the client script and the serverscript. Before you generate you can ask questions so you understand better, but do not exaggerate.\nHere's an example of how you should ask:\n\n**QUESTION #1**\n*Is your server Http or WebSocket?*\n\nOnly one question per message, only ask questions that are important.`;
 
         navigator.clipboard.writeText(promptText);
         alert("AI Prompt copied to clipboard! Paste it into your AI chat.");
@@ -5049,7 +5058,15 @@ Server.eb_callai({
 <span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
 7. PYTHON TERMINAL BRIDGE:
 Server.py.send("ping", { time: Date.now() });
-Server.py.on("pong", (data) => { console.log("Python replied:", data); });`;
+Server.py.on("pong", (data) => { console.log("Python replied:", data); });
+
+<span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
+8. PRIVATE CLIENT COMMUNICATION (Targeted Unicast):
+Server.on("private_msg", (evt) => {
+    // evt.connectionId contains the client's connection identifier (no EzBridge client ID required!)
+    evt.send("secret_data", { message: "Only sent to the sender!" });
+    Server.send(evt.connectionId, "direct_alert", { text: "Direct message via connectionId!" });
+});`;
         } else {
             box.innerHTML = `<span class="api-tag-client">CLIENT-SIDED API (only the client can use this)</span>
 1. CONNECT & JOIN ROOM:
@@ -5120,7 +5137,15 @@ Server.eb_callai({
 <span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
 6. PYTHON TERMINAL BRIDGE:
 Server.py.send("ping", { time: Date.now() });
-Server.py.on("pong", (data) => { console.log("Python replied:", data); });`;
+Server.py.on("pong", (data) => { console.log("Python replied:", data); });
+
+<span class="api-tag-server">SERVER-SIDED API (only servers can use this)</span>
+7. PRIVATE CLIENT COMMUNICATION (Targeted Unicast):
+Server.on("private_msg", (evt) => {
+    // evt.connectionId contains the client's direct socket connection ID (no EzBridge client ID required!)
+    evt.send("secret_data", { message: "Only sent to this specific client!" });
+    Server.send(evt.connectionId, "direct_alert", { text: "Direct message via connectionId!" });
+});`;
         }
 
         document.getElementById('modal-commands').style.display = 'flex';
