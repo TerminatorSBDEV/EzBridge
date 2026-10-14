@@ -169,6 +169,13 @@
             padding: 15px; display: flex; flex-direction: column;
             background: #000000 !important; border: 2px solid #ef4444 !important;
             box-shadow: 0 0 30px rgba(239, 68, 68, 0.4);
+            transition: width 0.2s, height 0.2s, padding 0.2s;
+        }
+
+        #modal-site-viewer .card.maximized-mode {
+            width: 99vw !important; height: 99vh !important;
+            max-width: 99vw !important; max-height: 99vh !important;
+            padding: 6px !important;
         }
 
         #site-viewer-frame-container {
@@ -246,7 +253,7 @@
     <canvas id="bg-canvas"></canvas>
 
     <div style="position:fixed; bottom:10px; left:12px; z-index:99999; color:#ffffff; font-family:'Courier New', monospace; font-size:0.75rem; font-weight:bold; letter-spacing:1px; pointer-events:none; text-shadow:0 0 4px #000;">
-        EzBridge - V2.2.6
+        EzBridge - V2.2.8
     </div>
 
     <div id="overlay-sync" class="overlay">
@@ -595,10 +602,20 @@
     </div>
 
     <div id="modal-site-viewer" class="overlay" style="display:none;">
-        <div class="card">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <h3 id="site-viewer-title" style="margin:0;">Site Viewer</h3>
+        <div class="card" id="site-viewer-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; position:relative;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <button class="btn-icon" id="btn-site-viewer-gear" onclick="toggleSiteViewerGearMenu()" title="Site Options">⚙</button>
+                    <h3 id="site-viewer-title" style="margin:0;">Site Viewer</h3>
+                </div>
                 <button class="btn btn-secondary" id="site-viewer-back-btn" style="width:auto; margin:0; padding:6px 16px;" onclick="closeSiteViewerModal()">Back to EzBridge</button>
+
+                <div id="site-viewer-gear-menu" style="display:none; position:absolute; top:40px; left:0; background:#020617; border:1px solid var(--border); padding:6px; z-index:100; flex-direction:column; gap:6px; min-width:140px; text-align:left;">
+                    <button class="btn btn-secondary" id="btn-site-viewer-maximize" style="padding:4px 8px; font-size:0.75rem; margin:0;" onclick="toggleSiteViewerFullscreen()">Maximize (+)</button>
+                    <button class="rate-btn" id="btn-site-viewer-like" style="padding:4px 8px; font-size:0.75rem;" onclick="rateCurrentActiveSite('like')">👍 Like</button>
+                    <button class="rate-btn" id="btn-site-viewer-dislike" style="padding:4px 8px; font-size:0.75rem;" onclick="rateCurrentActiveSite('dislike')">👎 Dislike</button>
+                    <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem; margin:0;" onclick="copyCurrentSiteUrl()">📎 Copy Link</button>
+                </div>
             </div>
             <div id="site-viewer-frame-container"></div>
         </div>
@@ -1263,6 +1280,8 @@
     let userSiteDataChunks = [];
     let siteSearchDebounce = null;
     let isSiteFileUploaded = false;
+    let currentActiveSiteId = null;
+    let isSiteViewerMaximized = false;
 
     let serverStorageChunks = [];
     let serverScriptChunks = [];
@@ -2096,10 +2115,71 @@
             item.userRating = data.userRating;
             applySiteSearchAndSort();
         }
+        if (currentActiveSiteId === data.siteId) {
+            updateSiteViewerGearRatings(data.userRating);
+        }
     });
 
     function rateSite(siteId, rating) {
         socket.emit('eb_rate_site', { siteId, rating });
+    }
+
+    function rateCurrentActiveSite(rating) {
+        if (!currentActiveSiteId) return;
+        rateSite(currentActiveSiteId, rating);
+    }
+
+    function toggleSiteViewerGearMenu() {
+        const menu = document.getElementById('site-viewer-gear-menu');
+        if (menu.style.display === 'none' || menu.style.display === '') {
+            menu.style.display = 'flex';
+        } else {
+            menu.style.display = 'none';
+        }
+    }
+
+    function toggleSiteViewerFullscreen() {
+        const card = document.getElementById('site-viewer-card');
+        const btn = document.getElementById('btn-site-viewer-maximize');
+
+        if (!isSiteViewerMaximized) {
+            isSiteViewerMaximized = true;
+            card.classList.add('maximized-mode');
+            btn.innerText = "Minimize (-)";
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            }
+        } else {
+            isSiteViewerMaximized = false;
+            card.classList.remove('maximized-mode');
+            btn.innerText = "Maximize (+)";
+            if (document.fullscreenElement && document.exitFullscreen) {
+                document.exitFullscreen().catch(() => {});
+            }
+        }
+    }
+
+    function copyCurrentSiteUrl() {
+        if (!currentActiveSiteId) return;
+        const urlToCopy = `${BASE_SITE_URL}#/site/${currentActiveSiteId}/`;
+        copyTextValue(urlToCopy);
+    }
+
+    function updateSiteViewerGearRatings(userRating) {
+        const likeBtn = document.getElementById('btn-site-viewer-like');
+        const dislikeBtn = document.getElementById('btn-site-viewer-dislike');
+        if (!likeBtn || !dislikeBtn) return;
+
+        if (userRating === 'like') {
+            likeBtn.classList.add('active');
+            dislikeBtn.classList.remove('active');
+        } else if (userRating === 'dislike') {
+            dislikeBtn.classList.add('active');
+            likeBtn.classList.remove('active');
+        } else {
+            likeBtn.classList.remove('active');
+            dislikeBtn.classList.remove('active');
+        }
     }
 
     function openAssetsModal() {
@@ -2495,6 +2575,14 @@
         const pass = document.getElementById('eb-signup-pass').value;
         const email = document.getElementById('eb-signup-email').value.trim().toLowerCase();
 
+        if (!/^[a-zA-Z0-9 ]{10,30}$/.test(user)) {
+            return alert("Username must be 10-30 characters with alphanumeric/spaces only!");
+        }
+
+        if (!/^[a-zA-Z0-9 !@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,30}$/.test(pass)) {
+            return alert("Password must be 8-30 characters with supported characters!");
+        }
+
         const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         if (!email || !emailRegex.test(email) || /[()\\<>,;:]/.test(email)) {
             return alert("Please enter a valid email address with no special characters.");
@@ -2574,7 +2662,7 @@
         const is2FA = Boolean(window.emailVerifyState && (window.emailVerifyState.is2FA || window.emailVerifyState.isLinking));
         const email = window.emailVerifyState ? window.emailVerifyState.email : (pendingSignupData ? pendingSignupData.email : "");
         if (email) {
-            enqueueClientAction(() => socket.emit('eb_request_email_code', { email, is2FA: true }));
+            enqueueClientAction(() => socket.emit('eb_request_email_code', { email, is2FA }));
         }
     }
 
@@ -3317,11 +3405,18 @@
     }
 
     function renderSiteFrame(site) {
+        currentActiveSiteId = site.id;
         document.getElementById('site-viewer-title').innerText = `${site.title} (${site.id})`;
         const backBtn = document.getElementById('site-viewer-back-btn');
         if (backBtn) {
             backBtn.innerText = isGuestMode ? "Return to MENU" : "Back to EzBridge";
         }
+
+        const menu = document.getElementById('site-viewer-gear-menu');
+        if (menu) menu.style.display = 'none';
+
+        const userRating = (site.ratedUsers && site.ratedUsers[activeUserId]) ? site.ratedUsers[activeUserId] : null;
+        updateSiteViewerGearRatings(userRating);
 
         const container = document.getElementById('site-viewer-frame-container');
         container.innerHTML = "";
@@ -3348,6 +3443,10 @@
                 try { iframe.src = 'about:blank'; } catch(e) {}
             }
             container.innerHTML = "";
+        }
+
+        if (isSiteViewerMaximized) {
+            toggleSiteViewerFullscreen();
         }
 
         document.getElementById('modal-site-viewer').style.display = 'none';
@@ -4909,7 +5008,7 @@ IMPORTANT: Client-side AI calls DO NOT require a Server Auth Key. Only an AI key
   Fetch user profile display name and avatar (image base64 or default):
   GET ${PUBLIC_TUNNEL_URL}/eb_profile_get_{clientid} or WebSocket RemoteEvent { type: "eb_profile_get_{clientid}" }.
 - Assets System ('eb_asset_get_{assetid}'): [CLIENT & SERVER API]
-  Download uploaded audio, image, or video assets in 180KB chunks. Works globally without a server key:
+  Download uploaded audio, image, or video assets in 150KB packets, receiving 2 packets simultaneously. Works globally without a server key:
   GET ${PUBLIC_TUNNEL_URL}/eb_asset_get_{assetid} or WebSocket RemoteEvent { type: "eb_asset_get_{assetid}" }.
 - Direct AI Calling: [CLIENT & SERVER API]
   Call AI directly without needing a virtual server:
@@ -4988,7 +5087,7 @@ async function fetchUserProfile(targetClientId) {
 }
 
 <span class="api-tag-both">CLIENT AND SERVER API (both clients and servers can use this API)</span>
-3. GET ASSET DATA:
+3. GET ASSET DATA (150KB packets, 2 at a time):
 async function fetchAssetData(assetId) {
     const res = await fetch("${PUBLIC_TUNNEL_URL}/eb_asset_get_" + assetId);
     const asset = await res.json();
@@ -5084,7 +5183,7 @@ socket.on("RemoteEvent", (pkt) => {
 });
 
 <span class="api-tag-both">CLIENT AND SERVER API (both clients and servers can use this API)</span>
-3. GET ASSET IN 180KB CHUNKS:
+3. GET ASSET IN 150KB PACKETS (2 at a time):
 socket.emit("RemoteEvent", { type: "eb_asset_get_1" });
 let assetChunks = [];
 socket.on("RemoteEvent", (pkt) => {
