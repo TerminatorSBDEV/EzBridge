@@ -959,7 +959,7 @@ PING: <span id="metric-ping">50</span>ms | Data received: <span id="metric-rx">0
 </div>
 </div>
 <script>
-const PUBLIC_TUNNEL_URL="https://losing-reason-bool-jelsoft.trycloudflare.com";
+const PUBLIC_TUNNEL_URL="https://partners-significant-headquarters-constitutes.trycloudflare.com";
 const BASE_SITE_URL="https://terminatorsbdev.github.io/EzBridge/";
 let ownerId=getCookie("eb_owner_id")||"",googleSub=null,googleEmail=null,ezbridgeUsername=null,userLinkedEmail=null,activeUserId="",userRole="None",serverKey="",userAIKey=null,userAIKeyStatus=null,serverActive=false,isServerSleeping=false,serverSleepReason=null,serverType="websocket",serverSettings={},currentServerScript="",consoleLogsCache=[],isCaptchaTagged=false,currentProfile={displayName:"User_123456789",pfpData:"default"},cachedUserProfiles={},cachedAssetsRam={},currentCoins=0,currentBatteryMb=100,stagedPfpBase64=null,stagedAssetBase64=null,currentEditingAssetId=null,currentAssetCost=0,userTotalAssetBytes=0;
 const MAX_ASSET_BYTES=500*1024*1024;
@@ -1073,7 +1073,7 @@ function openAssetEditForm(assetId){currentEditingAssetId=Number(assetId);staged
 function closeAssetEditModal(){document.getElementById('modal-asset-edit').style.display='none';navigateToPath('assets');}
 function handleAssetFileSelected(input){if(input.files&&input.files[0]){const file=input.files[0],isAudio=file.type.includes('audio'),isImage=file.type.includes('image'),isVideo=file.type.includes('video');if(isAudio&&file.size>20971520){alert("Audio file size must be less than 20MB!");input.value="";return;}if(isImage&&file.size>5242880){alert("Image file size must be less than 5MB!");input.value="";return;}if(isVideo&&file.size>52428800){alert("Video file size must be less than 50MB!");input.value="";return;}const reader=new FileReader();reader.onload=(e)=>{stagedAssetBase64=e.target.result;const preview=document.getElementById('asset-preview-box'),submitBtn=document.getElementById('btn-submit-asset');if(isImage){preview.innerHTML=`<img src="${stagedAssetBase64}" style="max-height:100px;max-width:100%;">`;submitBtn.innerHTML=currentEditingAssetId?"Apply changes":"Upload Asset";}else if(isAudio){preview.innerHTML=`<audio id="staging-audio" controls src="${stagedAssetBase64}" style="width:100%;"></audio>`;submitBtn.innerHTML=currentEditingAssetId?"Apply changes":"Upload Asset";setTimeout(()=>{const audEl=document.getElementById('staging-audio');if(audEl&&audEl.duration>600){alert("Audio files cannot be longer than 10 minutes!");input.value="";stagedAssetBase64=null;preview.innerHTML="";}},500);}else if(isVideo){currentAssetCost=Math.max(1,Math.ceil(file.size/102400));preview.innerHTML=`<video controls src="${stagedAssetBase64}" style="max-height:120px;max-width:100%;"></video>`;submitBtn.innerHTML=`${currentEditingAssetId?"Apply changes":"Upload Asset"} | ${currentAssetCost} <span class="coin-icon" style="width:16px;height:16px;font-size:0.5rem;">EZ</span>`;}};reader.readAsDataURL(file);}}
 function submitAssetUpload(){const nameVal=document.getElementById('asset-name-field').value.trim();if(nameVal.length<2||nameVal.length>35)return alert("Asset name must have at least 2 chars and no more than 35 chars.");if(!stagedAssetBase64&&!currentEditingAssetId)return alert("Please select an audio, image or video file.");const dataToSend=stagedAssetBase64||cachedAssetsRam[currentEditingAssetId],fileInput=document.getElementById('asset-file-field'),fileType=fileInput.files[0]?fileInput.files[0].type:"image/png";if(fileType.includes('video')&&currentCoins<currentAssetCost)return alert(`Insufficient EzCoins! You need ${currentAssetCost} EzCoins to upload this video.`);const totalChunks=Math.ceil(dataToSend.length/ASSET_CHUNK_SIZE);isUploadingAsset=true;document.getElementById('asset-upload-progress').style.display='block';for(let i=0;i<totalChunks;i++){socket.emit('eb_upload_asset_chunk',{index:i,total:totalChunks,chunk:dataToSend.slice(i*ASSET_CHUNK_SIZE,(i+1)*ASSET_CHUNK_SIZE),name:nameVal,type:fileType,size:dataToSend.length,editAssetId:currentEditingAssetId});}}
-socket.on('eb_asset_chunk_ack',(data)=>{const pct=Math.floor((data.received/data.total)*100);document.getElementById('asset-progress-bar').style.width=`${pct}%`;document.getElementById('asset-progress-val').innerText=pct;});
+socket.on('eb_asset_chunk_ack',(data)=>{const pct=Math.floor((data.received/data.total)*100);document.getElementById('asset-progress-bar').style.width=`${pct}%`;document.getElementById('asset-progress-val').innerText=pct;if(data.received<data.total&&isUploadingAsset){const dataToSend=stagedAssetBase64||cachedAssetsRam[currentEditingAssetId],fileInput=document.getElementById('asset-file-field'),fileType=fileInput.files[0]?fileInput.files[0].type:"image/png";socket.emit('eb_upload_asset_chunk',{index:data.received,total:data.total,chunk:dataToSend.slice(data.received*ASSET_CHUNK_SIZE,(data.received+1)*ASSET_CHUNK_SIZE),name:document.getElementById('asset-name-field').value.trim(),type:fileType,size:dataToSend.length,editAssetId:currentEditingAssetId});}});
 socket.on('eb_asset_upload_success',(data)=>{isUploadingAsset=false;document.getElementById('asset-upload-progress').style.display='none';if(data.newCoins!==undefined)updateCoinsDisplay(data.newCoins);alert(`Success on Asset upload!\nyour asset ${data.name} has been uploaded.`);closeAssetEditModal();socket.emit('eb_get_user_assets');});
 socket.on('eb_asset_flagged',(data)=>{isUploadingAsset=false;document.getElementById('asset-upload-progress').style.display='none';document.getElementById('flagged-notify-desc').innerText=`it was detected that the Asset ${data.assetName} had hidden scripts or was corrupted, please ensure it is safe to be uploaded.`;document.getElementById('modal-flagged-notify').style.display='flex';});
 function closeFlaggedModal(){document.getElementById('modal-flagged-notify').style.display='none';}
@@ -1126,7 +1126,7 @@ function updateCoinsDisplay(coins){currentCoins=coins;const dashCoins=document.g
 function updateBatteryDisplay(batteryMb){currentBatteryMb=batteryMb;const valEl=document.getElementById('battery-curr-val'),fillEl=document.getElementById('battery-progress-fill');if(valEl)valEl.innerText=batteryMb.toFixed(1);if(fillEl)fillEl.style.width=`${Math.min(100,Math.max(0,(batteryMb/25000)*100))}%`;}
 function openOwnerSetCoinsModal(){closeUniversalPanelModal();document.getElementById('owner-coins-target-id').value="";document.getElementById('owner-coins-val').value="50";document.getElementById('modal-owner-set-coins').style.display='flex';}
 function closeOwnerSetCoinsModal(){document.getElementById('modal-owner-set-coins').style.display='none';}
-function submitOwnerSetCoins(){const targetId=document.getElementById('owner-coins-target-id').value.trim(),amount=parseFloat(document.getElementById('owner-coins-val').value)||50;socket.emit('eb_owner_set_coins',{targetUserId:targetId,amount:amount});closeOwnerSetCoinsModal();}
+function submitOwnerSetCoins(){const targetId=document.getElementById('owner-coins-target-id').value.trim(),amount=parseFloat(document.getElementById('owner-coins-val').value)||50;socket.emit('eb_owner_set_coins',{targetUserId:targetId,amount});closeOwnerSetCoinsModal();}
 function handleGoogleLogin(response){if(!isCaptchaTagged)return alert("⚠Request rejected⚠\nYou must verify yourself to prove you're not a bot.");const base64Url=response.credential.split('.')[1],base64=base64Url.replace(/-/g,'+').replace(/_/g,'/'),jsonPayload=decodeURIComponent(atob(base64).split('').map(c=>'%'+('00'+c.charCodeAt(0).toString(16)).slice(-2)).join('')),payload=JSON.parse(jsonPayload);googleSub=payload.sub;googleEmail=payload.email;showLoadingScreen("Wait, the server is logging you into the inserted account.");enqueueClientAction(()=>socket.emit('eb_google_login',{googleSub,email:googleEmail,ownerId}));}
 function openEzBridgeAuthChoice(){document.getElementById('overlay-google-auth').style.display='none';document.getElementById('modal-ezbridge-auth-choice').style.display='flex';}
 function closeEzBridgeAuthChoice(){document.getElementById('modal-ezbridge-auth-choice').style.display='none';document.getElementById('overlay-google-auth').style.display='flex';}
@@ -1303,8 +1303,8 @@ EzBridge provides built-in models accessible via HTTP (/eb_callai) and WebSocket
 - "qwen3:0.6b": Fast local model from Ollama with reasoning/thinking disabled for maximum response speed (4 threads, 128 batch size, memory mapping). Supports streaming.
 - "gemma4:26b" (also accepted as "gemma4-26b"): Ultra-intelligent cloud model via Google API (shortcut ID for gemma-4-26b-a4b-it). Complex logic, reasoning, and coding. Non-streaming.
 - "qwen2.5:0.5b": Ultra-fast local model running with 4 threads, 128 batch size, and memory mapping. Supports streaming.
-- "qwen2.5:1.5b": High-quality local model running with 3 threads. Exclusive to accounts with a Client ID. Supports streaming.
-IMPORTANT: Client-side AI calls DO NOT require a Server Auth Key. Only an AI key is required!
+- "qwen2.5:1.5b": High-quality local model running with 3 threads. Supports streaming.
+IMPORTANT: Client-side AI calls DO NOT require a Server Auth Key or a Client ID! Only an AI key is required for all models!
 
 4 - All APIs & Functions Breakdown
 - Client Identity ('ebuserid_get' / 'eb_id_get' / 'check_id'): [CLIENT-SIDED API]
@@ -1326,7 +1326,7 @@ IMPORTANT: Client-side AI calls DO NOT require a Server Auth Key. Only an AI key
   GET ${PUBLIC_TUNNEL_URL}/eb_asset_get_{assetid} or WebSocket RemoteEvent { type: "eb_asset_get_{assetid}" }.
 - Direct AI Calling: [CLIENT & SERVER API]
   Call AI directly without needing a virtual server:
-  POST ${PUBLIC_TUNNEL_URL}/eb_callai with header "ai-key": "AI_KEY" and body { model: "qwen3:0.6b", Prompt: "..." }, or WebSocket socket.emit("eb_callai_direct", { key: "AI_KEY", model: "qwen3:0.6b", Prompt: "..." }).
+  POST ${PUBLIC_TUNNEL_URL}/eb_callai with header "ai-key": "AI_KEY" and body { model: "qwen3:0.6b", Prompt: "..." }, or WebSocket socket.emit("eb_callai_direct", { key: "AI_KEY", model: "qwen3:0.6b", Prompt: "..." }). All models require only the AI key, no client ID needed!
 - Server Persistent Storage: [SERVER-SIDED API]
   Persistent 100MB key-value storage inside ServerScripts:
   Server.storage.set(dataString);
@@ -1386,12 +1386,12 @@ Headers: {"Content-Type":"application/json","auth-token":"${serverKey}"}
 Body: {"type":"check_id","data":{}}
 Output: events array containing { type: 'id_verified', clientId: 'YOUR_CLIENT_ID' } (or null if none)
 
-5. CALL AI DIRECTLY (AI Key only, no server key required):
+5. CALL AI DIRECTLY (AI Key only, no client id or server key required):
 POST ${PUBLIC_TUNNEL_URL}/eb_callai
 Headers: {"Content-Type":"application/json","ai-key":"${userAIKey||'YOUR_AI_KEY'}"}
 Body: {"model":"qwen3:0.6b","Prompt":"Hello"}
 Output: JSON { "text": "AI response without thinking tags" }
-Available models: "qwen3:0.6b", "gemma4:26b", "qwen2.5:0.5b", "qwen2.5:1.5b"
+Available models (no client id required for any model): "qwen3:0.6b", "gemma4:26b", "qwen2.5:0.5b", "qwen2.5:1.5b"
 
 <span class="api-tag-client">CLIENT-SIDED API</span>
 6. SEND REMOTE EVENT & RECEIVE REPLIES:
@@ -1444,10 +1444,10 @@ socket.on("RemoteEvent",pkt=>{
   }
 });
 
-5. DIRECT WEBSOCKET AI CALL (AI Key only, no server key required):
+5. DIRECT WEBSOCKET AI CALL (AI Key only, no client id or server key required):
 socket.emit("eb_callai_direct",{key:"${userAIKey||'YOUR_AI_KEY'}",model:"qwen3:0.6b",Prompt:"Hi"});
 Output: triggers 'eb_ai_started' with { id } and 'eb_ai_response' with { text }
-Available models: "qwen3:0.6b", "gemma4:26b", "qwen2.5:0.5b", "qwen2.5:1.5b"
+Available models (no client id required for any model): "qwen3:0.6b", "gemma4:26b", "qwen2.5:0.5b", "qwen2.5:1.5b"
 
 <span class="api-tag-server">SERVER-SIDED API</span>
 6. SENDER VERIFICATION & TARGETED MESSAGES:
