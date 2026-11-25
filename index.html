@@ -91,6 +91,9 @@ iframe.site-frame{width:100%;height:100%;border:none;display:block;}
 .call-avatar-ring.speaking{border-color:#10b981;box-shadow:0 0 12px rgba(16,185,129,0.7);}
 .tos-rule-box{background:#020617;border:1px solid #1e293b;border-left:3px solid var(--accent);padding:10px;margin:8px 0;text-align:left;font-size:0.8rem;line-height:1.45;}
 .tos-floating-btn{position:fixed;bottom:10px;right:12px;z-index:99999;width:auto;margin:0;padding:4px 14px;font-size:0.75rem;background:#ffffff !important;color:#000000 !important;border:1px solid #ffffff !important;}
+.example-hdr{display:flex;justify-content:space-between;align-items:center;margin-top:14px;border-top:1px solid var(--border);padding-top:10px;font-size:0.85rem;font-weight:bold;color:var(--accent);}
+.example-hdr.first{margin-top:0;border-top:none;padding-top:0;}
+.example-subhdr{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:0.85rem;font-weight:bold;color:var(--accent);}
 @media (max-width:640px){.tos-floating-btn{bottom:32px;right:12px;}}
 </style>
 </head>
@@ -1209,6 +1212,7 @@ PING: <span id="metric-ping">50</span>ms | Data received: <span id="metric-rx">0
 <div id="ai-key-slot" style="flex-grow:1;">
 <button class="btn btn-purple" id="btn-gen-ai-key" style="margin:0;" onclick="generateAIKeySubmit()">Generate AI key</button>
 <div id="ai-key-display-box" style="display:none;gap:10px;">
+<button class="btn btn-secondary" id="btn-regen-ai-key" style="width:auto;margin:0;" onclick="regenerateAIKeySubmit()">Regenerate Key</button>
 <input type="text" id="copy-ai-key" readonly style="flex-grow:1;">
 <button class="btn" style="width:auto;margin:0;" onclick="copyText('copy-ai-key')">Copy</button>
 </div>
@@ -1235,28 +1239,27 @@ PING: <span id="metric-ping">50</span>ms | Data received: <span id="metric-rx">0
 <div class="card" style="max-width:750px;max-height:85vh;display:flex;flex-direction:column;overflow-y:auto;">
 <h3>Code Examples</h3>
 <div id="http-disclaimer" class="disclaimer" style="display:none;">DISCLAIMER: it's recommended that the client should have a temporary identifier so your scripts and projects know who's sending them, its optional.</div>
-<div style="text-align:left;font-size:0.85rem;font-weight:bold;color:var(--accent);">1. Multiplayer Coin Collector - Client HTML:</div>
+<div class="example-hdr first"><span>1. Multiplayer Coin Collector - Client HTML:</span><button class="btn btn-secondary" style="width:auto;margin:0;padding:3px 12px;font-size:0.75rem;" onclick="copyText('example-coin-client')">Copy</button></div>
 <textarea id="example-coin-client" class="code-box" readonly rows="8" style="width:100%;height:160px;border:none;resize:none;"></textarea>
-<div style="text-align:left;font-size:0.85rem;font-weight:bold;color:var(--accent);margin-top:10px;">1. Multiplayer Coin Collector - ServerScript:</div>
+<div class="example-subhdr"><span>1. Multiplayer Coin Collector - ServerScript:</span><button class="btn btn-secondary" style="width:auto;margin:0;padding:3px 12px;font-size:0.75rem;" onclick="copyText('example-coin-server')">Copy</button></div>
 <textarea id="example-coin-server" class="code-box" readonly rows="8" style="width:100%;height:160px;border:none;resize:none;"></textarea>
-<div style="text-align:left;font-size:0.85rem;font-weight:bold;color:var(--accent);margin-top:14px;border-top:1px solid var(--border);padding-top:10px;">2. Test Your Guns - Client Script:</div>
+<div class="example-hdr"><span>2. Test Your Guns - Client Script:</span><button class="btn btn-secondary" style="width:auto;margin:0;padding:3px 12px;font-size:0.75rem;" onclick="copyText('example-code-client')">Copy</button></div>
 <textarea id="example-code-client" class="code-box" readonly rows="8" style="width:100%;height:160px;border:none;resize:none;"></textarea>
-<div style="text-align:left;font-size:0.85rem;font-weight:bold;color:var(--accent);margin-top:10px;">2. Test Your Guns - ServerScript:</div>
+<div class="example-subhdr"><span>2. Test Your Guns - ServerScript:</span><button class="btn btn-secondary" style="width:auto;margin:0;padding:3px 12px;font-size:0.75rem;" onclick="copyText('example-code-server')">Copy</button></div>
 <textarea id="example-code-server" class="code-box" readonly rows="8" style="width:100%;height:160px;border:none;resize:none;"></textarea>
 <div id="http-extra-example-container" style="display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:10px;">
-<div style="text-align:left;font-size:0.85rem;font-weight:bold;color:var(--accent);">3. HTTP State-Based Global Chat - Client Script:</div>
+<div class="example-subhdr" style="margin-top:0;"><span>3. HTTP State-Based Global Chat - Client Script:</span><button class="btn btn-secondary" style="width:auto;margin:0;padding:3px 12px;font-size:0.75rem;" onclick="copyText('example-http-chat-client')">Copy</button></div>
 <textarea id="example-http-chat-client" class="code-box" readonly rows="8" style="width:100%;height:160px;border:none;resize:none;"></textarea>
-<div style="text-align:left;font-size:0.85rem;font-weight:bold;color:var(--accent);margin-top:6px;">3. HTTP State-Based Global Chat - ServerScript:</div>
+<div class="example-subhdr"><span>3. HTTP State-Based Global Chat - ServerScript:</span><button class="btn btn-secondary" style="width:auto;margin:0;padding:3px 12px;font-size:0.75rem;" onclick="copyText('example-http-chat-server')">Copy</button></div>
 <textarea id="example-http-chat-server" class="code-box" readonly rows="8" style="width:100%;height:160px;border:none;resize:none;"></textarea>
 </div>
-<div style="text-align:left;font-size:0.85rem;font-weight:bold;color:var(--accent);margin-top:14px;border-top:1px solid var(--border);padding-top:10px;">4. Verify Client ID - Client Script:</div>
+<div class="example-hdr"><span>4. Verify Client ID - Client Script:</span><button class="btn btn-secondary" style="width:auto;margin:0;padding:3px 12px;font-size:0.75rem;" onclick="copyText('example-verify-client')">Copy</button></div>
 <textarea id="example-verify-client" class="code-box" readonly rows="8" style="width:100%;height:160px;border:none;resize:none;"></textarea>
-<div style="text-align:left;font-size:0.85rem;font-weight:bold;color:var(--accent);margin-top:10px;">4. Verify Client ID - ServerScript:</div>
+<div class="example-subhdr"><span>4. Verify Client ID - ServerScript:</span><button class="btn btn-secondary" style="width:auto;margin:0;padding:3px 12px;font-size:0.75rem;" onclick="copyText('example-verify-server')">Copy</button></div>
 <textarea id="example-verify-server" class="code-box" readonly rows="8" style="width:100%;height:160px;border:none;resize:none;"></textarea>
-<div style="text-align:left;font-size:0.85rem;font-weight:bold;color:var(--accent);margin-top:14px;border-top:1px solid var(--border);padding-top:10px;">Dynamic Tunnel URL Auto-Loader (HTTP/WS):</div>
+<div class="example-hdr"><span>Dynamic Tunnel URL Auto-Loader (HTTP/WS):</span><button class="btn btn-secondary" style="width:auto;margin:0;padding:3px 12px;font-size:0.75rem;" onclick="copyText('example-dynamic-tunnel')">Copy</button></div>
 <textarea id="example-dynamic-tunnel" class="code-box" readonly rows="6" style="width:100%;height:130px;border:none;resize:none;"></textarea>
 <div style="display:flex;gap:10px;margin-top:10px;">
-<button class="btn" onclick="copyText('example-coin-client')">Copy Coin Collector Client</button>
 <button class="btn btn-secondary" onclick="closeGameCode()">Back</button>
 </div>
 </div>
@@ -1334,6 +1337,7 @@ s.on('eb_account_deleted',()=>{alert("Account and data deleted permanently.");ac
 s.on('eb_univserver_update_success',(data)=>{isUploadingUnivScript=false;document.getElementById('univ-upload-progress').style.display='none';alert(data.msg||"Updated successfully!");setTimeout(()=>location.reload(),2500);});
 s.on('eb_univserver_update_error',(data)=>{isUploadingUnivScript=false;document.getElementById('univ-upload-progress').style.display='none';alert(`UPDATE FAILED:\n${data.error}`);});
 s.on('eb_server_key_regenerated',(data)=>{serverKey=data.newServerKey;document.getElementById('copy-key').value=serverKey;alert("Server Auth Key regenerated successfully!");});
+s.on('eb_ai_key_regenerated',(data)=>{userAIKey=data.newAiKey;if(data.status)userAIKeyStatus=data.status;updateAIKeyDashboardDisplay();alert("AI Auth Key regenerated successfully!");});
 s.on('eb_server_storage_chunk',(data)=>{if(data.index===0)serverStorageChunks=[];serverStorageChunks.push(data.chunk);if(serverStorageChunks.length===data.total){document.getElementById('server-storage-display').value=serverStorageChunks.join('');document.getElementById('storage-modal-usage').innerText=`${(data.storageBytes/(1024*1024)).toFixed(2)} MB`;}});
 s.on('eb_serverscript_chunk_response',(data)=>{if(data.index===0)serverScriptChunks=[];serverScriptChunks.push(data.chunk);if(serverScriptChunks.length===data.total){openViewScriptModal(serverScriptChunks.join(''));}});
 s.on('eb_server_lockdown',(data)=>{isServerLockdown=true;lockdownUntilTime=data.lockdownUntil;serverActive=false;updateStatusDisplay();});
@@ -1492,6 +1496,7 @@ function validateEmailCodeSubmit(){const code=document.getElementById('email-ver
 function toggleLogin2FASubmit(val){socket.emit('eb_toggle_login_2fa',{enabled:val==='true'});}
 function toggleOfflineEmailModeSubmit(val){socket.emit('eb_set_offline_email_mode',{mode:val});}
 function generateAIKeySubmit(){enqueueClientAction(()=>socket.emit('eb_generate_ai_key'));}
+function regenerateAIKeySubmit(){enqueueClientAction(()=>socket.emit('eb_regen_ai_key'));}
 function updateAIKeyDashboardDisplay(){const genBtn=document.getElementById('btn-gen-ai-key'),box=document.getElementById('ai-key-display-box'),inp=document.getElementById('copy-ai-key'),badge=document.getElementById('ai-key-status-badge'),billBtn=document.getElementById('btn-ai-billing');if(userAIKey){if(genBtn)genBtn.style.display="none";if(box)box.style.display="flex";if(inp)inp.value=userAIKey;if(billBtn)billBtn.style.display="block";const isInactive=(userAIKeyStatus==='Inactive'||userAIKeyStatus==='Blocked');if(badge){badge.style.display="inline-block";badge.innerText=`Status: ${isInactive?'Inactive':'Active'}`;badge.style.color=isInactive?'var(--error)':'var(--green)';}}else{if(genBtn)genBtn.style.display="block";if(box)box.style.display="none";if(billBtn)billBtn.style.display="none";if(badge)badge.style.display="none";}}
 function openAIBillingModal(){if(!userAIKey)return alert("Please generate an AI key first.");socket.emit('eb_get_ai_billing',{key:userAIKey});document.getElementById('modal-ai-billing').style.display="flex";}
 function closeAIBillingModal(){document.getElementById('modal-ai-billing').style.display="none";}
@@ -1589,9 +1594,8 @@ function selectAssistantModel(id,label){assistantModel=id;document.getElementByI
 function updateAssistantQuotaUI(rem,resetAt){const el=document.getElementById('assistant-tokens-left');if(el)el.innerText=Number(rem||0).toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.');if(resetAt)assistantResetAt=resetAt;if(assistantTokensTimerInt)clearInterval(assistantTokensTimerInt);assistantTokensTimerInt=setInterval(()=>{const diff=Math.max(0,assistantResetAt-Date.now()),h=String(Math.floor(diff/3600000)).padStart(2,'0'),m=String(Math.floor((diff%3600000)/60000)).padStart(2,'0'),s=String(Math.floor((diff%60000)/1000)).padStart(2,'0'),tEl=document.getElementById('assistant-tokens-timer');if(tEl)tEl.innerText=`${h}:${m}:${s}`;},1000);}
 function renderAssistantMarkdown(raw){assistantCodeStore=[];let html=escapeHtml(raw||'');html=html.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g,(m,lang,code)=>{const idx=assistantCodeStore.length;const rawCode=code.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>');assistantCodeStore.push(rawCode);return `<div class="ai-code-block"><button class="ai-copy-btn" onclick="copyAssistantCode(${idx})">Copy</button><code>${code}</code></div>`;});html=html.replace(/^##\s*(.+?)\s*##$/gm,'<div style="font-size:1rem;font-weight:bold;color:var(--accent);margin:6px 0;">$1</div>');html=html.replace(/^##\s*(.+)$/gm,'<div style="font-size:1rem;font-weight:bold;color:var(--accent);margin:6px 0;">$1</div>');html=html.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');html=html.replace(/\n/g,'<br>');return html;}
 function copyAssistantCode(idx){if(assistantCodeStore[idx]!==undefined)copyTextValue(assistantCodeStore[idx]);}
-function extractEzBridgeGuiSummary(){const ids=['dashboard','modal-social','modal-gc-create','modal-gc-chat','modal-dm-chat','modal-account-settings','modal-howto','modal-see-publish','modal-assets','modal-profile','modal-shop','modal-console'];const out=[];ids.forEach(id=>{const el=document.getElementById(id);if(!el)return;const parts=[];el.querySelectorAll('h1,h2,h3,label,button').forEach(n=>{const txt=(n.innerText||'').trim().replace(/\s+/g,' ');if(txt&&txt.length<120&&!parts.includes(txt))parts.push(txt);});el.querySelectorAll('input[placeholder],textarea[placeholder]').forEach(n=>{const ph=n.getAttribute('placeholder');if(ph)parts.push(`[Input:${ph}]`);});if(parts.length)out.push(`[${id}]: ${parts.slice(0,25).join(' | ')}`);});return out.join('\n').slice(0,3200);}
-function renderAssistantHistory(){const box=document.getElementById('assistant-chat-box');box.innerHTML="";assistantHistory.forEach((m,idx)=>{const div=document.createElement('div');if(m.role==='user'){div.className='chat-bubble';div.style.alignSelf='flex-end';div.style.maxWidth='85%';div.style.borderColor='#8b5cf6';div.innerHTML=`<div style="font-size:0.7rem;color:#c4b5fd;font-weight:bold;">You</div><div>${escapeHtml(m.text)}</div>`;}else if(m.role==='interrupted'){div.style.color='var(--error)';div.style.fontSize='0.8rem';div.style.fontWeight='bold';div.innerText=m.text;}else{div.className='chat-bubble';div.style.alignSelf='flex-start';div.style.maxWidth='92%';let cmdHtml='';if(m.command&&!m.cmdHandled){let q="The AI is requesting your approval for an app creation.";if(m.command==='updsite')q="The AI is requesting script changes in your site.";else if(m.command==='updserver')q="The AI is requesting script changes in your serverscript.";else if(m.command==='updserversettings')q="The AI is requesting permission to update your server settings.";else if(m.command==='fetchinfo')q="The AI is requesting permission to fetch your account & server info.";else if(m.command==='fetchgui')q="The AI is requesting permission to read the EzBridge GUI layout.";cmdHtml=`<div style="margin-top:8px;padding:8px;background:#020617;border:1px solid var(--border);"><div style="font-size:0.8rem;font-weight:bold;margin-bottom:6px;">${q}</div><div style="display:flex;gap:8px;"><button class="btn btn-green" style="margin:0;padding:4px 10px;font-size:0.75rem;" onclick="handleAssistantCmd(${idx},true)">ALLOW</button><button class="btn btn-danger" style="margin:0;padding:4px 10px;font-size:0.75rem;" onclick="handleAssistantCmd(${idx},false)">DENY</button></div></div>`;}div.innerHTML=`<div style="font-size:0.7rem;color:var(--green);font-weight:bold;">EzBridge AI</div><div>${renderAssistantMarkdown(m.text)}</div>${cmdHtml}`;}box.appendChild(div);});box.scrollTop=box.scrollHeight;}
-function handleAssistantCmd(idx,allow){const item=assistantHistory[idx];if(!item)return;item.cmdHandled=true;renderAssistantHistory();if(!allow)return;if(item.command==='requestapp'){sendAssistantPrompt(item.code);}else if(item.command==='fetchinfo'){socket.emit('eb_assistant_fetch_info');}else if(item.command==='fetchgui'){sendAssistantPrompt("EzBridge GUI layout (visuals only):\n"+extractEzBridgeGuiSummary());}else{pendingAssistantContinue=Boolean(item.shouldContinue);socket.emit('eb_assistant_apply_command',{command:item.command,code:item.code});}}
+function renderAssistantHistory(){const box=document.getElementById('assistant-chat-box');box.innerHTML="";assistantHistory.forEach((m,idx)=>{const div=document.createElement('div');if(m.role==='user'){div.className='chat-bubble';div.style.alignSelf='flex-end';div.style.maxWidth='85%';div.style.borderColor='#8b5cf6';div.innerHTML=`<div style="font-size:0.7rem;color:#c4b5fd;font-weight:bold;">You</div><div>${escapeHtml(m.text)}</div>`;}else if(m.role==='interrupted'){div.style.color='var(--error)';div.style.fontSize='0.8rem';div.style.fontWeight='bold';div.innerText=m.text;}else{div.className='chat-bubble';div.style.alignSelf='flex-start';div.style.maxWidth='92%';let cmdHtml='';if(m.command&&!m.cmdHandled){let q="The AI is requesting your approval for an app creation.";if(m.command==='updsite')q="The AI is requesting script changes in your site.";else if(m.command==='updserver')q="The AI is requesting script changes in your serverscript.";else if(m.command==='updserversettings')q="The AI is requesting permission to update your server settings.";else if(m.command==='fetchinfo')q="The AI is requesting permission to fetch your account & server info.";cmdHtml=`<div style="margin-top:8px;padding:8px;background:#020617;border:1px solid var(--border);"><div style="font-size:0.8rem;font-weight:bold;margin-bottom:6px;">${q}</div><div style="display:flex;gap:8px;"><button class="btn btn-green" style="margin:0;padding:4px 10px;font-size:0.75rem;" onclick="handleAssistantCmd(${idx},true)">ALLOW</button><button class="btn btn-danger" style="margin:0;padding:4px 10px;font-size:0.75rem;" onclick="handleAssistantCmd(${idx},false)">DENY</button></div></div>`;}div.innerHTML=`<div style="font-size:0.7rem;color:var(--green);font-weight:bold;">EzBridge AI</div><div>${renderAssistantMarkdown(m.text)}</div>${cmdHtml}`;}box.appendChild(div);});box.scrollTop=box.scrollHeight;}
+function handleAssistantCmd(idx,allow){const item=assistantHistory[idx];if(!item)return;item.cmdHandled=true;renderAssistantHistory();if(!allow)return;if(item.command==='requestapp'){sendAssistantPrompt(item.code);}else if(item.command==='fetchinfo'){socket.emit('eb_assistant_fetch_info');}else{pendingAssistantContinue=Boolean(item.shouldContinue);socket.emit('eb_assistant_apply_command',{command:item.command,code:item.code});}}
 function handleAssistantSendOrStop(){if(assistantGenerating){socket.emit('eb_assistant_stop');return;}const inp=document.getElementById('assistant-input'),txt=inp.value.trim();if(!txt)return;inp.value="";sendAssistantPrompt(txt);}
 function sendAssistantPrompt(txt){assistantHistory=assistantHistory.filter(m=>m.role!=='interrupted');assistantHistory.push({role:'user',text:txt});renderAssistantHistory();const box=document.getElementById('assistant-chat-box');const statusDiv=document.createElement('div');statusDiv.id='assistant-status-gen';statusDiv.style.fontSize='0.75rem';statusDiv.style.color='var(--muted)';statusDiv.style.textAlign='left';statusDiv.innerText=ASSISTANT_STATUSES[Math.floor(Math.random()*ASSISTANT_STATUSES.length)];box.appendChild(statusDiv);box.scrollTop=box.scrollHeight;if(assistantStatusTimer)clearInterval(assistantStatusTimer);assistantStatusTimer=setInterval(()=>{const el=document.getElementById('assistant-status-gen');if(el)el.innerText=ASSISTANT_STATUSES[Math.floor(Math.random()*ASSISTANT_STATUSES.length)];},5000);socket.emit('eb_assistant_send',{model:assistantModel,messages:assistantHistory.filter(m=>m.role==='user'||m.role==='assistant').map(m=>({role:m.role,text:m.text}))});}
 function stopAssistantStatusCycle(){if(assistantStatusTimer){clearInterval(assistantStatusTimer);assistantStatusTimer=null;}const el=document.getElementById('assistant-status-gen');if(el)el.remove();}
@@ -1763,8 +1767,727 @@ function openHowToUse(){document.getElementById('copy-key').value=serverKey;docu
 function closeHowToUse(){document.getElementById('modal-howto').style.display='none';}
 function getGameExamples(){
 const isHttp=serverType==='http';
-const coinClientCode=isHttp?`<!DOCTYPE html><html><head><title>Coin Collector (HTTP)</title><style>body{margin:0;background:#0f172a;color:#fff;font-family:sans-serif;overflow:hidden;user-select:none;}canvas{display:block;background:#1e293b;}#ui{position:absolute;top:10px;left:10px;font-weight:bold;font-size:1.2rem;}</style></head><body><div id="ui">Score: <span id="score">0</span></div><canvas id="gameCanvas"></canvas><script>const canvas=document.getElementById("gameCanvas"),ctx=canvas.getContext("2d");function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}window.addEventListener("resize",resize);resize();const link="${PUBLIC_TUNNEL_URL}/remote",key="${serverKey}";let myId=Math.random().toString(36).substring(2,6),myPos={x:1000,y:1000},myScore=0,players={},coins=[];async function syncHttp(evtType,cData){try{const payload=cData?{type:evtType,data:cData}:{type:"player_update",data:{id:myId,x:myPos.x,y:myPos.y}},res=await fetch(link,{method:"POST",headers:{"Content-Type":"application/json","auth-token":key},body:JSON.stringify(payload)});if(res.ok){const json=await res.json();if(json.events)json.events.forEach(e=>{if(e.type==="state_update"){players=e.data.players;coins=e.data.coins||[];if(players[myId]){myScore=players[myId].score;document.getElementById("score").innerText=myScore;}}});}}catch(e){}}syncHttp("player_join",{id:myId,x:myPos.x,y:myPos.y});setInterval(()=>syncHttp(),30);window.addEventListener("keydown",e=>{if(e.key==='w')myPos.y-=10;if(e.key==='s')myPos.y+=10;if(e.key==='a')myPos.x-=10;if(e.key==='d')myPos.x+=10;coins.forEach(c=>{if(Math.hypot(c.x-myPos.x,c.y-myPos.y)<25)syncHttp("collect_coin",{playerId:myId,coinId:c.id});});});function draw(){ctx.clearRect(0,0,canvas.width,canvas.height);ctx.save();ctx.translate(canvas.width/2-myPos.x,canvas.height/2-myPos.y);ctx.fillStyle="#3b82f6";for(let id in players){let p=players[id];ctx.beginPath();ctx.arc(p.x,p.y,20,0,Math.PI*2);ctx.fill();}ctx.fillStyle="#facc15";coins.forEach(c=>{ctx.beginPath();ctx.arc(c.x,c.y,10,0,Math.PI*2);ctx.fill();});ctx.restore();requestAnimationFrame(draw);}draw();<\/script></body></html>`:`<!DOCTYPE html><html><head><title>Coin Collector (WS)</title><script src="https://cdn.socket.io/4.7.2/socket.io.min.js"><\/script><style>body{margin:0;background:#0f172a;color:#fff;font-family:sans-serif;overflow:hidden;user-select:none;}canvas{display:block;background:#1e293b;}#ui{position:absolute;top:10px;left:10px;font-weight:bold;font-size:1.2rem;}</style></head><body><div id="ui">Score: <span id="score">0</span></div><canvas id="gameCanvas"></canvas><script>const canvas=document.getElementById("gameCanvas"),ctx=canvas.getContext("2d");function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}window.addEventListener("resize",resize);resize();const link="${PUBLIC_TUNNEL_URL}",key="${serverKey}",socket=io(link,{auth:{token:"default_key"},maxHttpBufferSize:1e8});let myId=Math.random().toString(36).substring(2,6),myPos={x:1000,y:1000},myScore=0,players={},coins=[];socket.on("connect",()=>{socket.emit("join_virtual_server",{key});});socket.on("joined_successfully",()=>{socket.emit("RemoteEvent",{type:"player_join",data:{id:myId,x:myPos.x,y:myPos.y}});});socket.on("RemoteEvent",pkt=>{if(pkt.type==="state_update"){players=pkt.data.players;coins=pkt.data.coins||[];if(players[myId]){myScore=players[myId].score;document.getElementById("score").innerText=myScore;}}});window.addEventListener("keydown",e=>{if(e.key==='w')myPos.y-=10;if(e.key==='s')myPos.y+=10;if(e.key==='a')myPos.x-=10;if(e.key==='d')myPos.x+=10;socket.emit("RemoteEvent",{type:"player_update",data:{id:myId,x:myPos.x,y:myPos.y}});coins.forEach(c=>{if(Math.hypot(c.x-myPos.x,c.y-myPos.y)<25)socket.emit("RemoteEvent",{type:"collect_coin",data:{playerId:myId,coinId:c.id}});});});function draw(){ctx.clearRect(0,0,canvas.width,canvas.height);ctx.save();ctx.translate(canvas.width/2-myPos.x,canvas.height/2-myPos.y);ctx.fillStyle="#3b82f6";for(let id in players){let p=players[id];ctx.beginPath();ctx.arc(p.x,p.y,20,0,Math.PI*2);ctx.fill();}ctx.fillStyle="#facc15";coins.forEach(c=>{ctx.beginPath();ctx.arc(c.x,c.y,10,0,Math.PI*2);ctx.fill();});ctx.restore();requestAnimationFrame(draw);}draw();<\/script></body></html>`,coinServerCode=`let players={},coins=[];for(let i=0;i<10;i++)coins.push({id:Math.random().toString(36).substring(2,7),x:Math.random()*2000,y:Math.random()*2000});Server.on('player_join',evt=>{players[evt.data.id]={x:evt.data.x||1000,y:evt.data.y||1000,score:0};evt.send('welcome',{msg:'Welcome player!'});});Server.on('player_update',evt=>{if(players[evt.data.id]){players[evt.data.id].x=evt.data.x;players[evt.data.id].y=evt.data.y;}});Server.on('collect_coin',evt=>{const idx=coins.findIndex(c=>c.id===evt.data.coinId);if(idx!==-1){coins.splice(idx,1);if(players[evt.data.playerId])players[evt.data.playerId].score+=1;coins.push({id:Math.random().toString(36).substring(2,7),x:Math.random()*2000,y:Math.random()*2000});}});Server.on('tick',dt=>{Server.broadcast('state_update',{players,coins});});`,verifyClientCode=isHttp?`<!DOCTYPE html><html><head><title>Verify Client ID (HTTP)</title><style>body{background:#030712;color:#fff;font-family:sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;}button{padding:10px 20px;background:#ef4444;color:#fff;border:none;cursor:pointer;font-weight:bold;}#result{margin-top:15px;font-family:monospace;}</style></head><body><button onclick="verifyMyId()">Verify ID</button><div id="result">Waiting for response...</div><script>async function verifyMyId(){const resEl=document.getElementById("result");resEl.innerText="Checking...";try{const res=await fetch("${PUBLIC_TUNNEL_URL}/remote",{method:"POST",headers:{"Content-Type":"application/json","auth-token":"${serverKey}"},body:JSON.stringify({type:"check_id",data:{}})});if(res.ok){const json=await res.json();let matched=false;if(json.events){json.events.forEach(evt=>{if(evt.type==="id_verified"){matched=true;if(evt.data&&evt.data.clientId){resEl.innerText=evt.data.clientId;}else{resEl.innerText="Failed to fetch the client's ID or Client does not have an ID in ezbridge.";}}});}if(!matched)resEl.innerText="Failed to fetch the client's ID or Client does not have an ID in ezbridge.";}else{resEl.innerText="Failed to fetch the client's ID or Client does not have an ID in ezbridge.";}}catch(e){resEl.innerText="Failed to fetch the client's ID or Client does not have an ID in ezbridge.";}}<\/script></body></html>`:`<!DOCTYPE html><html><head><title>Verify Client ID (WS)</title><script src="https://cdn.socket.io/4.7.2/socket.io.min.js"><\/script><style>body{background:#030712;color:#fff;font-family:sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;}button{padding:10px 20px;background:#ef4444;color:#fff;border:none;cursor:pointer;font-weight:bold;}#result{margin-top:15px;font-family:monospace;}</style></head><body><button onclick="verifyMyId()">Verify ID</button><div id="result">Waiting for response...</div><script>const socket=io("${PUBLIC_TUNNEL_URL}",{auth:{token:"default_key"},maxHttpBufferSize:1e8});socket.emit("join_virtual_server",{key:"${serverKey}"});socket.on("RemoteEvent",pkt=>{if(pkt.type==="id_verified"){const resEl=document.getElementById("result");if(pkt.data&&pkt.data.clientId){resEl.innerText=pkt.data.clientId;}else{resEl.innerText="Failed to fetch the client's ID or Client does not have an ID in ezbridge.";}}});function verifyMyId(){document.getElementById("result").innerText="Checking...";socket.emit("RemoteEvent",{type:"check_id",data:{}});}setTimeout(()=>{if(document.getElementById("result").innerText==="Checking..."){document.getElementById("result").innerText="Failed to fetch the client's ID or Client does not have an ID in ezbridge.";}},5000);<\/script></body></html>`,verifyServerCode=`Server.on('check_id',evt=>{if(evt.senderId&&evt.senderId.length>=10&&evt.senderId!=="Guest"&&evt.senderId!=="http_client"){evt.send('id_verified',{clientId:evt.senderId});}else{evt.send('id_verified',{clientId:null});}});`,httpChatClientCode=`<!DOCTYPE html><html><head><title>HTTP Chat</title></head><body><div id="msgs"></div><input id="txt"><button onclick="sendMsg()">Send</button><script>const url="${PUBLIC_TUNNEL_URL}/remote",key="${serverKey}";async function sendMsg(){const t=document.getElementById("txt").value;document.getElementById("txt").value="";const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json","auth-token":key},body:JSON.stringify({type:"chat_send",data:{text:t}})});const j=await r.json();if(j.events)render(j.events);}setInterval(async()=>{const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json","auth-token":key},body:JSON.stringify({type:"poll",data:{}})});const j=await r.json();if(j.events)render(j.events);},1500);function render(evts){evts.forEach(e=>{if(e.type==="chat_state")document.getElementById("msgs").innerText=e.data.messages.join("\\n");});}<\/script></body></html>`,httpChatServerCode=`let messages=[];Server.on("chat_send",evt=>{if(evt.data&&evt.data.text){messages.push(evt.data.text);if(messages.length>30)messages.shift();Server.broadcast("chat_state",{messages});}});`,dynamicTunnelCode=`async function fetchCurrentEzBridgeTunnel(){try{const res=await fetch("https://raw.githubusercontent.com/TerminatorSBDEV/ebtunnel/main/tunnel?t="+Date.now(),{cache:"no-store"});if(res.ok){let raw=(await res.text()).trim();if(!raw.startsWith("http://")&&!raw.startsWith("https://"))raw="https://"+raw;console.log("Current EzBridge Tunnel URL:",raw);return raw;}}catch(err){console.error("Failed to load dynamic tunnel:",err);}return null;}fetchCurrentEzBridgeTunnel();\n-- use this example of you don't want to keep updating the tunnel everytime a new one generates`;
-return{coinClientCode,coinServerCode,clientCode:coinClientCode,serverCode:coinServerCode,verifyClientCode,verifyServerCode,httpChatClientCode,httpChatServerCode,dynamicTunnelCode};
+const coinClientCode=isHttp?`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Multiplayer Coin Collector (HTTP)</title>
+<style>
+  /* Full-screen layout for both PC and Mobile */
+  body { margin: 0; background: #0f172a; color: #fff; font-family: sans-serif; overflow: hidden; user-select: none; touch-action: none; }
+  canvas { display: block; background: #1e293b; width: 100vw; height: 100vh; }
+  /* Top-left HUD: Score & Mode status */
+  #ui { position: absolute; top: 12px; left: 12px; font-weight: bold; font-size: 1.1rem; background: rgba(0,0,0,0.6); padding: 8px 12px; border: 1px solid #334155; }
+  /* Upper-right toggle for Server-sided Character */
+  #modeBox { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.75); padding: 8px 12px; border: 1px solid #ef4444; font-size: 0.9rem; font-weight: bold; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+  #modeBox input { width: 18px; height: 18px; cursor: pointer; accent-color: #10b981; }
+  /* Mobile D-Pad controls (shown on touch devices or small screens, usable with mouse too) */
+  #mobileControls { position: absolute; bottom: 20px; left: 20px; display: grid; grid-template-columns: 54px 54px 54px; grid-template-rows: 54px 54px 54px; gap: 4px; opacity: 0.85; }
+  .dpad-btn { background: rgba(15,23,42,0.85); border: 1px solid #ef4444; color: #fff; font-weight: bold; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; cursor: pointer; touch-action: none; }
+  .dpad-btn:active { background: #ef4444; }
+</style>
+</head>
+<body>
+<div id="ui">Score: <span id="score">0</span> | Mode: <span id="modeLabel">Client-Sided</span></div>
+<label id="modeBox">
+  <input type="checkbox" id="srvCharToggle">
+  <span>Server-sided Character</span>
+</label>
+<canvas id="gameCanvas"></canvas>
+
+<!-- Mobile Touch D-Pad -->
+<div id="mobileControls">
+  <div></div><div class="dpad-btn" data-dir="up">▲</div><div></div>
+  <div class="dpad-btn" data-dir="left">◀</div><div></div><div class="dpad-btn" data-dir="right">▶</div>
+  <div></div><div class="dpad-btn" data-dir="down">▼</div><div></div>
+</div>
+
+<script>
+// 1. Canvas setup & responsive resize
+const canvas = document.getElementById("gameCanvas"), ctx = canvas.getContext("2d");
+function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+window.addEventListener("resize", resize);
+resize();
+
+// 2. EzBridge HTTP endpoint & Server Auth Key
+const TUNNEL = "${PUBLIC_TUNNEL_URL}";
+const KEY = "${serverKey}";
+const REMOTE_URL = TUNNEL + "/remote";
+
+// 3. Unique player ID & local state
+const myId = "p_" + Math.random().toString(36).substring(2, 8);
+let serverSidedMode = false; // Controlled by upper-right checkmark
+let myClientPos = { x: 1000, y: 1000 }; // Used ONLY when client-sided
+let camPos = { x: 1000, y: 1000 };
+let players = {}, coins = [];
+const keys = { up: false, down: false, left: false, right: false };
+
+// Helper function to send HTTP POST requests to EzBridge
+async function sendHttp(type, data) {
+  try {
+    const res = await fetch(REMOTE_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "auth-token": KEY },
+      body: JSON.stringify({ type, data })
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.events) {
+        json.events.forEach(evt => {
+          if (evt.type === "state_update") {
+            // Direct state assignment with NO lerp on positions
+            players = evt.data.players || {};
+            coins = evt.data.coins || [];
+            if (players[myId]) {
+              document.getElementById("score").innerText = players[myId].score || 0;
+            }
+          }
+        });
+      }
+    }
+  } catch (e) {}
+}
+
+// 4. Upper-right toggle: switch between Client-Sided and Server-Sided character
+document.getElementById("srvCharToggle").addEventListener("change", (e) => {
+  serverSidedMode = e.target.checked;
+  document.getElementById("modeLabel").innerText = serverSidedMode ? "Server-Sided" : "Client-Sided";
+  // Notify server to despawn old character and spawn new character in the selected mode
+  sendHttp("switch_mode", { id: myId, serverSided: serverSidedMode, x: myClientPos.x, y: myClientPos.y });
+});
+
+// 5. PC Keyboard input listeners (WASD & Arrow Keys)
+window.addEventListener("keydown", (e) => {
+  const k = e.key.toLowerCase();
+  if (k === "w" || e.key === "ArrowUp") keys.up = true;
+  if (k === "s" || e.key === "ArrowDown") keys.down = true;
+  if (k === "a" || e.key === "ArrowLeft") keys.left = true;
+  if (k === "d" || e.key === "ArrowRight") keys.right = true;
+});
+window.addEventListener("keyup", (e) => {
+  const k = e.key.toLowerCase();
+  if (k === "w" || e.key === "ArrowUp") keys.up = false;
+  if (k === "s" || e.key === "ArrowDown") keys.down = false;
+  if (k === "a" || e.key === "ArrowLeft") keys.left = false;
+  if (k === "d" || e.key === "ArrowRight") keys.right = false;
+});
+
+// 6. Mobile Touch & Pointer input listeners for D-Pad buttons
+document.querySelectorAll(".dpad-btn").forEach(btn => {
+  const dir = btn.getAttribute("data-dir");
+  const setDir = (val) => { keys[dir] = val; };
+  btn.addEventListener("touchstart", (e) => { e.preventDefault(); setDir(true); }, { passive: false });
+  btn.addEventListener("touchend", (e) => { e.preventDefault(); setDir(false); }, { passive: false });
+  btn.addEventListener("touchcancel", () => setDir(false));
+  btn.addEventListener("mousedown", () => setDir(true));
+  btn.addEventListener("mouseup", () => setDir(false));
+  btn.addEventListener("mouseleave", () => setDir(false));
+});
+
+// 7. Join the game initially as client-sided character
+sendHttp("player_join", { id: myId, x: myClientPos.x, y: myClientPos.y, serverSided: false });
+
+// 8. Network & Movement tick loop (every 50ms)
+setInterval(() => {
+  let dx = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
+  let dy = (keys.down ? 1 : 0) - (keys.up ? 1 : 0);
+
+  if (serverSidedMode) {
+    // SERVER-SIDED MODE: Client only sends movement requests; server moves the character!
+    sendHttp("server_move", { id: myId, dx, dy });
+  } else {
+    // CLIENT-SIDED MODE: Client moves locally and sends its position to the server
+    myClientPos.x += dx * 8;
+    myClientPos.y += dy * 8;
+    sendHttp("player_update", { id: myId, x: myClientPos.x, y: myClientPos.y });
+    // Check coin collection locally and notify server
+    coins.forEach(c => {
+      if (Math.hypot(c.x - myClientPos.x, c.y - myClientPos.y) < 28) {
+        sendHttp("collect_coin", { playerId: myId, coinId: c.id });
+      }
+    });
+  }
+}, 50);
+
+// 9. Render loop (NO lerp used for position updates)
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Camera follows our active character (client pos if client-sided, server pos if server-sided)
+  if (serverSidedMode && players[myId]) {
+    camPos.x = players[myId].x;
+    camPos.y = players[myId].y;
+  } else if (!serverSidedMode) {
+    camPos.x = myClientPos.x;
+    camPos.y = myClientPos.y;
+  }
+
+  ctx.save();
+  ctx.translate(canvas.width / 2 - camPos.x, canvas.height / 2 - camPos.y);
+
+  // Draw map grid for spatial reference
+  ctx.strokeStyle = "#334155";
+  ctx.lineWidth = 1;
+  for (let gx = 0; gx <= 2000; gx += 100) {
+    ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, 2000); ctx.stroke();
+  }
+  for (let gy = 0; gy <= 2000; gy += 100) {
+    ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(2000, gy); ctx.stroke();
+  }
+
+  // Draw coins
+  ctx.fillStyle = "#facc15";
+  coins.forEach(c => {
+    ctx.beginPath(); ctx.arc(c.x, c.y, 10, 0, Math.PI * 2); ctx.fill();
+  });
+
+  // Draw all players directly from server state (NO lerp)
+  for (let id in players) {
+    const p = players[id];
+    const px = (id === myId && !serverSidedMode) ? myClientPos.x : p.x;
+    const py = (id === myId && !serverSidedMode) ? myClientPos.y : p.y;
+    ctx.fillStyle = p.serverSided ? "#10b981" : (id === myId ? "#3b82f6" : "#ef4444");
+    ctx.beginPath(); ctx.arc(px, py, 20, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#fff";
+    ctx.font = "12px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText((p.serverSided ? "[SRV] " : "") + id + " (" + (p.score || 0) + ")", px, py - 26);
+  }
+
+  ctx.restore();
+  requestAnimationFrame(draw);
+}
+draw();
+<\/script>
+</body>
+</html>`:`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Multiplayer Coin Collector (WebSocket)</title>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"><\/script>
+<style>
+  /* Full-screen layout for both PC and Mobile */
+  body { margin: 0; background: #0f172a; color: #fff; font-family: sans-serif; overflow: hidden; user-select: none; touch-action: none; }
+  canvas { display: block; background: #1e293b; width: 100vw; height: 100vh; }
+  /* Top-left HUD: Score & Mode status */
+  #ui { position: absolute; top: 12px; left: 12px; font-weight: bold; font-size: 1.1rem; background: rgba(0,0,0,0.6); padding: 8px 12px; border: 1px solid #334155; }
+  /* Upper-right toggle for Server-sided Character */
+  #modeBox { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.75); padding: 8px 12px; border: 1px solid #ef4444; font-size: 0.9rem; font-weight: bold; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+  #modeBox input { width: 18px; height: 18px; cursor: pointer; accent-color: #10b981; }
+  /* Mobile D-Pad controls */
+  #mobileControls { position: absolute; bottom: 20px; left: 20px; display: grid; grid-template-columns: 54px 54px 54px; grid-template-rows: 54px 54px 54px; gap: 4px; opacity: 0.85; }
+  .dpad-btn { background: rgba(15,23,42,0.85); border: 1px solid #ef4444; color: #fff; font-weight: bold; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; cursor: pointer; touch-action: none; }
+  .dpad-btn:active { background: #ef4444; }
+</style>
+</head>
+<body>
+<div id="ui">Score: <span id="score">0</span> | Mode: <span id="modeLabel">Client-Sided</span></div>
+<label id="modeBox">
+  <input type="checkbox" id="srvCharToggle">
+  <span>Server-sided Character</span>
+</label>
+<canvas id="gameCanvas"></canvas>
+
+<!-- Mobile Touch D-Pad -->
+<div id="mobileControls">
+  <div></div><div class="dpad-btn" data-dir="up">▲</div><div></div>
+  <div class="dpad-btn" data-dir="left">◀</div><div></div><div class="dpad-btn" data-dir="right">▶</div>
+  <div></div><div class="dpad-btn" data-dir="down">▼</div><div></div>
+</div>
+
+<script>
+// 1. Canvas setup & responsive resize
+const canvas = document.getElementById("gameCanvas"), ctx = canvas.getContext("2d");
+function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+window.addEventListener("resize", resize);
+resize();
+
+// 2. Connect to EzBridge WebSocket server
+const TUNNEL = "${PUBLIC_TUNNEL_URL}";
+const KEY = "${serverKey}";
+const socket = io(TUNNEL, { auth: { token: "default_key" }, transports: ["websocket", "polling"], maxHttpBufferSize: 1e8 });
+
+// 3. Unique player ID & local state
+const myId = "p_" + Math.random().toString(36).substring(2, 8);
+let joined = false;
+let serverSidedMode = false; // Controlled by upper-right checkmark
+let myClientPos = { x: 1000, y: 1000 }; // Used ONLY when client-sided
+let camPos = { x: 1000, y: 1000 };
+let players = {}, coins = [];
+const keys = { up: false, down: false, left: false, right: false };
+
+// 4. Join virtual server room
+socket.on("connect", () => {
+  socket.emit("join_virtual_server", { key: KEY });
+});
+socket.on("joined_successfully", () => {
+  joined = true;
+  socket.emit("RemoteEvent", { type: "player_join", data: { id: myId, x: myClientPos.x, y: myClientPos.y, serverSided: false } });
+});
+
+// 5. Listen for authoritative server state updates (NO lerp on positions)
+socket.on("RemoteEvent", (pkt) => {
+  if (pkt.type === "state_update") {
+    players = pkt.data.players || {};
+    coins = pkt.data.coins || [];
+    if (players[myId]) {
+      document.getElementById("score").innerText = players[myId].score || 0;
+    }
+  }
+});
+
+// 6. Upper-right toggle: switch between Client-Sided and Server-Sided character
+document.getElementById("srvCharToggle").addEventListener("change", (e) => {
+  serverSidedMode = e.target.checked;
+  document.getElementById("modeLabel").innerText = serverSidedMode ? "Server-Sided" : "Client-Sided";
+  if (joined) {
+    // Despawn original client-sided character and spawn new character in selected mode
+    socket.emit("RemoteEvent", { type: "switch_mode", data: { id: myId, serverSided: serverSidedMode, x: myClientPos.x, y: myClientPos.y } });
+  }
+});
+
+// 7. PC Keyboard controls (WASD & Arrows)
+window.addEventListener("keydown", (e) => {
+  const k = e.key.toLowerCase();
+  if (k === "w" || e.key === "ArrowUp") keys.up = true;
+  if (k === "s" || e.key === "ArrowDown") keys.down = true;
+  if (k === "a" || e.key === "ArrowLeft") keys.left = true;
+  if (k === "d" || e.key === "ArrowRight") keys.right = true;
+});
+window.addEventListener("keyup", (e) => {
+  const k = e.key.toLowerCase();
+  if (k === "w" || e.key === "ArrowUp") keys.up = false;
+  if (k === "s" || e.key === "ArrowDown") keys.down = false;
+  if (k === "a" || e.key === "ArrowLeft") keys.left = false;
+  if (k === "d" || e.key === "ArrowRight") keys.right = false;
+});
+
+// 8. Mobile Touch D-Pad controls
+document.querySelectorAll(".dpad-btn").forEach(btn => {
+  const dir = btn.getAttribute("data-dir");
+  const setDir = (val) => { keys[dir] = val; };
+  btn.addEventListener("touchstart", (e) => { e.preventDefault(); setDir(true); }, { passive: false });
+  btn.addEventListener("touchend", (e) => { e.preventDefault(); setDir(false); }, { passive: false });
+  btn.addEventListener("touchcancel", () => setDir(false));
+  btn.addEventListener("mousedown", () => setDir(true));
+  btn.addEventListener("mouseup", () => setDir(false));
+  btn.addEventListener("mouseleave", () => setDir(false));
+});
+
+// 9. Movement & Network tick loop (every 33ms)
+setInterval(() => {
+  if (!joined) return;
+  let dx = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
+  let dy = (keys.down ? 1 : 0) - (keys.up ? 1 : 0);
+
+  if (serverSidedMode) {
+    // SERVER-SIDED MODE: Send input request; server moves the character
+    socket.emit("RemoteEvent", { type: "server_move", data: { id: myId, dx, dy } });
+  } else {
+    // CLIENT-SIDED MODE: Move locally and report position to server
+    myClientPos.x += dx * 6;
+    myClientPos.y += dy * 6;
+    socket.emit("RemoteEvent", { type: "player_update", data: { id: myId, x: myClientPos.x, y: myClientPos.y } });
+    coins.forEach(c => {
+      if (Math.hypot(c.x - myClientPos.x, c.y - myClientPos.y) < 28) {
+        socket.emit("RemoteEvent", { type: "collect_coin", data: { playerId: myId, coinId: c.id } });
+      }
+    });
+  }
+}, 33);
+
+// 10. Render loop (NO lerp used for position updates)
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (serverSidedMode && players[myId]) {
+    camPos.x = players[myId].x;
+    camPos.y = players[myId].y;
+  } else if (!serverSidedMode) {
+    camPos.x = myClientPos.x;
+    camPos.y = myClientPos.y;
+  }
+
+  ctx.save();
+  ctx.translate(canvas.width / 2 - camPos.x, canvas.height / 2 - camPos.y);
+
+  // Background grid
+  ctx.strokeStyle = "#334155";
+  ctx.lineWidth = 1;
+  for (let gx = 0; gx <= 2000; gx += 100) {
+    ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, 2000); ctx.stroke();
+  }
+  for (let gy = 0; gy <= 2000; gy += 100) {
+    ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(2000, gy); ctx.stroke();
+  }
+
+  // Draw coins
+  ctx.fillStyle = "#facc15";
+  coins.forEach(c => {
+    ctx.beginPath(); ctx.arc(c.x, c.y, 10, 0, Math.PI * 2); ctx.fill();
+  });
+
+  // Draw all players directly from server state (NO lerp)
+  for (let id in players) {
+    const p = players[id];
+    const px = (id === myId && !serverSidedMode) ? myClientPos.x : p.x;
+    const py = (id === myId && !serverSidedMode) ? myClientPos.y : p.y;
+    ctx.fillStyle = p.serverSided ? "#10b981" : (id === myId ? "#3b82f6" : "#ef4444");
+    ctx.beginPath(); ctx.arc(px, py, 20, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#fff";
+    ctx.font = "12px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText((p.serverSided ? "[SRV] " : "") + id + " (" + (p.score || 0) + ")", px, py - 26);
+  }
+
+  ctx.restore();
+  requestAnimationFrame(draw);
+}
+draw();
+<\/script>
+</body>
+</html>`;
+
+const coinServerCode=`// Multiplayer Coin Collector ServerScript (Supports both Client-Sided & Server-Sided Characters, HTTP & WebSocket)
+let players = {};
+let coins = [];
+
+// Spawn 15 initial coins across the 2000x2000 arena
+function spawnCoin() {
+  return {
+    id: Math.random().toString(36).substring(2, 8),
+    x: 100 + Math.random() * 1800,
+    y: 100 + Math.random() * 1800
+  };
+}
+for (let i = 0; i < 15; i++) coins.push(spawnCoin());
+
+// Handle player joining
+Server.on("player_join", (evt) => {
+  const id = evt.data && evt.data.id;
+  if (!id) return;
+  players[id] = {
+    x: Number(evt.data.x) || 1000,
+    y: Number(evt.data.y) || 1000,
+    dx: 0,
+    dy: 0,
+    score: 0,
+    serverSided: Boolean(evt.data.serverSided),
+    lastSeen: Date.now()
+  };
+  evt.send("state_update", { players, coins });
+});
+
+// Switch between Client-Sided and Server-Sided character
+Server.on("switch_mode", (evt) => {
+  const id = evt.data && evt.data.id;
+  if (!id || !players[id]) return;
+  const prevScore = players[id].score || 0;
+  // Despawn original character and spawn a new character in the chosen mode
+  delete players[id];
+  players[id] = {
+    x: evt.data.serverSided ? 1000 : (Number(evt.data.x) || 1000),
+    y: evt.data.serverSided ? 1000 : (Number(evt.data.y) || 1000),
+    dx: 0,
+    dy: 0,
+    score: prevScore,
+    serverSided: Boolean(evt.data.serverSided),
+    lastSeen: Date.now()
+  };
+  Server.broadcast("state_update", { players, coins });
+});
+
+// Client-Sided character position update
+Server.on("player_update", (evt) => {
+  const p = evt.data && players[evt.data.id];
+  if (!p || p.serverSided) return; // Ignore if currently in Server-Sided mode
+  p.x = Math.max(20, Math.min(1980, Number(evt.data.x) || p.x));
+  p.y = Math.max(20, Math.min(1980, Number(evt.data.y) || p.y));
+  p.lastSeen = Date.now();
+});
+
+// Server-Sided character movement input request (server moves the character)
+Server.on("server_move", (evt) => {
+  const p = evt.data && players[evt.data.id];
+  if (!p || !p.serverSided) return;
+  p.dx = Math.max(-1, Math.min(1, Number(evt.data.dx) || 0));
+  p.dy = Math.max(-1, Math.min(1, Number(evt.data.dy) || 0));
+  p.lastSeen = Date.now();
+});
+
+// Client-Sided coin collection event
+Server.on("collect_coin", (evt) => {
+  const p = evt.data && players[evt.data.playerId];
+  if (!p || p.serverSided) return;
+  const idx = coins.findIndex(c => c.id === evt.data.coinId);
+  if (idx !== -1) {
+    const c = coins[idx];
+    if (Math.hypot(c.x - p.x, c.y - p.y) < 45) {
+      coins.splice(idx, 1);
+      p.score += 1;
+      coins.push(spawnCoin());
+    }
+  }
+});
+
+// Fixed 33Hz Server Tick: moves server-sided characters, checks coin pickups, and cleans up inactive players
+Server.on("tick", (dt) => {
+  const now = Date.now();
+  const speed = 260; // Pixels per second for server-sided characters
+  for (let id in players) {
+    const p = players[id];
+    if (now - p.lastSeen > 8000) {
+      delete players[id];
+      continue;
+    }
+    if (p.serverSided) {
+      p.x = Math.max(20, Math.min(1980, p.x + p.dx * speed * dt));
+      p.y = Math.max(20, Math.min(1980, p.y + p.dy * speed * dt));
+      // Server-side coin collision check
+      for (let i = coins.length - 1; i >= 0; i--) {
+        if (Math.hypot(coins[i].x - p.x, coins[i].y - p.y) < 28) {
+          coins.splice(i, 1);
+          p.score += 1;
+          coins.push(spawnCoin());
+        }
+      }
+    }
+  }
+  Server.broadcast("state_update", { players, coins });
+});`;
+
+const gunsClientCode=isHttp?`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Test Your Guns (HTTP)</title>
+<style>
+  body { margin: 0; background: #030712; color: #fff; font-family: sans-serif; overflow: hidden; user-select: none; touch-action: none; }
+  canvas { display: block; background: #0f172a; width: 100vw; height: 100vh; }
+  #hud { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.65); padding: 8px 12px; border: 1px solid #ef4444; font-weight: bold; }
+  #mobilePad { position: absolute; bottom: 18px; left: 18px; display: grid; grid-template-columns: 50px 50px 50px; grid-template-rows: 50px 50px 50px; gap: 4px; }
+  .padBtn { background: rgba(15,23,42,0.85); border: 1px solid #ef4444; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+  #fireBtn { position: absolute; bottom: 32px; right: 24px; width: 78px; height: 78px; background: rgba(239,68,68,0.85); border: 2px solid #fff; color: #fff; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+</style>
+</head>
+<body>
+<div id="hud">HP: <span id="hp">100</span> | Kills: <span id="kills">0</span></div>
+<canvas id="c"></canvas>
+<div id="mobilePad">
+  <div></div><div class="padBtn" data-d="up">▲</div><div></div>
+  <div class="padBtn" data-d="left">◀</div><div></div><div class="padBtn" data-d="right">▶</div>
+  <div></div><div class="padBtn" data-d="down">▼</div><div></div>
+</div>
+<div id="fireBtn">FIRE</div>
+<script>
+const canvas = document.getElementById("c"), ctx = canvas.getContext("2d");
+function resize(){ canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+window.addEventListener("resize", resize); resize();
+
+const REMOTE = "${PUBLIC_TUNNEL_URL}/remote", KEY = "${serverKey}";
+const myId = "gun_" + Math.random().toString(36).substring(2, 7);
+let myPos = { x: 400, y: 300 }, aimAngle = 0, players = {}, bullets = [];
+const keys = { up: false, down: false, left: false, right: false };
+
+async function sendHttp(type, data) {
+  try {
+    const r = await fetch(REMOTE, { method: "POST", headers: { "Content-Type": "application/json", "auth-token": KEY }, body: JSON.stringify({ type, data }) });
+    if (r.ok) {
+      const j = await r.json();
+      if (j.events) j.events.forEach(e => {
+        if (e.type === "arena_state") {
+          players = e.data.players || {}; bullets = e.data.bullets || [];
+          if (players[myId]) { document.getElementById("hp").innerText = players[myId].hp; document.getElementById("kills").innerText = players[myId].kills; }
+        }
+      });
+    }
+  } catch (e) {}
+}
+
+// PC Keyboard & Mouse controls
+window.addEventListener("keydown", e => { const k = e.key.toLowerCase(); if (k==="w"||e.key==="ArrowUp") keys.up=true; if (k==="s"||e.key==="ArrowDown") keys.down=true; if (k==="a"||e.key==="ArrowLeft") keys.left=true; if (k==="d"||e.key==="ArrowRight") keys.right=true; });
+window.addEventListener("keyup", e => { const k = e.key.toLowerCase(); if (k==="w"||e.key==="ArrowUp") keys.up=false; if (k==="s"||e.key==="ArrowDown") keys.down=false; if (k==="a"||e.key==="ArrowLeft") keys.left=false; if (k==="d"||e.key==="ArrowRight") keys.right=false; });
+canvas.addEventListener("mousemove", e => { aimAngle = Math.atan2(e.clientY - canvas.height/2, e.clientX - canvas.width/2); });
+canvas.addEventListener("mousedown", () => sendHttp("shoot", { id: myId, angle: aimAngle }));
+
+// Mobile Touch controls
+document.querySelectorAll(".padBtn").forEach(b => {
+  const d = b.getAttribute("data-d");
+  b.addEventListener("touchstart", e => { e.preventDefault(); keys[d]=true; }, { passive: false });
+  b.addEventListener("touchend", e => { e.preventDefault(); keys[d]=false; }, { passive: false });
+});
+document.getElementById("fireBtn").addEventListener("touchstart", e => { e.preventDefault(); sendHttp("shoot", { id: myId, angle: aimAngle }); }, { passive: false });
+document.getElementById("fireBtn").addEventListener("mousedown", () => sendHttp("shoot", { id: myId, angle: aimAngle }));
+
+sendHttp("join_arena", { id: myId, x: myPos.x, y: myPos.y });
+setInterval(() => {
+  const dx = (keys.right?1:0) - (keys.left?1:0), dy = (keys.down?1:0) - (keys.up?1:0);
+  if (dx !== 0 || dy !== 0) aimAngle = Math.atan2(dy, dx);
+  myPos.x += dx * 7; myPos.y += dy * 7;
+  sendHttp("move", { id: myId, x: myPos.x, y: myPos.y, angle: aimAngle });
+}, 50);
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+  ctx.translate(canvas.width/2 - myPos.x, canvas.height/2 - myPos.y);
+  for (let id in players) {
+    const p = players[id], px = id === myId ? myPos.x : p.x, py = id === myId ? myPos.y : p.y;
+    ctx.fillStyle = id === myId ? "#10b981" : "#ef4444";
+    ctx.beginPath(); ctx.arc(px, py, 18, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = "#fff"; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px + Math.cos(p.angle||0)*28, py + Math.sin(p.angle||0)*28); ctx.stroke();
+  }
+  ctx.fillStyle = "#facc15";
+  bullets.forEach(b => { ctx.beginPath(); ctx.arc(b.x, b.y, 5, 0, Math.PI*2); ctx.fill(); });
+  ctx.restore();
+  requestAnimationFrame(draw);
+}
+draw();
+<\/script>
+</body>
+</html>`:`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Test Your Guns (WebSocket)</title>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"><\/script>
+<style>
+  body { margin: 0; background: #030712; color: #fff; font-family: sans-serif; overflow: hidden; user-select: none; touch-action: none; }
+  canvas { display: block; background: #0f172a; width: 100vw; height: 100vh; }
+  #hud { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.65); padding: 8px 12px; border: 1px solid #ef4444; font-weight: bold; }
+  #mobilePad { position: absolute; bottom: 18px; left: 18px; display: grid; grid-template-columns: 50px 50px 50px; grid-template-rows: 50px 50px 50px; gap: 4px; }
+  .padBtn { background: rgba(15,23,42,0.85); border: 1px solid #ef4444; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+  #fireBtn { position: absolute; bottom: 32px; right: 24px; width: 78px; height: 78px; background: rgba(239,68,68,0.85); border: 2px solid #fff; color: #fff; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+</style>
+</head>
+<body>
+<div id="hud">HP: <span id="hp">100</span> | Kills: <span id="kills">0</span></div>
+<canvas id="c"></canvas>
+<div id="mobilePad">
+  <div></div><div class="padBtn" data-d="up">▲</div><div></div>
+  <div class="padBtn" data-d="left">◀</div><div></div><div class="padBtn" data-d="right">▶</div>
+  <div></div><div class="padBtn" data-d="down">▼</div><div></div>
+</div>
+<div id="fireBtn">FIRE</div>
+<script>
+const canvas = document.getElementById("c"), ctx = canvas.getContext("2d");
+function resize(){ canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+window.addEventListener("resize", resize); resize();
+
+const socket = io("${PUBLIC_TUNNEL_URL}", { auth: { token: "default_key" }, transports: ["websocket", "polling"], maxHttpBufferSize: 1e8 });
+const myId = "gun_" + Math.random().toString(36).substring(2, 7);
+let joined = false, myPos = { x: 400, y: 300 }, aimAngle = 0, players = {}, bullets = [];
+const keys = { up: false, down: false, left: false, right: false };
+
+socket.on("connect", () => socket.emit("join_virtual_server", { key: "${serverKey}" }));
+socket.on("joined_successfully", () => { joined = true; socket.emit("RemoteEvent", { type: "join_arena", data: { id: myId, x: myPos.x, y: myPos.y } }); });
+socket.on("RemoteEvent", pkt => {
+  if (pkt.type === "arena_state") {
+    players = pkt.data.players || {}; bullets = pkt.data.bullets || [];
+    if (players[myId]) { document.getElementById("hp").innerText = players[myId].hp; document.getElementById("kills").innerText = players[myId].kills; }
+  }
+});
+
+// PC Keyboard & Mouse controls
+window.addEventListener("keydown", e => { const k = e.key.toLowerCase(); if (k==="w"||e.key==="ArrowUp") keys.up=true; if (k==="s"||e.key==="ArrowDown") keys.down=true; if (k==="a"||e.key==="ArrowLeft") keys.left=true; if (k==="d"||e.key==="ArrowRight") keys.right=true; });
+window.addEventListener("keyup", e => { const k = e.key.toLowerCase(); if (k==="w"||e.key==="ArrowUp") keys.up=false; if (k==="s"||e.key==="ArrowDown") keys.down=false; if (k==="a"||e.key==="ArrowLeft") keys.left=false; if (k==="d"||e.key==="ArrowRight") keys.right=false; });
+canvas.addEventListener("mousemove", e => { aimAngle = Math.atan2(e.clientY - canvas.height/2, e.clientX - canvas.width/2); });
+canvas.addEventListener("mousedown", () => { if (joined) socket.emit("RemoteEvent", { type: "shoot", data: { id: myId, angle: aimAngle } }); });
+
+// Mobile Touch controls
+document.querySelectorAll(".padBtn").forEach(b => {
+  const d = b.getAttribute("data-d");
+  b.addEventListener("touchstart", e => { e.preventDefault(); keys[d]=true; }, { passive: false });
+  b.addEventListener("touchend", e => { e.preventDefault(); keys[d]=false; }, { passive: false });
+});
+document.getElementById("fireBtn").addEventListener("touchstart", e => { e.preventDefault(); if (joined) socket.emit("RemoteEvent", { type: "shoot", data: { id: myId, angle: aimAngle } }); }, { passive: false });
+document.getElementById("fireBtn").addEventListener("mousedown", () => { if (joined) socket.emit("RemoteEvent", { type: "shoot", data: { id: myId, angle: aimAngle } }); });
+
+setInterval(() => {
+  if (!joined) return;
+  const dx = (keys.right?1:0) - (keys.left?1:0), dy = (keys.down?1:0) - (keys.up?1:0);
+  if (dx !== 0 || dy !== 0) aimAngle = Math.atan2(dy, dx);
+  myPos.x += dx * 6; myPos.y += dy * 6;
+  socket.emit("RemoteEvent", { type: "move", data: { id: myId, x: myPos.x, y: myPos.y, angle: aimAngle } });
+}, 33);
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+  ctx.translate(canvas.width/2 - myPos.x, canvas.height/2 - myPos.y);
+  for (let id in players) {
+    const p = players[id], px = id === myId ? myPos.x : p.x, py = id === myId ? myPos.y : p.y;
+    ctx.fillStyle = id === myId ? "#10b981" : "#ef4444";
+    ctx.beginPath(); ctx.arc(px, py, 18, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = "#fff"; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px + Math.cos(p.angle||0)*28, py + Math.sin(p.angle||0)*28); ctx.stroke();
+  }
+  ctx.fillStyle = "#facc15";
+  bullets.forEach(b => { ctx.beginPath(); ctx.arc(b.x, b.y, 5, 0, Math.PI*2); ctx.fill(); });
+  ctx.restore();
+  requestAnimationFrame(draw);
+}
+draw();
+<\/script>
+</body>
+</html>`;
+
+const gunsServerCode=`// Test Your Guns - Multiplayer Arena ServerScript (HTTP & WebSocket)
+let players = {};
+let bullets = [];
+
+Server.on("join_arena", (evt) => {
+  const id = evt.data && evt.data.id;
+  if (!id) return;
+  players[id] = { x: Number(evt.data.x) || 400, y: Number(evt.data.y) || 300, angle: 0, hp: 100, kills: 0, lastSeen: Date.now() };
+});
+
+Server.on("move", (evt) => {
+  const p = evt.data && players[evt.data.id];
+  if (!p) return;
+  p.x = Number(evt.data.x) || p.x;
+  p.y = Number(evt.data.y) || p.y;
+  p.angle = Number(evt.data.angle) || 0;
+  p.lastSeen = Date.now();
+});
+
+Server.on("shoot", (evt) => {
+  const p = evt.data && players[evt.data.id];
+  if (!p) return;
+  const ang = Number(evt.data.angle) || 0;
+  bullets.push({ owner: evt.data.id, x: p.x + Math.cos(ang)*22, y: p.y + Math.sin(ang)*22, vx: Math.cos(ang)*650, vy: Math.sin(ang)*650, life: 1.5 });
+});
+
+Server.on("tick", (dt) => {
+  const now = Date.now();
+  for (let id in players) { if (now - players[id].lastSeen > 8000) delete players[id]; }
+  for (let i = bullets.length - 1; i >= 0; i--) {
+    const b = bullets[i];
+    b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt;
+    let hit = false;
+    for (let id in players) {
+      if (id !== b.owner && Math.hypot(players[id].x - b.x, players[id].y - b.y) < 20) {
+        players[id].hp -= 25;
+        if (players[id].hp <= 0) {
+          players[id].hp = 100; players[id].x = 200 + Math.random()*600; players[id].y = 200 + Math.random()*400;
+          if (players[b.owner]) players[b.owner].kills += 1;
+        }
+        hit = true; break;
+      }
+    }
+    if (hit || b.life <= 0) bullets.splice(i, 1);
+  }
+  Server.broadcast("arena_state", { players, bullets });
+});`;
+
+const verifyClientCode=isHttp?`<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Verify Client ID (HTTP)</title><style>body{background:#030712;color:#fff;font-family:sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;}button{padding:12px 24px;background:#ef4444;color:#fff;border:none;cursor:pointer;font-weight:bold;}#result{margin-top:15px;font-family:monospace;}</style></head><body><button onclick="verifyMyId()">Verify ID</button><div id="result">Waiting for response...</div><script>async function verifyMyId(){const resEl=document.getElementById("result");resEl.innerText="Checking...";try{const res=await fetch("${PUBLIC_TUNNEL_URL}/remote",{method:"POST",headers:{"Content-Type":"application/json","auth-token":"${serverKey}"},body:JSON.stringify({type:"check_id",data:{}})});if(res.ok){const json=await res.json();let matched=false;if(json.events){json.events.forEach(evt=>{if(evt.type==="id_verified"){matched=true;if(evt.data&&evt.data.clientId){resEl.innerText=evt.data.clientId;}else{resEl.innerText="Failed to fetch the client's ID or Client does not have an ID in ezbridge.";}}});}if(!matched)resEl.innerText="Failed to fetch the client's ID or Client does not have an ID in ezbridge.";}else{resEl.innerText="Failed to fetch the client's ID or Client does not have an ID in ezbridge.";}}catch(e){resEl.innerText="Failed to fetch the client's ID or Client does not have an ID in ezbridge.";}}<\/script></body></html>`:`<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Verify Client ID (WS)</title><script src="https://cdn.socket.io/4.7.2/socket.io.min.js"><\/script><style>body{background:#030712;color:#fff;font-family:sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;}button{padding:12px 24px;background:#ef4444;color:#fff;border:none;cursor:pointer;font-weight:bold;}#result{margin-top:15px;font-family:monospace;}</style></head><body><button onclick="verifyMyId()">Verify ID</button><div id="result">Waiting for response...</div><script>const socket=io("${PUBLIC_TUNNEL_URL}",{auth:{token:"default_key"},maxHttpBufferSize:1e8});socket.emit("join_virtual_server",{key:"${serverKey}"});socket.on("RemoteEvent",pkt=>{if(pkt.type==="id_verified"){const resEl=document.getElementById("result");if(pkt.data&&pkt.data.clientId){resEl.innerText=pkt.data.clientId;}else{resEl.innerText="Failed to fetch the client's ID or Client does not have an ID in ezbridge.";}}});function verifyMyId(){document.getElementById("result").innerText="Checking...";socket.emit("RemoteEvent",{type:"check_id",data:{}});}setTimeout(()=>{if(document.getElementById("result").innerText==="Checking..."){document.getElementById("result").innerText="Failed to fetch the client's ID or Client does not have an ID in ezbridge.";}},5000);<\/script></body></html>`,verifyServerCode=`// Verify Client ID ServerScript\nServer.on('check_id', evt => {\n  if (evt.senderId && evt.senderId.length >= 10 && evt.senderId !== "Guest" && evt.senderId !== "http_client") {\n    evt.send('id_verified', { clientId: evt.senderId });\n  } else {\n    evt.send('id_verified', { clientId: null });\n  }\n});`,httpChatClientCode=`<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>HTTP Chat</title><style>body{background:#030712;color:#fff;font-family:sans-serif;padding:12px;}#msgs{height:70vh;overflow-y:auto;border:1px solid #ef4444;padding:10px;margin-bottom:10px;white-space:pre-wrap;}</style></head><body><div id="msgs"></div><div style="display:flex;gap:8px;"><input id="txt" style="flex:1;padding:10px;"><button onclick="sendMsg()" style="padding:10px 18px;">Send</button></div><script>const url="${PUBLIC_TUNNEL_URL}/remote",key="${serverKey}";async function sendMsg(){const t=document.getElementById("txt").value;if(!t.trim())return;document.getElementById("txt").value="";const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json","auth-token":key},body:JSON.stringify({type:"chat_send",data:{text:t}})});const j=await r.json();if(j.events)render(j.events);}setInterval(async()=>{const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json","auth-token":key},body:JSON.stringify({type:"poll",data:{}})});const j=await r.json();if(j.events)render(j.events);},1500);function render(evts){evts.forEach(e=>{if(e.type==="chat_state")document.getElementById("msgs").innerText=e.data.messages.join("\\n");});}<\/script></body></html>`,httpChatServerCode=`// HTTP Global Chat ServerScript\nlet messages = [];\nServer.on("chat_send", evt => {\n  if (evt.data && evt.data.text) {\n    messages.push(evt.data.text);\n    if (messages.length > 30) messages.shift();\n    Server.broadcast("chat_state", { messages });\n  }\n});`,dynamicTunnelCode=`async function fetchCurrentEzBridgeTunnel(){try{const res=await fetch("https://raw.githubusercontent.com/TerminatorSBDEV/ebtunnel/main/tunnel?t="+Date.now(),{cache:"no-store"});if(res.ok){let raw=(await res.text()).trim();if(!raw.startsWith("http://")&&!raw.startsWith("https://"))raw="https://"+raw;console.log("Current EzBridge Tunnel URL:",raw);return raw;}}catch(err){console.error("Failed to load dynamic tunnel:",err);}return null;}fetchCurrentEzBridgeTunnel();\n-- use this example of you don't want to keep updating the tunnel everytime a new one generates`;
+return{coinClientCode,coinServerCode,gunsClientCode,gunsServerCode,clientCode:gunsClientCode,serverCode:gunsServerCode,verifyClientCode,verifyServerCode,httpChatClientCode,httpChatServerCode,dynamicTunnelCode};
 }
 function copyAIPrompt(){const{coinClientCode,coinServerCode,verifyClientCode,verifyServerCode}=getGameExamples();let promptText=`*How to implement EzBridge's universal server on your online project*
 EzBridge server is a universal server that is completely free and can be used to make multiplayer games, online apps, REST backends, and AI-powered systems. Follow these detailed steps to integrate it into your project:
@@ -2030,7 +2753,7 @@ Server.eb_callai({
 Server.py.send("ping",{t:Date.now()});
 Server.py.on("pong",data=>{console.log("From python:",data);});`;}document.getElementById('modal-commands').style.display='flex';}
 function closeCommandsModal(){document.getElementById('modal-commands').style.display='none';}
-function openGameCode(){const isHttp=serverType==='http';document.getElementById('http-disclaimer').style.display=isHttp?'block':'none';document.getElementById('http-extra-example-container').style.display=isHttp?'block':'none';const{coinClientCode,coinServerCode,verifyClientCode,verifyServerCode,httpChatClientCode,httpChatServerCode,dynamicTunnelCode}=getGameExamples();document.getElementById('example-coin-client').value=coinClientCode;document.getElementById('example-coin-server').value=coinServerCode;document.getElementById('example-code-client').value=coinClientCode;document.getElementById('example-code-server').value=coinServerCode;document.getElementById('example-http-chat-client').value=httpChatClientCode;document.getElementById('example-http-chat-server').value=httpChatServerCode;document.getElementById('example-verify-client').value=verifyClientCode;document.getElementById('example-verify-server').value=verifyServerCode;document.getElementById('example-dynamic-tunnel').value=dynamicTunnelCode;document.getElementById('modal-code').style.display='flex';}
+function openGameCode(){const isHttp=serverType==='http';document.getElementById('http-disclaimer').style.display=isHttp?'block':'none';document.getElementById('http-extra-example-container').style.display=isHttp?'block':'none';const{coinClientCode,coinServerCode,gunsClientCode,gunsServerCode,verifyClientCode,verifyServerCode,httpChatClientCode,httpChatServerCode,dynamicTunnelCode}=getGameExamples();document.getElementById('example-coin-client').value=coinClientCode;document.getElementById('example-coin-server').value=coinServerCode;document.getElementById('example-code-client').value=gunsClientCode;document.getElementById('example-code-server').value=gunsServerCode;document.getElementById('example-http-chat-client').value=httpChatClientCode;document.getElementById('example-http-chat-server').value=httpChatServerCode;document.getElementById('example-verify-client').value=verifyClientCode;document.getElementById('example-verify-server').value=verifyServerCode;document.getElementById('example-dynamic-tunnel').value=dynamicTunnelCode;document.getElementById('modal-code').style.display='flex';}
 function closeGameCode(){document.getElementById('modal-code').style.display='none';}
 function copyText(id){const el=document.getElementById(id);el.select();document.execCommand('copy');alert("Copied!");}
 function setCookie(name,value,days){const d=new Date();d.setTime(d.getTime()+(days*24*60*60*1000));const expires="expires="+d.toUTCString(),delPaths=["/","/EzBridge/","/EzBridge",location.pathname,""];if(days<0||!value){delPaths.forEach(p=>{document.cookie=name+"=;Max-Age=0;expires=Thu, 01 Jan 1970 00:00:00 UTC"+(p?";path="+p:"");});if(name==="eb_owner_id")localStorage.removeItem("eb_owner_id");return;}delPaths.slice(1).forEach(p=>{document.cookie=name+"=;Max-Age=0;expires=Thu, 01 Jan 1970 00:00:00 UTC"+(p?";path="+p:"");});document.cookie=name+"="+value+";"+expires+";path=/";if(name==="eb_owner_id")localStorage.setItem("eb_owner_id",value);}
