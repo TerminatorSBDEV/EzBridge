@@ -1277,7 +1277,7 @@ const ASSISTANT_STATUSES=["Thinking. . .","Making. . .","Imagining. . .","Reimag
 let assistantModel="gemini-3.5-flash-lite",assistantHistory=[],assistantGenerating=false,assistantTaskId=null,assistantStatusTimer=null,assistantPingTimer=null,assistantResetAt=Date.now()+86400000,assistantTokensTimerInt=null,assistantCodeStore=[],pendingAssistantContinue=false;
 let socialState={friends:[],requests:[],blocked:[],groupChats:[]},socialShowRequests=false,gcSelectMode=false,selectedGcFriends=[],stagedGcPfpBase64="",currentGc=null,gcMessagesCache=[],gcOffset=0,gcHasMore=false,isLoadingMoreGc=false,gcMsgChunks=[],gcMicRecorder=null,gcMicChunks=[],gcMicStream=null,gcMicTimerInt=null,gcMicSeconds=0,gcMicAnalyser=null,gcMicAnimFrame=null,gcTypingOutTimer=null,gcPeerTypingTimeout=null,currentDmPeer=null,dmMessagesCache=[],dmOffset=0,dmHasMore=false,isLoadingMoreDm=false,dmMsgChunks=[],dmMediaDlCache={},dmMediaDlPending={},pendingDedupUploads={},autoPlayDmAudioId=null,dmMicRecorder=null,dmMicChunks=[],dmMicStream=null,dmMicTimerInt=null,dmMicSeconds=0,dmMicAnalyser=null,dmMicAnimFrame=null,dmTypingOutTimer=null,dmPeerTypingTimeout=null,currentPopupProfileId=null;
 let notifQueue=[],activeNotif=null,notifTimerInt=null,notifStartTime=0,notifDuration=0,notifPausedRem=0,quickReplyTargetId=null;
-let activeCall=null,callTimerInt=null,callPingInt=null,callMicStream=null,callMicProc=null,callMicSrc=null,callCamStream=null,callCamTimer=null,callScreenStream=null,callScreenTimer=null,callScreenAudioRec=null,callScreenInitSeg=null,callAudioCtx=null,callPlayCtx=null,callNextPlayTime=0,callAnalyser=null,callSpeakCheckInt=null,callSilenceTimer=null,callStreamChunks={},callRingVibrateInt=null,callFullscreenPeerId=null,isCallMinimized=false,callLagLevel=0,connErrorCount=0;
+let activeCall=null,callTimerInt=null,callPingInt=null,callMicStream=null,callMicProc=null,callMicSrc=null,callCamStream=null,callCamTimer=null,callScreenStream=null,callScreenTimer=null,callScreenAudioRec=null,callScreenInitSeg=null,callAudioCtx=null,callPlayCtx=null,callNextPlayTime=0,callNextPlayTimeMap={},callAnalyser=null,callSpeakCheckInt=null,callSilenceTimer=null,callStreamChunks={},callRingVibrateInt=null,callFullscreenPeerId=null,isCallMinimized=false,callLagLevel=0,connErrorCount=0;
 let callPrefs={micId:'',camId:'',res:'auto',fps:'auto'};
 function loadCallPrefs(){try{const raw=getCookie('eb_call_prefs');if(raw){const p=JSON.parse(raw);if(p&&typeof p==='object')callPrefs=Object.assign({micId:'',camId:'',res:'auto',fps:'auto'},p);}}catch(e){}}
 loadCallPrefs();
@@ -1684,14 +1684,15 @@ async function openCallSettingsModal(){document.getElementById('call-cfg-res').v
 function closeCallSettingsModal(){document.getElementById('modal-call-settings').style.display='none';}
 async function saveCallSettings(){callPrefs={micId:document.getElementById('call-cfg-mic').value,camId:document.getElementById('call-cfg-cam').value,res:document.getElementById('call-cfg-res').value,fps:document.getElementById('call-cfg-fps').value};setCookie('eb_call_prefs',JSON.stringify(callPrefs),365);closeCallSettingsModal();if(activeCall&&activeCall.status==='active'){if(callMicStream){const wasMuted=!activeCall.myMedia.mic;stopCallMicStream();await startCallMicStream();if(wasMuted&&callMicStream)callMicStream.getAudioTracks().forEach(t=>t.enabled=false);}if(activeCall.myMedia.cam){stopCallCamStream();activeCall.myMedia.cam=false;await toggleCallCam();}if(activeCall.myMedia.screen){stopCallScreenStream();activeCall.myMedia.screen=false;await toggleCallScreen();}}}
 function getCallCaptureIntervalMs(){const f=callPrefs.fps;if(f&&f!=='auto'){const n=Number(f);if(n>=5&&n<=60)return Math.round(1000/n);}return 42;}
-function openGcCallFloatPopup(data,status){ensureCallPlayCtx();activeCall={isGroup:true,callId:data.callId,gcId:data.gcId,gcName:data.gcName,startedAt:data.startedAt,status:status||data.status,myMedia:{mic:true,cam:false,screen:false},participants:data.participants||[],peerFrames:{},myFrameUrl:null};isCallMinimized=false;callNextPlayTime=0;callLagLevel=0;document.getElementById('call-dots-min').style.display='none';document.getElementById('call-float-box').style.display='flex';renderCallPeers();updateCallButtonsUI();if(callTimerInt)clearInterval(callTimerInt);callTimerInt=setInterval(()=>{if(!activeCall)return;const tEl=document.getElementById('call-timer-text');if(activeCall.status!=='active'||!activeCall.startedAt){tEl.innerText="Calling...";return;}const sec=Math.floor((Date.now()-activeCall.startedAt)/1000);tEl.innerText=`${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`;},1000);if(callPingInt)clearInterval(callPingInt);callPingInt=setInterval(()=>{if(activeCall&&socket&&socket.connected)socket.emit('eb_gc_call_ping',{callId:activeCall.callId});},4000);if(status==='active')startCallMicStream();}
-function openCallFloatPopup(c){ensureCallPlayCtx();activeCall={isGroup:false,callId:dataOrVal(c.callId),peerId:c.peerId,peerName:c.peerName,peerPfp:c.peerPfp,startedAt:c.startedAt,status:c.status,myMedia:{mic:true,cam:false,screen:false},peerMedia:(c.mediaState&&c.mediaState[c.peerId])||{mic:true,cam:false,screen:false},peerFrameUrl:null,peerFrames:{},myFrameUrl:null};isCallMinimized=false;callNextPlayTime=0;callLagLevel=0;document.getElementById('call-dots-min').style.display='none';document.getElementById('call-float-box').style.display='flex';renderCallPeers();updateCallButtonsUI();if(callTimerInt)clearInterval(callTimerInt);callTimerInt=setInterval(()=>{if(!activeCall)return;const tEl=document.getElementById('call-timer-text');if(activeCall.status!=='active'||!activeCall.startedAt){tEl.innerText="Calling...";return;}const sec=Math.floor((Date.now()-activeCall.startedAt)/1000);tEl.innerText=`${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`;},1000);if(callPingInt)clearInterval(callPingInt);callPingInt=setInterval(()=>{if(activeCall&&socket&&socket.connected)socket.emit('eb_call_ping',{callId:activeCall.callId});},4000);if(c.status==='active')startCallMicStream();}
+function openGcCallFloatPopup(data,status){ensureCallPlayCtx();activeCall={isGroup:true,callId:data.callId,gcId:data.gcId,gcName:data.gcName,startedAt:data.startedAt,status:status||data.status,myMedia:{mic:true,cam:false,screen:false},participants:data.participants||[],peerFrames:{},myFrameUrl:null};isCallMinimized=false;callNextPlayTime=0;callNextPlayTimeMap={};callLagLevel=0;document.getElementById('call-dots-min').style.display='none';document.getElementById('call-float-box').style.display='flex';renderCallPeers();updateCallButtonsUI();if(callTimerInt)clearInterval(callTimerInt);callTimerInt=setInterval(()=>{if(!activeCall)return;const tEl=document.getElementById('call-timer-text');if(activeCall.status!=='active'||!activeCall.startedAt){tEl.innerText="Calling...";return;}const sec=Math.floor((Date.now()-activeCall.startedAt)/1000);tEl.innerText=`${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`;},1000);if(callPingInt)clearInterval(callPingInt);callPingInt=setInterval(()=>{if(activeCall&&socket&&socket.connected)socket.emit('eb_gc_call_ping',{callId:activeCall.callId});},4000);if(status==='active')startCallMicStream();}
+function openCallFloatPopup(c){ensureCallPlayCtx();activeCall={isGroup:false,callId:dataOrVal(c.callId),peerId:c.peerId,peerName:c.peerName,peerPfp:c.peerPfp,startedAt:c.startedAt,status:c.status,myMedia:{mic:true,cam:false,screen:false},peerMedia:(c.mediaState&&c.mediaState[c.peerId])||{mic:true,cam:false,screen:false},peerFrameUrl:null,peerFrames:{},myFrameUrl:null};isCallMinimized=false;callNextPlayTime=0;callNextPlayTimeMap={};callLagLevel=0;document.getElementById('call-dots-min').style.display='none';document.getElementById('call-float-box').style.display='flex';renderCallPeers();updateCallButtonsUI();if(callTimerInt)clearInterval(callTimerInt);callTimerInt=setInterval(()=>{if(!activeCall)return;const tEl=document.getElementById('call-timer-text');if(activeCall.status!=='active'||!activeCall.startedAt){tEl.innerText="Calling...";return;}const sec=Math.floor((Date.now()-activeCall.startedAt)/1000);tEl.innerText=`${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`;},1000);if(callPingInt)clearInterval(callPingInt);callPingInt=setInterval(()=>{if(activeCall&&socket&&socket.connected)socket.emit('eb_call_ping',{callId:activeCall.callId});},4000);if(c.status==='active')startCallMicStream();}
 function dataOrVal(v){return v;}
-function closeCallFloatPopup(){activeCall=null;isCallMinimized=false;callScreenInitSeg=null;if(callTimerInt){clearInterval(callTimerInt);callTimerInt=null;}if(callPingInt){clearInterval(callPingInt);callPingInt=null;}stopCallMicStream();stopCallCamStream();stopCallScreenStream();document.getElementById('call-float-box').style.display='none';document.getElementById('call-dots-min').style.display='none';closeCallFullscreen();}
+function closeCallFloatPopup(){activeCall=null;isCallMinimized=false;callScreenInitSeg=null;callNextPlayTimeMap={};if(callTimerInt){clearInterval(callTimerInt);callTimerInt=null;}if(callPingInt){clearInterval(callPingInt);callPingInt=null;}stopCallMicStream();stopCallCamStream();stopCallScreenStream();document.getElementById('call-float-box').style.display='none';document.getElementById('call-dots-min').style.display='none';closeCallFullscreen();}
 function minimizeCallPopup(){isCallMinimized=true;document.getElementById('call-float-box').style.display='none';document.getElementById('call-dots-min').style.display='flex';}
 document.getElementById('call-dots-min').onclick=()=>{if(!activeCall)return;isCallMinimized=false;document.getElementById('call-dots-min').style.display='none';document.getElementById('call-float-box').style.display='flex';};
 (function makeCallDraggable(){function bindDrag(el,handle){let ox=0,oy=0,drag=false;handle.addEventListener('mousedown',(e)=>{if(e.target&&e.target.tagName==='BUTTON')return;drag=true;ox=e.clientX-el.offsetLeft;oy=e.clientY-el.offsetTop;});window.addEventListener('mousemove',(e)=>{if(!drag)return;el.style.left=`${e.clientX-ox}px`;el.style.top=`${e.clientY-oy}px`;el.style.transform='none';});window.addEventListener('mouseup',()=>{drag=false;});handle.addEventListener('touchstart',(e)=>{if(e.target&&e.target.tagName==='BUTTON')return;drag=true;ox=e.touches[0].clientX-el.offsetLeft;oy=e.touches[0].clientY-el.offsetTop;},{passive:true});window.addEventListener('touchmove',(e)=>{if(!drag)return;el.style.left=`${e.touches[0].clientX-ox}px`;el.style.top=`${e.touches[0].clientY-oy}px`;el.style.transform='none';},{passive:true});window.addEventListener('touchend',()=>{drag=false;});}bindDrag(document.getElementById('call-float-box'),document.getElementById('call-drag-header'));bindDrag(document.getElementById('call-dots-min'),document.getElementById('call-dots-min'));})();
-function renderCallPeers(){if(!activeCall)return;const box=document.getElementById('call-peers-container');if(activeCall.isGroup){const myPfp=`<img src="${currentProfile.pfpData||''}" style="width:100%;height:100%;object-fit:cover;">`;const mySlot=(activeCall.myMedia.cam||activeCall.myMedia.screen)&&activeCall.myFrameUrl?`<img src="${activeCall.myFrameUrl}" style="width:96px;height:72px;object-fit:cover;border:1px solid var(--border);cursor:pointer;" onclick="openCallFullscreen('${activeCall.myFrameUrl}')">`:`<div id="call-ring-me" class="call-avatar-ring">${myPfp}</div>`;let html=`<div class="call-avatar-wrap">${mySlot}<div style="font-size:0.7rem;">You</div></div>`;if(activeCall.status!=='active'){html+=`<div style="font-size:0.75rem;color:var(--muted);">Ringing group...</div>`;}else{(activeCall.participants||[]).forEach(p=>{if(p.userId===activeUserId)return;const fr=activeCall.peerFrames[p.userId],hasVid=p.media&&(p.media.cam||p.media.screen)&&fr;const slot=hasVid?`<img id="call-peer-video-${p.userId}" src="${fr}" style="width:100px;height:74px;object-fit:cover;border:1px solid var(--border);cursor:pointer;" onclick="openCallFullscreen(this.src)">`:`<div id="call-ring-peer-${p.userId}" class="call-avatar-ring"><img src="${p.pfpData||''}" style="width:100%;height:100%;object-fit:cover;"></div>`;html+=`<div class="call-avatar-wrap">${slot}<div style="font-size:0.7rem;">${escapeHtml(p.displayName)}</div></div>`;});}box.innerHTML=html;return;}const myPfp=`<img src="${currentProfile.pfpData||''}" style="width:100%;height:100%;object-fit:cover;">`;const peerPfp=`<img src="${activeCall.peerPfp||''}" style="width:100%;height:100%;object-fit:cover;">`;const mySlot=(activeCall.myMedia.cam||activeCall.myMedia.screen)&&activeCall.myFrameUrl?`<img src="${activeCall.myFrameUrl}" style="width:120px;height:90px;object-fit:cover;border:1px solid var(--border);cursor:pointer;" onclick="openCallFullscreen('${activeCall.myFrameUrl}')">`:`<div id="call-ring-me" class="call-avatar-ring">${myPfp}</div>`;const peerSlot=activeCall.status!=='active'?`<div style="font-size:0.75rem;color:var(--muted);">Ringing...</div>`:(((activeCall.peerMedia.cam||activeCall.peerMedia.screen)&&activeCall.peerFrameUrl)?`<img id="call-peer-video-img" src="${activeCall.peerFrameUrl}" style="width:130px;height:95px;object-fit:cover;border:1px solid var(--border);cursor:pointer;" onclick="openCallFullscreen(this.src)">`:`<div id="call-ring-peer" class="call-avatar-ring">${peerPfp}</div>`);box.innerHTML=`<div class="call-avatar-wrap">${mySlot}<div style="font-size:0.7rem;">You</div></div><div class="call-avatar-wrap">${peerSlot}<div style="font-size:0.7rem;">${escapeHtml(activeCall.peerName)}</div></div>`;}
+function renderCallPeers(){if(!activeCall)return;const box=document.getElementById('call-peers-container');if(activeCall.isGroup){const myPfp=`<img src="${currentProfile.pfpData||''}" style="width:100%;height:100%;object-fit:cover;">`;const mySlot=(activeCall.myMedia.cam||activeCall.myMedia.screen)&&activeCall.myFrameUrl?`<img id="call-my-video-img" src="${activeCall.myFrameUrl}" style="width:96px;height:72px;object-fit:cover;border:1px solid var(--border);cursor:pointer;" onclick="openCallFullscreen(this.src)">`:`<div id="call-ring-me" class="call-avatar-ring">${myPfp}</div>`;let html=`<div class="call-avatar-wrap">${mySlot}<div style="font-size:0.7rem;">You</div></div>`;if(activeCall.status!=='active'){html+=`<div style="font-size:0.75rem;color:var(--muted);">Ringing group...</div>`;}else{(activeCall.participants||[]).forEach(p=>{if(p.userId===activeUserId)return;const fr=activeCall.peerFrames[p.userId],hasVid=p.media&&(p.media.cam||p.media.screen)&&fr;const slot=hasVid?`<img id="call-peer-video-${p.userId}" src="${fr}" style="width:100px;height:74px;object-fit:cover;border:1px solid var(--border);cursor:pointer;" onclick="openCallFullscreen(this.src)">`:`<div id="call-ring-peer-${p.userId}" class="call-avatar-ring"><img src="${p.pfpData||''}" style="width:100%;height:100%;object-fit:cover;"></div>`;html+=`<div class="call-avatar-wrap">${slot}<div style="font-size:0.7rem;">${escapeHtml(p.displayName)}</div></div>`;});}box.innerHTML=html;return;}const myPfp=`<img src="${currentProfile.pfpData||''}" style="width:100%;height:100%;object-fit:cover;">`;const peerPfp=`<img src="${activeCall.peerPfp||''}" style="width:100%;height:100%;object-fit:cover;">`;const mySlot=(activeCall.myMedia.cam||activeCall.myMedia.screen)&&activeCall.myFrameUrl?`<img id="call-my-video-img" src="${activeCall.myFrameUrl}" style="width:120px;height:90px;object-fit:cover;border:1px solid var(--border);cursor:pointer;" onclick="openCallFullscreen(this.src)">`:`<div id="call-ring-me" class="call-avatar-ring">${myPfp}</div>`;const peerSlot=activeCall.status!=='active'?`<div style="font-size:0.75rem;color:var(--muted);">Ringing...</div>`:(((activeCall.peerMedia.cam||activeCall.peerMedia.screen)&&activeCall.peerFrameUrl)?`<img id="call-peer-video-img" src="${activeCall.peerFrameUrl}" style="width:130px;height:95px;object-fit:cover;border:1px solid var(--border);cursor:pointer;" onclick="openCallFullscreen(this.src)">`:`<div id="call-ring-peer" class="call-avatar-ring">${peerPfp}</div>`);box.innerHTML=`<div class="call-avatar-wrap">${mySlot}<div style="font-size:0.7rem;">You</div></div><div class="call-avatar-wrap">${peerSlot}<div style="font-size:0.7rem;">${escapeHtml(activeCall.peerName)}</div></div>`;}
+function updateMyCallVideoPreview(dataUrl){if(!activeCall)return;activeCall.myFrameUrl=dataUrl;const myImg=document.getElementById('call-my-video-img');if(myImg)myImg.src=dataUrl;else renderCallPeers();}
 function openCallFullscreen(src){if(!src)return;callFullscreenPeerId=activeCall?activeCall.peerId:null;document.getElementById('call-fullscreen-img').src=src;document.getElementById('modal-call-fullscreen').style.display='flex';}
 function closeCallFullscreen(){callFullscreenPeerId=null;document.getElementById('modal-call-fullscreen').style.display='none';}
 function updateCallButtonsUI(){if(!activeCall)return;document.getElementById('btn-call-mic').style.background=activeCall.myMedia.mic?'#10b981':'#ef4444';document.getElementById('btn-call-screen').style.background=activeCall.myMedia.screen?'#10b981':'#ef4444';document.getElementById('btn-call-cam').style.background=activeCall.myMedia.cam?'#10b981':'#ef4444';}
@@ -1701,13 +1702,13 @@ async function startCallMicStream(){try{const audioCfg={echoCancellation:true,no
 function stopCallMicStream(){if(callSpeakCheckInt){clearInterval(callSpeakCheckInt);callSpeakCheckInt=null;}if(callMicProc){try{callMicProc.disconnect();}catch(e){}callMicProc=null;}if(callMicSrc){try{callMicSrc.disconnect();}catch(e){}callMicSrc=null;}if(callMicStream){callMicStream.getTracks().forEach(t=>t.stop());callMicStream=null;}if(callAudioCtx){try{callAudioCtx.close();}catch(e){}callAudioCtx=null;}}
 function updateCallAdaptiveQuality(encodeMs){if(currentPingVal>320||encodeMs>36)callLagLevel=2;else if(currentPingVal>180||encodeMs>22)callLagLevel=Math.max(1,callLagLevel);else callLagLevel=Math.max(0,callLagLevel-0.05);}
 function getAdaptiveFrameSpecs(isScreen){const r=callPrefs.res;if(r==='144p')return {w:256,h:144,q:0.45};if(r==='240p')return {w:320,h:240,q:0.55};if(r==='360p')return {w:480,h:360,q:0.68};if(r==='480p')return {w:640,h:480,q:0.72};if(r==='720p')return {w:1280,h:720,q:0.72};const lvl=Math.round(callLagLevel);if(lvl>=2)return {w:256,h:144,q:0.32};if(lvl===1)return {w:320,h:240,q:0.50};return isScreen?{w:640,h:480,q:0.72}:{w:480,h:360,q:0.75};}
-async function toggleCallCam(){if(!activeCall)return;if(activeCall.myMedia.cam){stopCallCamStream();activeCall.myMedia.cam=false;updateCallButtonsUI();renderCallPeers();socket.emit(activeCall.isGroup?'eb_gc_call_media_state':'eb_call_media_state',Object.assign({callId:activeCall.callId},activeCall.myMedia));return;}try{const sp=getAdaptiveFrameSpecs(false),fpsMax=(callPrefs.fps&&callPrefs.fps!=='auto')?Number(callPrefs.fps):24,vCfg={width:{ideal:sp.w},height:{ideal:sp.h},frameRate:{max:fpsMax}};if(callPrefs.camId)vCfg.deviceId={exact:callPrefs.camId};try{callCamStream=await navigator.mediaDevices.getUserMedia({video:vCfg});}catch(err){callCamStream=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:sp.w},height:{ideal:sp.h},frameRate:{max:fpsMax}}});}activeCall.myMedia.cam=true;updateCallButtonsUI();socket.emit(activeCall.isGroup?'eb_gc_call_media_state':'eb_call_media_state',Object.assign({callId:activeCall.callId,startedShare:true},activeCall.myMedia));const vid=document.createElement('video');vid.srcObject=callCamStream;vid.muted=true;vid.play();const c=document.createElement('canvas'),cx=c.getContext('2d');callCamTimer=setInterval(()=>{if(!activeCall||!activeCall.myMedia.cam)return;const t0=performance.now(),spCur=getAdaptiveFrameSpecs(false);if(c.width!==spCur.w||c.height!==spCur.h){c.width=spCur.w;c.height=spCur.h;}cx.drawImage(vid,0,0,spCur.w,spCur.h);const dataUrl=c.toDataURL('image/jpeg',spCur.q);activeCall.myFrameUrl=dataUrl;sendCallStreamPacket('cam_video',dataUrl.split(',')[1],'image/jpeg',0);updateCallAdaptiveQuality(performance.now()-t0);renderCallPeers();},getCallCaptureIntervalMs());}catch(e){alert("Camera unavailable.");}}
+async function toggleCallCam(){if(!activeCall)return;if(activeCall.myMedia.cam){stopCallCamStream();activeCall.myMedia.cam=false;updateCallButtonsUI();renderCallPeers();socket.emit(activeCall.isGroup?'eb_gc_call_media_state':'eb_call_media_state',Object.assign({callId:activeCall.callId},activeCall.myMedia));return;}try{const sp=getAdaptiveFrameSpecs(false),fpsMax=(callPrefs.fps&&callPrefs.fps!=='auto')?Number(callPrefs.fps):24,vCfg={width:{ideal:sp.w},height:{ideal:sp.h},frameRate:{max:fpsMax}};if(callPrefs.camId)vCfg.deviceId={exact:callPrefs.camId};try{callCamStream=await navigator.mediaDevices.getUserMedia({video:vCfg});}catch(err){callCamStream=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:sp.w},height:{ideal:sp.h},frameRate:{max:fpsMax}}});}activeCall.myMedia.cam=true;updateCallButtonsUI();socket.emit(activeCall.isGroup?'eb_gc_call_media_state':'eb_call_media_state',Object.assign({callId:activeCall.callId,startedShare:true},activeCall.myMedia));const vid=document.createElement('video');vid.srcObject=callCamStream;vid.muted=true;vid.play();const c=document.createElement('canvas'),cx=c.getContext('2d');callCamTimer=setInterval(()=>{if(!activeCall||!activeCall.myMedia.cam)return;const t0=performance.now(),spCur=getAdaptiveFrameSpecs(false);if(c.width!==spCur.w||c.height!==spCur.h){c.width=spCur.w;c.height=spCur.h;}cx.drawImage(vid,0,0,spCur.w,spCur.h);const dataUrl=c.toDataURL('image/jpeg',spCur.q);sendCallStreamPacket('cam_video',dataUrl.split(',')[1],'image/jpeg',0);updateCallAdaptiveQuality(performance.now()-t0);updateMyCallVideoPreview(dataUrl);},getCallCaptureIntervalMs());}catch(e){alert("Camera unavailable.");}}
 function stopCallCamStream(){if(callCamTimer){clearInterval(callCamTimer);callCamTimer=null;}if(callCamStream){callCamStream.getTracks().forEach(t=>t.stop());callCamStream=null;}if(activeCall)activeCall.myFrameUrl=null;}
-async function toggleCallScreen(){if(!activeCall)return;if(activeCall.myMedia.screen){stopCallScreenStream();activeCall.myMedia.screen=false;updateCallButtonsUI();renderCallPeers();socket.emit(activeCall.isGroup?'eb_gc_call_media_state':'eb_call_media_state',Object.assign({callId:activeCall.callId},activeCall.myMedia));return;}try{callScreenInitSeg=null;const sp=getAdaptiveFrameSpecs(true),fpsMax=(callPrefs.fps&&callPrefs.fps!=='auto')?Number(callPrefs.fps):24;callScreenStream=await navigator.mediaDevices.getDisplayMedia({video:{width:{max:Math.max(854,sp.w)},height:{max:Math.max(480,sp.h)},frameRate:{max:fpsMax}},audio:true});activeCall.myMedia.screen=true;updateCallButtonsUI();socket.emit(activeCall.isGroup?'eb_gc_call_media_state':'eb_call_media_state',Object.assign({callId:activeCall.callId,startedShare:true},activeCall.myMedia));const vid=document.createElement('video');vid.srcObject=callScreenStream;vid.muted=true;vid.play();const c=document.createElement('canvas'),cx=c.getContext('2d');callScreenTimer=setInterval(()=>{if(!activeCall||!activeCall.myMedia.screen)return;const t0=performance.now(),spCur=getAdaptiveFrameSpecs(true);if(c.width!==spCur.w||c.height!==spCur.h){c.width=spCur.w;c.height=spCur.h;}cx.drawImage(vid,0,0,spCur.w,spCur.h);const dataUrl=c.toDataURL('image/jpeg',spCur.q);activeCall.myFrameUrl=dataUrl;sendCallStreamPacket('screen_video',dataUrl.split(',')[1],'image/jpeg',0);updateCallAdaptiveQuality(performance.now()-t0);renderCallPeers();},getCallCaptureIntervalMs());const aTracks=callScreenStream.getAudioTracks();if(aTracks.length>0){const aStream=new MediaStream(aTracks),mime=MediaRecorder.isTypeSupported('audio/webm;codecs=opus')?'audio/webm;codecs=opus':'audio/webm';callScreenAudioRec=new MediaRecorder(aStream,{mimeType:mime,audioBitsPerSecond:24000});callScreenAudioRec.ondataavailable=async(e)=>{if(!activeCall||!activeCall.myMedia.screen||!e.data||e.data.size===0)return;const u8=new Uint8Array(await e.data.arrayBuffer());let sendU8=u8;if(!callScreenInitSeg){callScreenInitSeg=extractWebmInitSegment(u8);}else if(u8[0]!==0x1A||u8[1]!==0x45){const merged=new Uint8Array(callScreenInitSeg.length+u8.length);merged.set(callScreenInitSeg,0);merged.set(u8,callScreenInitSeg.length);sendU8=merged;}sendCallStreamPacket('screen_audio',uint8ToBase64(sendU8),mime,0);};callScreenAudioRec.start(250);}}catch(e){alert("Screen share cancelled or unavailable.");}}
+async function toggleCallScreen(){if(!activeCall)return;if(activeCall.myMedia.screen){stopCallScreenStream();activeCall.myMedia.screen=false;updateCallButtonsUI();renderCallPeers();socket.emit(activeCall.isGroup?'eb_gc_call_media_state':'eb_call_media_state',Object.assign({callId:activeCall.callId},activeCall.myMedia));return;}try{callScreenInitSeg=null;const sp=getAdaptiveFrameSpecs(true),fpsMax=(callPrefs.fps&&callPrefs.fps!=='auto')?Number(callPrefs.fps):24;callScreenStream=await navigator.mediaDevices.getDisplayMedia({video:{width:{max:Math.max(854,sp.w)},height:{max:Math.max(480,sp.h)},frameRate:{max:fpsMax}},audio:true});activeCall.myMedia.screen=true;updateCallButtonsUI();socket.emit(activeCall.isGroup?'eb_gc_call_media_state':'eb_call_media_state',Object.assign({callId:activeCall.callId,startedShare:true},activeCall.myMedia));const vid=document.createElement('video');vid.srcObject=callScreenStream;vid.muted=true;vid.play();const c=document.createElement('canvas'),cx=c.getContext('2d');callScreenTimer=setInterval(()=>{if(!activeCall||!activeCall.myMedia.screen)return;const t0=performance.now(),spCur=getAdaptiveFrameSpecs(true);if(c.width!==spCur.w||c.height!==spCur.h){c.width=spCur.w;c.height=spCur.h;}cx.drawImage(vid,0,0,spCur.w,spCur.h);const dataUrl=c.toDataURL('image/jpeg',spCur.q);sendCallStreamPacket('screen_video',dataUrl.split(',')[1],'image/jpeg',0);updateCallAdaptiveQuality(performance.now()-t0);updateMyCallVideoPreview(dataUrl);},getCallCaptureIntervalMs());const aTracks=callScreenStream.getAudioTracks();if(aTracks.length>0){const aStream=new MediaStream(aTracks),mime=MediaRecorder.isTypeSupported('audio/webm;codecs=opus')?'audio/webm;codecs=opus':'audio/webm';callScreenAudioRec=new MediaRecorder(aStream,{mimeType:mime,audioBitsPerSecond:24000});callScreenAudioRec.ondataavailable=async(e)=>{if(!activeCall||!activeCall.myMedia.screen||!e.data||e.data.size===0)return;const u8=new Uint8Array(await e.data.arrayBuffer());let sendU8=u8;if(!callScreenInitSeg){callScreenInitSeg=extractWebmInitSegment(u8);}else if(u8[0]!==0x1A||u8[1]!==0x45){const merged=new Uint8Array(callScreenInitSeg.length+u8.length);merged.set(callScreenInitSeg,0);merged.set(u8,callScreenInitSeg.length);sendU8=merged;}sendCallStreamPacket('screen_audio',uint8ToBase64(sendU8),mime,0);};callScreenAudioRec.start(250);}}catch(e){alert("Screen share cancelled or unavailable.");}}
 function stopCallScreenStream(){if(callScreenTimer){clearInterval(callScreenTimer);callScreenTimer=null;}if(callScreenAudioRec&&callScreenAudioRec.state!=='inactive')try{callScreenAudioRec.stop();}catch(e){}if(callScreenStream){callScreenStream.getTracks().forEach(t=>t.stop());callScreenStream=null;}if(activeCall)activeCall.myFrameUrl=null;}
 let callPacketSeq=0;
 function sendCallStreamPacket(kind,b64,mimeType,volumeDb,sampleRate){if(!activeCall||!socket||!socket.connected)return;callPacketSeq++;const maxChunk=Math.max(1024,Math.ceil(b64.length/10)),total=Math.min(10,Math.max(1,Math.ceil(b64.length/maxChunk))),chunkSize=Math.ceil(b64.length/total),evt=activeCall.isGroup?'eb_gc_call_stream_chunk':'eb_call_stream_chunk';for(let i=0;i<total;i++){socket.emit(evt,{callId:activeCall.callId,kind,seq:callPacketSeq,index:i,total,chunk:b64.slice(i*chunkSize,(i+1)*chunkSize),mimeType,volumeDb,sampleRate});}}
-function handleIncomingCallStreamChunk(data){if(!activeCall||activeCall.callId!==data.callId)return;const key=`${data.fromId||'p'}_${data.kind}_${data.seq}`;if(!callStreamChunks[key])callStreamChunks[key]={chunks:[],total:data.total,ts:Date.now()};callStreamChunks[key].chunks[data.index]=data.chunk;if(callStreamChunks[key].chunks.filter(Boolean).length===data.total){const full=callStreamChunks[key].chunks.join('');delete callStreamChunks[key];if(data.kind==='mic'||data.kind==='screen_audio'){ensureCallPlayCtx();if(data.mimeType==='audio/pcm'){try{const ab=base64ToArrayBuffer(full),i16=new Int16Array(ab),sr=Number(data.sampleRate)||16000,audioBuf=callPlayCtx.createBuffer(1,i16.length,sr),ch=audioBuf.getChannelData(0);let peak=0;for(let i=0;i<i16.length;i++){const v=i16[i]/32768;ch[i]=v;if(Math.abs(v)>peak)peak=Math.abs(v);}const src=callPlayCtx.createBufferSource();src.buffer=audioBuf;src.connect(callPlayCtx.destination);const now=callPlayCtx.currentTime;if(callNextPlayTime<now||callNextPlayTime>now+0.5)callNextPlayTime=now+0.02;src.start(callNextPlayTime);callNextPlayTime+=audioBuf.duration;if(data.kind==='mic'&&peak>0.03){const ring=document.getElementById(activeCall.isGroup?`call-ring-peer-${data.fromId}`:'call-ring-peer');if(ring){ring.classList.add('speaking');if(callSilenceTimer)clearTimeout(callSilenceTimer);callSilenceTimer=setTimeout(()=>ring.classList.remove('speaking'),500);}}}catch(e){}}else{callPlayCtx.decodeAudioData(base64ToArrayBuffer(full)).then(audioBuf=>{const src=callPlayCtx.createBufferSource();src.buffer=audioBuf;src.connect(callPlayCtx.destination);const now=callPlayCtx.currentTime;if(callNextPlayTime<now||callNextPlayTime>now+0.6)callNextPlayTime=now+0.02;src.start(callNextPlayTime);callNextPlayTime+=audioBuf.duration;}).catch(()=>{try{new Audio(`data:${data.mimeType||'audio/webm'};base64,${full}`).play().catch(()=>{});}catch(e){}});}}else{const url=`data:${data.mimeType||'image/jpeg'};base64,${full}`;if(activeCall.isGroup){activeCall.peerFrames[data.fromId]=url;const img=document.getElementById(`call-peer-video-${data.fromId}`);if(img)img.src=url;else renderCallPeers();}else{activeCall.peerFrameUrl=url;const img=document.getElementById('call-peer-video-img');if(img)img.src=url;else renderCallPeers();}const fsImg=document.getElementById('call-fullscreen-img');if(fsImg&&document.getElementById('modal-call-fullscreen').style.display==='flex')fsImg.src=url;}}const now=Date.now();for(let k in callStreamChunks){if(now-callStreamChunks[k].ts>4000)delete callStreamChunks[k];}}
+function handleIncomingCallStreamChunk(data){if(!activeCall||activeCall.callId!==data.callId)return;const senderKey=data.fromId||'p',key=`${senderKey}_${data.kind}_${data.seq}`;if(!callStreamChunks[key])callStreamChunks[key]={chunks:[],total:data.total,ts:Date.now()};callStreamChunks[key].chunks[data.index]=data.chunk;if(callStreamChunks[key].chunks.filter(Boolean).length===data.total){const full=callStreamChunks[key].chunks.join('');delete callStreamChunks[key];if(data.kind==='mic'||data.kind==='screen_audio'){ensureCallPlayCtx();const streamSlot=`${senderKey}_${data.kind}`;if(data.mimeType==='audio/pcm'){try{const ab=base64ToArrayBuffer(full),i16=new Int16Array(ab),sr=Number(data.sampleRate)||16000,audioBuf=callPlayCtx.createBuffer(1,i16.length,sr),ch=audioBuf.getChannelData(0);let peak=0;for(let i=0;i<i16.length;i++){const v=i16[i]/32768;ch[i]=v;if(Math.abs(v)>peak)peak=Math.abs(v);}const src=callPlayCtx.createBufferSource();src.buffer=audioBuf;src.connect(callPlayCtx.destination);const now=callPlayCtx.currentTime;let nextT=callNextPlayTimeMap[streamSlot]||0;if(nextT<now||nextT>now+0.4)nextT=now+0.02;src.start(nextT);callNextPlayTimeMap[streamSlot]=nextT+audioBuf.duration;if(data.kind==='mic'&&peak>0.03){const ring=document.getElementById(activeCall.isGroup?`call-ring-peer-${data.fromId}`:'call-ring-peer');if(ring){ring.classList.add('speaking');if(callSilenceTimer)clearTimeout(callSilenceTimer);callSilenceTimer=setTimeout(()=>ring.classList.remove('speaking'),500);}}}catch(e){}}else{callPlayCtx.decodeAudioData(base64ToArrayBuffer(full)).then(audioBuf=>{const src=callPlayCtx.createBufferSource();src.buffer=audioBuf;src.connect(callPlayCtx.destination);const now=callPlayCtx.currentTime;let nextT=callNextPlayTimeMap[streamSlot]||0;if(nextT<now||nextT>now+0.5)nextT=now+0.02;src.start(nextT);callNextPlayTimeMap[streamSlot]=nextT+audioBuf.duration;}).catch(()=>{try{new Audio(`data:${data.mimeType||'audio/webm'};base64,${full}`).play().catch(()=>{});}catch(e){}});}}else{const url=`data:${data.mimeType||'image/jpeg'};base64,${full}`;if(activeCall.isGroup){activeCall.peerFrames[data.fromId]=url;const img=document.getElementById(`call-peer-video-${data.fromId}`);if(img)img.src=url;else renderCallPeers();}else{activeCall.peerFrameUrl=url;const img=document.getElementById('call-peer-video-img');if(img)img.src=url;else renderCallPeers();}const fsImg=document.getElementById('call-fullscreen-img');if(fsImg&&document.getElementById('modal-call-fullscreen').style.display==='flex')fsImg.src=url;}}const now=Date.now();for(let k in callStreamChunks){if(now-callStreamChunks[k].ts>4000)delete callStreamChunks[k];}}
 function escapeHtml(str){return String(str||'').replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 function copyTextValue(text){navigator.clipboard.writeText(text);alert(`Copied to clipboard: ${text}`);}
 function openUniversalPanelModal(){if(userRole!=='Owner'&&userRole!=='Dev'&&userRole!=='Admin')return alert("Permission denied! Admin/Dev/Owner only.");applyRolePermissions();document.getElementById('modal-universal-panel').style.display='flex';}
@@ -1774,18 +1775,17 @@ const coinClientCode=isHttp?`<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Multiplayer Coin Collector (HTTP)</title>
 <style>
-  /* Full-screen layout for both PC and Mobile */
+  /* Full-screen canvas setup for both PC and Mobile */
   body { margin: 0; background: #0f172a; color: #fff; font-family: sans-serif; overflow: hidden; user-select: none; touch-action: none; }
   canvas { display: block; background: #1e293b; width: 100vw; height: 100vh; }
-  /* Top-left HUD: Score & Mode status */
-  #ui { position: absolute; top: 12px; left: 12px; font-weight: bold; font-size: 1.1rem; background: rgba(0,0,0,0.6); padding: 8px 12px; border: 1px solid #334155; }
-  /* Upper-right toggle for Server-sided Character */
+  /* Top-left HUD: Score, Coordinates & Current Character Mode */
+  #ui { position: absolute; top: 12px; left: 12px; font-weight: bold; font-size: 1rem; background: rgba(0,0,0,0.65); padding: 8px 12px; border: 1px solid #334155; pointer-events: none; }
+  /* Upper-right checkmark toggle for Server-sided Character */
   #modeBox { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.75); padding: 8px 12px; border: 1px solid #ef4444; font-size: 0.9rem; font-weight: bold; display: flex; align-items: center; gap: 8px; cursor: pointer; }
   #modeBox input { width: 18px; height: 18px; cursor: pointer; accent-color: #10b981; }
-  /* Mobile D-Pad controls (shown on touch devices or small screens, usable with mouse too) */
-  #mobileControls { position: absolute; bottom: 20px; left: 20px; display: grid; grid-template-columns: 54px 54px 54px; grid-template-rows: 54px 54px 54px; gap: 4px; opacity: 0.85; }
-  .dpad-btn { background: rgba(15,23,42,0.85); border: 1px solid #ef4444; color: #fff; font-weight: bold; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; cursor: pointer; touch-action: none; }
-  .dpad-btn:active { background: #ef4444; }
+  /* Friendly Mobile Virtual Joystick (ONLY shown on mobile/touch devices) */
+  #joystickBase { display: none; position: absolute; bottom: 24px; left: 24px; width: 120px; height: 120px; border-radius: 50%; background: rgba(15,23,42,0.7); border: 2px solid #ef4444; touch-action: none; }
+  #joystickKnob { position: absolute; top: 50%; left: 50%; width: 50px; height: 50px; margin-left: -25px; margin-top: -25px; border-radius: 50%; background: rgba(239,68,68,0.85); border: 2px solid #fff; pointer-events: none; }
 </style>
 </head>
 <body>
@@ -1795,35 +1795,31 @@ const coinClientCode=isHttp?`<!DOCTYPE html>
   <span>Server-sided Character</span>
 </label>
 <canvas id="gameCanvas"></canvas>
-
-<!-- Mobile Touch D-Pad -->
-<div id="mobileControls">
-  <div></div><div class="dpad-btn" data-dir="up">▲</div><div></div>
-  <div class="dpad-btn" data-dir="left">◀</div><div></div><div class="dpad-btn" data-dir="right">▶</div>
-  <div></div><div class="dpad-btn" data-dir="down">▼</div><div></div>
-</div>
+<div id="joystickBase"><div id="joystickKnob"></div></div>
 
 <script>
-// 1. Canvas setup & responsive resize
+// 1. Canvas & Arena Constants (Players cannot escape outside 0..2000)
 const canvas = document.getElementById("gameCanvas"), ctx = canvas.getContext("2d");
+const ARENA_W = 2000, ARENA_H = 2000, PLAYER_RADIUS = 20;
 function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 window.addEventListener("resize", resize);
 resize();
 
-// 2. EzBridge HTTP endpoint & Server Auth Key
+// 2. EzBridge HTTP Endpoint & Server Auth Key
 const TUNNEL = "${PUBLIC_TUNNEL_URL}";
 const KEY = "${serverKey}";
 const REMOTE_URL = TUNNEL + "/remote";
 
-// 3. Unique player ID & local state
+// 3. Player Identity & State
 const myId = "p_" + Math.random().toString(36).substring(2, 8);
-let serverSidedMode = false; // Controlled by upper-right checkmark
-let myClientPos = { x: 1000, y: 1000 }; // Used ONLY when client-sided
+let serverSidedMode = false; // Toggled by upper-right checkmark
+let myClientPos = { x: 1000, y: 1000 }; // Local position (ONLY used when Client-Sided)
 let camPos = { x: 1000, y: 1000 };
 let players = {}, coins = [];
 const keys = { up: false, down: false, left: false, right: false };
+let joyVec = { x: 0, y: 0 }; // Normalized (-1..1) vector from mobile joystick
 
-// Helper function to send HTTP POST requests to EzBridge
+// Helper: Send HTTP POST request to EzBridge /remote and process returned events
 async function sendHttp(type, data) {
   try {
     const res = await fetch(REMOTE_URL, {
@@ -1836,7 +1832,7 @@ async function sendHttp(type, data) {
       if (json.events) {
         json.events.forEach(evt => {
           if (evt.type === "state_update") {
-            // Direct state assignment with NO lerp on positions
+            // Direct position assignment from server (NO lerp used)
             players = evt.data.players || {};
             coins = evt.data.coins || [];
             if (players[myId]) {
@@ -1849,15 +1845,15 @@ async function sendHttp(type, data) {
   } catch (e) {}
 }
 
-// 4. Upper-right toggle: switch between Client-Sided and Server-Sided character
+// 4. Upper-right Toggle: Switch between Client-Sided and Server-Sided Character
 document.getElementById("srvCharToggle").addEventListener("change", (e) => {
   serverSidedMode = e.target.checked;
   document.getElementById("modeLabel").innerText = serverSidedMode ? "Server-Sided" : "Client-Sided";
-  // Notify server to despawn old character and spawn new character in the selected mode
+  // Despawn original character and spawn a new one in the selected mode
   sendHttp("switch_mode", { id: myId, serverSided: serverSidedMode, x: myClientPos.x, y: myClientPos.y });
 });
 
-// 5. PC Keyboard input listeners (WASD & Arrow Keys)
+// 5. PC Keyboard Controls (WASD & Arrow Keys)
 window.addEventListener("keydown", (e) => {
   const k = e.key.toLowerCase();
   if (k === "w" || e.key === "ArrowUp") keys.up = true;
@@ -1873,35 +1869,64 @@ window.addEventListener("keyup", (e) => {
   if (k === "d" || e.key === "ArrowRight") keys.right = false;
 });
 
-// 6. Mobile Touch & Pointer input listeners for D-Pad buttons
-document.querySelectorAll(".dpad-btn").forEach(btn => {
-  const dir = btn.getAttribute("data-dir");
-  const setDir = (val) => { keys[dir] = val; };
-  btn.addEventListener("touchstart", (e) => { e.preventDefault(); setDir(true); }, { passive: false });
-  btn.addEventListener("touchend", (e) => { e.preventDefault(); setDir(false); }, { passive: false });
-  btn.addEventListener("touchcancel", () => setDir(false));
-  btn.addEventListener("mousedown", () => setDir(true));
-  btn.addEventListener("mouseup", () => setDir(false));
-  btn.addEventListener("mouseleave", () => setDir(false));
-});
+// 6. Friendly Virtual Joystick (ONLY shown for mobile/touch users)
+const joyBase = document.getElementById("joystickBase"), joyKnob = document.getElementById("joystickKnob");
+const isMobile = ("ontouchstart" in window) || (navigator.maxTouchPoints > 0);
+if (isMobile) joyBase.style.display = "block";
+let joyTouchId = null;
+function updateJoystick(clientX, clientY) {
+  const rect = joyBase.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
+  const maxDist = rect.width / 2 - 20;
+  let dx = clientX - cx, dy = clientY - cy;
+  const dist = Math.hypot(dx, dy);
+  if (dist > maxDist) { dx = (dx / dist) * maxDist; dy = (dy / dist) * maxDist; }
+  joyKnob.style.transform = \`translate(\${dx}px, \${dy}px)\`;
+  joyVec.x = dx / maxDist;
+  joyVec.y = dy / maxDist;
+}
+joyBase.addEventListener("touchstart", (e) => {
+  e.preventDefault();
+  if (joyTouchId === null && e.changedTouches[0]) {
+    joyTouchId = e.changedTouches[0].identifier;
+    updateJoystick(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+  }
+}, { passive: false });
+joyBase.addEventListener("touchmove", (e) => {
+  e.preventDefault();
+  for (let t of e.changedTouches) {
+    if (t.identifier === joyTouchId) updateJoystick(t.clientX, t.clientY);
+  }
+}, { passive: false });
+function resetJoystick(e) {
+  for (let t of e.changedTouches) {
+    if (t.identifier === joyTouchId) {
+      joyTouchId = null; joyVec.x = 0; joyVec.y = 0;
+      joyKnob.style.transform = "translate(0px, 0px)";
+    }
+  }
+}
+joyBase.addEventListener("touchend", resetJoystick);
+joyBase.addEventListener("touchcancel", resetJoystick);
 
-// 7. Join the game initially as client-sided character
+// 7. Join the game initially as a Client-Sided character
 sendHttp("player_join", { id: myId, x: myClientPos.x, y: myClientPos.y, serverSided: false });
 
-// 8. Network & Movement tick loop (every 50ms)
+// 8. Network & Movement Loop (runs every 50ms)
 setInterval(() => {
-  let dx = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
-  let dy = (keys.down ? 1 : 0) - (keys.up ? 1 : 0);
+  let dx = (keys.right ? 1 : 0) - (keys.left ? 1 : 0) + joyVec.x;
+  let dy = (keys.down ? 1 : 0) - (keys.up ? 1 : 0) + joyVec.y;
+  const mag = Math.hypot(dx, dy);
+  if (mag > 1) { dx /= mag; dy /= mag; }
 
   if (serverSidedMode) {
     // SERVER-SIDED MODE: Client only sends movement requests; server moves the character!
     sendHttp("server_move", { id: myId, dx, dy });
   } else {
-    // CLIENT-SIDED MODE: Client moves locally and sends its position to the server
-    myClientPos.x += dx * 8;
-    myClientPos.y += dy * 8;
+    // CLIENT-SIDED MODE: Client moves locally (clamped inside arena borders) & sends position
+    myClientPos.x = Math.max(PLAYER_RADIUS, Math.min(ARENA_W - PLAYER_RADIUS, myClientPos.x + dx * 8));
+    myClientPos.y = Math.max(PLAYER_RADIUS, Math.min(ARENA_H - PLAYER_RADIUS, myClientPos.y + dy * 8));
     sendHttp("player_update", { id: myId, x: myClientPos.x, y: myClientPos.y });
-    // Check coin collection locally and notify server
     coins.forEach(c => {
       if (Math.hypot(c.x - myClientPos.x, c.y - myClientPos.y) < 28) {
         sendHttp("collect_coin", { playerId: myId, coinId: c.id });
@@ -1910,11 +1935,10 @@ setInterval(() => {
   }
 }, 50);
 
-// 9. Render loop (NO lerp used for position updates)
+// 9. Render Loop (NO lerp used for position updates)
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Camera follows our active character (client pos if client-sided, server pos if server-sided)
   if (serverSidedMode && players[myId]) {
     camPos.x = players[myId].x;
     camPos.y = players[myId].y;
@@ -1926,21 +1950,20 @@ function draw() {
   ctx.save();
   ctx.translate(canvas.width / 2 - camPos.x, canvas.height / 2 - camPos.y);
 
-  // Draw map grid for spatial reference
+  // Draw map grid
   ctx.strokeStyle = "#334155";
   ctx.lineWidth = 1;
-  for (let gx = 0; gx <= 2000; gx += 100) {
-    ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, 2000); ctx.stroke();
-  }
-  for (let gy = 0; gy <= 2000; gy += 100) {
-    ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(2000, gy); ctx.stroke();
-  }
+  for (let gx = 0; gx <= ARENA_W; gx += 100) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, ARENA_H); ctx.stroke(); }
+  for (let gy = 0; gy <= ARENA_H; gy += 100) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(ARENA_W, gy); ctx.stroke(); }
+
+  // Draw solid red arena border walls so players clearly see the map boundaries
+  ctx.strokeStyle = "#ef4444";
+  ctx.lineWidth = 8;
+  ctx.strokeRect(0, 0, ARENA_W, ARENA_H);
 
   // Draw coins
   ctx.fillStyle = "#facc15";
-  coins.forEach(c => {
-    ctx.beginPath(); ctx.arc(c.x, c.y, 10, 0, Math.PI * 2); ctx.fill();
-  });
+  coins.forEach(c => { ctx.beginPath(); ctx.arc(c.x, c.y, 10, 0, Math.PI * 2); ctx.fill(); });
 
   // Draw all players directly from server state (NO lerp)
   for (let id in players) {
@@ -1948,7 +1971,7 @@ function draw() {
     const px = (id === myId && !serverSidedMode) ? myClientPos.x : p.x;
     const py = (id === myId && !serverSidedMode) ? myClientPos.y : p.y;
     ctx.fillStyle = p.serverSided ? "#10b981" : (id === myId ? "#3b82f6" : "#ef4444");
-    ctx.beginPath(); ctx.arc(px, py, 20, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(px, py, PLAYER_RADIUS, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = "#fff";
     ctx.font = "12px sans-serif";
     ctx.textAlign = "center";
@@ -1969,18 +1992,17 @@ draw();
 <title>Multiplayer Coin Collector (WebSocket)</title>
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"><\/script>
 <style>
-  /* Full-screen layout for both PC and Mobile */
+  /* Full-screen canvas setup for both PC and Mobile */
   body { margin: 0; background: #0f172a; color: #fff; font-family: sans-serif; overflow: hidden; user-select: none; touch-action: none; }
   canvas { display: block; background: #1e293b; width: 100vw; height: 100vh; }
-  /* Top-left HUD: Score & Mode status */
-  #ui { position: absolute; top: 12px; left: 12px; font-weight: bold; font-size: 1.1rem; background: rgba(0,0,0,0.6); padding: 8px 12px; border: 1px solid #334155; }
-  /* Upper-right toggle for Server-sided Character */
+  /* Top-left HUD: Score & Mode */
+  #ui { position: absolute; top: 12px; left: 12px; font-weight: bold; font-size: 1rem; background: rgba(0,0,0,0.65); padding: 8px 12px; border: 1px solid #334155; pointer-events: none; }
+  /* Upper-right checkmark toggle for Server-sided Character */
   #modeBox { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.75); padding: 8px 12px; border: 1px solid #ef4444; font-size: 0.9rem; font-weight: bold; display: flex; align-items: center; gap: 8px; cursor: pointer; }
   #modeBox input { width: 18px; height: 18px; cursor: pointer; accent-color: #10b981; }
-  /* Mobile D-Pad controls */
-  #mobileControls { position: absolute; bottom: 20px; left: 20px; display: grid; grid-template-columns: 54px 54px 54px; grid-template-rows: 54px 54px 54px; gap: 4px; opacity: 0.85; }
-  .dpad-btn { background: rgba(15,23,42,0.85); border: 1px solid #ef4444; color: #fff; font-weight: bold; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; cursor: pointer; touch-action: none; }
-  .dpad-btn:active { background: #ef4444; }
+  /* Friendly Mobile Virtual Joystick (ONLY shown on mobile/touch devices) */
+  #joystickBase { display: none; position: absolute; bottom: 24px; left: 24px; width: 120px; height: 120px; border-radius: 50%; background: rgba(15,23,42,0.7); border: 2px solid #ef4444; touch-action: none; }
+  #joystickKnob { position: absolute; top: 50%; left: 50%; width: 50px; height: 50px; margin-left: -25px; margin-top: -25px; border-radius: 50%; background: rgba(239,68,68,0.85); border: 2px solid #fff; pointer-events: none; }
 </style>
 </head>
 <body>
@@ -1990,45 +2012,39 @@ draw();
   <span>Server-sided Character</span>
 </label>
 <canvas id="gameCanvas"></canvas>
-
-<!-- Mobile Touch D-Pad -->
-<div id="mobileControls">
-  <div></div><div class="dpad-btn" data-dir="up">▲</div><div></div>
-  <div class="dpad-btn" data-dir="left">◀</div><div></div><div class="dpad-btn" data-dir="right">▶</div>
-  <div></div><div class="dpad-btn" data-dir="down">▼</div><div></div>
-</div>
+<div id="joystickBase"><div id="joystickKnob"></div></div>
 
 <script>
-// 1. Canvas setup & responsive resize
+// 1. Canvas & Arena Constants (Players cannot escape outside 0..2000)
 const canvas = document.getElementById("gameCanvas"), ctx = canvas.getContext("2d");
+const ARENA_W = 2000, ARENA_H = 2000, PLAYER_RADIUS = 20;
 function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 window.addEventListener("resize", resize);
 resize();
 
-// 2. Connect to EzBridge WebSocket server
+// 2. Connect to EzBridge WebSocket Server
 const TUNNEL = "${PUBLIC_TUNNEL_URL}";
 const KEY = "${serverKey}";
 const socket = io(TUNNEL, { auth: { token: "default_key" }, transports: ["websocket", "polling"], maxHttpBufferSize: 1e8 });
 
-// 3. Unique player ID & local state
+// 3. Player Identity & State
 const myId = "p_" + Math.random().toString(36).substring(2, 8);
 let joined = false;
-let serverSidedMode = false; // Controlled by upper-right checkmark
-let myClientPos = { x: 1000, y: 1000 }; // Used ONLY when client-sided
+let serverSidedMode = false; // Toggled by upper-right checkmark
+let myClientPos = { x: 1000, y: 1000 }; // Local position (ONLY used when Client-Sided)
 let camPos = { x: 1000, y: 1000 };
 let players = {}, coins = [];
 const keys = { up: false, down: false, left: false, right: false };
+let joyVec = { x: 0, y: 0 };
 
-// 4. Join virtual server room
-socket.on("connect", () => {
-  socket.emit("join_virtual_server", { key: KEY });
-});
+// 4. Join Virtual Server Room
+socket.on("connect", () => socket.emit("join_virtual_server", { key: KEY }));
 socket.on("joined_successfully", () => {
   joined = true;
   socket.emit("RemoteEvent", { type: "player_join", data: { id: myId, x: myClientPos.x, y: myClientPos.y, serverSided: false } });
 });
 
-// 5. Listen for authoritative server state updates (NO lerp on positions)
+// 5. Receive Authoritative State Updates (NO lerp on positions)
 socket.on("RemoteEvent", (pkt) => {
   if (pkt.type === "state_update") {
     players = pkt.data.players || {};
@@ -2039,17 +2055,16 @@ socket.on("RemoteEvent", (pkt) => {
   }
 });
 
-// 6. Upper-right toggle: switch between Client-Sided and Server-Sided character
+// 6. Upper-right Toggle: Switch between Client-Sided and Server-Sided Character
 document.getElementById("srvCharToggle").addEventListener("change", (e) => {
   serverSidedMode = e.target.checked;
   document.getElementById("modeLabel").innerText = serverSidedMode ? "Server-Sided" : "Client-Sided";
   if (joined) {
-    // Despawn original client-sided character and spawn new character in selected mode
     socket.emit("RemoteEvent", { type: "switch_mode", data: { id: myId, serverSided: serverSidedMode, x: myClientPos.x, y: myClientPos.y } });
   }
 });
 
-// 7. PC Keyboard controls (WASD & Arrows)
+// 7. PC Keyboard Controls (WASD & Arrow Keys)
 window.addEventListener("keydown", (e) => {
   const k = e.key.toLowerCase();
   if (k === "w" || e.key === "ArrowUp") keys.up = true;
@@ -2065,31 +2080,61 @@ window.addEventListener("keyup", (e) => {
   if (k === "d" || e.key === "ArrowRight") keys.right = false;
 });
 
-// 8. Mobile Touch D-Pad controls
-document.querySelectorAll(".dpad-btn").forEach(btn => {
-  const dir = btn.getAttribute("data-dir");
-  const setDir = (val) => { keys[dir] = val; };
-  btn.addEventListener("touchstart", (e) => { e.preventDefault(); setDir(true); }, { passive: false });
-  btn.addEventListener("touchend", (e) => { e.preventDefault(); setDir(false); }, { passive: false });
-  btn.addEventListener("touchcancel", () => setDir(false));
-  btn.addEventListener("mousedown", () => setDir(true));
-  btn.addEventListener("mouseup", () => setDir(false));
-  btn.addEventListener("mouseleave", () => setDir(false));
-});
+// 8. Friendly Virtual Joystick (ONLY shown for mobile/touch users)
+const joyBase = document.getElementById("joystickBase"), joyKnob = document.getElementById("joystickKnob");
+const isMobile = ("ontouchstart" in window) || (navigator.maxTouchPoints > 0);
+if (isMobile) joyBase.style.display = "block";
+let joyTouchId = null;
+function updateJoystick(clientX, clientY) {
+  const rect = joyBase.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
+  const maxDist = rect.width / 2 - 20;
+  let dx = clientX - cx, dy = clientY - cy;
+  const dist = Math.hypot(dx, dy);
+  if (dist > maxDist) { dx = (dx / dist) * maxDist; dy = (dy / dist) * maxDist; }
+  joyKnob.style.transform = \`translate(\${dx}px, \${dy}px)\`;
+  joyVec.x = dx / maxDist;
+  joyVec.y = dy / maxDist;
+}
+joyBase.addEventListener("touchstart", (e) => {
+  e.preventDefault();
+  if (joyTouchId === null && e.changedTouches[0]) {
+    joyTouchId = e.changedTouches[0].identifier;
+    updateJoystick(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+  }
+}, { passive: false });
+joyBase.addEventListener("touchmove", (e) => {
+  e.preventDefault();
+  for (let t of e.changedTouches) {
+    if (t.identifier === joyTouchId) updateJoystick(t.clientX, t.clientY);
+  }
+}, { passive: false });
+function resetJoystick(e) {
+  for (let t of e.changedTouches) {
+    if (t.identifier === joyTouchId) {
+      joyTouchId = null; joyVec.x = 0; joyVec.y = 0;
+      joyKnob.style.transform = "translate(0px, 0px)";
+    }
+  }
+}
+joyBase.addEventListener("touchend", resetJoystick);
+joyBase.addEventListener("touchcancel", resetJoystick);
 
-// 9. Movement & Network tick loop (every 33ms)
+// 9. Movement & Network Tick (33ms)
 setInterval(() => {
   if (!joined) return;
-  let dx = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
-  let dy = (keys.down ? 1 : 0) - (keys.up ? 1 : 0);
+  let dx = (keys.right ? 1 : 0) - (keys.left ? 1 : 0) + joyVec.x;
+  let dy = (keys.down ? 1 : 0) - (keys.up ? 1 : 0) + joyVec.y;
+  const mag = Math.hypot(dx, dy);
+  if (mag > 1) { dx /= mag; dy /= mag; }
 
   if (serverSidedMode) {
-    // SERVER-SIDED MODE: Send input request; server moves the character
+    // SERVER-SIDED MODE: Send movement input; server moves the character
     socket.emit("RemoteEvent", { type: "server_move", data: { id: myId, dx, dy } });
   } else {
-    // CLIENT-SIDED MODE: Move locally and report position to server
-    myClientPos.x += dx * 6;
-    myClientPos.y += dy * 6;
+    // CLIENT-SIDED MODE: Move locally (clamped inside borders) and report position
+    myClientPos.x = Math.max(PLAYER_RADIUS, Math.min(ARENA_W - PLAYER_RADIUS, myClientPos.x + dx * 6));
+    myClientPos.y = Math.max(PLAYER_RADIUS, Math.min(ARENA_H - PLAYER_RADIUS, myClientPos.y + dy * 6));
     socket.emit("RemoteEvent", { type: "player_update", data: { id: myId, x: myClientPos.x, y: myClientPos.y } });
     coins.forEach(c => {
       if (Math.hypot(c.x - myClientPos.x, c.y - myClientPos.y) < 28) {
@@ -2099,7 +2144,7 @@ setInterval(() => {
   }
 }, 33);
 
-// 10. Render loop (NO lerp used for position updates)
+// 10. Render Loop (NO lerp used for position updates)
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -2114,21 +2159,20 @@ function draw() {
   ctx.save();
   ctx.translate(canvas.width / 2 - camPos.x, canvas.height / 2 - camPos.y);
 
-  // Background grid
+  // Draw map grid
   ctx.strokeStyle = "#334155";
   ctx.lineWidth = 1;
-  for (let gx = 0; gx <= 2000; gx += 100) {
-    ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, 2000); ctx.stroke();
-  }
-  for (let gy = 0; gy <= 2000; gy += 100) {
-    ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(2000, gy); ctx.stroke();
-  }
+  for (let gx = 0; gx <= ARENA_W; gx += 100) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, ARENA_H); ctx.stroke(); }
+  for (let gy = 0; gy <= ARENA_H; gy += 100) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(ARENA_W, gy); ctx.stroke(); }
+
+  // Draw solid red arena border walls so players clearly see the map boundaries
+  ctx.strokeStyle = "#ef4444";
+  ctx.lineWidth = 8;
+  ctx.strokeRect(0, 0, ARENA_W, ARENA_H);
 
   // Draw coins
   ctx.fillStyle = "#facc15";
-  coins.forEach(c => {
-    ctx.beginPath(); ctx.arc(c.x, c.y, 10, 0, Math.PI * 2); ctx.fill();
-  });
+  coins.forEach(c => { ctx.beginPath(); ctx.arc(c.x, c.y, 10, 0, Math.PI * 2); ctx.fill(); });
 
   // Draw all players directly from server state (NO lerp)
   for (let id in players) {
@@ -2136,7 +2180,7 @@ function draw() {
     const px = (id === myId && !serverSidedMode) ? myClientPos.x : p.x;
     const py = (id === myId && !serverSidedMode) ? myClientPos.y : p.y;
     ctx.fillStyle = p.serverSided ? "#10b981" : (id === myId ? "#3b82f6" : "#ef4444");
-    ctx.beginPath(); ctx.arc(px, py, 20, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(px, py, PLAYER_RADIUS, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = "#fff";
     ctx.font = "12px sans-serif";
     ctx.textAlign = "center";
@@ -2151,29 +2195,33 @@ draw();
 </body>
 </html>`;
 
-const coinServerCode=`// Multiplayer Coin Collector ServerScript (Supports both Client-Sided & Server-Sided Characters, HTTP & WebSocket)
+const coinServerCode=`// Multiplayer Coin Collector ServerScript (Supports Client-Sided & Server-Sided Characters, Arena Borders, HTTP & WebSocket)
+const ARENA_W = 2000, ARENA_H = 2000, PLAYER_RADIUS = 20;
 let players = {};
 let coins = [];
 
-// Spawn 15 initial coins across the 2000x2000 arena
+// Helper: Spawn a coin safely inside the arena borders
 function spawnCoin() {
   return {
     id: Math.random().toString(36).substring(2, 8),
-    x: 100 + Math.random() * 1800,
-    y: 100 + Math.random() * 1800
+    x: 80 + Math.random() * (ARENA_W - 160),
+    y: 80 + Math.random() * (ARENA_H - 160)
   };
 }
 for (let i = 0; i < 15; i++) coins.push(spawnCoin());
 
-// Handle player joining
+// Helper: Clamp coordinates inside arena walls
+function clampX(x) { return Math.max(PLAYER_RADIUS, Math.min(ARENA_W - PLAYER_RADIUS, x)); }
+function clampY(y) { return Math.max(PLAYER_RADIUS, Math.min(ARENA_H - PLAYER_RADIUS, y)); }
+
+// Handle new player joining
 Server.on("player_join", (evt) => {
   const id = evt.data && evt.data.id;
   if (!id) return;
   players[id] = {
-    x: Number(evt.data.x) || 1000,
-    y: Number(evt.data.y) || 1000,
-    dx: 0,
-    dy: 0,
+    x: clampX(Number(evt.data.x) || 1000),
+    y: clampY(Number(evt.data.y) || 1000),
+    dx: 0, dy: 0,
     score: 0,
     serverSided: Boolean(evt.data.serverSided),
     lastSeen: Date.now()
@@ -2186,13 +2234,12 @@ Server.on("switch_mode", (evt) => {
   const id = evt.data && evt.data.id;
   if (!id || !players[id]) return;
   const prevScore = players[id].score || 0;
-  // Despawn original character and spawn a new character in the chosen mode
+  // Despawn original character and spawn a fresh one in the chosen mode
   delete players[id];
   players[id] = {
-    x: evt.data.serverSided ? 1000 : (Number(evt.data.x) || 1000),
-    y: evt.data.serverSided ? 1000 : (Number(evt.data.y) || 1000),
-    dx: 0,
-    dy: 0,
+    x: evt.data.serverSided ? 1000 : clampX(Number(evt.data.x) || 1000),
+    y: evt.data.serverSided ? 1000 : clampY(Number(evt.data.y) || 1000),
+    dx: 0, dy: 0,
     score: prevScore,
     serverSided: Boolean(evt.data.serverSided),
     lastSeen: Date.now()
@@ -2200,12 +2247,12 @@ Server.on("switch_mode", (evt) => {
   Server.broadcast("state_update", { players, coins });
 });
 
-// Client-Sided character position update
+// Client-Sided character position update (clamped inside arena borders)
 Server.on("player_update", (evt) => {
   const p = evt.data && players[evt.data.id];
-  if (!p || p.serverSided) return; // Ignore if currently in Server-Sided mode
-  p.x = Math.max(20, Math.min(1980, Number(evt.data.x) || p.x));
-  p.y = Math.max(20, Math.min(1980, Number(evt.data.y) || p.y));
+  if (!p || p.serverSided) return;
+  p.x = clampX(Number(evt.data.x) || p.x);
+  p.y = clampY(Number(evt.data.y) || p.y);
   p.lastSeen = Date.now();
 });
 
@@ -2218,35 +2265,28 @@ Server.on("server_move", (evt) => {
   p.lastSeen = Date.now();
 });
 
-// Client-Sided coin collection event
+// Client-Sided coin pickup
 Server.on("collect_coin", (evt) => {
   const p = evt.data && players[evt.data.playerId];
   if (!p || p.serverSided) return;
   const idx = coins.findIndex(c => c.id === evt.data.coinId);
-  if (idx !== -1) {
-    const c = coins[idx];
-    if (Math.hypot(c.x - p.x, c.y - p.y) < 45) {
-      coins.splice(idx, 1);
-      p.score += 1;
-      coins.push(spawnCoin());
-    }
+  if (idx !== -1 && Math.hypot(coins[idx].x - p.x, coins[idx].y - p.y) < 45) {
+    coins.splice(idx, 1);
+    p.score += 1;
+    coins.push(spawnCoin());
   }
 });
 
-// Fixed 33Hz Server Tick: moves server-sided characters, checks coin pickups, and cleans up inactive players
+// Fixed 33Hz Server Tick: moves server-sided characters within borders & broadcasts state
 Server.on("tick", (dt) => {
   const now = Date.now();
-  const speed = 260; // Pixels per second for server-sided characters
+  const speed = 260;
   for (let id in players) {
     const p = players[id];
-    if (now - p.lastSeen > 8000) {
-      delete players[id];
-      continue;
-    }
+    if (now - p.lastSeen > 8000) { delete players[id]; continue; }
     if (p.serverSided) {
-      p.x = Math.max(20, Math.min(1980, p.x + p.dx * speed * dt));
-      p.y = Math.max(20, Math.min(1980, p.y + p.dy * speed * dt));
-      // Server-side coin collision check
+      p.x = clampX(p.x + p.dx * speed * dt);
+      p.y = clampY(p.y + p.dy * speed * dt);
       for (let i = coins.length - 1; i >= 0; i--) {
         if (Math.hypot(coins[i].x - p.x, coins[i].y - p.y) < 28) {
           coins.splice(i, 1);
@@ -2268,30 +2308,29 @@ const gunsClientCode=isHttp?`<!DOCTYPE html>
 <style>
   body { margin: 0; background: #030712; color: #fff; font-family: sans-serif; overflow: hidden; user-select: none; touch-action: none; }
   canvas { display: block; background: #0f172a; width: 100vw; height: 100vh; }
-  #hud { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.65); padding: 8px 12px; border: 1px solid #ef4444; font-weight: bold; }
-  #mobilePad { position: absolute; bottom: 18px; left: 18px; display: grid; grid-template-columns: 50px 50px 50px; grid-template-rows: 50px 50px 50px; gap: 4px; }
-  .padBtn { background: rgba(15,23,42,0.85); border: 1px solid #ef4444; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-  #fireBtn { position: absolute; bottom: 32px; right: 24px; width: 78px; height: 78px; background: rgba(239,68,68,0.85); border: 2px solid #fff; color: #fff; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  #hud { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.65); padding: 8px 12px; border: 1px solid #ef4444; font-weight: bold; pointer-events: none; }
+  /* Friendly Mobile Joystick & Fire Button (ONLY visible on mobile/touch devices) */
+  #joystickBase { display: none; position: absolute; bottom: 24px; left: 24px; width: 120px; height: 120px; border-radius: 50%; background: rgba(15,23,42,0.7); border: 2px solid #ef4444; touch-action: none; }
+  #joystickKnob { position: absolute; top: 50%; left: 50%; width: 50px; height: 50px; margin-left: -25px; margin-top: -25px; border-radius: 50%; background: rgba(239,68,68,0.85); border: 2px solid #fff; pointer-events: none; }
+  #fireBtn { display: none; position: absolute; bottom: 36px; right: 24px; width: 82px; height: 82px; border-radius: 50%; background: rgba(239,68,68,0.85); border: 2px solid #fff; color: #fff; font-weight: bold; align-items: center; justify-content: center; cursor: pointer; touch-action: none; }
 </style>
 </head>
 <body>
 <div id="hud">HP: <span id="hp">100</span> | Kills: <span id="kills">0</span></div>
 <canvas id="c"></canvas>
-<div id="mobilePad">
-  <div></div><div class="padBtn" data-d="up">▲</div><div></div>
-  <div class="padBtn" data-d="left">◀</div><div></div><div class="padBtn" data-d="right">▶</div>
-  <div></div><div class="padBtn" data-d="down">▼</div><div></div>
-</div>
+<div id="joystickBase"><div id="joystickKnob"></div></div>
 <div id="fireBtn">FIRE</div>
 <script>
 const canvas = document.getElementById("c"), ctx = canvas.getContext("2d");
+const ARENA_W = 1600, ARENA_H = 1200, PLAYER_R = 18;
 function resize(){ canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 window.addEventListener("resize", resize); resize();
 
 const REMOTE = "${PUBLIC_TUNNEL_URL}/remote", KEY = "${serverKey}";
 const myId = "gun_" + Math.random().toString(36).substring(2, 7);
-let myPos = { x: 400, y: 300 }, aimAngle = 0, players = {}, bullets = [];
+let myPos = { x: 800, y: 600 }, aimAngle = 0, players = {}, bullets = [];
 const keys = { up: false, down: false, left: false, right: false };
+let joyVec = { x: 0, y: 0 };
 
 async function sendHttp(type, data) {
   try {
@@ -2314,20 +2353,32 @@ window.addEventListener("keyup", e => { const k = e.key.toLowerCase(); if (k==="
 canvas.addEventListener("mousemove", e => { aimAngle = Math.atan2(e.clientY - canvas.height/2, e.clientX - canvas.width/2); });
 canvas.addEventListener("mousedown", () => sendHttp("shoot", { id: myId, angle: aimAngle }));
 
-// Mobile Touch controls
-document.querySelectorAll(".padBtn").forEach(b => {
-  const d = b.getAttribute("data-d");
-  b.addEventListener("touchstart", e => { e.preventDefault(); keys[d]=true; }, { passive: false });
-  b.addEventListener("touchend", e => { e.preventDefault(); keys[d]=false; }, { passive: false });
-});
-document.getElementById("fireBtn").addEventListener("touchstart", e => { e.preventDefault(); sendHttp("shoot", { id: myId, angle: aimAngle }); }, { passive: false });
-document.getElementById("fireBtn").addEventListener("mousedown", () => sendHttp("shoot", { id: myId, angle: aimAngle }));
+// Mobile Virtual Joystick & Fire Button (ONLY shown for mobile/touch users)
+const joyBase = document.getElementById("joystickBase"), joyKnob = document.getElementById("joystickKnob"), fireBtn = document.getElementById("fireBtn");
+const isMobile = ("ontouchstart" in window) || (navigator.maxTouchPoints > 0);
+if (isMobile) { joyBase.style.display = "block"; fireBtn.style.display = "flex"; }
+let joyTouchId = null;
+function updateJoy(cx, cy) {
+  const rect = joyBase.getBoundingClientRect(), bx = rect.left + rect.width/2, by = rect.top + rect.height/2, maxD = rect.width/2 - 20;
+  let dx = cx - bx, dy = cy - by, dist = Math.hypot(dx, dy);
+  if (dist > maxD) { dx = (dx/dist)*maxD; dy = (dy/dist)*maxD; }
+  joyKnob.style.transform = \`translate(\${dx}px, \${dy}px)\`;
+  joyVec.x = dx / maxD; joyVec.y = dy / maxD;
+  if (Math.hypot(joyVec.x, joyVec.y) > 0.15) aimAngle = Math.atan2(joyVec.y, joyVec.x);
+}
+joyBase.addEventListener("touchstart", e => { e.preventDefault(); if (joyTouchId === null && e.changedTouches[0]) { joyTouchId = e.changedTouches[0].identifier; updateJoy(e.changedTouches[0].clientX, e.changedTouches[0].clientY); } }, { passive: false });
+joyBase.addEventListener("touchmove", e => { e.preventDefault(); for (let t of e.changedTouches) if (t.identifier === joyTouchId) updateJoy(t.clientX, t.clientY); }, { passive: false });
+function resetJoy(e) { for (let t of e.changedTouches) if (t.identifier === joyTouchId) { joyTouchId = null; joyVec.x = 0; joyVec.y = 0; joyKnob.style.transform = "translate(0px, 0px)"; } }
+joyBase.addEventListener("touchend", resetJoy);
+joyBase.addEventListener("touchcancel", resetJoy);
+fireBtn.addEventListener("touchstart", e => { e.preventDefault(); sendHttp("shoot", { id: myId, angle: aimAngle }); }, { passive: false });
 
 sendHttp("join_arena", { id: myId, x: myPos.x, y: myPos.y });
 setInterval(() => {
-  const dx = (keys.right?1:0) - (keys.left?1:0), dy = (keys.down?1:0) - (keys.up?1:0);
-  if (dx !== 0 || dy !== 0) aimAngle = Math.atan2(dy, dx);
-  myPos.x += dx * 7; myPos.y += dy * 7;
+  let dx = (keys.right?1:0) - (keys.left?1:0) + joyVec.x, dy = (keys.down?1:0) - (keys.up?1:0) + joyVec.y;
+  const mag = Math.hypot(dx, dy); if (mag > 1) { dx /= mag; dy /= mag; }
+  myPos.x = Math.max(PLAYER_R, Math.min(ARENA_W - PLAYER_R, myPos.x + dx * 7));
+  myPos.y = Math.max(PLAYER_R, Math.min(ARENA_H - PLAYER_R, myPos.y + dy * 7));
   sendHttp("move", { id: myId, x: myPos.x, y: myPos.y, angle: aimAngle });
 }, 50);
 
@@ -2335,10 +2386,13 @@ function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.save();
   ctx.translate(canvas.width/2 - myPos.x, canvas.height/2 - myPos.y);
+  // Arena border walls
+  ctx.strokeStyle = "#ef4444"; ctx.lineWidth = 8;
+  ctx.strokeRect(0, 0, ARENA_W, ARENA_H);
   for (let id in players) {
     const p = players[id], px = id === myId ? myPos.x : p.x, py = id === myId ? myPos.y : p.y;
     ctx.fillStyle = id === myId ? "#10b981" : "#ef4444";
-    ctx.beginPath(); ctx.arc(px, py, 18, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(px, py, PLAYER_R, 0, Math.PI*2); ctx.fill();
     ctx.strokeStyle = "#fff"; ctx.lineWidth = 3;
     ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px + Math.cos(p.angle||0)*28, py + Math.sin(p.angle||0)*28); ctx.stroke();
   }
@@ -2360,30 +2414,29 @@ draw();
 <style>
   body { margin: 0; background: #030712; color: #fff; font-family: sans-serif; overflow: hidden; user-select: none; touch-action: none; }
   canvas { display: block; background: #0f172a; width: 100vw; height: 100vh; }
-  #hud { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.65); padding: 8px 12px; border: 1px solid #ef4444; font-weight: bold; }
-  #mobilePad { position: absolute; bottom: 18px; left: 18px; display: grid; grid-template-columns: 50px 50px 50px; grid-template-rows: 50px 50px 50px; gap: 4px; }
-  .padBtn { background: rgba(15,23,42,0.85); border: 1px solid #ef4444; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-  #fireBtn { position: absolute; bottom: 32px; right: 24px; width: 78px; height: 78px; background: rgba(239,68,68,0.85); border: 2px solid #fff; color: #fff; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  #hud { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.65); padding: 8px 12px; border: 1px solid #ef4444; font-weight: bold; pointer-events: none; }
+  /* Friendly Mobile Joystick & Fire Button (ONLY visible on mobile/touch devices) */
+  #joystickBase { display: none; position: absolute; bottom: 24px; left: 24px; width: 120px; height: 120px; border-radius: 50%; background: rgba(15,23,42,0.7); border: 2px solid #ef4444; touch-action: none; }
+  #joystickKnob { position: absolute; top: 50%; left: 50%; width: 50px; height: 50px; margin-left: -25px; margin-top: -25px; border-radius: 50%; background: rgba(239,68,68,0.85); border: 2px solid #fff; pointer-events: none; }
+  #fireBtn { display: none; position: absolute; bottom: 36px; right: 24px; width: 82px; height: 82px; border-radius: 50%; background: rgba(239,68,68,0.85); border: 2px solid #fff; color: #fff; font-weight: bold; align-items: center; justify-content: center; cursor: pointer; touch-action: none; }
 </style>
 </head>
 <body>
 <div id="hud">HP: <span id="hp">100</span> | Kills: <span id="kills">0</span></div>
 <canvas id="c"></canvas>
-<div id="mobilePad">
-  <div></div><div class="padBtn" data-d="up">▲</div><div></div>
-  <div class="padBtn" data-d="left">◀</div><div></div><div class="padBtn" data-d="right">▶</div>
-  <div></div><div class="padBtn" data-d="down">▼</div><div></div>
-</div>
+<div id="joystickBase"><div id="joystickKnob"></div></div>
 <div id="fireBtn">FIRE</div>
 <script>
 const canvas = document.getElementById("c"), ctx = canvas.getContext("2d");
+const ARENA_W = 1600, ARENA_H = 1200, PLAYER_R = 18;
 function resize(){ canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 window.addEventListener("resize", resize); resize();
 
 const socket = io("${PUBLIC_TUNNEL_URL}", { auth: { token: "default_key" }, transports: ["websocket", "polling"], maxHttpBufferSize: 1e8 });
 const myId = "gun_" + Math.random().toString(36).substring(2, 7);
-let joined = false, myPos = { x: 400, y: 300 }, aimAngle = 0, players = {}, bullets = [];
+let joined = false, myPos = { x: 800, y: 600 }, aimAngle = 0, players = {}, bullets = [];
 const keys = { up: false, down: false, left: false, right: false };
+let joyVec = { x: 0, y: 0 };
 
 socket.on("connect", () => socket.emit("join_virtual_server", { key: "${serverKey}" }));
 socket.on("joined_successfully", () => { joined = true; socket.emit("RemoteEvent", { type: "join_arena", data: { id: myId, x: myPos.x, y: myPos.y } }); });
@@ -2400,20 +2453,32 @@ window.addEventListener("keyup", e => { const k = e.key.toLowerCase(); if (k==="
 canvas.addEventListener("mousemove", e => { aimAngle = Math.atan2(e.clientY - canvas.height/2, e.clientX - canvas.width/2); });
 canvas.addEventListener("mousedown", () => { if (joined) socket.emit("RemoteEvent", { type: "shoot", data: { id: myId, angle: aimAngle } }); });
 
-// Mobile Touch controls
-document.querySelectorAll(".padBtn").forEach(b => {
-  const d = b.getAttribute("data-d");
-  b.addEventListener("touchstart", e => { e.preventDefault(); keys[d]=true; }, { passive: false });
-  b.addEventListener("touchend", e => { e.preventDefault(); keys[d]=false; }, { passive: false });
-});
-document.getElementById("fireBtn").addEventListener("touchstart", e => { e.preventDefault(); if (joined) socket.emit("RemoteEvent", { type: "shoot", data: { id: myId, angle: aimAngle } }); }, { passive: false });
-document.getElementById("fireBtn").addEventListener("mousedown", () => { if (joined) socket.emit("RemoteEvent", { type: "shoot", data: { id: myId, angle: aimAngle } }); });
+// Mobile Virtual Joystick & Fire Button (ONLY shown for mobile/touch users)
+const joyBase = document.getElementById("joystickBase"), joyKnob = document.getElementById("joystickKnob"), fireBtn = document.getElementById("fireBtn");
+const isMobile = ("ontouchstart" in window) || (navigator.maxTouchPoints > 0);
+if (isMobile) { joyBase.style.display = "block"; fireBtn.style.display = "flex"; }
+let joyTouchId = null;
+function updateJoy(cx, cy) {
+  const rect = joyBase.getBoundingClientRect(), bx = rect.left + rect.width/2, by = rect.top + rect.height/2, maxD = rect.width/2 - 20;
+  let dx = cx - bx, dy = cy - by, dist = Math.hypot(dx, dy);
+  if (dist > maxD) { dx = (dx/dist)*maxD; dy = (dy/dist)*maxD; }
+  joyKnob.style.transform = \`translate(\${dx}px, \${dy}px)\`;
+  joyVec.x = dx / maxD; joyVec.y = dy / maxD;
+  if (Math.hypot(joyVec.x, joyVec.y) > 0.15) aimAngle = Math.atan2(joyVec.y, joyVec.x);
+}
+joyBase.addEventListener("touchstart", e => { e.preventDefault(); if (joyTouchId === null && e.changedTouches[0]) { joyTouchId = e.changedTouches[0].identifier; updateJoy(e.changedTouches[0].clientX, e.changedTouches[0].clientY); } }, { passive: false });
+joyBase.addEventListener("touchmove", e => { e.preventDefault(); for (let t of e.changedTouches) if (t.identifier === joyTouchId) updateJoy(t.clientX, t.clientY); }, { passive: false });
+function resetJoy(e) { for (let t of e.changedTouches) if (t.identifier === joyTouchId) { joyTouchId = null; joyVec.x = 0; joyVec.y = 0; joyKnob.style.transform = "translate(0px, 0px)"; } }
+joyBase.addEventListener("touchend", resetJoy);
+joyBase.addEventListener("touchcancel", resetJoy);
+fireBtn.addEventListener("touchstart", e => { e.preventDefault(); if (joined) socket.emit("RemoteEvent", { type: "shoot", data: { id: myId, angle: aimAngle } }); }, { passive: false });
 
 setInterval(() => {
   if (!joined) return;
-  const dx = (keys.right?1:0) - (keys.left?1:0), dy = (keys.down?1:0) - (keys.up?1:0);
-  if (dx !== 0 || dy !== 0) aimAngle = Math.atan2(dy, dx);
-  myPos.x += dx * 6; myPos.y += dy * 6;
+  let dx = (keys.right?1:0) - (keys.left?1:0) + joyVec.x, dy = (keys.down?1:0) - (keys.up?1:0) + joyVec.y;
+  const mag = Math.hypot(dx, dy); if (mag > 1) { dx /= mag; dy /= mag; }
+  myPos.x = Math.max(PLAYER_R, Math.min(ARENA_W - PLAYER_R, myPos.x + dx * 6));
+  myPos.y = Math.max(PLAYER_R, Math.min(ARENA_H - PLAYER_R, myPos.y + dy * 6));
   socket.emit("RemoteEvent", { type: "move", data: { id: myId, x: myPos.x, y: myPos.y, angle: aimAngle } });
 }, 33);
 
@@ -2421,10 +2486,13 @@ function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.save();
   ctx.translate(canvas.width/2 - myPos.x, canvas.height/2 - myPos.y);
+  // Arena border walls
+  ctx.strokeStyle = "#ef4444"; ctx.lineWidth = 8;
+  ctx.strokeRect(0, 0, ARENA_W, ARENA_H);
   for (let id in players) {
     const p = players[id], px = id === myId ? myPos.x : p.x, py = id === myId ? myPos.y : p.y;
     ctx.fillStyle = id === myId ? "#10b981" : "#ef4444";
-    ctx.beginPath(); ctx.arc(px, py, 18, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(px, py, PLAYER_R, 0, Math.PI*2); ctx.fill();
     ctx.strokeStyle = "#fff"; ctx.lineWidth = 3;
     ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px + Math.cos(p.angle||0)*28, py + Math.sin(p.angle||0)*28); ctx.stroke();
   }
@@ -2438,21 +2506,25 @@ draw();
 </body>
 </html>`;
 
-const gunsServerCode=`// Test Your Guns - Multiplayer Arena ServerScript (HTTP & WebSocket)
+const gunsServerCode=`// Test Your Guns - Multiplayer Arena ServerScript (With Arena Borders, HTTP & WebSocket)
+const ARENA_W = 1600, ARENA_H = 1200, PLAYER_R = 18;
 let players = {};
 let bullets = [];
+
+function clampX(x) { return Math.max(PLAYER_R, Math.min(ARENA_W - PLAYER_R, x)); }
+function clampY(y) { return Math.max(PLAYER_R, Math.min(ARENA_H - PLAYER_R, y)); }
 
 Server.on("join_arena", (evt) => {
   const id = evt.data && evt.data.id;
   if (!id) return;
-  players[id] = { x: Number(evt.data.x) || 400, y: Number(evt.data.y) || 300, angle: 0, hp: 100, kills: 0, lastSeen: Date.now() };
+  players[id] = { x: clampX(Number(evt.data.x) || 800), y: clampY(Number(evt.data.y) || 600), angle: 0, hp: 100, kills: 0, lastSeen: Date.now() };
 });
 
 Server.on("move", (evt) => {
   const p = evt.data && players[evt.data.id];
   if (!p) return;
-  p.x = Number(evt.data.x) || p.x;
-  p.y = Number(evt.data.y) || p.y;
+  p.x = clampX(Number(evt.data.x) || p.x);
+  p.y = clampY(Number(evt.data.y) || p.y);
   p.angle = Number(evt.data.angle) || 0;
   p.lastSeen = Date.now();
 });
@@ -2470,12 +2542,14 @@ Server.on("tick", (dt) => {
   for (let i = bullets.length - 1; i >= 0; i--) {
     const b = bullets[i];
     b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt;
+    // Destroy bullet if it hits arena border walls
+    if (b.x < 0 || b.x > ARENA_W || b.y < 0 || b.y > ARENA_H) { bullets.splice(i, 1); continue; }
     let hit = false;
     for (let id in players) {
       if (id !== b.owner && Math.hypot(players[id].x - b.x, players[id].y - b.y) < 20) {
         players[id].hp -= 25;
         if (players[id].hp <= 0) {
-          players[id].hp = 100; players[id].x = 200 + Math.random()*600; players[id].y = 200 + Math.random()*400;
+          players[id].hp = 100; players[id].x = 200 + Math.random()*(ARENA_W - 400); players[id].y = 200 + Math.random()*(ARENA_H - 400);
           if (players[b.owner]) players[b.owner].kills += 1;
         }
         hit = true; break;
@@ -2486,7 +2560,133 @@ Server.on("tick", (dt) => {
   Server.broadcast("arena_state", { players, bullets });
 });`;
 
-const verifyClientCode=isHttp?`<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Verify Client ID (HTTP)</title><style>body{background:#030712;color:#fff;font-family:sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;}button{padding:12px 24px;background:#ef4444;color:#fff;border:none;cursor:pointer;font-weight:bold;}#result{margin-top:15px;font-family:monospace;}</style></head><body><button onclick="verifyMyId()">Verify ID</button><div id="result">Waiting for response...</div><script>async function verifyMyId(){const resEl=document.getElementById("result");resEl.innerText="Checking...";try{const res=await fetch("${PUBLIC_TUNNEL_URL}/remote",{method:"POST",headers:{"Content-Type":"application/json","auth-token":"${serverKey}"},body:JSON.stringify({type:"check_id",data:{}})});if(res.ok){const json=await res.json();let matched=false;if(json.events){json.events.forEach(evt=>{if(evt.type==="id_verified"){matched=true;if(evt.data&&evt.data.clientId){resEl.innerText=evt.data.clientId;}else{resEl.innerText="Failed to fetch the client's ID or Client does not have an ID in ezbridge.";}}});}if(!matched)resEl.innerText="Failed to fetch the client's ID or Client does not have an ID in ezbridge.";}else{resEl.innerText="Failed to fetch the client's ID or Client does not have an ID in ezbridge.";}}catch(e){resEl.innerText="Failed to fetch the client's ID or Client does not have an ID in ezbridge.";}}<\/script></body></html>`:`<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Verify Client ID (WS)</title><script src="https://cdn.socket.io/4.7.2/socket.io.min.js"><\/script><style>body{background:#030712;color:#fff;font-family:sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;}button{padding:12px 24px;background:#ef4444;color:#fff;border:none;cursor:pointer;font-weight:bold;}#result{margin-top:15px;font-family:monospace;}</style></head><body><button onclick="verifyMyId()">Verify ID</button><div id="result">Waiting for response...</div><script>const socket=io("${PUBLIC_TUNNEL_URL}",{auth:{token:"default_key"},maxHttpBufferSize:1e8});socket.emit("join_virtual_server",{key:"${serverKey}"});socket.on("RemoteEvent",pkt=>{if(pkt.type==="id_verified"){const resEl=document.getElementById("result");if(pkt.data&&pkt.data.clientId){resEl.innerText=pkt.data.clientId;}else{resEl.innerText="Failed to fetch the client's ID or Client does not have an ID in ezbridge.";}}});function verifyMyId(){document.getElementById("result").innerText="Checking...";socket.emit("RemoteEvent",{type:"check_id",data:{}});}setTimeout(()=>{if(document.getElementById("result").innerText==="Checking..."){document.getElementById("result").innerText="Failed to fetch the client's ID or Client does not have an ID in ezbridge.";}},5000);<\/script></body></html>`,verifyServerCode=`// Verify Client ID ServerScript\nServer.on('check_id', evt => {\n  if (evt.senderId && evt.senderId.length >= 10 && evt.senderId !== "Guest" && evt.senderId !== "http_client") {\n    evt.send('id_verified', { clientId: evt.senderId });\n  } else {\n    evt.send('id_verified', { clientId: null });\n  }\n});`,httpChatClientCode=`<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>HTTP Chat</title><style>body{background:#030712;color:#fff;font-family:sans-serif;padding:12px;}#msgs{height:70vh;overflow-y:auto;border:1px solid #ef4444;padding:10px;margin-bottom:10px;white-space:pre-wrap;}</style></head><body><div id="msgs"></div><div style="display:flex;gap:8px;"><input id="txt" style="flex:1;padding:10px;"><button onclick="sendMsg()" style="padding:10px 18px;">Send</button></div><script>const url="${PUBLIC_TUNNEL_URL}/remote",key="${serverKey}";async function sendMsg(){const t=document.getElementById("txt").value;if(!t.trim())return;document.getElementById("txt").value="";const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json","auth-token":key},body:JSON.stringify({type:"chat_send",data:{text:t}})});const j=await r.json();if(j.events)render(j.events);}setInterval(async()=>{const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json","auth-token":key},body:JSON.stringify({type:"poll",data:{}})});const j=await r.json();if(j.events)render(j.events);},1500);function render(evts){evts.forEach(e=>{if(e.type==="chat_state")document.getElementById("msgs").innerText=e.data.messages.join("\\n");});}<\/script></body></html>`,httpChatServerCode=`// HTTP Global Chat ServerScript\nlet messages = [];\nServer.on("chat_send", evt => {\n  if (evt.data && evt.data.text) {\n    messages.push(evt.data.text);\n    if (messages.length > 30) messages.shift();\n    Server.broadcast("chat_state", { messages });\n  }\n});`,dynamicTunnelCode=`async function fetchCurrentEzBridgeTunnel(){try{const res=await fetch("https://raw.githubusercontent.com/TerminatorSBDEV/ebtunnel/main/tunnel?t="+Date.now(),{cache:"no-store"});if(res.ok){let raw=(await res.text()).trim();if(!raw.startsWith("http://")&&!raw.startsWith("https://"))raw="https://"+raw;console.log("Current EzBridge Tunnel URL:",raw);return raw;}}catch(err){console.error("Failed to load dynamic tunnel:",err);}return null;}fetchCurrentEzBridgeTunnel();\n-- use this example of you don't want to keep updating the tunnel everytime a new one generates`;
+const verifyClientCode=isHttp?`<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Verify Client ID (HTTP)</title><style>body{background:#030712;color:#fff;font-family:sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;}button{padding:12px 24px;background:#ef4444;color:#fff;border:none;cursor:pointer;font-weight:bold;}#result{margin-top:15px;font-family:monospace;}</style></head><body><button onclick="verifyMyId()">Verify ID</button><div id="result">Waiting for response...</div><script>// Sends check_id to /remote; EzBridge returns your verified Client ID if logged in\nasync function verifyMyId(){const resEl=document.getElementById("result");resEl.innerText="Checking...";try{const res=await fetch("${PUBLIC_TUNNEL_URL}/remote",{method:"POST",headers:{"Content-Type":"application/json","auth-token":"${serverKey}"},body:JSON.stringify({type:"check_id",data:{}})});if(res.ok){const json=await res.json();let matched=false;if(json.events){json.events.forEach(evt=>{if(evt.type==="id_verified"){matched=true;if(evt.data&&evt.data.clientId){resEl.innerText=evt.data.clientId;}else{resEl.innerText="Failed to fetch the client's ID or Client does not have an ID in ezbridge.";}}});}if(!matched)resEl.innerText="Failed to fetch the client's ID or Client does not have an ID in ezbridge.";}else{resEl.innerText="Failed to fetch the client's ID or Client does not have an ID in ezbridge.";}}catch(e){resEl.innerText="Failed to fetch the client's ID or Client does not have an ID in ezbridge.";}}<\/script></body></html>`:`<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Verify Client ID (WS)</title><script src="https://cdn.socket.io/4.7.2/socket.io.min.js"><\/script><style>body{background:#030712;color:#fff;font-family:sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;}button{padding:12px 24px;background:#ef4444;color:#fff;border:none;cursor:pointer;font-weight:bold;}#result{margin-top:15px;font-family:monospace;}</style></head><body><button onclick="verifyMyId()">Verify ID</button><div id="result">Waiting for response...</div><script>// Joins the virtual server and requests check_id to verify your EzBridge Client ID\nconst socket=io("${PUBLIC_TUNNEL_URL}",{auth:{token:"default_key"},maxHttpBufferSize:1e8});socket.emit("join_virtual_server",{key:"${serverKey}"});socket.on("RemoteEvent",pkt=>{if(pkt.type==="id_verified"){const resEl=document.getElementById("result");if(pkt.data&&pkt.data.clientId){resEl.innerText=pkt.data.clientId;}else{resEl.innerText="Failed to fetch the client's ID or Client does not have an ID in ezbridge.";}}});function verifyMyId(){document.getElementById("result").innerText="Checking...";socket.emit("RemoteEvent",{type:"check_id",data:{}});}setTimeout(()=>{if(document.getElementById("result").innerText==="Checking..."){document.getElementById("result").innerText="Failed to fetch the client's ID or Client does not have an ID in ezbridge.";}},5000);<\/script></body></html>`,verifyServerCode=`// Verify Client ID ServerScript\nServer.on('check_id', evt => {\n  if (evt.senderId && evt.senderId.length >= 10 && evt.senderId !== "Guest" && evt.senderId !== "http_client") {\n    evt.send('id_verified', { clientId: evt.senderId });\n  } else {\n    evt.send('id_verified', { clientId: null });\n  }\n});`;
+
+const httpChatClientCode=`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>HTTP State-Based Global Chat</title>
+<style>
+  body { margin: 0; background: #030712; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; padding: 12px; box-sizing: border-box; }
+  #header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; border-bottom: 1px solid #ef4444; margin-bottom: 10px; font-size: 0.9rem; }
+  /* Scrollable container holding styled message bubbles */
+  #msgs { flex: 1; overflow-y: auto; border: 1px solid #ef4444; background: #0a0a0c; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+  .bubble { max-width: 80%; padding: 10px 14px; border: 1px solid #334155; background: #1e293b; align-self: flex-start; word-break: break-word; }
+  .bubble.me { background: #064e3b; border-color: #10b981; align-self: flex-end; }
+  .bubble-meta { font-size: 0.72rem; color: #94a3b8; font-weight: bold; margin-bottom: 4px; }
+  .bubble.me .bubble-meta { color: #6ee7b7; }
+  #inputRow { display: flex; gap: 8px; margin-top: 10px; }
+  #txt { flex: 1; padding: 10px; background: #020617; color: #fff; border: 1px solid #ef4444; outline: none; }
+  button { padding: 10px 18px; background: #ef4444; color: #fff; border: none; font-weight: bold; cursor: pointer; }
+</style>
+</head>
+<body>
+<div id="header">
+  <span><b>Global Chat (HTTP)</b></span>
+  <span>Your Local ID: <b id="myIdLabel" style="color:#10b981;"></b></span>
+</div>
+<div id="msgs"></div>
+<div id="inputRow">
+  <input id="txt" maxlength="300" placeholder="Type a message..." onkeypress="if(event.key==='Enter')sendMsg()">
+  <button onclick="sendMsg()">Send</button>
+</div>
+<script>
+const URL_ENDPOINT = "${PUBLIC_TUNNEL_URL}/remote";
+const KEY = "${serverKey}";
+// Unique local ID for this user
+const myId = "user_" + Math.random().toString(36).substring(2, 7);
+document.getElementById("myIdLabel").innerText = myId;
+let renderedCount = 0;
+
+async function postEvent(type, data) {
+  try {
+    const r = await fetch(URL_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "auth-token": KEY },
+      body: JSON.stringify({ type, data })
+    });
+    if (r.ok) {
+      const j = await r.json();
+      if (j.events) renderEvents(j.events);
+    }
+  } catch (e) {}
+}
+
+function sendMsg() {
+  const inp = document.getElementById("txt");
+  const text = inp.value.trim();
+  if (!text) return;
+  inp.value = "";
+  // Send message with our local user ID
+  postEvent("chat_send", { senderId: myId, text });
+}
+
+function renderEvents(evts) {
+  evts.forEach(e => {
+    if (e.type === "chat_state" && Array.isArray(e.data.messages)) {
+      const box = document.getElementById("msgs");
+      const list = e.data.messages;
+      // Only append new bubbles or rebuild if history changed
+      if (list.length !== renderedCount) {
+        box.innerHTML = "";
+        list.forEach(m => {
+          const div = document.createElement("div");
+          div.className = "bubble" + (m.senderId === myId ? " me" : "");
+          const meta = document.createElement("div");
+          meta.className = "bubble-meta";
+          meta.innerText = m.senderId + " • " + (m.time || "");
+          const body = document.createElement("div");
+          body.innerText = m.text;
+          div.appendChild(meta);
+          div.appendChild(body);
+          box.appendChild(div);
+        });
+        renderedCount = list.length;
+        box.scrollTop = box.scrollHeight;
+      }
+    }
+  });
+}
+
+// Late joiner: fetch full chat history immediately on load!
+postEvent("chat_join", { senderId: myId });
+// Poll every 1 second so everyone sees new messages automatically
+setInterval(() => postEvent("chat_poll", { senderId: myId }), 1000);
+<\/script>
+</body>
+</html>`;
+
+const httpChatServerCode=`// HTTP State-Based Global Chat ServerScript
+// Stores chat history so late joiners receive all previous messages, and everyone sees new messages!
+let messages = [];
+
+// When a late joiner enters or polls, send them the full chat history directly
+Server.on("chat_join", (evt) => {
+  evt.send("chat_state", { messages });
+});
+
+Server.on("chat_poll", (evt) => {
+  evt.send("chat_state", { messages });
+});
+
+// When anyone sends a message, save it with their local ID and broadcast to everyone
+Server.on("chat_send", (evt) => {
+  if (evt.data && evt.data.text) {
+    const now = new Date();
+    const timeStr = String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0");
+    messages.push({
+      senderId: String(evt.data.senderId || "Guest").slice(0, 24),
+      text: String(evt.data.text).slice(0, 300),
+      time: timeStr
+    });
+    if (messages.length > 50) messages.shift();
+    Server.broadcast("chat_state", { messages });
+  }
+});`;
+
+const dynamicTunnelCode=`// Use this helper if you don't want to manually update the Cloudflare Tunnel URL in your app every time a new one generates\nasync function fetchCurrentEzBridgeTunnel() {\n  try {\n    const res = await fetch("https://raw.githubusercontent.com/TerminatorSBDEV/ebtunnel/main/tunnel?t=" + Date.now(), { cache: "no-store" });\n    if (res.ok) {\n      let raw = (await res.text()).trim();\n      if (!raw.startsWith("http://") && !raw.startsWith("https://")) raw = "https://" + raw;\n      console.log("Current EzBridge Tunnel URL:", raw);\n      return raw;\n    }\n  } catch (err) {\n    console.error("Failed to load dynamic tunnel:", err);\n  }\n  return null;\n}\nfetchCurrentEzBridgeTunnel();`;
 return{coinClientCode,coinServerCode,gunsClientCode,gunsServerCode,clientCode:gunsClientCode,serverCode:gunsServerCode,verifyClientCode,verifyServerCode,httpChatClientCode,httpChatServerCode,dynamicTunnelCode};
 }
 function copyAIPrompt(){const{coinClientCode,coinServerCode,verifyClientCode,verifyServerCode}=getGameExamples();let promptText=`*How to implement EzBridge's universal server on your online project*
@@ -2627,131 +2827,176 @@ ${verifyClientCode}
 
 4 - ServerScript (Verify Client ID):
 ${verifyServerCode}`;if(userAIKey){promptText+=`\n\nAnd if you are going to add an AI feature to the project, here's my AI key: ${userAIKey}`;}promptText+=`\n\nProvide the client script and the serverscript. Before you generate you can ask questions so you understand better, but do not exaggerate.\nHere's an example of how you should ask:\n\n**QUESTION #1**\n*Is your server Http or WebSocket?*\n\nOnly one question per message, only ask questions that are important.`;navigator.clipboard.writeText(promptText);alert("AI Prompt copied to clipboard! Paste it into your AI chat.");}
-function openCommandsModal(){const isHttp=serverType==='http',box=document.getElementById('api-commands-box');if(isHttp){box.innerHTML=`<span class="api-tag-client">CLIENT-SIDED API</span>
-1. GET STATUS:
-GET ${PUBLIC_TUNNEL_URL}/getstatus
-Output: "OK"
+function openCommandsModal(){const isHttp=serverType==='http',box=document.getElementById('api-commands-box');if(isHttp){box.innerHTML=`<span class="api-tag-client">CLIENT-SIDED API (HTTP MODE)</span>
+1. GET SERVER STATUS (Health Check):
+   Use this to check if EzBridge is online and reachable.
+   GET ${PUBLIC_TUNNEL_URL}/getstatus
+   Output: "OK"
 
 <span class="api-tag-both">CLIENT & SERVER API</span>
 2. GET CLIENT PROFILE:
-GET ${PUBLIC_TUNNEL_URL}/eb_profile_get_{clientid}
-Output: JSON { "displayName": "Name", "pfpData": "data:image/...", "description": "..." }
+   Fetch any user's display name, profile picture (Base64 data URL), and bio description.
+   GET ${PUBLIC_TUNNEL_URL}/eb_profile_get_{clientid}
+   Output: JSON { "displayName": "Name", "pfpData": "data:image/...", "description": "..." }
 
-3. GET ASSET DATA (150KB packets, 2 at a time):
-GET ${PUBLIC_TUNNEL_URL}/eb_asset_get_{assetid}
-Output: JSON { "id": 1, "name": "track.mp3", "type": "audio/mp3", "size": 150000, "data": "base64..." }
+3. GET ASSET DATA (Audio / Image / Video):
+   Fetch an uploaded EzBridge Asset by its numeric ID.
+   GET ${PUBLIC_TUNNEL_URL}/eb_asset_get_{assetid}
+   Output: JSON { "id": 1, "name": "track.mp3", "type": "audio/mp3", "size": 150000, "data": "base64..." }
 
 4. VERIFY / GET LOGGED-IN CLIENT ID:
-POST ${PUBLIC_TUNNEL_URL}/remote
-Headers: {"Content-Type":"application/json","auth-token":"${serverKey}"}
-Body: {"type":"check_id","data":{}}
-Output: events array containing { type: 'id_verified', clientId: 'YOUR_CLIENT_ID' } (or null if none)
+   Check if the player/user is logged into EzBridge and retrieve their verified Client ID.
+   POST ${PUBLIC_TUNNEL_URL}/remote
+   Headers: {"Content-Type":"application/json","auth-token":"${serverKey}"}
+   Body: {"type":"check_id","data":{}}
+   Output: { "status": "success", "events": [ { "type": "id_verified", "data": { "clientId": "YOUR_CLIENT_ID" } } ] }
 
 5. CALL AI DIRECTLY (Streaming is NOT supported; AI Key only):
-POST ${PUBLIC_TUNNEL_URL}/eb_callai
-Headers: {"Content-Type":"application/json","ai-key":"${userAIKey||'YOUR_AI_KEY'}"}
-Body: {
-  "model": "gemini-3.5-flash-lite", // "gemini-3.5-flash-lite" | "gemma4:26b" | "qwen2.5:1.5b" | "qwen3:0.6b"
-  "Temp": 0.7,                       // Optional: 0.0 - 1.0 (default: 0)
-  "Mtokens": 1500,                   // Optional: 1 - 10000 (default: 1500)
-  "Instruction": "System prompt...", // Optional: 2 - 20000 chars
-  "Prompt": "Hello!"                 // Required: 1 - 60000 chars
-}
-Output: JSON { "id": "ab12", "text": "AI response", "done": true }
+   Call EzBridge's AI models from any client or backend without needing a virtual server.
+   POST ${PUBLIC_TUNNEL_URL}/eb_callai
+   Headers: {"Content-Type":"application/json","ai-key":"${userAIKey||'YOUR_AI_KEY'}"}
+   Body: {
+     "model": "gemini-3.5-flash-lite", // Models: "gemini-3.5-flash-lite" | "gemma4:26b" | "qwen2.5:1.5b" | "qwen3:0.6b"
+     "Temp": 0.7,                       // Optional: 0.0 (focused) to 1.0 (creative), default 0
+     "Mtokens": 1500,                   // Optional: 1 to 10000 max output tokens, default 1500
+     "Instruction": "System prompt...", // Optional: 2 to 20000 chars
+     "Prompt": "Hello!"                 // Required: 1 to 60000 chars
+   }
+   Output: JSON { "id": "ab12", "text": "AI response", "done": true }
 
 <span class="api-tag-client">CLIENT-SIDED API</span>
 6. SEND REMOTE EVENT & RECEIVE REPLIES:
-POST ${PUBLIC_TUNNEL_URL}/remote
-Headers: {"Content-Type":"application/json","auth-token":"${serverKey}"}
-Body: {"type":"event_name","data":{}}
-Output: JSON { status: "success", events: [ { type: "event_name_reply", data: {} } ] }
+   Send any custom event name + JSON data to your ServerScript and receive all replies/broadcasts in the response.
+   POST ${PUBLIC_TUNNEL_URL}/remote
+   Headers: {"Content-Type":"application/json","auth-token":"${serverKey}"}
+   Body: {"type":"event_name","data":{"example":123}}
+   Output: JSON { "status": "success", "events": [ { "type": "reply_event", "data": {} } ] }
 
-<span class="api-tag-server">SERVER-SIDED API</span>
-7. SENDER VERIFICATION & PRIVATE REPLIES:
-Server.on("check_user", evt => {
-  evt.send("private_event", { msg: "Private reply" });
-  Server.send(evt.connectionId, "targeted_event", { ok: true });
-});
+<span class="api-tag-server">SERVER-SIDED API (Inside ServerScript)</span>
+7. LISTEN TO EVENTS, VERIFY SENDER & REPLY:
+   Server.on("event_name", evt => {
+     // evt.senderId     -> Verified EzBridge Client ID (or "http_client")
+     // evt.connectionId -> Connection identifier
+     // evt.data         -> JSON payload sent by the client
+     evt.send("private_reply", { msg: "Only this client receives this" });
+     Server.broadcast("global_event", { msg: "Everyone receives this" });
+   });
 
-8. SERVER STORAGE (100MB persistent):
-Server.storage.set(dataString);
-const val = Server.storage.get();
-const bytes = Server.storage.getUsageBytes();
+8. SERVER PERSISTENT STORAGE (100MB saved on disk across restarts):
+   Server.storage.set(JSON.stringify({ highScore: 100 }));
+   const rawStr = Server.storage.get();
+   const usedBytes = Server.storage.getUsageBytes();
 
-9. SERVERSCRIPT AI EXECUTION (Streaming is NOT supported):
-Server.eb_callai({
-  key: "${userAIKey||'YOUR_AI_KEY'}",
-  model: "gemini-3.5-flash-lite",
-  Temp: 0.7,
-  Mtokens: 1500,
-  Instruction: "You are a helpful assistant.",
-  Prompt: "Hi!"
-}, res => {
-  if (!res.error) console.log(res.text);
-});
+9. FIXED 33Hz GAME LOOP (Server.on('tick', dt)):
+   Server.on("tick", dt => {
+     // Runs ~33 times per second. dt = delta time in seconds.
+   });
 
-10. PYTHON TERMINAL BRIDGE:
-Server.py.send("ping",{t:Date.now()});
-Server.py.on("pong",data=>{console.log("From python:",data);});`;}else{box.innerHTML=`<span class="api-tag-client">CLIENT-SIDED API</span>
-1. CONNECT & JOIN ROOM:
-const socket = io("${PUBLIC_TUNNEL_URL}",{auth:{token:"default_key"},transports:['websocket','polling'],maxHttpBufferSize:1e8});
-socket.emit("join_virtual_server",{key:"${serverKey}"});
-Output: triggers 'joined_successfully' event with { instanceId: "..." }
+10. SERVERSCRIPT AI EXECUTION (Streaming is NOT supported):
+    Server.eb_callai({
+      key: "${userAIKey||'YOUR_AI_KEY'}",
+      model: "gemini-3.5-flash-lite",
+      Temp: 0.7,
+      Mtokens: 1500,
+      Instruction: "You are a helpful assistant.",
+      Prompt: "Hi!"
+    }, res => {
+      if (!res.error) console.log(res.text);
+    });
+
+11. PYTHON TERMINAL BRIDGE:
+    Server.py.send("ping", { t: Date.now() });
+    Server.py.on("pong", data => { console.log("From python:", data); });`;}else{box.innerHTML=`<span class="api-tag-client">CLIENT-SIDED API (WEBSOCKET MODE)</span>
+1. CONNECT & JOIN VIRTUAL SERVER ROOM:
+   Include <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"><\/script> first.
+   const socket = io("${PUBLIC_TUNNEL_URL}", {
+     auth: { token: "default_key" },
+     transports: ["websocket", "polling"],
+     maxHttpBufferSize: 1e8
+   });
+   socket.on("connect", () => {
+     socket.emit("join_virtual_server", { key: "${serverKey}" });
+   });
+   socket.on("joined_successfully", (info) => {
+     console.log("Joined instance:", info.instanceId);
+     // NOW it is safe to emit RemoteEvents!
+   });
 
 <span class="api-tag-both">CLIENT & SERVER API</span>
 2. GET CLIENT PROFILE:
-socket.emit("RemoteEvent",{type:"eb_profile_get_{clientid}"});
-Output: triggers 'RemoteEvent' with type 'eb_profile_response_{clientid}' and data { displayName, pfpData, description }
+   socket.emit("RemoteEvent", { type: "eb_profile_get_{clientid}" });
+   socket.on("RemoteEvent", pkt => {
+     if (pkt.type === "eb_profile_response_{clientid}") console.log(pkt.data); // { displayName, pfpData, description }
+   });
 
-3. GET ASSET IN 150KB PACKETS (2 at a time):
-socket.emit("RemoteEvent",{type:"eb_asset_get_1"});
-Output: triggers 'RemoteEvent' with type 'eb_asset_chunk_1' and data { id, name, type, size, chunk, index, total }
+3. GET ASSET IN 150KB PACKETS:
+   socket.emit("RemoteEvent", { type: "eb_asset_get_1" });
+   socket.on("RemoteEvent", pkt => {
+     if (pkt.type === "eb_asset_chunk_1") console.log(pkt.data); // { id, name, type, size, chunk, index, total }
+   });
 
 4. VERIFY / GET LOGGED-IN CLIENT ID:
-socket.emit("RemoteEvent",{type:"check_id",data:{}});
-socket.on("RemoteEvent",pkt=>{
-  if(pkt.type==="id_verified") console.log("Verified ID:", pkt.data.clientId);
-});
+   socket.emit("RemoteEvent", { type: "check_id", data: {} });
+   socket.on("RemoteEvent", pkt => {
+     if (pkt.type === "id_verified") console.log("Verified ID:", pkt.data.clientId);
+   });
 
-5. DIRECT WEBSOCKET AI CALL (Streaming is NOT supported; AI Key only):
-socket.emit("eb_callai_direct",{
-  key: "${userAIKey||'YOUR_AI_KEY'}",
-  model: "gemini-3.5-flash-lite", // "gemini-3.5-flash-lite" | "gemma4:26b" | "qwen2.5:1.5b" | "qwen3:0.6b"
-  Temp: 0.7,                       // Optional: 0.0 - 1.0 (default: 0)
-  Mtokens: 1500,                   // Optional: 1 - 10000 (default: 1500)
-  Instruction: "System prompt...", // Optional: 2 - 20000 chars
-  Prompt: "Hi!"                    // Required: 1 - 60000 chars
-});
-socket.on("eb_ai_started", ({ id }) => console.log("AI Task ID:", id));
-socket.on("eb_ai_response", (res) => { if (!res.error) console.log(res.text); });
+5. SEND & RECEIVE CUSTOM GAME/APP EVENTS:
+   // Client -> Server:
+   socket.emit("RemoteEvent", { type: "my_event", data: { hello: "world" } });
+   // Server -> Client:
+   socket.on("RemoteEvent", pkt => {
+     if (pkt.type === "server_reply") console.log(pkt.data);
+   });
 
-<span class="api-tag-server">SERVER-SIDED API</span>
-6. SENDER VERIFICATION & TARGETED MESSAGES:
-Server.on("check_user", evt => {
-  evt.send("private_event", { msg: "Only sender gets this" });
-  Server.send(evt.connectionId, "targeted_event", { ok: true });
-});
+6. DIRECT WEBSOCKET AI CALL (Streaming is NOT supported; AI Key only):
+   socket.emit("eb_callai_direct", {
+     key: "${userAIKey||'YOUR_AI_KEY'}",
+     model: "gemini-3.5-flash-lite", // "gemini-3.5-flash-lite" | "gemma4:26b" | "qwen2.5:1.5b" | "qwen3:0.6b"
+     Temp: 0.7,                       // Optional: 0.0 - 1.0 (default: 0)
+     Mtokens: 1500,                   // Optional: 1 - 10000 (default: 1500)
+     Instruction: "System prompt...", // Optional: 2 - 20000 chars
+     Prompt: "Hi!"                    // Required: 1 - 60000 chars
+   });
+   socket.on("eb_ai_started", ({ id }) => console.log("AI Task ID:", id));
+   socket.on("eb_ai_response", (res) => { if (!res.error) console.log(res.text); });
 
-7. SERVER STORAGE (100MB persistent):
-Server.storage.set(dataString);
-const val = Server.storage.get();
-const bytes = Server.storage.getUsageBytes();
+<span class="api-tag-server">SERVER-SIDED API (Inside ServerScript)</span>
+7. LISTEN TO EVENTS, VERIFY SENDER & TARGETED REPLIES:
+   Server.on("my_event", evt => {
+     // evt.senderId     -> Verified EzBridge Client ID
+     // evt.connectionId -> Sender's unique socket ID
+     // evt.data         -> Data sent by client
+     evt.send("private_event", { msg: "Only sender gets this" });
+     Server.send(evt.connectionId, "targeted_event", { ok: true });
+     Server.broadcast("everyone_event", { msg: "All connected clients get this" });
+   });
 
-8. SERVERSCRIPT AI EXECUTION (Streaming is NOT supported):
-Server.eb_callai({
-  key: "${userAIKey||'YOUR_AI_KEY'}",
-  model: "gemini-3.5-flash-lite",
-  Temp: 0.7,
-  Mtokens: 1500,
-  Instruction: "You are a helpful assistant.",
-  Prompt: "Hi!"
-}, res => {
-  if (!res.error) console.log(res.text);
-});
+8. SERVER PERSISTENT STORAGE (100MB saved on disk across restarts):
+   Server.storage.set(JSON.stringify({ highScore: 100 }));
+   const rawStr = Server.storage.get();
+   const usedBytes = Server.storage.getUsageBytes();
 
-9. PYTHON TERMINAL BRIDGE:
-Server.py.send("ping",{t:Date.now()});
-Server.py.on("pong",data=>{console.log("From python:",data);});`;}document.getElementById('modal-commands').style.display='flex';}
+9. FIXED 33Hz GAME LOOP:
+   Server.on("tick", dt => {
+     // Runs ~33 times per second. dt = delta time in seconds.
+   });
+
+10. SERVERSCRIPT AI EXECUTION (Streaming is NOT supported):
+    Server.eb_callai({
+      key: "${userAIKey||'YOUR_AI_KEY'}",
+      model: "gemini-3.5-flash-lite",
+      Temp: 0.7,
+      Mtokens: 1500,
+      Instruction: "You are a helpful assistant.",
+      Prompt: "Hi!"
+    }, res => {
+      if (!res.error) console.log(res.text);
+    });
+
+11. PYTHON TERMINAL BRIDGE:
+    Server.py.send("ping", { t: Date.now() });
+    Server.py.on("pong", data => { console.log("From python:", data); });`;}document.getElementById('modal-commands').style.display='flex';}
 function closeCommandsModal(){document.getElementById('modal-commands').style.display='none';}
 function openGameCode(){const isHttp=serverType==='http';document.getElementById('http-disclaimer').style.display=isHttp?'block':'none';document.getElementById('http-extra-example-container').style.display=isHttp?'block':'none';const{coinClientCode,coinServerCode,gunsClientCode,gunsServerCode,verifyClientCode,verifyServerCode,httpChatClientCode,httpChatServerCode,dynamicTunnelCode}=getGameExamples();document.getElementById('example-coin-client').value=coinClientCode;document.getElementById('example-coin-server').value=coinServerCode;document.getElementById('example-code-client').value=gunsClientCode;document.getElementById('example-code-server').value=gunsServerCode;document.getElementById('example-http-chat-client').value=httpChatClientCode;document.getElementById('example-http-chat-server').value=httpChatServerCode;document.getElementById('example-verify-client').value=verifyClientCode;document.getElementById('example-verify-server').value=verifyServerCode;document.getElementById('example-dynamic-tunnel').value=dynamicTunnelCode;document.getElementById('modal-code').style.display='flex';}
 function closeGameCode(){document.getElementById('modal-code').style.display='none';}
