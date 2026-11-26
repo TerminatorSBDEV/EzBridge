@@ -107,6 +107,7 @@ iframe.site-frame{width:100%;height:100%;border:none;display:block;}
 .presence-dot.online{background:#10b981;border-color:#020617;}
 .ai-code-block{position:relative;background:#000;border:1px solid #334155;padding:24px 10px 10px 10px;margin:6px 0;font-family:monospace;font-size:0.78rem;overflow-x:auto;white-space:pre-wrap;text-align:left;}
 .ai-copy-btn{position:absolute;top:4px;right:4px;background:#1e293b;color:#fff;border:1px solid #475569;padding:2px 6px;font-size:0.65rem;cursor:pointer;}
+.ai-think-box{background:#020617;border:1px dashed #64748b;padding:8px;margin:6px 0;font-family:monospace;font-size:0.74rem;color:#cbd5e1;white-space:pre-wrap;max-height:180px;overflow-y:auto;}
 .top-notif-banner{position:fixed;top:-220px;left:50%;transform:translateX(-50%);width:92%;max-width:420px;background:#0a0a0c;border:2px solid var(--border);z-index:9999995;padding:12px;box-shadow:0 6px 25px rgba(0,0,0,0.85);transition:top 0.3s cubic-bezier(0.22,1,0.36,1),transform 0.2s ease,opacity 0.2s ease;touch-action:pan-y;user-select:none;}
 .top-notif-banner.visible{top:14px;}
 .call-float-box{position:fixed;top:60px;left:50%;transform:translateX(-50%);width:360px;min-width:280px;min-height:260px;background:#000000;border:2px solid #ef4444;z-index:9999980;display:none;flex-direction:column;justify-content:space-between;padding:10px;resize:both;overflow:hidden;box-shadow:0 0 25px rgba(0,0,0,0.9);}
@@ -126,6 +127,10 @@ iframe.site-frame{width:100%;height:100%;border:none;display:block;}
 .example-hdr{display:flex;justify-content:space-between;align-items:center;margin-top:14px;border-top:1px solid var(--border);padding-top:10px;font-size:0.85rem;font-weight:bold;color:var(--accent);}
 .example-hdr.first{margin-top:0;border-top:none;padding-top:0;}
 .example-subhdr{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:0.85rem;font-weight:bold;color:var(--accent);}
+.asset-dropzone{width:100%;box-sizing:border-box;padding:18px 12px;border:2px dashed #ef4444 !important;background:linear-gradient(135deg,rgba(239,68,68,0.26) 0%,rgba(153,27,27,0.2) 100%) !important;color:#ffffff !important;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;cursor:pointer;text-align:center;transition:background 0.2s,box-shadow 0.2s,transform 0.15s;}
+.asset-dropzone:hover{background:linear-gradient(135deg,rgba(239,68,68,0.45) 0%,rgba(220,38,38,0.34) 100%) !important;box-shadow:0 0 18px rgba(239,68,68,0.4);transform:translateY(-1px);}
+.report-reason-item{display:flex;align-items:center;gap:8px;background:#020617;border:1px solid #1e293b;padding:8px 10px;cursor:pointer;font-size:0.82rem;text-align:left;transition:border-color 0.15s,background 0.15s;}
+.report-reason-item:hover{border-color:var(--accent);background:rgba(239,68,68,0.12);}
 @media (max-width:640px){.tos-floating-btn{bottom:32px;right:12px;}}
 </style>
 </head>
@@ -133,7 +138,7 @@ iframe.site-frame{width:100%;height:100%;border:none;display:block;}
 <canvas id="bg-canvas"></canvas>
 <button id="btn-global-mute" class="mute-floating-btn" onclick="toggleGlobalUiMute()" title="Mute/Unmute EzBridge Sounds">🔊</button>
 <div style="position:fixed;bottom:10px;left:12px;z-index:99999;color:#ffffff;font-family:'Courier New',monospace;font-size:0.75rem;font-weight:bold;letter-spacing:1px;pointer-events:none;text-shadow:0 0 4px #000;display:flex;align-items:center;">
-<span>EzBridge - V2.3.5</span>
+<span>EzBridge - V2.6.0</span>
 <span style="display:inline-block;width:8px;height:8px;background:#10b981;margin:0 6px 0 10px;vertical-align:middle;"></span>
 <span style="color:#10b981;">Users active in EzBridge: <span id="global-active-users-count">0</span></span>
 </div>
@@ -165,12 +170,46 @@ iframe.site-frame{width:100%;height:100%;border:none;display:block;}
 </div>
 <div style="font-size:0.75rem;color:var(--muted);font-weight:bold;text-transform:uppercase;">Description:</div>
 <div id="popup-prof-desc" style="background:#020617;border:1px solid #1e293b;padding:8px;font-size:0.82rem;margin:6px 0 12px 0;white-space:pre-wrap;max-height:110px;overflow-y:auto;">No description added.</div>
-<div id="popup-prof-actions" style="display:flex;gap:8px;justify-content:flex-start;margin-bottom:12px;"></div>
+<div id="popup-prof-actions" style="display:flex;gap:8px;justify-content:flex-start;flex-wrap:wrap;margin-bottom:12px;"></div>
 <div style="border-top:1px solid #1e293b;padding-top:10px;flex:1;overflow-y:auto;">
 <div style="font-size:0.8rem;font-weight:bold;color:var(--accent);margin-bottom:6px;">Creations:</div>
 <div id="popup-prof-creations"></div>
 </div>
 <button class="btn btn-secondary" style="margin-top:10px;" onclick="closeUserProfilePopup()">Close</button>
+</div>
+</div>
+<div id="modal-report-panel" class="overlay" style="display:none;z-index:9999995;backdrop-filter:blur(10px);">
+<div class="card" style="max-width:480px;width:94%;text-align:left;">
+<h2 style="text-align:center;margin-bottom:10px;">Reporting Panel</h2>
+<div style="font-size:0.8rem;font-weight:bold;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Choose a reason:</div>
+<div id="report-reasons-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;"></div>
+<div id="report-other-wrap" class="settings-item" style="display:none;margin-bottom:10px;">
+<label>Specify the reason (more than 5 chars and less than 20 chars):</label>
+<input type="text" id="report-other-input" maxlength="19" placeholder="Specify reason (6-19 chars)...">
+</div>
+<div class="settings-item">
+<label>Describe the Issue (optional): [<span id="report-desc-count">0</span>/1000 chars]</label>
+<textarea id="report-desc-input" maxlength="1000" rows="4" placeholder="Provide extra details..." oninput="document.getElementById('report-desc-count').innerText=this.value.length" style="white-space:pre-wrap;margin:0;"></textarea>
+</div>
+<div style="display:flex;gap:10px;margin-top:14px;">
+<button class="btn btn-danger" onclick="submitReportPanel()">Submit</button>
+<button class="btn btn-secondary" onclick="closeReportModal()">Cancel</button>
+</div>
+</div>
+</div>
+<div id="modal-report-email-reply" class="overlay" style="display:none;z-index:9999996;backdrop-filter:blur(10px);">
+<div class="card" style="max-width:460px;width:94%;text-align:left;">
+<h3 style="text-align:center;">Reply to Reporter via Email</h3>
+<p style="font-size:0.78rem;color:var(--muted);margin:6px 0 10px 0;">Subject: <b style="color:#fff;">A developer has replied to your Report!</b></p>
+<div class="settings-item">
+<label>Your Reply:</label>
+<textarea id="report-email-reply-text" rows="5" maxlength="2000" placeholder="Write your message to the reporter..." style="white-space:pre-wrap;margin:0;"></textarea>
+</div>
+<div id="report-email-sending-status" style="display:none;color:var(--yellow);font-size:0.8rem;font-weight:bold;margin-top:8px;">Sending email via EzBridge bot, please wait...</div>
+<div style="display:flex;gap:10px;margin-top:14px;">
+<button class="btn btn-green" id="btn-send-report-email" onclick="sendReportEmailReplySubmit()">Send Email</button>
+<button class="btn btn-secondary" id="btn-cancel-report-email" onclick="closeReportEmailReplyModal()">Cancel</button>
+</div>
 </div>
 </div>
 <div id="modal-dm-media-viewer" class="overlay" style="display:none;z-index:9999994;backdrop-filter:blur(10px);background:rgba(0,0,0,0.92);">
@@ -574,8 +613,9 @@ iframe.site-frame{width:100%;height:100%;border:none;display:block;}
 <input type="text" id="asset-name-field" maxlength="35" placeholder="My Epic Asset">
 </div>
 <div class="settings-item">
-<label>Asset file (Audio < 10min, Images < 5MB, Videos < 50MB):</label>
-<input type="file" id="asset-file-field" accept="audio/mp3,audio/ogg,audio/wav,image/jpeg,image/png,image/jpg,video/mp4,video/webm" onchange="handleAssetFileSelected(this)">
+<label>Asset file (Audio &lt; 10min, Images &lt; 5MB, Videos &lt; 50MB):</label>
+<input type="file" id="asset-file-field" accept="audio/mp3,audio/ogg,audio/wav,image/jpeg,image/png,image/jpg,video/mp4,video/webm" style="display:none;" onchange="handleAssetFileSelected(this)">
+<div id="asset-dropzone" class="asset-dropzone" onclick="document.getElementById('asset-file-field').click()" ondragover="event.preventDefault();this.style.background='rgba(239,68,68,0.45)';" ondragleave="this.style.background='';" ondrop="handleAssetDrop(event)">click me or drag a file here!</div>
 </div>
 </div>
 <div id="asset-upload-progress" class="progress-container" style="display:none;margin-top:10px;">
@@ -711,8 +751,8 @@ iframe.site-frame{width:100%;height:100%;border:none;display:block;}
 </div>
 </div>
 <div id="modal-check-reports" class="overlay" style="display:none;">
-<div class="card" style="max-width:680px;width:95%;max-height:85vh;display:flex;flex-direction:column;">
-<h3 style="color:var(--error);">REPORTED SITES (Admin Reports)</h3>
+<div class="card" style="max-width:720px;width:95%;max-height:85vh;display:flex;flex-direction:column;">
+<h3 style="color:var(--error);">REPORTS PANEL (Owner / Dev)</h3>
 <div id="reported-sites-container" class="settings-grid" style="flex:1;max-height:none;"></div>
 <button class="btn btn-secondary" style="margin-top:10px;" onclick="closeCheckReportsModal()">Close</button>
 </div>
@@ -1345,13 +1385,14 @@ PING: <span id="metric-ping">50</span>ms | RX: <span id="metric-rx">0.0</span>kb
 let PUBLIC_TUNNEL_URL="";
 const BASE_SITE_URL="https://terminatorsbdev.github.io/EzBridge/";
 let captchaSessionId=localStorage.getItem("eb_captcha_sid")||"",captchaGen=0,captchaFrameW=320,captchaFrameH=220,lastCaptchaCursorSent=0;
-let ownerId=getCookie("eb_owner_id")||"",googleSub=null,googleEmail=null,ezbridgeUsername=null,userLinkedEmail=null,activeUserId="",userRole="None",serverKey="",userAIKey=null,userAIKeyStatus=null,serverActive=false,isServerSleeping=false,serverSleepReason=null,serverType="websocket",serverSettings={},currentServerScript="",consoleLogsCache=[],isCaptchaTagged=false,currentProfile={displayName:"User_123456789",pfpData:"",description:""},cachedUserProfiles={},profileChunkPending={},profileFetchInFlight={},cachedAssetsRam={},currentCoins=0,currentBatteryMb=100,stagedPfpBase64=null,stagedAssetBase64=null,currentEditingAssetId=null,currentAssetCost=0,userTotalAssetBytes=0;
+let ownerId=getCookie("eb_owner_id")||"",googleSub=null,googleEmail=null,ezbridgeUsername=null,userLinkedEmail=null,activeUserId="",userRole="None",serverKey="",userAIKey=null,userAIKeyStatus=null,serverActive=false,isServerSleeping=false,serverSleepReason=null,serverType="websocket",serverSettings={},currentServerScript="",consoleLogsCache=[],isCaptchaTagged=false,currentProfile={displayName:"User_123456789",pfpData:"",description:""},cachedUserProfiles={},profileChunkPending={},profileFetchInFlight={},cachedAssetsRam={},userAssetsMeta={},currentCoins=0,currentBatteryMb=100,stagedPfpBase64=null,stagedAssetBase64=null,currentEditingAssetId=null,currentAssetCost=0,userTotalAssetBytes=0;
 const MAX_ASSET_BYTES=500*1024*1024,DM_CHUNK_SIZE=150*1024;
 let isServerLockdown=false,lockdownUntilTime=0,lockdownInterval=null,isGuestMode=false,pendingDailyRewardForNewServer=null,emailTimerInterval=null,emailTimerSeconds=1800,emailResendCooldown=0,emailResendInterval=null,pendingSignupData=null,delCodeTimerInterval=null,delCodeTimerSeconds=300,rxBytesAccum=0,txBytesAccum=0,currentPingVal=50,cooldownTimerCountdown=null,currentChatSession=null,chatHistoryChunks=[],chatTypingTimeout=null,globalChatMessages=[],globalChatOffset=0,globalChatHasMore=false,isLoadingMoreGlobal=false,publishedSitesCache=[],reportedSitesCache=[],siteFetchChunks=[],reportsFetchChunks=[],isUserHasSite=false,sitesOffset=0,sitesHasMore=false,isLoadingMoreSites=false,siteFetchCancelled=false,siteDataFetchCancelled=false,siteEnterCancelled=false,profileLoadCancelled=false,siteGenCooldownTimer=null,generatedSiteIdVal="",userSiteDataChunks=[],siteSearchDebounce=null,isSiteFileUploaded=false,currentActiveSiteId=null,isSiteViewerMaximized=false,serverStorageChunks=[],serverScriptChunks=[],serverStoragePollInterval=null,perfHistory=[],perfGraphVisible=false,siteActivePingInterval=null,siteEnterSimTimer=null,siteEnterStartTs=0;
 const SCRIPT_CHUNK_SIZE=100*1024,UNIV_CHUNK_SIZE=50*1024,SITE_CHUNK_SIZE=150*1024,ASSET_CHUNK_SIZE=150*1024;
 let isUploadingScript=false,isUploadingUnivScript=false,isUploadingSiteScript=false,isUploadingAsset=false;
 const ASSISTANT_STATUSES=["Thinking. . .","Making. . .","Imagining. . .","Reimagining. . .","Inspiring. . .","Researching. . .","Reflecting. . .","Building. . .","Placing bricks. . .","Guessing. . .","Predicting. . .","Casting. . .","Coding. . .","Vibing. . .","Focusing. . .","Prioritizing. . .","Completing. . .","Filling. . .","Brainstorming. . .","Tunneling. . .","Bridging. . .","Simplifying. . .","Checking. . .","Interacting. . .","Displaying. . .","Reasoning. . .","Planting. . .","Recovering. . .","Verifying. . .","Finishing. . .","Admiring. . .","Sparkling. . .","Printing. . ."];
-let assistantModel="gemini-3.5-flash-lite",assistantHistory=[],assistantGenerating=false,assistantTaskId=null,assistantStatusTimer=null,assistantPingTimer=null,assistantResetAt=Date.now()+86400000,assistantTokensTimerInt=null,assistantCodeStore=[],pendingAssistantContinue=false,assistantContextType=null,assistantFloatingMode=false,assistantMinimized=false,assistantMaximized=false,assistantTokensRemaining=50000;
+let assistantModel="gemini-3.5-flash-lite",assistantHistory=[],assistantGenerating=false,assistantTaskId=null,assistantStatusTimer=null,assistantPingTimer=null,assistantResetAt=Date.now()+86400000,assistantTokensTimerInt=null,assistantCodeStore=[],pendingAssistantContinue=false,assistantContextType=null,assistantFloatingMode=false,assistantMinimized=false,assistantMaximized=false,assistantTokensRemaining=50000,assistantStreamShowThinking=true,assistantStreamThinkingText="",assistantStreamAnswerText="";
+let activeReportTarget=null,activeReportEmailId=null,isSendingReportEmail=false;
 let socialState={friends:[],requests:[],blocked:[],groupChats:[]},socialShowRequests=false,gcSelectMode=false,selectedGcFriends=[],stagedGcPfpBase64="",currentGc=null,gcMessagesCache=[],gcOffset=0,gcHasMore=false,isLoadingMoreGc=false,gcMsgChunks=[],gcMicRecorder=null,gcMicChunks=[],gcMicStream=null,gcMicTimerInt=null,gcMicSeconds=0,gcMicAnalyser=null,gcMicAnimFrame=null,gcTypingOutTimer=null,gcPeerTypingTimeout=null,currentDmPeer=null,dmMessagesCache=[],dmOffset=0,dmHasMore=false,isLoadingMoreDm=false,dmMsgChunks=[],dmMediaDlCache={},dmMediaDlPending={},pendingDedupUploads={},autoPlayDmAudioId=null,dmMicRecorder=null,dmMicChunks=[],dmMicStream=null,dmMicTimerInt=null,dmMicSeconds=0,dmMicAnalyser=null,dmMicAnimFrame=null,dmTypingOutTimer=null,dmPeerTypingTimeout=null,currentPopupProfileId=null;
 let notifQueue=[],activeNotif=null,notifTimerInt=null,notifStartTime=0,notifDuration=0,notifPausedRem=0,quickReplyTargetId=null;
 let activeCall=null,callTimerInt=null,callPingInt=null,callMicStream=null,callMicProc=null,callMicSrc=null,callCamStream=null,callCamTimer=null,callScreenStream=null,callScreenTimer=null,callScreenAudioRec=null,callScreenInitSeg=null,callAudioCtx=null,callPlayCtx=null,callNextPlayTime=0,callNextPlayTimeMap={},callAnalyser=null,callSpeakCheckInt=null,callSilenceTimer=null,callStreamChunks={},callRingVibrateInt=null,callFullscreenPeerId=null,isCallMinimized=false,callLagLevel=0,connErrorCount=0;
@@ -1374,73 +1415,87 @@ const clientActionQueue=[];
 let isProcessingClientQueue=false;
 function enqueueClientAction(fn){clientActionQueue.push(fn);processClientActionQueue();}
 async function processClientActionQueue(){if(isProcessingClientQueue||clientActionQueue.length===0)return;isProcessingClientQueue=true;const task=clientActionQueue.shift();try{await task();}catch(e){}isProcessingClientQueue=false;setTimeout(processClientActionQueue,50);}
-const canvas=document.getElementById("bg-canvas"),ctx=canvas.getContext("2d"),SHADER_SCALE=0.45;
-let particles=[],shaderLight={x:window.innerWidth*0.5,y:window.innerHeight*0.3,tx:window.innerWidth*0.5,ty:window.innerHeight*0.3,active:false},cachedOccluders=[],lastOccluderScan=0;
+const canvas=document.getElementById("bg-canvas"),ctx=canvas.getContext("2d"),SHADER_SCALE=0.65;
+let particles=[],shaderLight={x:window.innerWidth*0.5,y:window.innerHeight*0.3,tx:window.innerWidth*0.5,ty:window.innerHeight*0.3,active:false};
 function resizeCanvas(){canvas.width=Math.max(320,Math.floor(window.innerWidth*SHADER_SCALE));canvas.height=Math.max(200,Math.floor(window.innerHeight*SHADER_SCALE));}
 window.addEventListener("resize",resizeCanvas);resizeCanvas();
 window.addEventListener("mousemove",(e)=>{shaderLight.tx=e.clientX;shaderLight.ty=e.clientY;shaderLight.active=true;},{passive:true});
 window.addEventListener("touchmove",(e)=>{if(e.touches&&e.touches[0]){shaderLight.tx=e.touches[0].clientX;shaderLight.ty=e.touches[0].clientY;shaderLight.active=true;}},{passive:true});
-for(let i=0;i<36;i++){particles.push({x:Math.random()*window.innerWidth,y:Math.random()*window.innerHeight,vx:(Math.random()-0.5)*0.65,vy:(Math.random()-0.5)*0.65,r:1.8});}
+for(let i=0;i<38;i++){particles.push({x:Math.random()*window.innerWidth,y:Math.random()*window.innerHeight,vx:(Math.random()-0.5)*0.6,vy:(Math.random()-0.5)*0.6,r:1.8});}
 function rayBoxIntersect(ox,oy,dx,dy,box){
-  const invX=dx!==0?1/dx:1e9,invY=dy!==0?1/dy:1e9;
+  if(ox>=box.l&&ox<=box.r&&oy>=box.t&&oy<=box.b)return null;
+  const invX=Math.abs(dx)>1e-7?1/dx:1e9,invY=Math.abs(dy)>1e-7?1/dy:1e9;
   const t1=(box.l-ox)*invX,t2=(box.r-ox)*invX,t3=(box.t-oy)*invY,t4=(box.b-oy)*invY;
   const tmin=Math.max(Math.min(t1,t2),Math.min(t3,t4)),tmax=Math.min(Math.max(t1,t2),Math.max(t3,t4));
   if(tmax<0||tmin>tmax)return null;
-  return tmin>=0?tmin:null;
+  return tmin>0.5?tmin:null;
 }
-function scanShaderOccluders(now){
-  if(now-lastOccluderScan<160)return;
-  lastOccluderScan=now;
-  cachedOccluders=[];
-  const cards=document.querySelectorAll('.card');
+function getVisibleOccluders(){
+  const list=[],cards=document.querySelectorAll('.card');
   for(let i=0;i<cards.length;i++){
     const c=cards[i];
-    if(c.offsetWidth>0&&c.offsetHeight>0){
+    if(c.offsetWidth>20&&c.offsetHeight>20){
       const r=c.getBoundingClientRect();
-      if(r.width>20&&r.height>20)cachedOccluders.push({l:r.left,t:r.top,r:r.right,b:r.bottom});
+      if(r.width>20&&r.height>20)list.push({l:r.left,t:r.top,r:r.right,b:r.bottom});
     }
   }
+  return list;
 }
 function animateBackground(now){
   requestAnimationFrame(animateBackground);
   if(currentActiveSiteId)return;
   if(!shaderLight.active){
-    const t=(now||0)*0.0005;
-    shaderLight.tx=window.innerWidth*(0.5+0.25*Math.cos(t));
-    shaderLight.ty=window.innerHeight*(0.32+0.15*Math.sin(t*1.3));
+    const t=(now||0)*0.00045;
+    shaderLight.tx=window.innerWidth*(0.5+0.24*Math.cos(t));
+    shaderLight.ty=window.innerHeight*(0.32+0.14*Math.sin(t*1.25));
   }
-  shaderLight.x+=(shaderLight.tx-shaderLight.x)*0.12;
-  shaderLight.y+=(shaderLight.ty-shaderLight.y)*0.12;
+  shaderLight.x+=(shaderLight.tx-shaderLight.x)*0.14;
+  shaderLight.y+=(shaderLight.ty-shaderLight.y)*0.14;
   document.documentElement.style.setProperty('--lx',`${((shaderLight.x/Math.max(1,window.innerWidth))*100).toFixed(1)}%`);
   document.documentElement.style.setProperty('--ly',`${((shaderLight.y/Math.max(1,window.innerHeight))*100).toFixed(1)}%`);
-  scanShaderOccluders(now||0);
-  const w=canvas.width,h=canvas.height,sx=SHADER_SCALE,lx=shaderLight.x*sx,ly=shaderLight.y*sx,maxR=Math.hypot(w,h)*0.78;
+  const occluders=getVisibleOccluders();
+  const w=canvas.width,h=canvas.height,sx=SHADER_SCALE,lx=shaderLight.x*sx,ly=shaderLight.y*sx,maxR=Math.hypot(w,h)*0.82,maxWorldR=maxR/sx;
   ctx.clearRect(0,0,w,h);
   const grad=ctx.createRadialGradient(lx,ly,2,lx,ly,maxR);
-  grad.addColorStop(0,'rgba(239,68,68,0.22)');
-  grad.addColorStop(0.35,'rgba(220,38,38,0.08)');
+  grad.addColorStop(0,'rgba(239,68,68,0.18)');
+  grad.addColorStop(0.32,'rgba(220,38,38,0.07)');
+  grad.addColorStop(0.7,'rgba(185,28,28,0.02)');
   grad.addColorStop(1,'rgba(3,7,18,0)');
   ctx.fillStyle=grad;
   ctx.fillRect(0,0,w,h);
-  const rays=48,step=(Math.PI*2)/rays;
+  const angles=[];
+  const baseSteps=144;
+  for(let i=0;i<baseSteps;i++)angles.push(-Math.PI+(i/baseSteps)*(Math.PI*2));
+  for(let j=0;j<occluders.length;j++){
+    const b=occluders[j];
+    const corners=[[b.l,b.t],[b.r,b.t],[b.r,b.b],[b.l,b.b]];
+    for(let k=0;k<4;k++){
+      const a=Math.atan2(corners[k][1]-shaderLight.y,corners[k][0]-shaderLight.x);
+      angles.push(a-0.0008,a,a+0.0008);
+    }
+  }
+  angles.sort((a,b)=>a-b);
+  ctx.save();
   ctx.beginPath();
-  for(let i=0;i<=rays;i++){
-    const ang=i*step,dx=Math.cos(ang),dy=Math.sin(ang);
-    let minT=maxR/sx;
-    for(let j=0;j<cachedOccluders.length;j++){
-      const hit=rayBoxIntersect(shaderLight.x,shaderLight.y,dx,dy,cachedOccluders[j]);
+  for(let i=0;i<angles.length;i++){
+    const ang=angles[i],dx=Math.cos(ang),dy=Math.sin(ang);
+    let minT=maxWorldR;
+    for(let j=0;j<occluders.length;j++){
+      const hit=rayBoxIntersect(shaderLight.x,shaderLight.y,dx,dy,occluders[j]);
       if(hit!==null&&hit<minT)minT=hit;
     }
     const px=(shaderLight.x+dx*minT)*sx,py=(shaderLight.y+dy*minT)*sx;
     if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
   }
   ctx.closePath();
-  const rayGrad=ctx.createRadialGradient(lx,ly,1,lx,ly,maxR*0.85);
-  rayGrad.addColorStop(0,'rgba(248,113,113,0.16)');
-  rayGrad.addColorStop(0.55,'rgba(239,68,68,0.05)');
+  const rayGrad=ctx.createRadialGradient(lx,ly,1,lx,ly,maxR*0.88);
+  rayGrad.addColorStop(0,'rgba(248,113,113,0.18)');
+  rayGrad.addColorStop(0.4,'rgba(239,68,68,0.08)');
+  rayGrad.addColorStop(0.75,'rgba(239,68,68,0.02)');
   rayGrad.addColorStop(1,'rgba(239,68,68,0)');
   ctx.fillStyle=rayGrad;
   ctx.fill();
+  ctx.restore();
   const vw=window.innerWidth,vh=window.innerHeight;
   for(let i=0;i<particles.length;i++){
     const p=particles[i];
@@ -1460,7 +1515,7 @@ function animateBackground(now){
         ctx.moveTo(px,py);
         ctx.lineTo(p2.x*sx,p2.y*sx);
         ctx.strokeStyle=`rgba(239,68,68,${(0.32*(1-dist/125)*lit).toFixed(2)})`;
-        ctx.lineWidth=0.6;
+        ctx.lineWidth=0.65;
         ctx.stroke();
       }
     }
@@ -1525,8 +1580,9 @@ s.on('eb_chat_history_chunk',(data)=>{if(data.session!==currentChatSession)retur
 s.on('eb_chat_msg_out',(data)=>{if(data.session===currentChatSession&&data.msg){globalChatMessages.push(data.msg);appendSingleChatMessage(data.msg);}});
 s.on('eb_chat_typing_count',(data)=>{if(data.session===currentChatSession){const el=document.getElementById('chat-typing-status');if(el)el.innerText=data.count>0?`${data.count} ${data.count===1?'user is':'users are'} typing . . .`:"";}});
 s.on('eb_assistant_quota_update',(data)=>{updateAssistantQuotaUI(data.remaining,data.resetAt);});
-s.on('eb_assistant_started',(data)=>{assistantTaskId=data.taskId;assistantGenerating=true;document.getElementById('btn-assistant-send').innerText="Stop";if(assistantPingTimer)clearInterval(assistantPingTimer);assistantPingTimer=setInterval(()=>{if(assistantGenerating&&assistantTaskId)socket.emit('eb_assistant_ping',{taskId:assistantTaskId});},3000);});
-s.on('eb_assistant_done',(data)=>{finishAssistantGen();assistantHistory.push({role:'assistant',text:data.text||'',command:data.command||null,code:data.code||'',shouldContinue:Boolean(data.shouldContinue)});renderAssistantHistory();});
+s.on('eb_assistant_started',(data)=>{assistantTaskId=data.taskId;assistantGenerating=true;assistantStreamShowThinking=true;assistantStreamThinkingText="";assistantStreamAnswerText="";document.getElementById('btn-assistant-send').innerText="Stop";if(data.streaming)createAssistantStreamBubble();if(assistantPingTimer)clearInterval(assistantPingTimer);assistantPingTimer=setInterval(()=>{if(assistantGenerating&&assistantTaskId)socket.emit('eb_assistant_ping',{taskId:assistantTaskId});},3000);});
+s.on('eb_assistant_stream',(data)=>{if(!assistantGenerating||data.taskId!==assistantTaskId)return;assistantStreamThinkingText=data.thinking||"";assistantStreamAnswerText=data.text||"";updateAssistantStreamBubble();});
+s.on('eb_assistant_done',(data)=>{finishAssistantGen();assistantHistory.push({role:'assistant',text:data.text||'',thinking:data.thinking||'',showThinking:false,command:data.command||null,code:data.code||'',shouldContinue:Boolean(data.shouldContinue)});renderAssistantHistory();});
 s.on('eb_assistant_info_fetched',(info)=>{pendingAssistantContinue=false;sendAssistantPrompt(`Fetched user info:\n\`\`\`json\n${JSON.stringify(info,null,2)}\n\`\`\`\nPlease continue with this info.`);});
 s.on('eb_assistant_error',(data)=>{finishAssistantGen();alert(data.error||"AI Assistant error.");});
 s.on('eb_assistant_interrupted',(data)=>{finishAssistantGen();assistantHistory.push({role:'interrupted',text:data.reason||"Generation interrupted by user."});renderAssistantHistory();});
@@ -1567,7 +1623,10 @@ s.on('eb_call_peer_media_state',(data)=>{if(!activeCall||activeCall.callId!==dat
 s.on('eb_call_stream_chunk_out',(data)=>{handleIncomingCallStreamChunk(data);});
 s.on('eb_published_sites_chunk',(data)=>{if(siteFetchCancelled)return;if(data.index===0)siteFetchChunks=[];siteFetchChunks.push(data.chunk);const pct=Math.floor(((data.index+1)/data.total)*100);document.getElementById('site-fetch-pct').innerText=pct;document.getElementById('site-fetch-bar').style.width=`${pct}%`;const fnEl=document.getElementById('site-fetch-nerd-info');if(fnEl){const kb=(siteFetchChunks.join('').length/1024).toFixed(1);fnEl.innerText=`Chunks: ${siteFetchChunks.length} / ${data.total} | Downloaded: ${kb} KB`;}if(siteFetchChunks.length===data.total){try{const parsed=JSON.parse(siteFetchChunks.join(''));isUserHasSite=Boolean(data.userHasSite);sitesHasMore=Boolean(data.hasMore);isLoadingMoreSites=false;if((data.offset||0)===0){publishedSitesCache=parsed;document.getElementById('overlay-fetching-sites').style.display='none';document.getElementById('search-fetching-indicator').style.display='none';document.getElementById('modal-see-publish').style.display='flex';updateCreateUpdateSiteBtnText();renderPublishedSitesList(publishedSitesCache);}else{const box=document.getElementById('published-sites-container'),prevTop=box.scrollTop;publishedSitesCache=publishedSitesCache.concat(parsed);renderPublishedSitesList(publishedSitesCache);box.scrollTop=prevTop;}}catch(e){isLoadingMoreSites=false;document.getElementById('overlay-fetching-sites').style.display='none';document.getElementById('search-fetching-indicator').style.display='none';}}});
 s.on('eb_reported_sites_chunk',(data)=>{if(data.index===0)reportsFetchChunks=[];reportsFetchChunks.push(data.chunk);if(reportsFetchChunks.length===data.total){try{reportedSitesCache=JSON.parse(reportsFetchChunks.join(''));renderReportedSitesList(reportedSitesCache);document.getElementById('modal-check-reports').style.display='flex';}catch(e){}}});
-s.on('eb_site_reported_ack',(data)=>{alert(`Site ${data.siteId} reported successfully to Devs/Owner.`);renderPublishedSitesList(publishedSitesCache);});
+s.on('eb_site_reported_ack',(data)=>{closeReportModal();alert("Your report has been submitted to the Developers and Owner.");});
+s.on('eb_user_reported_ack',(data)=>{closeReportModal();alert("Your report has been submitted to the Developers and Owner.");});
+s.on('eb_report_marked_read',(data)=>{reportedSitesCache=reportedSitesCache.filter(r=>r.reportId!==data.reportId);renderReportedSitesList(reportedSitesCache);});
+s.on('eb_report_email_result',(data)=>{isSendingReportEmail=false;const btnSend=document.getElementById('btn-send-report-email'),btnCancel=document.getElementById('btn-cancel-report-email'),st=document.getElementById('report-email-sending-status');if(btnSend)btnSend.disabled=false;if(btnCancel)btnCancel.disabled=false;if(st)st.style.display='none';if(data&&data.success){closeReportEmailReplyModal();reportedSitesCache=reportedSitesCache.filter(r=>r.reportId!==data.reportId);renderReportedSitesList(reportedSitesCache);alert("Email sent successfully!");}else{alert((data&&data.error)||"Failed to send email to reporter.");}});
 s.on('eb_site_info_chunk',(data)=>{if(data.index===0)window.siteInfoChunks=[];window.siteInfoChunks.push(data.chunk);if(window.siteInfoChunks.length===data.total){try{renderSiteInfoModal(JSON.parse(window.siteInfoChunks.join('')));}catch(e){}}});
 s.on('eb_user_site_data_chunk',(data)=>{if(siteDataFetchCancelled)return;if(!data.success){document.getElementById('overlay-fetching-site-data').style.display='none';openCreateSiteModalForm();return;}if(data.index===0)userSiteDataChunks=[];userSiteDataChunks.push(data.chunkPiece||data.chunk);const pct=Math.floor(((data.index+1)/data.total)*100);document.getElementById('site-data-pct').innerText=pct;document.getElementById('site-data-bar').style.width=`${pct}%`;const dnEl=document.getElementById('site-data-nerd-info');if(dnEl){const kb=(userSiteDataChunks.join('').length/1024).toFixed(1);dnEl.innerText=`Chunks: ${userSiteDataChunks.length} / ${data.total} | Downloaded: ${kb} KB`;}if(userSiteDataChunks.length===data.total){try{const parsed=JSON.parse(userSiteDataChunks.join(''));document.getElementById('overlay-fetching-site-data').style.display='none';openCreateSiteModalForm();document.getElementById('site-title-field').value=parsed.site.title||"";document.getElementById('site-desc-field').value=parsed.site.description||"";document.getElementById('site-vis-field').value=parsed.site.visibility||"public";document.getElementById('site-auto-tunnel-field').value=String(parsed.site.autoUpdateTunnel!==false);generatedSiteIdVal=parsed.site.id||"";if(parsed.site.isUploadedFile){isSiteFileUploaded=true;document.getElementById('site-html-script-container').style.display='none';document.getElementById('btn-remove-site-file').style.display='block';}else{isSiteFileUploaded=false;document.getElementById('site-html-script-container').style.display='block';document.getElementById('btn-remove-site-file').style.display='none';document.getElementById('site-html-field').value=parsed.site.htmlScript||"";updateLineNumbers('site-html-field','site-code-lines');}if(parsed.remCooldownMs>0){startSiteIdGenCooldown(parsed.remCooldownMs/1000);}else if(generatedSiteIdVal){const btn=document.getElementById('btn-gen-site-id');btn.disabled=false;btn.innerText="ID generated.";btn.style.background="#10b981 !important";btn.style.color="#000000 !important";}}catch(e){document.getElementById('overlay-fetching-site-data').style.display='none';openCreateSiteModalForm();}}});
 s.on('eb_site_id_generated',(data)=>{generatedSiteIdVal=data.siteId;startSiteIdGenCooldown(data.cooldownMs/1000);});
@@ -1575,12 +1634,12 @@ s.on('eb_site_chunk_ack',(data)=>{if(!isUploadingSiteScript)return;const pct=Mat
 s.on('eb_site_publish_complete',()=>{isUploadingSiteScript=false;document.getElementById('site-upload-progress').style.display='none';document.getElementById('site-upload-nerd-stats').style.display='none';alert("Site published/updated successfully!");closeCreateSiteModal();openSeeAndPublishModal();});
 s.on('eb_site_data_response',(data)=>{if(siteEnterCancelled)return;if(data.site){if(siteEnterSimTimer){clearInterval(siteEnterSimTimer);siteEnterSimTimer=null;}document.getElementById('site-enter-progress-bar').style.width='100%';document.getElementById('site-enter-progress-val').innerText='100';const kb=(String(data.site.htmlScript||'').length/1024).toFixed(1),dtMs=Math.max(1,Date.now()-siteEnterStartTs);const nInfo=document.getElementById('site-enter-nerd-info');if(nInfo)nInfo.innerText=`Payload Ready | Size: ${kb} KB | Latency: ${dtMs}ms`;setTimeout(()=>{if(siteEnterCancelled)return;document.getElementById('overlay-site-loading').style.display='none';renderSiteFrame(data.site);},180);}});
 s.on('eb_site_rated_response',(data)=>{const item=publishedSitesCache.find(it=>it.id===data.siteId);if(item){item.likes=data.likes;item.dislikes=data.dislikes;item.userRating=data.userRating;renderPublishedSitesList(publishedSitesCache);}if(currentActiveSiteId===data.siteId)updateSiteViewerGearRatings(data.userRating);});
-s.on('eb_user_assets_list',(data)=>{const container=document.getElementById('assets-list-container');container.innerHTML="";userTotalAssetBytes=data.usedStorageBytes||0;const remMb=Math.max(0,500-(userTotalAssetBytes/(1024*1024))).toFixed(1),ind=document.getElementById('asset-storage-indicator'),upBtn=document.getElementById('btn-open-asset-upload');if(ind)ind.innerText=`${remMb}MB remaining`;if(upBtn){upBtn.style.opacity=userTotalAssetBytes>=MAX_ASSET_BYTES?'0.3':'1';upBtn.style.pointerEvents=userTotalAssetBytes>=MAX_ASSET_BYTES?'none':'auto';}if(!data.assets||data.assets.length===0){container.innerHTML=`<div style="color:var(--muted);font-size:0.85rem;padding:15px;">No assets found. Upload audio, image or video above!</div>`;return;}data.assets.forEach(a=>{const itemDiv=document.createElement('div');itemDiv.className="domain-item";itemDiv.style.alignItems="center";itemDiv.innerHTML=`<div style="display:flex;align-items:center;gap:10px;"><div id="asset-slot-${a.id}" style="width:36px;height:36px;background:#0f172a;border:1px solid #334155;display:flex;align-items:center;justify-content:center;font-size:0.7rem;">...</div><div><div style="font-weight:bold;font-size:0.85rem;">${escapeHtml(a.name)}</div><div style="font-size:0.7rem;color:var(--muted);">ID: #${a.id} | ${(a.size/1024).toFixed(1)} KB</div></div></div><div style="display:flex;gap:6px;"><button class="btn-secondary" style="padding:4px 8px;font-size:0.75rem;" onclick="copyTextValue('${a.id}')">Copy asset ID</button><button class="btn-purple" style="padding:4px 8px;font-size:0.75rem;" onclick="navigateToPath('assets/edit/${a.id}')">edit</button></div>`;container.appendChild(itemDiv);fetchAndRenderAssetInSlot(a.id,a.type);});});
+s.on('eb_user_assets_list',(data)=>{const container=document.getElementById('assets-list-container');container.innerHTML="";userTotalAssetBytes=data.usedStorageBytes||0;const remMb=Math.max(0,500-(userTotalAssetBytes/(1024*1024))).toFixed(1),ind=document.getElementById('asset-storage-indicator'),upBtn=document.getElementById('btn-open-asset-upload');if(ind)ind.innerText=`${remMb}MB remaining`;if(upBtn){upBtn.style.opacity=userTotalAssetBytes>=MAX_ASSET_BYTES?'0.3':'1';upBtn.style.pointerEvents=userTotalAssetBytes>=MAX_ASSET_BYTES?'none':'auto';}if(!data.assets||data.assets.length===0){container.innerHTML=`<div style="color:var(--muted);font-size:0.85rem;padding:15px;">No assets found. Upload audio, image or video above!</div>`;return;}data.assets.forEach(a=>{userAssetsMeta[a.id]=a;const itemDiv=document.createElement('div');itemDiv.className="domain-item";itemDiv.style.alignItems="center";itemDiv.innerHTML=`<div style="display:flex;align-items:center;gap:10px;"><div id="asset-slot-${a.id}" style="width:36px;height:36px;background:#0f172a;border:1px solid #334155;display:flex;align-items:center;justify-content:center;font-size:0.7rem;">...</div><div><div style="font-weight:bold;font-size:0.85rem;">${escapeHtml(a.name)}</div><div style="font-size:0.7rem;color:var(--muted);">ID: #${a.id} | ${(a.size/1024).toFixed(1)} KB</div></div></div><div style="display:flex;gap:6px;"><button class="btn-secondary" style="padding:4px 8px;font-size:0.75rem;" onclick="copyTextValue('${a.id}')">Copy asset ID</button><button class="btn-purple" style="padding:4px 8px;font-size:0.75rem;" onclick="navigateToPath('assets/edit/${a.id}')">edit</button></div>`;container.appendChild(itemDiv);fetchAndRenderAssetInSlot(a.id,a.type);});});
 s.on('RemoteEvent',(pkt)=>{
-if(pkt.type&&pkt.type.startsWith('eb_asset_chunk_')){const aId=Number(pkt.type.replace('eb_asset_chunk_','')),data=pkt.data;if(data.error)return;if(!cachedAssetsRam[aId]||typeof cachedAssetsRam[aId]==='string')cachedAssetsRam[aId]={chunks:[],total:data.total,type:data.type,name:data.name};cachedAssetsRam[aId].chunks[data.index]=data.chunk;if(cachedAssetsRam[aId].chunks.filter(Boolean).length===data.total){const fullBase64=cachedAssetsRam[aId].chunks.join('');cachedAssetsRam[aId]=fullBase64;if(aId===1||aId===4||aId===10||aId===11)saveCachedAssetCookie(aId,fullBase64);if(aId===4)applySiteFavicon(fullBase64);renderAssetMediaElement(aId,data.type,fullBase64);}}
+if(pkt.type&&pkt.type.startsWith('eb_asset_chunk_')){const aId=Number(pkt.type.replace('eb_asset_chunk_','')),data=pkt.data;if(data.error)return;if(!cachedAssetsRam[aId]||typeof cachedAssetsRam[aId]==='string')cachedAssetsRam[aId]={chunks:[],total:data.total,type:data.type,name:data.name};cachedAssetsRam[aId].chunks[data.index]=data.chunk;if(cachedAssetsRam[aId].chunks.filter(Boolean).length===data.total){const fullBase64=cachedAssetsRam[aId].chunks.join('');cachedAssetsRam[aId]=fullBase64;if(aId===1||aId===4||aId===10||aId===11)saveCachedAssetCookie(aId,fullBase64);if(aId===4)applySiteFavicon(fullBase64);renderAssetMediaElement(aId,data.type,fullBase64);if(currentEditingAssetId===aId&&document.getElementById('modal-asset-edit').style.display==='flex'&&!stagedAssetBase64)renderAssetEditPreview(data.type,fullBase64);}}
 });
-s.on('eb_asset_chunk_ack',(data)=>{if(!isUploadingAsset)return;const pct=Math.floor((data.received/data.total)*100);document.getElementById('asset-progress-bar').style.width=`${pct}%`;document.getElementById('asset-progress-val').innerText=pct;const dataToSend=stagedAssetBase64||cachedAssetsRam[currentEditingAssetId],abEl=document.getElementById('asset-nerd-bytes');if(abEl&&dataToSend)abEl.innerText=`${Math.min(dataToSend.length,data.received*ASSET_CHUNK_SIZE)/1024|0} / ${(dataToSend.length/1024).toFixed(1)} KB (${data.received}/${data.total} chunks)`;if(data.received<data.total&&isUploadingAsset){const fileInput=document.getElementById('asset-file-field'),fileType=fileInput.files[0]?fileInput.files[0].type:"image/png";s.emit('eb_upload_asset_chunk',{index:data.received,total:data.total,chunk:dataToSend.slice(data.received*ASSET_CHUNK_SIZE,(data.received+1)*ASSET_CHUNK_SIZE),name:document.getElementById('asset-name-field').value.trim(),type:fileType,size:dataToSend.length,editAssetId:currentEditingAssetId});}});
-s.on('eb_asset_upload_success',(data)=>{isUploadingAsset=false;document.getElementById('asset-upload-progress').style.display='none';document.getElementById('asset-nerd-stats').style.display='none';if(data.newCoins!==undefined)updateCoinsDisplay(data.newCoins);alert(`Success on Asset upload!\nyour asset ${data.name} has been uploaded.`);closeAssetEditModal();s.emit('eb_get_user_assets');});
+s.on('eb_asset_chunk_ack',(data)=>{if(!isUploadingAsset)return;const pct=Math.floor((data.received/data.total)*100);document.getElementById('asset-progress-bar').style.width=`${pct}%`;document.getElementById('asset-progress-val').innerText=pct;const dataToSend=stagedAssetBase64||cachedAssetsRam[currentEditingAssetId],abEl=document.getElementById('asset-nerd-bytes');if(abEl&&dataToSend)abEl.innerText=`${Math.min(dataToSend.length,data.received*ASSET_CHUNK_SIZE)/1024|0} / ${(dataToSend.length/1024).toFixed(1)} KB (${data.received}/${data.total} chunks)`;if(data.received<data.total&&isUploadingAsset){const fileInput=document.getElementById('asset-file-field'),meta=userAssetsMeta[currentEditingAssetId],fileType=fileInput.files[0]?fileInput.files[0].type:(meta&&meta.type?meta.type:"image/png");s.emit('eb_upload_asset_chunk',{index:data.received,total:data.total,chunk:dataToSend.slice(data.received*ASSET_CHUNK_SIZE,(data.received+1)*ASSET_CHUNK_SIZE),name:document.getElementById('asset-name-field').value.trim(),type:fileType,size:dataToSend.length,editAssetId:currentEditingAssetId});}});
+s.on('eb_asset_upload_success',(data)=>{isUploadingAsset=false;document.getElementById('asset-upload-progress').style.display='none';document.getElementById('asset-nerd-stats').style.display='none';if(currentEditingAssetId&&stagedAssetBase64)delete cachedAssetsRam[currentEditingAssetId];if(data.newCoins!==undefined)updateCoinsDisplay(data.newCoins);alert(`Success on Asset upload!\nyour asset ${data.name} has been uploaded.`);closeAssetEditModal();s.emit('eb_get_user_assets');});
 s.on('eb_asset_flagged',(data)=>{isUploadingAsset=false;document.getElementById('asset-upload-progress').style.display='none';document.getElementById('asset-nerd-stats').style.display='none';document.getElementById('flagged-notify-desc').innerText=`it was detected that the Asset ${data.assetName} had hidden scripts or was corrupted, please ensure it is safe to be uploaded.`;document.getElementById('modal-flagged-notify').style.display='flex';});
 s.on('eb_email_code_sent',(data)=>{openEmailVerifyModal(false,false,data.email);startEmailResendCooldown(data.cooldown||30);});
 s.on('eb_email_code_verified',(data)=>{closeEmailVerifyModal();if(window.emailVerifyState&&window.emailVerifyState.isLinking){enqueueClientAction(()=>s.emit('eb_link_missing_email',{email:data.email}));}else if(data.is2FA){showLoadingScreen("Logging you in...");return;}else if(pendingSignupData){showLoadingScreen("Finalizing your account and generating security credentials...");enqueueClientAction(()=>s.emit('eb_ezbridge_signup',{username:pendingSignupData.user,password:pendingSignupData.pass,email:pendingSignupData.email}));pendingSignupData=null;}});
@@ -1612,7 +1671,11 @@ function handleCaptchaPointerLeave(){if(!socket||!socket.connected)return;socket
 function handleCaptchaFrameClick(e){if(!socket||!socket.connected)return;const pt=getCaptchaCoords(e.clientX,e.clientY);if(!pt)return;document.getElementById('captcha-status-msg').style.color="var(--muted)";document.getElementById('captcha-status-msg').innerText="Checking...";socket.emit('eb_captcha_click',{captchaSessionId,x:pt.x,y:pt.y});}
 function openUserProfilePopup(uid){if(!uid||uid==="Guest"||uid==="Deleted")return;currentPopupProfileId=uid;socket.emit('eb_get_user_popup_info',{targetUserId:uid});}
 function closeUserProfilePopup(){currentPopupProfileId=null;document.getElementById('modal-user-profile-popup').style.display='none';}
-function renderUserProfilePopup(d){const pfpEl=document.getElementById('popup-prof-pfp');pfpEl.innerHTML=`<img src="${d.pfpData}" style="width:100%;height:100%;object-fit:cover;">`;document.getElementById('popup-prof-name').innerText=d.displayName||d.userId;const roleSlot=document.getElementById('popup-prof-role-slot');if(roleSlot){if(d.role==='Owner')roleSlot.innerHTML=`<span class="role-tag role-owner">OWNER</span>`;else if(d.role==='Dev')roleSlot.innerHTML=`<span class="role-tag role-dev">DEVELOPER</span>`;else if(d.role==='Admin')roleSlot.innerHTML=`<span class="role-tag role-admin">ADMIN</span>`;else roleSlot.innerHTML="";}document.getElementById('popup-prof-id').innerText=`Client ID: ${d.userId}`;document.getElementById('popup-prof-desc').innerText=(d.description&&d.description.trim())?d.description:"No description added.";const actEl=document.getElementById('popup-prof-actions');actEl.innerHTML="";if(!d.isSelf){if(!d.isFriend){const fBtn=document.createElement('button');if(d.isPending){fBtn.className='btn';fBtn.style.cssText='width:auto;margin:0;padding:6px 14px;background:#eab308 !important;color:#000 !important;border-color:#eab308 !important;';fBtn.innerText='Pending';fBtn.disabled=true;}else{fBtn.className='btn btn-green';fBtn.style.cssText='width:auto;margin:0;padding:6px 14px;background:#10b981 !important;color:#000 !important;';fBtn.innerText='Friend';fBtn.onclick=()=>socket.emit('eb_social_send_friend_req',{targetUserId:d.userId});}actEl.appendChild(fBtn);}else{const ufBtn=document.createElement('button');ufBtn.className='btn btn-danger';ufBtn.style.cssText='width:auto;margin:0;padding:6px 14px;background:#ef4444 !important;color:#fff !important;';ufBtn.innerText='Unfriend';ufBtn.onclick=()=>{socket.emit('eb_social_friend_action',{targetUserId:d.userId,action:'unfriend'});};actEl.appendChild(ufBtn);}const bBtn=document.createElement('button');bBtn.className='btn btn-danger';bBtn.style.cssText='width:auto;margin:0;padding:6px 14px;background:#ef4444 !important;color:#fff !important;';bBtn.innerText=d.isBlocked?'Unblock 🚫':'Block 🚫';bBtn.onclick=()=>{socket.emit('eb_social_friend_action',{targetUserId:d.userId,action:d.isBlocked?'unblock':'block'});};actEl.appendChild(bBtn);}const creEl=document.getElementById('popup-prof-creations');if(d.site){creEl.innerHTML=`<div class="domain-item" style="flex-direction:column;align-items:flex-start;gap:6px;"><div><b>${escapeHtml(d.site.title)}</b> <span style="font-size:0.7rem;color:var(--muted);">(${d.site.dateStr||'0/0/0'})</span></div><div style="font-size:0.75rem;color:var(--muted);">Visits: ${d.site.visits||0} | 👍 ${d.site.likes||0} | 👎 ${d.site.dislikes||0}</div><button class="btn" style="width:auto;margin:0;padding:4px 12px;font-size:0.75rem;" onclick="closeUserProfilePopup();accessSite('${d.site.id}')">access</button></div>`;}else{creEl.innerHTML=`<div style="font-size:0.8rem;color:var(--muted);font-style:italic;">This user has no creations because they weren't creative enough. *I guess bro*</div>`;}document.getElementById('modal-user-profile-popup').style.display='flex';}
+function renderUserProfilePopup(d){const pfpEl=document.getElementById('popup-prof-pfp');pfpEl.innerHTML=`<img src="${d.pfpData}" style="width:100%;height:100%;object-fit:cover;">`;document.getElementById('popup-prof-name').innerText=d.displayName||d.userId;const roleSlot=document.getElementById('popup-prof-role-slot');if(roleSlot){if(d.role==='Owner')roleSlot.innerHTML=`<span class="role-tag role-owner">OWNER</span>`;else if(d.role==='Dev')roleSlot.innerHTML=`<span class="role-tag role-dev">DEVELOPER</span>`;else if(d.role==='Admin')roleSlot.innerHTML=`<span class="role-tag role-admin">ADMIN</span>`;else roleSlot.innerHTML="";}document.getElementById('popup-prof-id').innerText=`Client ID: ${d.userId}`;document.getElementById('popup-prof-desc').innerText=(d.description&&d.description.trim())?d.description:"No description added.";const actEl=document.getElementById('popup-prof-actions');actEl.innerHTML="";if(!d.isSelf){if(!d.isFriend){const fBtn=document.createElement('button');if(d.isPending){fBtn.className='btn';fBtn.style.cssText='width:auto;margin:0;padding:6px 14px;background:#eab308 !important;color:#000 !important;border-color:#eab308 !important;';fBtn.innerText='Pending';fBtn.disabled=true;}else{fBtn.className='btn btn-green';fBtn.style.cssText='width:auto;margin:0;padding:6px 14px;background:#10b981 !important;color:#000 !important;';fBtn.innerText='Friend';fBtn.onclick=()=>socket.emit('eb_social_send_friend_req',{targetUserId:d.userId});}actEl.appendChild(fBtn);}else{const ufBtn=document.createElement('button');ufBtn.className='btn btn-danger';ufBtn.style.cssText='width:auto;margin:0;padding:6px 14px;background:#ef4444 !important;color:#fff !important;';ufBtn.innerText='Unfriend';ufBtn.onclick=()=>{socket.emit('eb_social_friend_action',{targetUserId:d.userId,action:'unfriend'});};actEl.appendChild(ufBtn);}const bBtn=document.createElement('button');bBtn.className='btn btn-danger';bBtn.style.cssText='width:auto;margin:0;padding:6px 14px;background:#ef4444 !important;color:#fff !important;';bBtn.innerText=d.isBlocked?'Unblock 🚫':'Block 🚫';bBtn.onclick=()=>{socket.emit('eb_social_friend_action',{targetUserId:d.userId,action:d.isBlocked?'unblock':'block'});};actEl.appendChild(bBtn);if(userRole!=='Owner'&&userRole!=='Dev'){const rBtn=document.createElement('button');rBtn.className='btn btn-secondary';rBtn.style.cssText='width:auto;margin:0;padding:6px 14px;border-color:#ef4444 !important;';rBtn.innerText='Report 🚩';rBtn.onclick=()=>openReportModal('user',d.userId);actEl.appendChild(rBtn);}}const creEl=document.getElementById('popup-prof-creations');if(d.site){creEl.innerHTML=`<div class="domain-item" style="flex-direction:column;align-items:flex-start;gap:6px;"><div><b>${escapeHtml(d.site.title)}</b> <span style="font-size:0.7rem;color:var(--muted);">(${d.site.dateStr||'0/0/0'})</span></div><div style="font-size:0.75rem;color:var(--muted);">Visits: ${d.site.visits||0} | 👍 ${d.site.likes||0} | 👎 ${d.site.dislikes||0}</div><button class="btn" style="width:auto;margin:0;padding:4px 12px;font-size:0.75rem;" onclick="closeUserProfilePopup();accessSite('${d.site.id}')">access</button></div>`;}else{creEl.innerHTML=`<div style="font-size:0.8rem;color:var(--muted);font-style:italic;">This user has no creations because they weren't creative enough. *I guess bro*</div>`;}document.getElementById('modal-user-profile-popup').style.display='flex';}
+function openReportModal(type,targetId){if(!activeUserId||isGuestMode)return alert("You must be logged in EzBridge to submit a report.");if(userRole==='Owner'||userRole==='Dev')return alert("Developers and Owner cannot submit reports here.");activeReportTarget={type,targetId};const listEl=document.getElementById('report-reasons-list');listEl.innerHTML="";const reasons=type==='site'?['Offensive/Racism or high use of innapropriate words','Sexual Content','Malicious/Dangerous','Bypassing EzBridge APIS or Features','Lag machine','Other']:['Offensive/Racism','Spam','Sexual content','Pedophile','Exploiter','Other'];reasons.forEach((r,idx)=>{const lbl=document.createElement('label');lbl.className='report-reason-item';lbl.innerHTML=`<input type="radio" name="eb-report-reason" value="${escapeHtml(r)}" ${idx===0?'checked':''} onchange="onReportReasonChange(this.value)"><span>${escapeHtml(r)}</span>`;listEl.appendChild(lbl);});document.getElementById('report-other-wrap').style.display='none';document.getElementById('report-other-input').value="";document.getElementById('report-desc-input').value="";document.getElementById('report-desc-count').innerText="0";document.getElementById('modal-report-panel').style.display='flex';}
+function onReportReasonChange(val){document.getElementById('report-other-wrap').style.display=(val==='Other')?'flex':'none';}
+function closeReportModal(){activeReportTarget=null;document.getElementById('modal-report-panel').style.display='none';}
+function submitReportPanel(){if(!activeReportTarget)return;const sel=document.querySelector('input[name="eb-report-reason"]:checked');if(!sel)return alert("Please choose a reason.");const reason=sel.value,otherReason=document.getElementById('report-other-input').value.trim(),description=document.getElementById('report-desc-input').value.trim();if(reason==='Other'&&(otherReason.length<=5||otherReason.length>=20))return alert("Please specify the reason with more than 5 chars and less than 20 chars.");if(activeReportTarget.type==='site')socket.emit('eb_report_site',{siteId:activeReportTarget.targetId,reason,otherReason,description});else socket.emit('eb_report_user',{targetUserId:activeReportTarget.targetId,reason,otherReason,description});}
 function openDmMediaViewer(url,kind){const slot=document.getElementById('dm-media-viewer-slot');slot.innerHTML=kind==='video'?`<video controls autoplay src="${url}" style="max-width:92vw;max-height:78vh;border:2px solid var(--border);"></video>`:`<img src="${url}" style="max-width:92vw;max-height:78vh;object-fit:contain;border:2px solid var(--border);">`;document.getElementById('modal-dm-media-viewer').style.display='flex';}
 function closeDmMediaViewer(){document.getElementById('dm-media-viewer-slot').innerHTML="";document.getElementById('modal-dm-media-viewer').style.display='none';}
 function navigateToPath(subpath){const clean=subpath.replace(/^#?\/?/g,'').replace(/\/+$/,'');window.location.hash=`#/${clean}/`;}
@@ -1673,9 +1736,31 @@ function copyCurrentSiteUrl(){if(!currentActiveSiteId)return;copyTextValue(`${BA
 function updateSiteViewerGearRatings(userRating){const likeBtn=document.getElementById('btn-site-viewer-like'),dislikeBtn=document.getElementById('btn-site-viewer-dislike');if(!likeBtn||!dislikeBtn)return;likeBtn.classList.remove('active');dislikeBtn.classList.remove('active');if(userRating==='like')likeBtn.classList.add('active');else if(userRating==='dislike')dislikeBtn.classList.add('active');}
 function openCheckReportsModal(){reportsFetchChunks=[];socket.emit('eb_get_reported_sites');}
 function closeCheckReportsModal(){document.getElementById('modal-check-reports').style.display='none';}
-function renderReportedSitesList(sites){const container=document.getElementById('reported-sites-container');container.innerHTML="";if(sites.length===0){container.innerHTML=`<div style="color:var(--muted);padding:20px;font-size:0.85rem;">No reported sites found.</div>`;return;}sites.forEach(s=>{const div=document.createElement('div');div.className='site-card';div.innerHTML=`<div style="display:flex;justify-content:space-between;width:100%;align-items:center;"><span><b>${escapeHtml(s.title)}</b> [ID: ${s.id}] [Author ID: ${escapeHtml(s.ownerUserId)}] by <b>${escapeHtml(s.ownerDisplayName||s.ownerUserId)}</b></span><div style="display:flex;gap:4px;"><button class="btn btn-secondary" style="width:auto;margin:0;padding:2px 8px;font-size:0.7rem;" onclick="fetchSiteInfo('${s.id}')">INFO</button><button class="btn btn-danger" style="width:auto;margin:0;padding:2px 8px;font-size:0.7rem;" onclick="deletePublishedSite('${s.id}')">DELETE</button></div></div><div style="font-size:0.75rem;color:var(--muted);">Reported site | Visits: ${s.visits||0} | Likes: ${s.likes||0}</div><div style="display:flex;gap:8px;margin-top:2px;"><button class="btn btn-green" style="width:auto;margin:0;padding:4px 10px;font-size:0.75rem;" onclick="unreportSiteSubmit('${s.id}')">Innocent</button><button class="btn" style="width:auto;margin:0;padding:4px 14px;font-size:0.8rem;" onclick="accessSite('${s.id}')">Access</button></div>`;container.appendChild(div);});}
-function unreportSiteSubmit(siteId){enqueueClientAction(()=>socket.emit('eb_unreport_site',{siteId}));setTimeout(openCheckReportsModal,300);}
-function reportSiteSubmit(siteId,btn){btn.style.background="var(--error) !important";btn.innerText="REPORTED";enqueueClientAction(()=>socket.emit('eb_report_site',{siteId}));}
+function renderReportedSitesList(reports){
+  const container=document.getElementById('reported-sites-container');
+  container.innerHTML="";
+  if(!reports||reports.length===0){container.innerHTML=`<div style="color:var(--muted);padding:20px;font-size:0.85rem;">No reports found.</div>`;return;}
+  reports.forEach(r=>{
+    const div=document.createElement('div');
+    div.className='site-card';
+    const reporterHtml=`<div style="display:flex;align-items:center;gap:8px;background:#020617;border:1px solid #1e293b;padding:6px 8px;width:100%;box-sizing:border-box;"><img src="${r.reporterPfpData||''}" style="width:26px;height:26px;border-radius:50% !important;object-fit:cover;cursor:pointer;border:1px solid var(--border);" onclick="openUserProfilePopup('${escapeHtml(r.reporterUserId)}')"><div style="text-align:left;font-size:0.75rem;"><span style="color:var(--muted);">Reported by:</span> <b style="cursor:pointer;color:#fff;" onclick="openUserProfilePopup('${escapeHtml(r.reporterUserId)}')">${escapeHtml(r.reporterDisplayName||r.reporterUserId)}</b> <span style="color:var(--muted);">(${escapeHtml(r.reporterUserId)})</span></div></div>`;
+    let targetHtml='';
+    if(r.type==='site'){
+      targetHtml=`<div style="display:flex;justify-content:space-between;width:100%;align-items:center;gap:8px;flex-wrap:wrap;"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span style="background:rgba(239,68,68,0.2);border:1px solid #ef4444;color:#fca5a5;font-size:0.68rem;font-weight:bold;padding:2px 6px;">SITE REPORT</span><b>${escapeHtml(r.title)}</b> <span style="font-size:0.72rem;color:var(--muted);">[ID: ${r.siteId}]</span></div><div style="display:flex;gap:4px;"><button class="btn btn-secondary" style="width:auto;margin:0;padding:3px 9px;font-size:0.7rem;" onclick="fetchSiteInfo('${r.siteId}')">INFO</button><button class="btn" style="width:auto;margin:0;padding:3px 9px;font-size:0.7rem;" onclick="accessSite('${r.siteId}')">Access</button><button class="btn btn-danger" style="width:auto;margin:0;padding:3px 9px;font-size:0.7rem;" onclick="deletePublishedSite('${r.siteId}')">DELETE</button></div></div><div style="display:flex;align-items:center;gap:8px;font-size:0.76rem;color:var(--muted);"><span>Site Owner:</span><img src="${r.ownerPfpData||''}" style="width:22px;height:22px;border-radius:50% !important;object-fit:cover;cursor:pointer;border:1px solid var(--border);" onclick="openUserProfilePopup('${escapeHtml(r.ownerUserId)}')"><b style="color:#fff;cursor:pointer;" onclick="openUserProfilePopup('${escapeHtml(r.ownerUserId)}')">${escapeHtml(r.ownerDisplayName||r.ownerUserId)}</b><span>(${escapeHtml(r.ownerUserId)}) | Visits: ${r.visits||0} | 👍 ${r.likes||0}</span></div>`;
+    }else{
+      targetHtml=`<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span style="background:rgba(234,179,8,0.2);border:1px solid #eab308;color:#fde047;font-size:0.68rem;font-weight:bold;padding:2px 6px;">USER REPORT</span><img src="${r.targetPfpData||''}" style="width:28px;height:28px;border-radius:50% !important;object-fit:cover;cursor:pointer;border:1px solid var(--border);" onclick="openUserProfilePopup('${escapeHtml(r.targetUserId)}')"><b style="color:#fff;cursor:pointer;" onclick="openUserProfilePopup('${escapeHtml(r.targetUserId)}')">${escapeHtml(r.targetDisplayName||r.targetUserId)}</b><span style="font-size:0.74rem;color:var(--muted);">(${escapeHtml(r.targetUserId)})</span></div>`;
+    }
+    const reasonHtml=`<div style="text-align:left;background:rgba(239,68,68,0.08);border:1px solid #334155;padding:8px;font-size:0.78rem;"><div><b style="color:var(--accent);">Reason:</b> ${escapeHtml(r.reason||'Reported')}</div>${r.description?`<div style="margin-top:4px;white-space:pre-wrap;color:#e2e8f0;"><b style="color:var(--muted);">Description:</b> ${escapeHtml(r.description)}</div>`:''}</div>`;
+    const emailBtn=r.hasReporterEmail?`<button class="btn btn-purple" style="width:auto;margin:0;padding:4px 12px;font-size:0.75rem;" onclick="openReportEmailReplyModal('${r.reportId}')">Email Reporter</button>`:'';
+    const actHtml=`<div style="display:flex;gap:8px;justify-content:flex-end;width:100%;">${emailBtn}<button class="btn btn-green" style="width:auto;margin:0;padding:4px 12px;font-size:0.75rem;" onclick="markReportAsRead('${r.reportId}')">Mark as read</button></div>`;
+    div.innerHTML=targetHtml+reporterHtml+reasonHtml+actHtml;
+    container.appendChild(div);
+  });
+}
+function markReportAsRead(reportId){enqueueClientAction(()=>socket.emit('eb_mark_report_read',{reportId}));}
+function openReportEmailReplyModal(reportId){activeReportEmailId=reportId;isSendingReportEmail=false;document.getElementById('report-email-reply-text').value="";document.getElementById('report-email-sending-status').style.display='none';document.getElementById('btn-send-report-email').disabled=false;document.getElementById('btn-cancel-report-email').disabled=false;document.getElementById('modal-report-email-reply').style.display='flex';}
+function closeReportEmailReplyModal(){if(isSendingReportEmail)return;activeReportEmailId=null;document.getElementById('modal-report-email-reply').style.display='none';}
+function sendReportEmailReplySubmit(){if(!activeReportEmailId||isSendingReportEmail)return;const replyText=document.getElementById('report-email-reply-text').value.trim();if(!replyText)return alert("Please enter a reply message.");isSendingReportEmail=true;document.getElementById('btn-send-report-email').disabled=true;document.getElementById('btn-cancel-report-email').disabled=true;document.getElementById('report-email-sending-status').style.display='block';socket.emit('eb_reply_report_email',{reportId:activeReportEmailId,replyText});}
 function fetchSiteInfo(siteId){window.siteInfoChunks=[];socket.emit('eb_get_site_info',{siteId});}
 function renderSiteInfoModal(info){document.getElementById('site-info-title').innerText=info.title||"Site";document.getElementById('site-info-author').innerText=info.ownerDisplayName||info.ownerUserId;document.getElementById('site-info-author-id').innerText=`ID: ${info.ownerUserId}`;document.getElementById('site-info-desc').innerText=info.description||"No description provided.";document.getElementById('site-info-visits').innerText=info.visits||0;document.getElementById('site-info-updated').innerText=new Date(info.updatedAt||Date.now()).toLocaleDateString();document.getElementById('site-info-likes').innerText=info.likes||0;document.getElementById('site-info-dislikes').innerText=info.dislikes||0;const pfpSlot=document.getElementById('site-info-pfp-slot');pfpSlot.innerHTML=`<img src="${info.ownerPfpData}" style="width:32px;height:32px;border-radius:50% !important;object-fit:cover;cursor:pointer;" onclick="openUserProfilePopup('${info.ownerUserId}')">`;document.getElementById('modal-site-info').style.display='flex';}
 function closeSiteInfoModal(){document.getElementById('modal-site-info').style.display='none';}
@@ -1685,11 +1770,13 @@ function fetchAndRenderAssetInSlot(assetId,type){if(cachedAssetsRam[assetId]&&ty
 function renderAssetMediaElement(assetId,type,base64Data){const slot=document.getElementById(`asset-slot-${assetId}`);if(!slot)return;if(type.includes('audio')||type.includes('mp3')||type.includes('ogg')||type.includes('wav')){slot.innerHTML=`<button class="btn-icon" style="padding:4px 8px;font-size:0.9rem;" onclick="playCachedAudio('${assetId}')">▶</button>`;}else if(type.includes('video')||type.includes('mp4')||type.includes('webm')){slot.innerHTML=`<button class="btn-icon" style="padding:4px 8px;font-size:0.9rem;" onclick="playCachedVideo('${assetId}')">🎬</button>`;}else{slot.innerHTML=`<img src="${base64Data}" style="width:100%;height:100%;object-fit:cover;">`;}}
 function playCachedAudio(assetId){if(cachedAssetsRam[assetId])new Audio(cachedAssetsRam[assetId]).play();}
 function playCachedVideo(assetId){if(cachedAssetsRam[assetId]){const win=window.open("");win.document.write(`<body style="background:#000;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;"><video controls autoplay src="${cachedAssetsRam[assetId]}" style="max-width:90vw;max-height:90vh;"></video></body>`);}}
-function openAssetUploadModal(){currentEditingAssetId=null;stagedAssetBase64=null;currentAssetCost=0;document.getElementById('asset-edit-title').innerText="Upload Asset";document.getElementById('asset-name-field').value="";document.getElementById('asset-file-field').value="";document.getElementById('asset-preview-box').innerHTML="";document.getElementById('btn-submit-asset').innerHTML="Upload Asset";document.getElementById('btn-delete-asset-form').style.display="none";document.getElementById('modal-asset-edit').style.display='flex';}
-function openAssetEditForm(assetId){currentEditingAssetId=Number(assetId);stagedAssetBase64=null;currentAssetCost=0;document.getElementById('asset-edit-title').innerText=`Edit Asset #${assetId}`;document.getElementById('btn-submit-asset').innerHTML="Apply changes";document.getElementById('btn-delete-asset-form').style.display="block";document.getElementById('modal-asset-edit').style.display='flex';if(cachedAssetsRam[assetId])document.getElementById('asset-preview-box').innerHTML=`<img src="${cachedAssetsRam[assetId]}" style="max-height:100px;max-width:100%;">`;}
+function renderAssetEditPreview(type,dataUrl){const preview=document.getElementById('asset-preview-box');if(!preview||!dataUrl)return;const t=String(type||'').toLowerCase();if(t.includes('audio')||t.includes('mp3')||t.includes('ogg')||t.includes('wav'))preview.innerHTML=`<audio id="staging-audio" controls src="${dataUrl}" style="width:100%;"></audio>`;else if(t.includes('video')||t.includes('mp4')||t.includes('webm'))preview.innerHTML=`<video controls src="${dataUrl}" style="max-height:120px;max-width:100%;"></video>`;else preview.innerHTML=`<img src="${dataUrl}" style="max-height:100px;max-width:100%;">`;}
+function openAssetUploadModal(){currentEditingAssetId=null;stagedAssetBase64=null;currentAssetCost=0;document.getElementById('asset-edit-title').innerText="Upload Asset";document.getElementById('asset-name-field').value="";document.getElementById('asset-file-field').value="";document.getElementById('asset-dropzone').innerText="click me or drag a file here!";document.getElementById('asset-preview-box').innerHTML="";document.getElementById('btn-submit-asset').innerHTML="Upload Asset";document.getElementById('btn-delete-asset-form').style.display="none";document.getElementById('modal-asset-edit').style.display='flex';}
+function openAssetEditForm(assetId){currentEditingAssetId=Number(assetId);stagedAssetBase64=null;currentAssetCost=0;const meta=userAssetsMeta[currentEditingAssetId];document.getElementById('asset-edit-title').innerText=`Edit Asset #${assetId}`;document.getElementById('asset-name-field').value=meta&&meta.name?meta.name:"";document.getElementById('asset-file-field').value="";document.getElementById('asset-dropzone').innerText="click me or drag a new file here (optional)!";document.getElementById('asset-preview-box').innerHTML="";document.getElementById('btn-submit-asset').innerHTML="Apply changes";document.getElementById('btn-delete-asset-form').style.display="block";document.getElementById('modal-asset-edit').style.display='flex';if(cachedAssetsRam[currentEditingAssetId]&&typeof cachedAssetsRam[currentEditingAssetId]==='string'){renderAssetEditPreview(meta?meta.type:"image/png",cachedAssetsRam[currentEditingAssetId]);}else{socket.emit('RemoteEvent',{type:`eb_asset_get_${currentEditingAssetId}`});}}
 function closeAssetEditModal(){isUploadingAsset=false;document.getElementById('asset-upload-progress').style.display='none';document.getElementById('asset-nerd-stats').style.display='none';document.getElementById('modal-asset-edit').style.display='none';navigateToPath('assets');}
-function handleAssetFileSelected(input){if(input.files&&input.files[0]){const file=input.files[0],isAudio=file.type.includes('audio'),isImage=file.type.includes('image'),isVideo=file.type.includes('video');if(isAudio&&file.size>20971520){alert("Audio file size must be less than 20MB!");input.value="";return;}if(isImage&&file.size>5242880){alert("Image file size must be less than 5MB!");input.value="";return;}if(isVideo&&file.size>52428800){alert("Video file size must be less than 50MB!");input.value="";return;}const reader=new FileReader();reader.onload=(e)=>{stagedAssetBase64=e.target.result;const preview=document.getElementById('asset-preview-box'),submitBtn=document.getElementById('btn-submit-asset');if(isImage){preview.innerHTML=`<img src="${stagedAssetBase64}" style="max-height:100px;max-width:100%;">`;submitBtn.innerHTML=currentEditingAssetId?"Apply changes":"Upload Asset";}else if(isAudio){preview.innerHTML=`<audio id="staging-audio" controls src="${stagedAssetBase64}" style="width:100%;"></audio>`;submitBtn.innerHTML=currentEditingAssetId?"Apply changes":"Upload Asset";setTimeout(()=>{const audEl=document.getElementById('staging-audio');if(audEl&&audEl.duration>600){alert("Audio files cannot be longer than 10 minutes!");input.value="";stagedAssetBase64=null;preview.innerHTML="";}},500);}else if(isVideo){currentAssetCost=Math.max(1,Math.ceil(file.size/102400));preview.innerHTML=`<video controls src="${stagedAssetBase64}" style="max-height:120px;max-width:100%;"></video>`;submitBtn.innerHTML=`${currentEditingAssetId?"Apply changes":"Upload Asset"} | ${currentAssetCost} <span class="coin-icon notranslate" translate="no" style="width:16px;height:16px;font-size:0.5rem;">EZ</span>`;}};reader.readAsDataURL(file);}}
-function submitAssetUpload(){const nameVal=document.getElementById('asset-name-field').value.trim();if(nameVal.length<2||nameVal.length>35)return alert("Asset name must have at least 2 chars and no more than 35 chars.");if(!stagedAssetBase64&&!currentEditingAssetId)return alert("Please select an audio, image or video file.");const dataToSend=stagedAssetBase64||cachedAssetsRam[currentEditingAssetId],fileInput=document.getElementById('asset-file-field'),fileType=fileInput.files[0]?fileInput.files[0].type:"image/png";if(fileType.includes('video')&&currentCoins<currentAssetCost)return alert(`Insufficient EzCoins! You need ${currentAssetCost} EzCoins to upload this video.`);const totalChunks=Math.ceil(dataToSend.length/ASSET_CHUNK_SIZE);isUploadingAsset=true;document.getElementById('asset-upload-progress').style.display='block';document.getElementById('asset-nerd-stats').style.display='block';const abEl=document.getElementById('asset-nerd-bytes');if(abEl)abEl.innerText=`0 / ${(dataToSend.length/1024).toFixed(1)} KB (0/${totalChunks} chunks)`;socket.emit('eb_upload_asset_chunk',{index:0,total:totalChunks,chunk:dataToSend.slice(0,ASSET_CHUNK_SIZE),name:nameVal,type:fileType,size:dataToSend.length,editAssetId:currentEditingAssetId});}
+function handleAssetDrop(e){e.preventDefault();const dz=document.getElementById('asset-dropzone');if(dz)dz.style.background='';if(e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0]){const dt=new DataTransfer();dt.items.add(e.dataTransfer.files[0]);const inp=document.getElementById('asset-file-field');inp.files=dt.files;handleAssetFileSelected(inp);}}
+function handleAssetFileSelected(input){if(input.files&&input.files[0]){const file=input.files[0],isAudio=file.type.includes('audio'),isImage=file.type.includes('image'),isVideo=file.type.includes('video');if(!isAudio&&!isImage&&!isVideo){alert("Asset format not supported! Only MP3, OGG, WAV, JPG, JPEG, PNG, MP4, WEBM are allowed.");input.value="";return;}if(isAudio&&file.size>20971520){alert("Audio file size must be less than 20MB!");input.value="";return;}if(isImage&&file.size>5242880){alert("Image file size must be less than 5MB!");input.value="";return;}if(isVideo&&file.size>52428800){alert("Video file size must be less than 50MB!");input.value="";return;}const dz=document.getElementById('asset-dropzone');if(dz)dz.innerText=`Selected: ${file.name}`;const reader=new FileReader();reader.onload=(e)=>{stagedAssetBase64=e.target.result;const preview=document.getElementById('asset-preview-box'),submitBtn=document.getElementById('btn-submit-asset');if(isImage){preview.innerHTML=`<img src="${stagedAssetBase64}" style="max-height:100px;max-width:100%;">`;submitBtn.innerHTML=currentEditingAssetId?"Apply changes":"Upload Asset";}else if(isAudio){preview.innerHTML=`<audio id="staging-audio" controls src="${stagedAssetBase64}" style="width:100%;"></audio>`;submitBtn.innerHTML=currentEditingAssetId?"Apply changes":"Upload Asset";setTimeout(()=>{const audEl=document.getElementById('staging-audio');if(audEl&&audEl.duration>600){alert("Audio files cannot be longer than 10 minutes!");input.value="";stagedAssetBase64=null;preview.innerHTML="";if(dz)dz.innerText="click me or drag a file here!";}},500);}else if(isVideo){currentAssetCost=Math.max(1,Math.ceil(file.size/102400));preview.innerHTML=`<video controls src="${stagedAssetBase64}" style="max-height:120px;max-width:100%;"></video>`;submitBtn.innerHTML=`${currentEditingAssetId?"Apply changes":"Upload Asset"} | ${currentAssetCost} <span class="coin-icon notranslate" translate="no" style="width:16px;height:16px;font-size:0.5rem;">EZ</span>`;}};reader.readAsDataURL(file);}}
+function submitAssetUpload(){const nameVal=document.getElementById('asset-name-field').value.trim();if(nameVal.length<2||nameVal.length>35)return alert("Asset name must have at least 2 chars and no more than 35 chars.");if(!stagedAssetBase64&&!currentEditingAssetId)return alert("Please select an audio, image or video file.");const dataToSend=stagedAssetBase64||cachedAssetsRam[currentEditingAssetId];if(!dataToSend||typeof dataToSend!=='string')return alert("Please wait for asset data to finish loading or pick a file.");const fileInput=document.getElementById('asset-file-field'),meta=userAssetsMeta[currentEditingAssetId],fileType=fileInput.files[0]?fileInput.files[0].type:(meta&&meta.type?meta.type:"image/png");if(stagedAssetBase64&&fileType.includes('video')&&currentCoins<currentAssetCost)return alert(`Insufficient EzCoins! You need ${currentAssetCost} EzCoins to upload this video.`);const totalChunks=Math.ceil(dataToSend.length/ASSET_CHUNK_SIZE);isUploadingAsset=true;document.getElementById('asset-upload-progress').style.display='block';document.getElementById('asset-nerd-stats').style.display='block';const abEl=document.getElementById('asset-nerd-bytes');if(abEl)abEl.innerText=`0 / ${(dataToSend.length/1024).toFixed(1)} KB (0/${totalChunks} chunks)`;socket.emit('eb_upload_asset_chunk',{index:0,total:totalChunks,chunk:dataToSend.slice(0,ASSET_CHUNK_SIZE),name:nameVal,type:fileType,size:dataToSend.length,editAssetId:currentEditingAssetId});}
 function closeFlaggedModal(){document.getElementById('modal-flagged-notify').style.display='none';}
 function deleteCurrentAssetSubmit(){if(currentEditingAssetId&&confirm(`Delete Asset #${currentEditingAssetId}?`)){socket.emit('eb_delete_asset',{assetId:currentEditingAssetId});closeAssetEditModal();}}
 function savePendingVerificationState(state){localStorage.setItem("eb_pending_verify",JSON.stringify(state));}
@@ -1772,7 +1859,7 @@ function cancelSiteFetch(){siteFetchCancelled=true;isLoadingMoreSites=false;docu
 function cancelSiteDataFetch(){siteDataFetchCancelled=true;document.getElementById('overlay-fetching-site-data').style.display='none';openSeeAndPublishModal();}
 function closeSeeAndPublishModal(){if(siteSearchDebounce)clearTimeout(siteSearchDebounce);siteFetchCancelled=true;document.getElementById('modal-see-publish').style.display='none';if(!currentActiveSiteId&&!window.location.hash.includes('site/')){if(isGuestMode)returnToLoginFromSites();else navigateToPath('main');}}
 function updateCreateUpdateSiteBtnText(){const btn=document.getElementById('btn-create-update-site'),submitBtn=document.getElementById('submit-site-btn'),titleHeader=document.getElementById('create-site-title');if(isUserHasSite){if(btn)btn.innerText="UPDATE SITE";if(submitBtn)submitBtn.innerText="UPDATE SITE";if(titleHeader)titleHeader.innerText="UPDATE SITE";}else{if(btn)btn.innerText="Create site";if(submitBtn)submitBtn.innerText="Create site";if(titleHeader)titleHeader.innerText="CREATE SITE";}}
-function renderPublishedSitesList(sites){const container=document.getElementById('published-sites-container');container.innerHTML="";if(sites.length===0){container.innerHTML=`<div style="color:var(--muted);padding:20px;font-size:0.85rem;">No published sites found.</div>`;return;}sites.forEach(s=>{const div=document.createElement('div');div.className='site-card';let actionBtnHTML='';if(userRole==='Owner'||userRole==='Dev'){actionBtnHTML=`<button class="btn btn-danger" style="width:auto;margin:0;padding:3px 9px;font-size:0.7rem;" onclick="deletePublishedSite('${s.id}')">DELETE</button>`;}else if(userRole==='Admin'){actionBtnHTML=`<button class="btn btn-secondary ${s.isReported?'btn-danger':''}" style="width:auto;margin:0;padding:3px 9px;font-size:0.7rem;" onclick="reportSiteSubmit('${s.id}', this)">${s.isReported?'REPORTED':'REPORT'}</button>`;}const privBadge=s.visibility==='private'?`<span class="site-private-badge">Private 🔒</span>`:'';const pfpHTML=`<img src="${s.ownerPfpData}" style="width:22px;height:22px;border-radius:50% !important;vertical-align:middle;object-fit:cover;cursor:pointer;border:1px solid var(--border);" onclick="openUserProfilePopup('${s.ownerUserId}')">`,totalVotes=(s.likes||0)+(s.dislikes||0),greenPct=totalVotes>0?((s.likes||0)/totalVotes)*100:50,likeActive=s.userRating==='like'?'active':'',dislikeActive=s.userRating==='dislike'?'active':'';div.innerHTML=`<div style="display:flex;justify-content:space-between;width:100%;align-items:center;gap:8px;flex-wrap:wrap;"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><b style="font-size:0.95rem;color:#fff;">${escapeHtml(s.title)}</b>${privBadge}<span style="font-size:0.76rem;color:var(--muted);">by</span>${pfpHTML}<b style="font-size:0.8rem;color:#e2e8f0;cursor:pointer;" onclick="openUserProfilePopup('${s.ownerUserId}')">${escapeHtml(s.ownerDisplayName||s.ownerUserId)}</b></div><div style="display:flex;gap:4px;"><button class="btn btn-secondary" style="width:auto;margin:0;padding:3px 9px;font-size:0.7rem;" onclick="fetchSiteInfo('${s.id}')">INFO</button>${actionBtnHTML}</div></div><div style="display:flex;justify-content:space-between;font-size:0.74rem;color:var(--muted);flex-wrap:wrap;gap:6px;"><span>Updated: ${s.dateStr||'0/0/0'}</span><span style="color:var(--green);font-weight:bold;">● ${s.onlineCount||0} online</span><span>Visits: <b style="color:#fff;">${s.visits||0}</b></span></div><div style="display:flex;gap:8px;width:100%;align-items:center;margin-top:2px;"><button class="rate-btn ${likeActive}" onclick="rateSite('${s.id}','like')">👍 ${s.likes||0}</button><button class="rate-btn ${dislikeActive}" onclick="rateSite('${s.id}','dislike')">👎 ${s.dislikes||0}</button><div class="tug-war-bar"><div class="tug-war-green" style="width:${greenPct}%;"></div></div><button class="btn" style="width:auto;margin:0;padding:5px 16px;font-size:0.78rem;" onclick="accessSite('${s.id}')">ACCESS ▸</button></div>`;container.appendChild(div);});}
+function renderPublishedSitesList(sites){const container=document.getElementById('published-sites-container');container.innerHTML="";if(sites.length===0){container.innerHTML=`<div style="color:var(--muted);padding:20px;font-size:0.85rem;">No published sites found.</div>`;return;}sites.forEach(s=>{const div=document.createElement('div');div.className='site-card';let actionBtnHTML='';if(userRole==='Owner'||userRole==='Dev'){actionBtnHTML=`<button class="btn btn-danger" style="width:auto;margin:0;padding:3px 9px;font-size:0.7rem;" onclick="deletePublishedSite('${s.id}')">DELETE</button>`;}else{actionBtnHTML=`<button class="btn btn-secondary" style="width:auto;margin:0;padding:3px 9px;font-size:0.7rem;border-color:#ef4444 !important;" onclick="openReportModal('site','${s.id}')">REPORT</button>`;}const privBadge=s.visibility==='private'?`<span class="site-private-badge">Private 🔒</span>`:'';const pfpHTML=`<img src="${s.ownerPfpData}" style="width:22px;height:22px;border-radius:50% !important;vertical-align:middle;object-fit:cover;cursor:pointer;border:1px solid var(--border);" onclick="openUserProfilePopup('${s.ownerUserId}')">`,totalVotes=(s.likes||0)+(s.dislikes||0),greenPct=totalVotes>0?((s.likes||0)/totalVotes)*100:50,likeActive=s.userRating==='like'?'active':'',dislikeActive=s.userRating==='dislike'?'active':'';div.innerHTML=`<div style="display:flex;justify-content:space-between;width:100%;align-items:center;gap:8px;flex-wrap:wrap;"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><b style="font-size:0.95rem;color:#fff;">${escapeHtml(s.title)}</b>${privBadge}<span style="font-size:0.76rem;color:var(--muted);">by</span>${pfpHTML}<b style="font-size:0.8rem;color:#e2e8f0;cursor:pointer;" onclick="openUserProfilePopup('${s.ownerUserId}')">${escapeHtml(s.ownerDisplayName||s.ownerUserId)}</b></div><div style="display:flex;gap:4px;"><button class="btn btn-secondary" style="width:auto;margin:0;padding:3px 9px;font-size:0.7rem;" onclick="fetchSiteInfo('${s.id}')">INFO</button>${actionBtnHTML}</div></div><div style="display:flex;justify-content:space-between;font-size:0.74rem;color:var(--muted);flex-wrap:wrap;gap:6px;"><span>Updated: ${s.dateStr||'0/0/0'}</span><span style="color:var(--green);font-weight:bold;">● ${s.onlineCount||0} online</span><span>Visits: <b style="color:#fff;">${s.visits||0}</b></span></div><div style="display:flex;gap:8px;width:100%;align-items:center;margin-top:2px;"><button class="rate-btn ${likeActive}" onclick="rateSite('${s.id}','like')">👍 ${s.likes||0}</button><button class="rate-btn ${dislikeActive}" onclick="rateSite('${s.id}','dislike')">👎 ${s.dislikes||0}</button><div class="tug-war-bar"><div class="tug-war-green" style="width:${greenPct}%;"></div></div><button class="btn" style="width:auto;margin:0;padding:5px 16px;font-size:0.78rem;" onclick="accessSite('${s.id}')">ACCESS ▸</button></div>`;container.appendChild(div);});}
 function deletePublishedSite(siteId){if(confirm(`Delete site ${siteId} permanently?`)){enqueueClientAction(()=>socket.emit('eb_delete_site',{siteId,ownerId,googleSub}));setTimeout(openSeeAndPublishModal,500);}}
 function accessSite(siteId){if(siteSearchDebounce)clearTimeout(siteSearchDebounce);siteEnterCancelled=false;siteEnterStartTs=Date.now();document.getElementById('modal-see-publish').style.display='none';document.getElementById('modal-check-reports').style.display='none';if(window.location.hash!==`#/site/${siteId}/`)window.location.hash=`#/site/${siteId}/`;document.getElementById('overlay-site-loading').style.display='flex';document.getElementById('site-enter-progress-bar').style.width='0%';document.getElementById('site-enter-progress-val').innerText='0';const nInfo=document.getElementById('site-enter-nerd-info');if(nInfo)nInfo.innerText=`Connecting to Site ID ${siteId}... | Status: Handshake`;let simPct=0;if(siteEnterSimTimer)clearInterval(siteEnterSimTimer);siteEnterSimTimer=setInterval(()=>{if(siteEnterCancelled){clearInterval(siteEnterSimTimer);siteEnterSimTimer=null;return;}if(simPct<85){simPct+=15;document.getElementById('site-enter-progress-bar').style.width=`${simPct}%`;document.getElementById('site-enter-progress-val').innerText=`${simPct}`;}else clearInterval(siteEnterSimTimer);},80);socket.emit('eb_visit_site',{siteId});}
 function cancelSiteEnter(){siteEnterCancelled=true;if(siteEnterSimTimer){clearInterval(siteEnterSimTimer);siteEnterSimTimer=null;}document.getElementById('overlay-site-loading').style.display='none';if(window.location.hash.includes('site/')){history.replaceState(null,'',isGuestMode?'#/sites/':'#/sites/');}openSeeAndPublishModal();}
@@ -1809,11 +1896,53 @@ function selectAssistantModel(id,label){assistantModel=id;document.getElementByI
 function updateAssistantQuotaUI(rem,resetAt){assistantTokensRemaining=Number(rem||0);const el=document.getElementById('assistant-tokens-left');if(el)el.innerText=assistantTokensRemaining.toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.');if(resetAt)assistantResetAt=resetAt;if(assistantTokensTimerInt)clearInterval(assistantTokensTimerInt);assistantTokensTimerInt=setInterval(()=>{const diff=Math.max(0,assistantResetAt-Date.now()),h=String(Math.floor(diff/3600000)).padStart(2,'0'),m=String(Math.floor((diff%3600000)/60000)).padStart(2,'0'),s=String(Math.floor((diff%60000)/1000)).padStart(2,'0'),tEl=document.getElementById('assistant-tokens-timer');if(tEl)tEl.innerText=`${h}:${m}:${s}`;},1000);}
 function renderAssistantMarkdown(raw){assistantCodeStore=[];let html=escapeHtml(raw||'');html=html.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g,(m,lang,code)=>{const idx=assistantCodeStore.length;const rawCode=code.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>');assistantCodeStore.push(rawCode);return `<div class="ai-code-block"><button class="ai-copy-btn" onclick="copyAssistantCode(${idx})">Copy</button><code>${code}</code></div>`;});html=html.replace(/^##\s*(.+?)\s*##$/gm,'<div style="font-size:1rem;font-weight:bold;color:var(--accent);margin:6px 0;">$1</div>');html=html.replace(/^##\s*(.+)$/gm,'<div style="font-size:1rem;font-weight:bold;color:var(--accent);margin:6px 0;">$1</div>');html=html.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');html=html.replace(/\n/g,'<br>');return html;}
 function copyAssistantCode(idx){if(assistantCodeStore[idx]!==undefined)copyTextValue(assistantCodeStore[idx]);}
-function renderAssistantHistory(){const box=document.getElementById('assistant-chat-box');box.innerHTML="";assistantHistory.forEach((m,idx)=>{const div=document.createElement('div');if(m.role==='user'){div.className='chat-bubble';div.style.alignSelf='flex-end';div.style.maxWidth='85%';div.style.borderColor='#eab308';div.innerHTML=`<div style="font-size:0.7rem;color:#fde047;font-weight:bold;">You</div><div>${escapeHtml(m.text)}</div>`;}else if(m.role==='interrupted'){div.style.color='var(--error)';div.style.fontSize='0.8rem';div.style.fontWeight='bold';div.innerText=m.text;}else{div.className='chat-bubble';div.style.alignSelf='flex-start';div.style.maxWidth='92%';let cmdHtml='';if(m.command&&!m.cmdHandled){let q="The AI is requesting your approval for an app creation.";if(m.command==='updsite')q="The AI is requesting script changes in your site.";else if(m.command==='updserver')q="The AI is requesting script changes in your serverscript.";else if(m.command==='updserversettings')q="The AI is requesting permission to update your server settings.";else if(m.command==='fetchinfo')q="The AI is requesting permission to fetch your account & server info.";cmdHtml=`<div style="margin-top:8px;padding:8px;background:#020617;border:1px solid var(--border);"><div style="font-size:0.8rem;font-weight:bold;margin-bottom:6px;">${q}</div><div style="display:flex;gap:8px;"><button class="btn btn-green" style="margin:0;padding:4px 10px;font-size:0.75rem;" onclick="handleAssistantCmd(${idx},true)">ALLOW</button><button class="btn btn-danger" style="margin:0;padding:4px 10px;font-size:0.75rem;" onclick="handleAssistantCmd(${idx},false)">DENY</button></div></div>`;}div.innerHTML=`<div style="font-size:0.7rem;color:var(--green);font-weight:bold;">EzBridge AI</div><div>${renderAssistantMarkdown(m.text)}</div>${cmdHtml}`;}box.appendChild(div);});box.scrollTop=box.scrollHeight;}
+function createAssistantStreamBubble(){
+  const old=document.getElementById('assistant-streaming-bubble');if(old)old.remove();
+  const st=document.getElementById('assistant-status-gen');if(st)st.remove();
+  const box=document.getElementById('assistant-chat-box');
+  const div=document.createElement('div');
+  div.id='assistant-streaming-bubble';
+  div.className='chat-bubble';
+  div.style.alignSelf='flex-start';
+  div.style.maxWidth='92%';
+  div.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px;"><span style="font-size:0.7rem;color:var(--green);font-weight:bold;">EzBridge AI (Streaming...)</span><button id="btn-stream-toggle-think" class="btn btn-secondary" style="width:auto;margin:0;padding:2px 8px;font-size:0.68rem;" onclick="toggleStreamThinking()">Hide Thinking Process</button></div><div id="stream-think-box" class="ai-think-box" style="display:none;"></div><div id="stream-answer-box">...</div>`;
+  box.appendChild(div);
+  box.scrollTop=box.scrollHeight;
+}
+function toggleStreamThinking(){
+  assistantStreamShowThinking=!assistantStreamShowThinking;
+  const btn=document.getElementById('btn-stream-toggle-think'),tb=document.getElementById('stream-think-box');
+  if(btn)btn.innerText=assistantStreamShowThinking?'Hide Thinking Process':'Show Thinking Process';
+  if(tb)tb.style.display=(assistantStreamShowThinking&&assistantStreamThinkingText)?'block':'none';
+}
+function updateAssistantStreamBubble(){
+  let bubble=document.getElementById('assistant-streaming-bubble');
+  if(!bubble)createAssistantStreamBubble();
+  const tb=document.getElementById('stream-think-box'),ab=document.getElementById('stream-answer-box'),btn=document.getElementById('btn-stream-toggle-think'),box=document.getElementById('assistant-chat-box');
+  if(tb){
+    if(assistantStreamThinkingText){
+      tb.innerText=assistantStreamThinkingText;
+      tb.style.display=assistantStreamShowThinking?'block':'none';
+      if(btn)btn.style.display='inline-block';
+    }else{
+      tb.style.display='none';
+      if(btn)btn.style.display='none';
+    }
+  }
+  if(ab)ab.innerHTML=assistantStreamAnswerText?renderAssistantMarkdown(assistantStreamAnswerText):'<span style="color:var(--muted);">Thinking...</span>';
+  if(box)box.scrollTop=box.scrollHeight;
+}
+function toggleAssistantThinking(idx){
+  const m=assistantHistory[idx];
+  if(!m)return;
+  m.showThinking=!m.showThinking;
+  renderAssistantHistory();
+}
+function renderAssistantHistory(){const box=document.getElementById('assistant-chat-box');box.innerHTML="";assistantHistory.forEach((m,idx)=>{const div=document.createElement('div');if(m.role==='user'){div.className='chat-bubble';div.style.alignSelf='flex-end';div.style.maxWidth='85%';div.style.borderColor='#eab308';div.innerHTML=`<div style="font-size:0.7rem;color:#fde047;font-weight:bold;">You</div><div>${escapeHtml(m.text)}</div>`;}else if(m.role==='interrupted'){div.style.color='var(--error)';div.style.fontSize='0.8rem';div.style.fontWeight='bold';div.innerText=m.text;}else{div.className='chat-bubble';div.style.alignSelf='flex-start';div.style.maxWidth='92%';let thinkHtml='';if(m.thinking&&m.thinking.trim()){thinkHtml=`<div style="margin:4px 0;"><button class="btn btn-secondary" style="width:auto;margin:0;padding:2px 8px;font-size:0.68rem;" onclick="toggleAssistantThinking(${idx})">${m.showThinking?'Hide Thinking Process':'Show Thinking Process'}</button>${m.showThinking?`<div class="ai-think-box">${escapeHtml(m.thinking)}</div>`:''}</div>`;}let cmdHtml='';if(m.command&&!m.cmdHandled){let q="The AI is requesting your approval for an app creation.";if(m.command==='updsite')q="The AI is requesting script changes in your site.";else if(m.command==='updserver')q="The AI is requesting script changes in your serverscript.";else if(m.command==='updserversettings')q="The AI is requesting permission to update your server settings.";else if(m.command==='fetchinfo')q="The AI is requesting permission to fetch your account & server info.";cmdHtml=`<div style="margin-top:8px;padding:8px;background:#020617;border:1px solid var(--border);"><div style="font-size:0.8rem;font-weight:bold;margin-bottom:6px;">${q}</div><div style="display:flex;gap:8px;"><button class="btn btn-green" style="margin:0;padding:4px 10px;font-size:0.75rem;" onclick="handleAssistantCmd(${idx},true)">ALLOW</button><button class="btn btn-danger" style="margin:0;padding:4px 10px;font-size:0.75rem;" onclick="handleAssistantCmd(${idx},false)">DENY</button></div></div>`;}div.innerHTML=`<div style="font-size:0.7rem;color:var(--green);font-weight:bold;">EzBridge AI</div>${thinkHtml}<div>${renderAssistantMarkdown(m.text)}</div>${cmdHtml}`;}box.appendChild(div);});box.scrollTop=box.scrollHeight;}
 function handleAssistantCmd(idx,allow){const item=assistantHistory[idx];if(!item)return;item.cmdHandled=true;renderAssistantHistory();if(!allow)return;if(item.command==='requestapp'){sendAssistantPrompt(item.code);}else if(item.command==='fetchinfo'){socket.emit('eb_assistant_fetch_info');}else{pendingAssistantContinue=Boolean(item.shouldContinue);socket.emit('eb_assistant_apply_command',{command:item.command,code:item.code});}}
 function handleAssistantSendOrStop(){if(assistantGenerating){socket.emit('eb_assistant_stop');return;}if(assistantTokensRemaining<=0)return alert("Remaining tokens reached 0. Please wait for the 24h reset.");const inp=document.getElementById('assistant-input'),txt=inp.value.trim();if(!txt)return;inp.value="";sendAssistantPrompt(txt);}
 function sendAssistantPrompt(txt){assistantHistory=assistantHistory.filter(m=>m.role!=='interrupted');assistantHistory.push({role:'user',text:txt});renderAssistantHistory();const box=document.getElementById('assistant-chat-box');const statusDiv=document.createElement('div');statusDiv.id='assistant-status-gen';statusDiv.style.fontSize='0.75rem';statusDiv.style.color='var(--muted)';statusDiv.style.textAlign='left';statusDiv.innerText=ASSISTANT_STATUSES[Math.floor(Math.random()*ASSISTANT_STATUSES.length)];box.appendChild(statusDiv);box.scrollTop=box.scrollHeight;if(assistantStatusTimer)clearInterval(assistantStatusTimer);assistantStatusTimer=setInterval(()=>{const el=document.getElementById('assistant-status-gen');if(el)el.innerText=ASSISTANT_STATUSES[Math.floor(Math.random()*ASSISTANT_STATUSES.length)];},5000);let ctxScript=null;if(assistantContextType==='serverscript'){const v=document.getElementById('script-editor')?document.getElementById('script-editor').value:'';if(v&&v.trim())ctxScript=v;}else if(assistantContextType==='site'){const v=document.getElementById('site-html-field')?document.getElementById('site-html-field').value:'';if(v&&v.trim())ctxScript=v;}socket.emit('eb_assistant_send',{model:assistantModel,contextType:assistantContextType,contextScript:ctxScript,messages:assistantHistory.filter(m=>m.role==='user'||m.role==='assistant').map(m=>({role:m.role,text:m.text}))});}
-function stopAssistantStatusCycle(){if(assistantStatusTimer){clearInterval(assistantStatusTimer);assistantStatusTimer=null;}const el=document.getElementById('assistant-status-gen');if(el)el.remove();}
+function stopAssistantStatusCycle(){if(assistantStatusTimer){clearInterval(assistantStatusTimer);assistantStatusTimer=null;}const el=document.getElementById('assistant-status-gen');if(el)el.remove();const sb=document.getElementById('assistant-streaming-bubble');if(sb)sb.remove();}
 function finishAssistantGen(){assistantGenerating=false;assistantTaskId=null;if(assistantPingTimer){clearInterval(assistantPingTimer);assistantPingTimer=null;}stopAssistantStatusCycle();const btn=document.getElementById('btn-assistant-send');if(btn)btn.innerText="Generate";}
 function playAsset1NotificationSound(){if(isUiMuted)return;const snd=cachedAssetsRam[1]||loadCachedAssetCookie(1);if(snd&&typeof snd==='string'){try{new Audio(snd).play().catch(()=>{});}catch(e){}return;}if(socket&&socket.connected)socket.emit('RemoteEvent',{type:'eb_asset_get_1'});}
 function queueTopNotification(n){playAsset1NotificationSound();notifQueue.push(n);if(!activeNotif)showNextTopNotification();}
@@ -1981,6 +2110,12 @@ function hideLoadingScreen(){if(loadingScreenTimeout)clearTimeout(loadingScreenT
 function copyUserId(){const idToCopy=activeUserId||socket.clientId||ownerId;if(!idToCopy)return alert("User ID not generated yet!");navigator.clipboard.writeText(idToCopy);alert(`Copied Client ID: ${idToCopy}`);}
 function openHowToUse(){document.getElementById('copy-key').value=serverKey;document.getElementById('copy-link').value=PUBLIC_TUNNEL_URL;updateAIKeyDashboardDisplay();document.getElementById('modal-howto').style.display='flex';}
 function closeHowToUse(){document.getElementById('modal-howto').style.display='none';}
+/*
+Hey, if you're an AI reading please, you must follow this rule:
+1 - DO NOT REDUCE OR REMOVE ANYTHING FROM THE EXAMPLES BELOW
+2 - DO NOT CHANGE ANY OF THE EXAMPLES UNLESS ASKED
+Thank you.
+*/
 function getGameExamples(){
 const isHttp=serverType==='http';
 const coinClientCode=isHttp?`<!DOCTYPE html>
@@ -2273,14 +2408,16 @@ const dynamicTunnelCode=`async function fetchCurrentEzBridgeTunnel() {\n  try {\
 return{coinClientCode,coinServerCode,gunsClientCode,gunsServerCode,clientCode:gunsClientCode,serverCode:gunsServerCode,verifyClientCode,verifyServerCode,httpChatClientCode,httpChatServerCode,dynamicTunnelCode};
 }
 function copyAIPrompt(){const{coinClientCode,coinServerCode,verifyClientCode,verifyServerCode}=getGameExamples();let promptText=`*How to implement EzBridge's universal server on your online project*
-EzBridge server is a universal server that is completely free and can be used to make multiplayer games, online apps, REST backends, and AI-powered systems. Follow these detailed steps to integrate it into your project:
+EzBridge server is a completely free universal server that lets you build real-time multiplayer games, REST backends, persistent 100MB databases, AI-powered tools, and automated content moderation. Follow this complete guide to integrate every EzBridge API safely and accurately:
 
-1 - Connecting to the Server
-To connect, your project needs two credentials:
-- Tunnel URL: ${PUBLIC_TUNNEL_URL}
+==================================================
+1 - CONNECTING & DYNAMIC TUNNEL AUTO-LOADER
+==================================================
+Your project needs two credentials:
+- Current Cloudflare Tunnel URL: ${PUBLIC_TUNNEL_URL}
 - Server Auth Key: ${serverKey}
 
-If you want your application to automatically fetch the latest Cloudflare Tunnel URL without hardcoding or manual updates when a tunnel regenerates, use this standard auto-loader:
+Cloudflare tunnel URLs rotate whenever the host restarts. Always fetch the live URL dynamically with a fallback to the current URL:
 
 async function fetchCurrentEzBridgeTunnel() {
     try {
@@ -2291,23 +2428,36 @@ async function fetchCurrentEzBridgeTunnel() {
             return rawUrl;
         }
     } catch(err) { console.error("Failed to load dynamic tunnel:", err); }
-    return null;
+    return "${PUBLIC_TUNNEL_URL}";
 }
 
-2 - Sending & Receiving Packets
-A) WebSocket Connection:
-- const socket = io(TUNNEL_URL, { auth: { token: "default_key" }, transports: ['websocket', 'polling'], maxHttpBufferSize: 1e8 });
-- socket.emit("join_virtual_server", { key: "${serverKey}" });
-- Wait for 'joined_successfully' before emitting RemoteEvents.
-- Emit: socket.emit("RemoteEvent", { type: "your_event_name", data: { ... } });
-- Listen: socket.on("RemoteEvent", (pkt) => { console.log(pkt.type, pkt.data); });
+==================================================
+2 - SENDING & RECEIVING PACKETS (WEBSOCKET & HTTP)
+==================================================
+A) WebSocket Mode (Recommended for real-time games, 50ms-80ms target ping):
+- Include: <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"><\/script>
+- Connect:
+  const socket = io(TUNNEL_URL, { auth: { token: "default_key" }, transports: ['websocket', 'polling'], maxHttpBufferSize: 1e8 });
+- Join your virtual server room on connect:
+  socket.on("connect", () => socket.emit("join_virtual_server", { key: "${serverKey}" }));
+- Wait for "joined_successfully" BEFORE emitting any RemoteEvents!
+- Send events: socket.emit("RemoteEvent", { type: "your_event_name", data: { ... } });
+- Receive events: socket.on("RemoteEvent", (pkt) => { /* pkt.type, pkt.data */ });
+- Limits: Max packet size is 10MB. High traffic (>250 req/s or >15MB/s) triggers rate limits/bans. 5 minutes of inactivity puts the ServerScript to sleep until the next request.
 
-B) HTTP REST Connection:
-- POST ${PUBLIC_TUNNEL_URL}/remote with header "auth-token": "${serverKey}" and body JSON.stringify({ type: "your_event_name", data: { ... } }).
+B) HTTP REST Mode (Recommended for turn-based games, leaderboards, chat polling):
+- POST ${PUBLIC_TUNNEL_URL}/remote
+- Headers: { "Content-Type": "application/json", "auth-token": "${serverKey}" }
+- Body: JSON.stringify({ type: "your_event_name", data: { ... } }) (use type: "poll" to fetch queued broadcasts without triggering a custom handler).
+- Response: { "status": "success", "events": [ { "type": "...", "data": ... } ] }.
+- Health check: GET ${PUBLIC_TUNNEL_URL}/getstatus -> "OK".
 
-3 - Downloading Assets (> 200KB AND < 200KB) — VERY IMPORTANT!
-Assets larger than 150KB (such as > 200KB audio, images, or videos) are automatically split into 150KB chunks over WebSocket (\`eb_asset_chunk_{id}\`).
-If you only read the first packet, assets > 200KB will be broken/incomplete! You MUST reassemble all chunks by \`index\` until \`received === total\`:
+==================================================
+3 - DOWNLOADING ASSETS (> 200KB AND < 200KB) — VERY IMPORTANT!
+==================================================
+Assets uploaded to EzBridge (Audio < 20MB/10m, Images < 5MB, Videos < 50MB; 500MB total account quota) are returned as base64 DataURLs.
+Assets larger than 150KB (such as >200KB audio, images, or videos) are automatically split into 150KB chunks over WebSocket (\`eb_asset_chunk_{id}\`).
+NEVER read only the first packet! You MUST reassemble all chunks by \`index\` until \`received === total\`:
 
 // WebSocket Multi-Chunk Asset Downloader (works for ANY size, including >200KB!):
 function fetchEzBridgeAssetWS(socket, assetId, callback) {
@@ -2328,21 +2478,74 @@ function fetchEzBridgeAssetWS(socket, assetId, callback) {
 }
 
 // HTTP Asset Downloader (returns full JSON { id, name, type, size, data } directly for ANY size):
-const asset = await fetch("${PUBLIC_TUNNEL_URL}/eb_asset_get_" + assetId).then(r => r.json());
+const asset = await fetch(TUNNEL_URL + "/eb_asset_get_" + assetId).then(r => r.json());
 
-4 - AI API Models & Parameters (Streaming is NOT supported)
+==================================================
+4 - PROFILES & USER ID VERIFICATION
+==================================================
+- Get any user's public profile:
+  - HTTP: GET ${PUBLIC_TUNNEL_URL}/eb_profile_get_{clientid} -> { displayName, pfpData, description }
+  - WebSocket: socket.emit("RemoteEvent", { type: "eb_profile_get_{clientid}" }) -> listens for "eb_profile_response_{clientid}"
+- Verify logged-in EzBridge Client ID:
+  - Emit/POST { type: "check_id", data: {} } -> Server responds with "id_verified" containing { clientId } (or null if guest/not logged in).
+
+==================================================
+5 - AI GENERATION API (Streaming is NOT supported)
+==================================================
 Available models: "gemini-3.5-flash-lite", "gemma4:26b", "qwen2.5:1.5b", "qwen3:0.6b".
-Parameters: key/aiKey, model, Prompt, Instruction, Temp (0.0-1.0), Mtokens (1-10000).
-HTTP: POST ${PUBLIC_TUNNEL_URL}/eb_callai (header "ai-key").
-WS: socket.emit("eb_callai_direct", {...}).
-ServerScript: Server.eb_callai({...}, cb).
+Parameters: key/aiKey (your 50-char AI Auth Key), model, Prompt (1-60000 chars), Instruction (2-20000 chars), Temp (0.0-1.0), Mtokens (1-10000).
+Limits: 20 requests/minute per AI key; minimum 200ms between requests; 10 max active+queued local generations.
+- HTTP: POST ${PUBLIC_TUNNEL_URL}/eb_callai (header "ai-key") -> returns { id, text, done } or { error }.
+- WebSocket: socket.emit("eb_callai_direct", {...}) -> listens for "eb_ai_response".
+- ServerScript: Server.eb_callai({ key, model, Temp, Mtokens, Instruction, Prompt }, res => { /* res.text or res.error */ });
+- Cancel AI tasks in ServerScript: Server.stopAILatest(), Server.stopAIAll(), Server.stopAIId(id).
 
-5 - ServerScript & Other APIs
-- Server.on('event_name', evt => { evt.senderId; evt.connectionId; evt.data; evt.send(type, data); evt.reply(data); });
-- Server.broadcast(eventName, data); Server.send(connectionId, eventName, data);
-- Server.on('tick', dt => {}); // 33Hz fixed loop
-- Server.storage.set(str); Server.storage.get(); Server.storage.getUsageBytes();
-- Profiles: GET ${PUBLIC_TUNNEL_URL}/eb_profile_get_{clientid} or WS RemoteEvent { type: "eb_profile_get_{clientid}" }.
+==================================================
+6 - NEW SERVER-SIDED MODERATION API: eb_callai_moderate (DistilBERT ONNX)
+==================================================
+Use this ServerScript-only API to check user messages, usernames, chat text, or prompts for toxicity/inappropriate content BEFORE broadcasting or saving!
+- Method: Server.eb_callai_moderate({ prompt, level }, callback)  (Alias: Server.eb_callai_moderation)
+- Parameters:
+  - prompt: string (REQUIRED, must be > 0 chars and < 10000 chars).
+  - level: "low" | "medium" | "high" (REQUIRED).
+    * "low": flagged when toxicity score >= 0.30 (strictest)
+    * "medium": flagged when toxicity score >= 0.65 (balanced)
+    * "high": flagged when toxicity score >= 0.87 (most lenient)
+- Callback response object: { passed: boolean, flagged: boolean, score: number, level: string, threshold: number, error?: string }
+- Limits: A server can only make up to 5 moderation requests per second. Max 5 moderations run concurrently and 5 can be queued (10 total server capacity).
+- Example (If pass pattern):
+  Server.on("send_chat", (evt) => {
+    const text = String((evt.data && evt.data.text) || "");
+    Server.eb_callai_moderate({ prompt: text, level: "medium" }, (res) => {
+      if (res.passed) {
+        Server.broadcast("chat_msg", { text });
+      } else {
+        evt.send("chat_blocked", { reason: "Message flagged by moderation", score: res.score });
+      }
+    });
+  });
+
+==================================================
+7 - SERVERSCRIPT SANDBOX APIs (150MB RAM Limit, 100MB Storage)
+==================================================
+ServerScripts run in an isolated Node.js VM sandbox (150MB RAM limit; exceeding triggers temporary RAM lockdown; 3s freeze triggers watchdog lockdown).
+- Event handlers:
+  Server.on('event_name', evt => {
+    // evt.senderId, evt.connectionId, evt.data
+    // evt.send(eventType, data) -> replies privately to this client
+    // evt.reply(data) -> replies with eventName + '_reply'
+  });
+- Broadcast to all connected clients: Server.broadcast(eventName, data);
+- Send to a specific connectionId: Server.send(connectionId, eventName, data);
+- 33Hz Fixed Game Loop: Server.on('tick', dt => { /* dt = delta seconds */ });
+- Persistent 100MB Storage (auto-saved to disk across restarts):
+  - Server.storage.set(strOrObj) -> returns bytes used (max 104,857,600 bytes)
+  - Server.storage.get() -> returns stored string
+  - Server.storage.getUsageBytes() -> returns current bytes used
+- Shared RAM state object: Server.state
+- Python Worker Bridge (pairs with EzBridge Python Terminal):
+  - Server.py.send(evt, data)
+  - Server.py.on(evt, data => { ... })
 
 Examples:
 1 - HTML Client Script (Multiplayer Coin Collector):
@@ -2358,50 +2561,100 @@ ${verifyClientCode}
 ${verifyServerCode}`;if(userAIKey){promptText+=`\n\nMy AI key: ${userAIKey}`;}promptText+=`\n\nProvide the client script and the serverscript. Before you generate you can ask one short question per message if needed.`;navigator.clipboard.writeText(promptText);alert("AI Prompt copied to clipboard! Paste it into your AI chat.");}
 function openCommandsModal(){const isHttp=serverType==='http',box=document.getElementById('api-commands-box');if(isHttp){box.innerHTML=`<span class="api-tag-client">CLIENT-SIDED API (HTTP MODE)</span>
 1. GET SERVER STATUS (Health Check):
-   GET ${PUBLIC_TUNNEL_URL}/getstatus -> "OK"
+   Description: Checks whether the EzBridge universal server tunnel is reachable and alive.
+   Request: GET ${PUBLIC_TUNNEL_URL}/getstatus
+   Output: Plain text "OK" (HTTP 200).
 
-<span class="api-tag-both">CLIENT & SERVER API</span>
-2. GET CLIENT PROFILE:
-   GET ${PUBLIC_TUNNEL_URL}/eb_profile_get_{clientid}
+<span class="api-tag-both">CLIENT & SERVER SHARED APIs</span>
+2. GET CLIENT PROFILE (Public Profile Lookup):
+   Description: Fetches any registered user's displayName, base64 profile picture (pfpData), and bio description.
+   Request: GET ${PUBLIC_TUNNEL_URL}/eb_profile_get_{clientid}
    Output: JSON { "displayName": "Name", "pfpData": "data:image/...", "description": "..." }
 
-3. GET ASSET DATA (Works for ANY size, including >200KB!):
-   GET ${PUBLIC_TUNNEL_URL}/eb_asset_get_{assetid}
+3. GET ASSET DATA (Full File Download — Works for ANY size, including >200KB!):
+   Description: Downloads an uploaded asset (Audio <20MB/10m, Image <5MB, Video <50MB) as a base64 DataURL JSON object.
+   Request: GET ${PUBLIC_TUNNEL_URL}/eb_asset_get_{assetid}
    Output: JSON { "id": 1, "name": "track.mp3", "type": "audio/mp3", "size": 350000, "data": "data:...;base64,..." }
 
 4. VERIFY / GET LOGGED-IN CLIENT ID:
-   POST ${PUBLIC_TUNNEL_URL}/remote
+   Description: Verifies whether the requester has a valid EzBridge Client ID (returns null if Guest/invalid).
+   Request: POST ${PUBLIC_TUNNEL_URL}/remote
    Headers: {"Content-Type":"application/json","auth-token":"${serverKey}"}
    Body: {"type":"check_id","data":{}}
+   Output: { "status": "success", "events": [{ "type": "id_verified", "clientId": "..." }] }
 
-5. CALL AI DIRECTLY (Streaming is NOT supported; AI Key only):
-   POST ${PUBLIC_TUNNEL_URL}/eb_callai
+5. CALL AI DIRECTLY (Streaming is NOT supported; Requires AI Auth Key):
+   Description: Sends a prompt to an EzBridge AI model ("gemini-3.5-flash-lite", "gemma4:26b", "qwen2.5:1.5b", "qwen3:0.6b").
+   Limits: Temp 0.0-1.0, Mtokens 1-10000, Instruction 2-20000 chars, Prompt 1-60000 chars. Max 20 req/min, >=200ms cooldown.
+   Request: POST ${PUBLIC_TUNNEL_URL}/eb_callai
    Headers: {"Content-Type":"application/json","ai-key":"${userAIKey||'YOUR_AI_KEY'}"}
-   Body: { "model": "gemini-3.5-flash-lite", "Temp": 0.7, "Mtokens": 1500, "Instruction": "...", "Prompt": "Hello!" }
+   Body: { "model": "gemini-3.5-flash-lite", "Temp": 0.7, "Mtokens": 1500, "Instruction": "You are helpful.", "Prompt": "Hello!" }
+   Output: JSON { "id": "ab12", "text": "...", "done": true } (or { "error": "..." }).
 
-<span class="api-tag-client">CLIENT-SIDED API</span>
-6. SEND REMOTE EVENT & RECEIVE REPLIES:
-   POST ${PUBLIC_TUNNEL_URL}/remote
+<span class="api-tag-client">CLIENT-SIDED REMOTE EVENTS (HTTP REST)</span>
+6. SEND REMOTE EVENT & POLL QUEUED BROADCASTS:
+   Description: Triggers a Server.on('event_name', ...) handler in your ServerScript and returns both direct replies and queued broadcasts.
+   Limits: Max packet 10MB. Server drains V-Battery per byte transmitted. 5 min inactivity puts ServerScript to sleep.
+   Request: POST ${PUBLIC_TUNNEL_URL}/remote
    Headers: {"Content-Type":"application/json","auth-token":"${serverKey}"}
-   Body: {"type":"event_name","data":{"example":123}}
+   Body: {"type":"event_name","data":{"example":123}}   (Use "type":"poll" to only collect queued broadcasts)
+   Output: JSON { "status": "success", "events": [ { "type": "reply_evt", "data": {...} } ] }
 
-<span class="api-tag-server">SERVER-SIDED API (Inside ServerScript)</span>
-7. Server.on("event_name", evt => { evt.send("private_reply", {}); Server.broadcast("global", {}); });
-8. Server.storage.set(str); Server.storage.get(); Server.storage.getUsageBytes();
-9. Server.on("tick", dt => {}); // 33Hz fixed loop
-10. Server.eb_callai({ key, model, Temp, Mtokens, Instruction, Prompt }, res => {});
-11. Server.py.send("evt", data); Server.py.on("evt", data => {});`;}else{box.innerHTML=`<span class="api-tag-client">CLIENT-SIDED API (WEBSOCKET MODE)</span>
+<span class="api-tag-server">SERVER-SIDED APIs (Inside ServerScript Sandbox — 150MB RAM Limit)</span>
+7. EVENT HANDLING & MESSAGING:
+   - Server.on("event_name", evt => {
+       // evt.senderId (Client ID), evt.connectionId, evt.data
+       evt.send("private_reply", { ok: true }); // Sends only to this client
+       evt.reply({ ok: true });                 // Sends eventName + "_reply" to this client
+       Server.send(evt.connectionId, "direct", {});
+       Server.broadcast("global_evt", {});      // Queues for all clients
+     });
+
+8. PERSISTENT 100MB SERVER STORAGE:
+   Description: Saves and reads persistent string/JSON data on disk (survives server restarts). Max 100MB (104,857,600 bytes).
+   - Server.storage.set(strOrObj); // Returns bytes stored
+   - Server.storage.get();         // Returns stored string
+   - Server.storage.getUsageBytes();
+
+9. FIXED-RATE SERVER TICK LOOP (33Hz):
+   Description: Runs continuously up to 33 times/sec while players are active (auto-throttles if RAM > 110MB).
+   - Server.on("tick", dt => { /* dt = elapsed seconds */ });
+
+10. SERVER-SIDE AI GENERATION:
+    Description: Calls AI securely from ServerScript without exposing your AI Key to clients.
+    - Server.eb_callai({ key: "${userAIKey||'YOUR_AI_KEY'}", model: "gemini-3.5-flash-lite", Temp: 0.5, Mtokens: 1500, Instruction: "...", Prompt: "..." }, res => { console.log(res.text || res.error); });
+    - Server.stopAILatest(); Server.stopAIAll(); Server.stopAIId(id);
+
+11. SERVER-SIDE TOXICITY MODERATION (eb_callai_moderate):
+    Description: Uses EzBridge's DistilBERT ONNX classifier to moderate text before saving or broadcasting!
+    Limits: prompt must be > 0 and < 10000 chars. level must be "low" (0.30+), "medium" (0.65+), or "high" (0.87+).
+    Rate Limit: Max 5 requests/second per server. Max 5 running + 5 queued (10 total capacity).
+    - Server.eb_callai_moderate({ prompt: "text to check", level: "medium" }, res => {
+        if (res.passed) { Server.broadcast("approved", { text: "text to check" }); }
+        else { console.log("Flagged! Score:", res.score); }
+      });
+    (Alias: Server.eb_callai_moderation)
+
+12. PYTHON TERMINAL BRIDGE:
+    Description: Communicates two-way with your server's Python Terminal worker (import ezbridge).
+    - Server.py.send("evt", data);
+    - Server.py.on("evt", data => {});`;}else{box.innerHTML=`<span class="api-tag-client">CLIENT-SIDED API (WEBSOCKET MODE)</span>
 1. CONNECT & JOIN VIRTUAL SERVER ROOM:
+   Description: Opens a real-time Socket.IO connection and joins your Virtual Server room. Always wait for "joined_successfully" before sending RemoteEvents.
+   Limits: Max packet size 10MB. >250 req/s or >15MB/s triggers temporary ban.
+   Code:
    const socket = io("${PUBLIC_TUNNEL_URL}", { auth: { token: "default_key" }, transports: ["websocket", "polling"], maxHttpBufferSize: 1e8 });
    socket.on("connect", () => socket.emit("join_virtual_server", { key: "${serverKey}" }));
    socket.on("joined_successfully", () => { /* Safe to emit RemoteEvents */ });
 
-<span class="api-tag-both">CLIENT & SERVER API</span>
-2. GET CLIENT PROFILE:
-   socket.emit("RemoteEvent", { type: "eb_profile_get_{clientid}" });
+<span class="api-tag-both">CLIENT & SERVER SHARED APIs</span>
+2. GET CLIENT PROFILE (Public Profile Lookup):
+   Description: Fetches any user's displayName, pfpData, and description.
+   - WebSocket: socket.emit("RemoteEvent", { type: "eb_profile_get_{clientid}" }); (listen for pkt.type === "eb_profile_response_{clientid}")
+   - HTTP: GET ${PUBLIC_TUNNEL_URL}/eb_profile_get_{clientid}
 
 3. GET ASSET (>200KB & <200KB — CHUNK REASSEMBLY REQUIRED!):
-   Assets > 150KB are sent in 150KB chunks! Always collect chunks[d.index] = d.chunk and join when received === d.total:
+   Description: Downloads uploaded assets (Audio <20MB/10m, Image <5MB, Video <50MB). Assets >150KB are automatically split into 150KB WebSocket chunks! Collect chunks[d.index] = d.chunk and join ONLY when received === d.total:
    function fetchAssetWS(assetId, cb) {
      const chunks = []; let got = 0;
      const h = (pkt) => {
@@ -2413,23 +2666,62 @@ function openCommandsModal(){const isHttp=serverType==='http',box=document.getEl
      socket.on("RemoteEvent", h);
      socket.emit("RemoteEvent", { type: "eb_asset_get_" + assetId });
    }
+   (Or HTTP: fetch("${PUBLIC_TUNNEL_URL}/eb_asset_get_" + assetId).then(r => r.json()) returns full JSON directly.)
 
 4. VERIFY / GET LOGGED-IN CLIENT ID:
+   Description: Checks if the connected client is logged into a valid EzBridge account.
    socket.emit("RemoteEvent", { type: "check_id", data: {} });
+   // Response pkt.type === "id_verified" -> pkt.data.clientId (string or null)
 
 5. SEND & RECEIVE CUSTOM GAME/APP EVENTS:
+   Description: Sends events to your ServerScript's Server.on("my_event", ...) and listens for broadcasts or private replies.
    socket.emit("RemoteEvent", { type: "my_event", data: { hello: "world" } });
    socket.on("RemoteEvent", pkt => { if (pkt.type === "server_reply") console.log(pkt.data); });
 
-6. DIRECT WEBSOCKET AI CALL (Streaming is NOT supported; AI Key only):
+6. DIRECT WEBSOCKET AI CALL (Streaming is NOT supported; Requires AI Auth Key):
+   Description: Calls an EzBridge AI model directly from the client ("gemini-3.5-flash-lite", "gemma4:26b", "qwen2.5:1.5b", "qwen3:0.6b").
+   Limits: Temp 0.0-1.0, Mtokens 1-10000, Prompt 1-60000 chars, 20 req/min, 200ms cooldown.
    socket.emit("eb_callai_direct", { key: "${userAIKey||'YOUR_AI_KEY'}", model: "gemini-3.5-flash-lite", Temp: 0.7, Mtokens: 1500, Instruction: "...", Prompt: "Hi!" });
+   socket.on("eb_ai_response", res => { console.log(res.text || res.error); });
 
-<span class="api-tag-server">SERVER-SIDED API (Inside ServerScript)</span>
-7. Server.on("my_event", evt => { evt.send("private", {}); Server.send(evt.connectionId, "targeted", {}); Server.broadcast("everyone", {}); });
-8. Server.storage.set(str); Server.storage.get(); Server.storage.getUsageBytes();
-9. Server.on("tick", dt => {}); // 33Hz fixed loop
-10. Server.eb_callai({ key, model, Temp, Mtokens, Instruction, Prompt }, res => {});
-11. Server.py.send("evt", data); Server.py.on("evt", data => {});`;}document.getElementById('modal-commands').style.display='flex';}
+<span class="api-tag-server">SERVER-SIDED APIs (Inside ServerScript Sandbox — 150MB RAM Limit)</span>
+7. EVENT HANDLING & MESSAGING:
+   - Server.on("my_event", evt => {
+       evt.send("private", {});                  // Reply only to sender
+       evt.reply({});                            // Reply with "my_event_reply"
+       Server.send(evt.connectionId, "targeted", {}); // Send to specific socket ID
+       Server.broadcast("everyone", {});         // Broadcast to all clients in room
+     });
+
+8. PERSISTENT 100MB SERVER STORAGE:
+   Description: Saves persistent string/JSON data to disk across restarts (max 100MB = 104,857,600 bytes).
+   - Server.storage.set(strOrObj); // Returns bytes used
+   - Server.storage.get();         // Returns stored string
+   - Server.storage.getUsageBytes();
+
+9. FIXED-RATE SERVER TICK LOOP (33Hz):
+   Description: Runs up to 33Hz for authoritative game physics/state (auto-throttles if RAM > 110MB).
+   - Server.on("tick", dt => { /* dt = elapsed seconds */ });
+
+10. SERVER-SIDE AI GENERATION:
+    Description: Runs AI inference from ServerScript without exposing your AI Key to clients.
+    - Server.eb_callai({ key: "${userAIKey||'YOUR_AI_KEY'}", model: "gemini-3.5-flash-lite", Temp: 0.7, Mtokens: 1500, Instruction: "...", Prompt: "..." }, res => {});
+    - Server.stopAILatest(); Server.stopAIAll(); Server.stopAIId(id);
+
+11. SERVER-SIDE TOXICITY MODERATION (eb_callai_moderate):
+    Description: Evaluates text toxicity using EzBridge's DistilBERT ONNX classifier directly inside ServerScript.
+    Limits: prompt must be > 0 and < 10000 chars. level must be "low" (0.30+), "medium" (0.65+), or "high" (0.87+).
+    Rate Limit: Max 5 moderation calls/second per server. Max 5 running + 5 queued (10 max capacity).
+    - Server.eb_callai_moderate({ prompt: "the cat sat on the mat", level: "medium" }, res => {
+        if (res.passed) { Server.broadcast("chat", { msg: "the cat sat on the mat" }); }
+        else { console.log("Blocked! Score:", res.score); }
+      });
+    (Alias: Server.eb_callai_moderation)
+
+12. PYTHON TERMINAL BRIDGE:
+    Description: Sends/receives events with your server's Python worker.
+    - Server.py.send("evt", data);
+    - Server.py.on("evt", data => {});`;}document.getElementById('modal-commands').style.display='flex';}
 function closeCommandsModal(){document.getElementById('modal-commands').style.display='none';}
 function openGameCode(){const isHttp=serverType==='http';document.getElementById('http-disclaimer').style.display=isHttp?'block':'none';document.getElementById('http-extra-example-container').style.display=isHttp?'block':'none';const{coinClientCode,coinServerCode,gunsClientCode,gunsServerCode,verifyClientCode,verifyServerCode,httpChatClientCode,httpChatServerCode,dynamicTunnelCode}=getGameExamples();document.getElementById('example-coin-client').value=coinClientCode;document.getElementById('example-coin-server').value=coinServerCode;document.getElementById('example-code-client').value=gunsClientCode;document.getElementById('example-code-server').value=gunsServerCode;document.getElementById('example-http-chat-client').value=httpChatClientCode;document.getElementById('example-http-chat-server').value=httpChatServerCode;document.getElementById('example-verify-client').value=verifyClientCode;document.getElementById('example-verify-server').value=verifyServerCode;document.getElementById('example-dynamic-tunnel').value=dynamicTunnelCode;document.getElementById('modal-code').style.display='flex';}
 function closeGameCode(){document.getElementById('modal-code').style.display='none';}
