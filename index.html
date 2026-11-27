@@ -30,8 +30,8 @@ h1, h2, h3{color:var(--accent);margin-top:0;letter-spacing:1.4px;text-transform:
 .btn-secondary:hover{border-color:var(--accent) !important;color:#ffffff !important;background:rgba(239,68,68,0.18) !important;}
 .btn-purple{background:linear-gradient(135deg,rgba(139,92,246,0.22) 0%,rgba(91,33,182,0.16) 100%) !important;border:1px solid #8b5cf6 !important;color:#ffffff !important;}
 .btn-purple:hover{background:linear-gradient(135deg,rgba(139,92,246,0.42) 0%,rgba(109,40,217,0.3) 100%) !important;box-shadow:0 0 14px rgba(139,92,246,0.4);}
-.btn-green{background:linear-gradient(135deg,rgba(16,185,129,0.22) 0%,rgba(6,95,70,0.18) 100%) !important;border:1px solid #10b981 !important;color:#ffffff !important;}
-.btn-green:hover{background:linear-gradient(135deg,rgba(16,185,129,0.42) 0%,rgba(5,150,105,0.32) 100%) !important;box-shadow:0 0 14px rgba(16,185,129,0.35);}
+.btn-green{background:linear-gradient(135deg,rgba(16,185,129,0.28) 0%,rgba(6,95,70,0.24) 100%) !important;border:1px solid #10b981 !important;color:#ffffff !important;}
+.btn-green:hover{background:linear-gradient(135deg,rgba(16,185,129,0.48) 0%,rgba(5,150,105,0.36) 100%) !important;box-shadow:0 0 14px rgba(16,185,129,0.4);}
 .btn-yellow{background:linear-gradient(135deg,rgba(234,179,8,0.28) 0%,rgba(202,138,4,0.2) 100%) !important;border:1px solid #eab308 !important;color:#fef08a !important;}
 .btn-yellow:hover{background:linear-gradient(135deg,rgba(234,179,8,0.5) 0%,rgba(202,138,4,0.38) 100%) !important;box-shadow:0 0 16px rgba(234,179,8,0.5);color:#ffffff !important;}
 .btn-danger{background:linear-gradient(135deg,rgba(239,68,68,0.28) 0%,rgba(127,29,29,0.28) 100%) !important;border:1px solid var(--error) !important;color:#ffffff !important;}
@@ -131,6 +131,13 @@ iframe.site-frame{width:100%;height:100%;border:none;display:block;}
 .asset-dropzone:hover{background:linear-gradient(135deg,rgba(239,68,68,0.45) 0%,rgba(220,38,38,0.34) 100%) !important;box-shadow:0 0 18px rgba(239,68,68,0.4);transform:translateY(-1px);}
 .report-reason-item{display:flex;align-items:center;gap:8px;background:#020617;border:1px solid #1e293b;padding:8px 10px;cursor:pointer;font-size:0.82rem;text-align:left;transition:border-color 0.15s,background 0.15s;}
 .report-reason-item:hover{border-color:var(--accent);background:rgba(239,68,68,0.12);}
+.browser-float-box{position:fixed;top:42px;left:24px;width:540px;max-width:96vw;height:400px;min-width:300px;min-height:240px;background:#030712;border:2px solid #10b981;z-index:9999975;display:none;flex-direction:column;resize:both;overflow:hidden;box-shadow:0 0 32px rgba(16,185,129,0.35);}
+.browser-float-box.focused{border-color:#22c55e;box-shadow:0 0 38px rgba(34,197,94,0.65);}
+.browser-tab-pill{background:#0f172a;border:1px solid #334155;color:#cbd5e1;padding:2px 8px;font-size:0.68rem;cursor:pointer;display:inline-flex;align-items:center;gap:5px;max-width:120px;overflow:hidden;white-space:nowrap;}
+.browser-tab-pill.active{background:#10b981;color:#000;border-color:#10b981;font-weight:bold;}
+#browser-viewport-wrap{flex:1;position:relative;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center;touch-action:none;user-select:none;}
+#browser-stream-img{width:100%;height:100%;object-fit:contain;display:block;pointer-events:none;-webkit-user-drag:none;}
+#browser-virtual-cursor{position:absolute;width:16px;height:16px;pointer-events:none;z-index:20;transform:translate(-2px,-2px);display:none;}
 @media (max-width:640px){.tos-floating-btn{bottom:32px;right:12px;}}
 </style>
 </head>
@@ -138,12 +145,34 @@ iframe.site-frame{width:100%;height:100%;border:none;display:block;}
 <canvas id="bg-canvas"></canvas>
 <button id="btn-global-mute" class="mute-floating-btn" onclick="toggleGlobalUiMute()" title="Mute/Unmute EzBridge Sounds">🔊</button>
 <div style="position:fixed;bottom:10px;left:12px;z-index:99999;color:#ffffff;font-family:'Courier New',monospace;font-size:0.75rem;font-weight:bold;letter-spacing:1px;pointer-events:none;text-shadow:0 0 4px #000;display:flex;align-items:center;">
-<span>EzBridge - V2.6.0</span>
+<span>EzBridge - V2.6.5</span>
 <span style="display:inline-block;width:8px;height:8px;background:#10b981;margin:0 6px 0 10px;vertical-align:middle;"></span>
 <span style="color:#10b981;">Users active in EzBridge: <span id="global-active-users-count">0</span></span>
 </div>
 <button class="btn tos-floating-btn" onclick="openTosModal()">TOS</button>
 <div id="top-notif-banner" class="top-notif-banner"></div>
+<div id="browser-float-box" class="browser-float-box">
+<div id="browser-drag-header" style="display:flex;justify-content:space-between;align-items:center;cursor:move;padding:6px 8px;background:#020617;border-bottom:1px solid #1e293b;">
+<span style="font-size:0.74rem;font-weight:bold;color:#10b981;">🌐 VIRTUAL CHROMIUM (480p • 10 FPS)</span>
+<div style="display:flex;align-items:center;gap:6px;">
+<span id="browser-focus-badge" style="font-size:0.65rem;color:var(--muted);">Unfocused</span>
+<button class="btn btn-danger" style="width:auto;margin:0;padding:2px 8px;font-size:0.68rem;" onclick="toggleAiBrowsingMode(false)">Close</button>
+</div>
+</div>
+<div id="browser-tabs-bar" style="display:flex;align-items:center;gap:4px;padding:4px 6px;background:#050814;border-bottom:1px solid #1e293b;overflow-x:auto;"></div>
+<div style="display:flex;align-items:center;gap:4px;padding:4px 6px;background:#020617;border-bottom:1px solid #1e293b;">
+<button class="btn-icon" style="padding:2px 7px;font-size:0.75rem;" onclick="browserNav('back')">◀</button>
+<button class="btn-icon" style="padding:2px 7px;font-size:0.75rem;" onclick="browserNav('forward')">▶</button>
+<button class="btn-icon" style="padding:2px 7px;font-size:0.75rem;" onclick="browserNav('reload')">↻</button>
+<input type="text" id="browser-url-bar" placeholder="https://example.com" style="flex:1;padding:4px 8px;font-size:0.75rem;background:#0f172a;border:1px solid #334155;color:#fff;" onkeypress="if(event.key==='Enter')browserNav('goto',this.value)">
+<button class="btn btn-green" style="width:auto;margin:0;padding:3px 10px;font-size:0.72rem;" onclick="browserNav('goto',document.getElementById('browser-url-bar').value)">Go</button>
+</div>
+<div id="browser-viewport-wrap">
+<img id="browser-stream-img" alt="Starting Chromium...">
+<div id="browser-virtual-cursor"><svg width="16" height="16" viewBox="0 0 16 16"><polygon points="0,0 0,14 4,10 8,15 10,14 6,9 11,9" fill="#ffffff" stroke="#000000" stroke-width="1.2"/></svg></div>
+<input id="browser-mobile-kb-input" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;bottom:0;left:0;">
+</div>
+</div>
 <div id="modal-tos" class="overlay" style="display:none;z-index:9999997;backdrop-filter:blur(10px);">
 <div class="card" style="max-width:580px;width:94%;max-height:86vh;display:flex;flex-direction:column;">
 <h2 style="margin-bottom:8px;">TERMS OF SERVICE</h2>
@@ -433,10 +462,11 @@ iframe.site-frame{width:100%;height:100%;border:none;display:block;}
 <div id="assistant-drag-header" style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #1e293b;">
 <div style="display:flex;align-items:center;gap:6px;position:relative;">
 <button class="btn btn-yellow" id="btn-assistant-model" style="width:auto;margin:0;padding:6px 12px;font-size:0.78rem;" onclick="toggleAssistantModelMenu()">Gemini-3.5-flash-lite [Recommended] ▾</button>
-<div id="assistant-model-menu" style="display:none;position:absolute;top:36px;left:0;background:#020617;border:1px solid #eab308;z-index:50;min-width:255px;text-align:left;">
+<div id="assistant-model-menu" style="display:none;position:absolute;top:36px;left:0;background:#020617;border:1px solid #eab308;z-index:50;min-width:265px;text-align:left;">
 <button class="btn btn-secondary" style="margin:0;padding:8px;font-size:0.78rem;border:none !important;border-bottom:1px solid #1e293b !important;" onclick="selectAssistantModel('gemini-3.5-flash-lite','Gemini-3.5-flash-lite [Recommended]')">• Gemini-3.5-flash-lite [Recommended]</button>
+<button class="btn btn-secondary" style="margin:0;padding:8px;font-size:0.78rem;border:none !important;border-bottom:1px solid #1e293b !important;" onclick="selectAssistantModel('gemini-3.1-flash-lite','Gemini-3.1-flash-lite (-10% tokens)')">• Gemini-3.1-flash-lite (-10% tokens)</button>
 <button class="btn btn-secondary" style="margin:0;padding:8px;font-size:0.78rem;border:none !important;border-bottom:1px solid #1e293b !important;" onclick="selectAssistantModel('gemma4:26b','Gemma4:26b (-10% tokens)')">• Gemma4:26b (-10% tokens)</button>
-<button class="btn btn-secondary" style="margin:0;padding:8px;font-size:0.78rem;border:none !important;" onclick="selectAssistantModel('qwen3:0.6b','Qwen3:0.6b (-35% tokens)')">• Qwen3:0.6b (-35% tokens)</button>
+<button id="btn-model-qwen" class="btn btn-secondary" style="margin:0;padding:8px;font-size:0.78rem;border:none !important;" onclick="selectAssistantModel('qwen3:0.6b','Qwen3:0.6b (-35% tokens)')">• Qwen3:0.6b (-35% tokens)</button>
 </div>
 </div>
 <div style="display:flex;align-items:center;gap:6px;">
@@ -446,7 +476,10 @@ iframe.site-frame{width:100%;height:100%;border:none;display:block;}
 </div>
 </div>
 <div id="assistant-context-badge" style="display:none;font-size:0.72rem;color:#fde047;background:rgba(234,179,8,0.12);border:1px solid #eab308;padding:4px 8px;margin-bottom:6px;text-align:left;"></div>
-<div id="assistant-chat-box" class="chat-bubble-box" style="flex:1;min-height:280px;max-height:420px;border-color:#eab308;"></div>
+<div id="assistant-chat-box" class="chat-bubble-box" style="flex:1;min-height:260px;max-height:400px;border-color:#eab308;"></div>
+<div id="assistant-browsing-bar" style="display:none;margin-top:6px;">
+<button id="btn-ai-browsing-toggle" class="btn btn-secondary" style="margin:0;padding:7px;font-size:0.78rem;" onclick="toggleAiBrowsingMode()">🌐 AI BROWSING MODE (uses more tokens)</button>
+</div>
 <div style="display:flex;gap:8px;margin-top:8px;">
 <textarea id="assistant-input" rows="2" maxlength="12000" placeholder="Ask EzBridge AI to build a site, game or ServerScript..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();if(!assistantGenerating)handleAssistantSendOrStop();}" style="flex:1;margin:0;resize:none;padding:8px;font-family:inherit;font-size:0.85rem;"></textarea>
 <button class="btn btn-yellow" id="btn-assistant-send" style="width:auto;margin:0;padding:0 18px;" onclick="handleAssistantSendOrStop()">Generate</button>
@@ -1127,6 +1160,7 @@ iframe.site-frame{width:100%;height:100%;border:none;display:block;}
 <div id="univ-telemetry-display" style="font-size:0.75rem;color:var(--accent);font-family:monospace;margin-bottom:12px;line-height:1.4;">RAM: 0% | DATE: 0/0/0 00:00:00</div>
 <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px;">
 <button class="btn btn-purple" id="btn-univ-update" onclick="openUpdateUnivServerModal()">Update univserver</button>
+<button class="btn btn-purple" id="btn-univ-terminal-update" onclick="openUpdateTerminalModal()">Update terminal script</button>
 <button class="btn btn-purple" id="btn-univ-coins" onclick="openOwnerSetCoinsModal()">Set User Coins</button>
 <button class="btn btn-purple" id="btn-server-mgmt" onclick="openServerMgmtModal()">Server Management</button>
 <button class="btn btn-danger" id="btn-ban-user" onclick="openBanUserModal()">Ban User</button>
@@ -1148,6 +1182,21 @@ iframe.site-frame{width:100%;height:100%;border:none;display:block;}
 <div style="display:flex;gap:10px;margin-top:10px;">
 <button class="btn" onclick="startUnivServerChunkUpload()">Update</button>
 <button class="btn btn-secondary" onclick="closeUpdateUnivServerModal()">Cancel</button>
+</div>
+</div>
+</div>
+<div id="modal-update-terminal" class="overlay" style="display:none;">
+<div class="card" style="max-width:650px;">
+<h3>Update Terminal Script (sv.py)</h3>
+<p style="font-size:0.8rem;color:var(--muted);">Paste the new sv.py code below. Compiles &amp; replaces sv.py, restarts Node &amp; Terminal while keeping the Cloudflare tunnel alive.</p>
+<textarea id="terminal-script-editor" class="code-box" rows="12" style="width:100%;height:220px;resize:none;" placeholder="# Paste new sv.py here..."></textarea>
+<div id="term-upload-progress" class="progress-container" style="display:none;">
+<div id="term-progress-bar" class="progress-bar"></div>
+<div class="progress-text">Uploading in 50KB Chunks: <span id="term-progress-val">0</span>%</div>
+</div>
+<div style="display:flex;gap:10px;margin-top:10px;">
+<button class="btn" onclick="startTerminalScriptChunkUpload()">Update</button>
+<button class="btn btn-secondary" onclick="closeUpdateTerminalModal()">Cancel</button>
 </div>
 </div>
 </div>
@@ -1389,9 +1438,10 @@ let ownerId=getCookie("eb_owner_id")||"",googleSub=null,googleEmail=null,ezbridg
 const MAX_ASSET_BYTES=500*1024*1024,DM_CHUNK_SIZE=150*1024;
 let isServerLockdown=false,lockdownUntilTime=0,lockdownInterval=null,isGuestMode=false,pendingDailyRewardForNewServer=null,emailTimerInterval=null,emailTimerSeconds=1800,emailResendCooldown=0,emailResendInterval=null,pendingSignupData=null,delCodeTimerInterval=null,delCodeTimerSeconds=300,rxBytesAccum=0,txBytesAccum=0,currentPingVal=50,cooldownTimerCountdown=null,currentChatSession=null,chatHistoryChunks=[],chatTypingTimeout=null,globalChatMessages=[],globalChatOffset=0,globalChatHasMore=false,isLoadingMoreGlobal=false,publishedSitesCache=[],reportedSitesCache=[],siteFetchChunks=[],reportsFetchChunks=[],isUserHasSite=false,sitesOffset=0,sitesHasMore=false,isLoadingMoreSites=false,siteFetchCancelled=false,siteDataFetchCancelled=false,siteEnterCancelled=false,profileLoadCancelled=false,siteGenCooldownTimer=null,generatedSiteIdVal="",userSiteDataChunks=[],siteSearchDebounce=null,isSiteFileUploaded=false,currentActiveSiteId=null,isSiteViewerMaximized=false,serverStorageChunks=[],serverScriptChunks=[],serverStoragePollInterval=null,perfHistory=[],perfGraphVisible=false,siteActivePingInterval=null,siteEnterSimTimer=null,siteEnterStartTs=0;
 const SCRIPT_CHUNK_SIZE=100*1024,UNIV_CHUNK_SIZE=50*1024,SITE_CHUNK_SIZE=150*1024,ASSET_CHUNK_SIZE=150*1024;
-let isUploadingScript=false,isUploadingUnivScript=false,isUploadingSiteScript=false,isUploadingAsset=false;
+let isUploadingScript=false,isUploadingUnivScript=false,isUploadingTerminalScript=false,isUploadingSiteScript=false,isUploadingAsset=false;
 const ASSISTANT_STATUSES=["Thinking. . .","Making. . .","Imagining. . .","Reimagining. . .","Inspiring. . .","Researching. . .","Reflecting. . .","Building. . .","Placing bricks. . .","Guessing. . .","Predicting. . .","Casting. . .","Coding. . .","Vibing. . .","Focusing. . .","Prioritizing. . .","Completing. . .","Filling. . .","Brainstorming. . .","Tunneling. . .","Bridging. . .","Simplifying. . .","Checking. . .","Interacting. . .","Displaying. . .","Reasoning. . .","Planting. . .","Recovering. . .","Verifying. . .","Finishing. . .","Admiring. . .","Sparkling. . .","Printing. . ."];
 let assistantModel="gemini-3.5-flash-lite",assistantHistory=[],assistantGenerating=false,assistantTaskId=null,assistantStatusTimer=null,assistantPingTimer=null,assistantResetAt=Date.now()+86400000,assistantTokensTimerInt=null,assistantCodeStore=[],pendingAssistantContinue=false,assistantContextType=null,assistantFloatingMode=false,assistantMinimized=false,assistantMaximized=false,assistantTokensRemaining=50000,assistantStreamShowThinking=true,assistantStreamThinkingText="",assistantStreamAnswerText="";
+let aiBrowsingMode=false,browserInputFocused=false,browserCursorPos={x:427,y:240},lastBrowserMouseEmit=0,browserPlayCtx=null,browserNextPlayTime=0,browserTouchState={dragging:false,holding:false,holdTimer:null,lastX:0,lastY:0,startX:0,startY:0,startTime:0,lastTapAt:0,tapTimer:null};
 let activeReportTarget=null,activeReportEmailId=null,isSendingReportEmail=false;
 let socialState={friends:[],requests:[],blocked:[],groupChats:[]},socialShowRequests=false,gcSelectMode=false,selectedGcFriends=[],stagedGcPfpBase64="",currentGc=null,gcMessagesCache=[],gcOffset=0,gcHasMore=false,isLoadingMoreGc=false,gcMsgChunks=[],gcMicRecorder=null,gcMicChunks=[],gcMicStream=null,gcMicTimerInt=null,gcMicSeconds=0,gcMicAnalyser=null,gcMicAnimFrame=null,gcTypingOutTimer=null,gcPeerTypingTimeout=null,currentDmPeer=null,dmMessagesCache=[],dmOffset=0,dmHasMore=false,isLoadingMoreDm=false,dmMsgChunks=[],dmMediaDlCache={},dmMediaDlPending={},pendingDedupUploads={},autoPlayDmAudioId=null,dmMicRecorder=null,dmMicChunks=[],dmMicStream=null,dmMicTimerInt=null,dmMicSeconds=0,dmMicAnalyser=null,dmMicAnimFrame=null,dmTypingOutTimer=null,dmPeerTypingTimeout=null,currentPopupProfileId=null;
 let notifQueue=[],activeNotif=null,notifTimerInt=null,notifStartTime=0,notifDuration=0,notifPausedRem=0,quickReplyTargetId=null;
@@ -1536,6 +1586,24 @@ setInterval(()=>{if(s&&s.connected)s.emit('eb_active_ping');},4000);
 s.on('eb_active_users_update',(d)=>{const el=document.getElementById('global-active-users-count');if(el)el.innerText=d.count||0;});
 s.on('eb_sites_online_update',(onlineMap)=>{if(onlineMap&&publishedSitesCache.length>0){publishedSitesCache.forEach(site=>{if(onlineMap[site.id]!==undefined)site.onlineCount=onlineMap[site.id];});renderPublishedSitesList(publishedSitesCache);}});
 s.on('eb_punish_refresh',()=>{window.location.reload();});
+s.on('eb_browser_started',()=>{updateBrowserToggleUI(true);document.getElementById('browser-float-box').style.display='flex';if(browserPlayCtx&&browserPlayCtx.state==='suspended')browserPlayCtx.resume().catch(()=>{});});
+s.on('eb_browser_stopped',(d)=>{updateBrowserToggleUI(false);document.getElementById('browser-float-box').style.display='none';browserInputFocused=false;});
+s.on('eb_browser_error',(d)=>{updateBrowserToggleUI(false);document.getElementById('browser-float-box').style.display='none';alert((d&&d.error)||"Virtual browser error.");});
+s.on('eb_browser_frame',(d)=>{
+  const img=document.getElementById('browser-stream-img'),urlBar=document.getElementById('browser-url-bar');
+  if(img&&d.frame)img.src=d.frame;
+  if(urlBar&&document.activeElement!==urlBar&&d.url)urlBar.value=d.url;
+  if(d.cursor)updateVirtualCursorUI(d.cursor.x,d.cursor.y);
+  if(Array.isArray(d.tabs))renderBrowserTabs(d.tabs);
+});
+s.on('eb_browser_audio',(d)=>{handleIncomingBrowserAudio(d);});
+s.on('eb_browser_input_focus',(d)=>{
+  const isTouch=('ontouchstart' in window)||(navigator.maxTouchPoints>0);
+  if(d&&d.focused&&isTouch){
+    const kb=document.getElementById('browser-mobile-kb-input');
+    if(kb){kb.value='';kb.focus();}
+  }
+});
 s.on('eb_captcha_queue',(d)=>{const qEl=document.getElementById('captcha-queue-msg'),img=document.getElementById('captcha-frame-img');if(qEl){qEl.style.display='block';qEl.innerText=`You are in queue. your position: ${d.position||0}`;}if(img){img.style.visibility='hidden';img.removeAttribute('src');}});
 s.on('eb_captcha_ready',(d)=>{captchaSessionId=d.captchaSessionId;captchaGen=d.gen||0;localStorage.setItem("eb_captcha_sid",captchaSessionId);captchaFrameW=d.width||320;captchaFrameH=d.height||220;const qEl=document.getElementById('captcha-queue-msg'),img=document.getElementById('captcha-frame-img');if(qEl)qEl.style.display='none';if(img){img.style.visibility='hidden';img.removeAttribute('src');}});
 s.on('eb_captcha_frame',(d)=>{if(d.gen!==undefined&&d.gen!==captchaGen)return;if(d.captchaSessionId)captchaSessionId=d.captchaSessionId;const qEl=document.getElementById('captcha-queue-msg'),img=document.getElementById('captcha-frame-img');if(qEl)qEl.style.display='none';if(img&&d.frame){img.src=d.frame;img.style.visibility='visible';}});
@@ -1562,6 +1630,9 @@ s.on('eb_user_id_regenerated',(data)=>{activeUserId=data.newUserId;const cidEl=d
 s.on('eb_account_deleted',()=>{alert("Account and data deleted permanently.");accountLogout();});
 s.on('eb_univserver_update_success',(data)=>{isUploadingUnivScript=false;document.getElementById('univ-upload-progress').style.display='none';alert(data.msg||"Updated successfully!");setTimeout(()=>location.reload(),2500);});
 s.on('eb_univserver_update_error',(data)=>{isUploadingUnivScript=false;document.getElementById('univ-upload-progress').style.display='none';alert(`UPDATE FAILED:\n${data.error}`);});
+s.on('eb_terminal_chunk_ack',(data)=>{if(!isUploadingTerminalScript)return;const pct=Math.floor((data.received/data.total)*100);document.getElementById('term-progress-bar').style.width=`${pct}%`;document.getElementById('term-progress-val').innerText=pct;if(data.received<data.total&&isUploadingTerminalScript)sendTerminalChunk(data.received,data.total,document.getElementById('terminal-script-editor').value);});
+s.on('eb_terminal_update_success',(data)=>{isUploadingTerminalScript=false;document.getElementById('term-upload-progress').style.display='none';alert(data.msg||"Terminal updated!");setTimeout(()=>location.reload(),3000);});
+s.on('eb_terminal_update_error',(data)=>{isUploadingTerminalScript=false;document.getElementById('term-upload-progress').style.display='none';alert(`TERMINAL UPDATE FAILED:\n${data.error}`);});
 s.on('eb_server_key_regenerated',(data)=>{serverKey=data.newServerKey;document.getElementById('copy-key').value=serverKey;alert("Server Auth Key regenerated successfully!");});
 s.on('eb_ai_key_regenerated',(data)=>{userAIKey=data.newAiKey;if(data.status)userAIKeyStatus=data.status;updateAIKeyDashboardDisplay();alert("AI Auth Key regenerated successfully!");});
 s.on('eb_server_storage_chunk',(data)=>{if(data.index===0)serverStorageChunks=[];serverStorageChunks.push(data.chunk);if(serverStorageChunks.length===data.total){document.getElementById('server-storage-display').value=serverStorageChunks.join('');document.getElementById('storage-modal-usage').innerText=`${(data.storageBytes/(1024*1024)).toFixed(2)} MB`;}});
@@ -1582,6 +1653,7 @@ s.on('eb_chat_typing_count',(data)=>{if(data.session===currentChatSession){const
 s.on('eb_assistant_quota_update',(data)=>{updateAssistantQuotaUI(data.remaining,data.resetAt);});
 s.on('eb_assistant_started',(data)=>{assistantTaskId=data.taskId;assistantGenerating=true;assistantStreamShowThinking=true;assistantStreamThinkingText="";assistantStreamAnswerText="";document.getElementById('btn-assistant-send').innerText="Stop";if(data.streaming)createAssistantStreamBubble();if(assistantPingTimer)clearInterval(assistantPingTimer);assistantPingTimer=setInterval(()=>{if(assistantGenerating&&assistantTaskId)socket.emit('eb_assistant_ping',{taskId:assistantTaskId});},3000);});
 s.on('eb_assistant_stream',(data)=>{if(!assistantGenerating||data.taskId!==assistantTaskId)return;assistantStreamThinkingText=data.thinking||"";assistantStreamAnswerText=data.text||"";updateAssistantStreamBubble();});
+s.on('eb_assistant_browser_step',(data)=>{const el=document.getElementById('assistant-status-gen');if(el)el.innerText=`🌐 Browser Step ${data.step}/${data.maxSteps}...`;});
 s.on('eb_assistant_done',(data)=>{finishAssistantGen();assistantHistory.push({role:'assistant',text:data.text||'',thinking:data.thinking||'',showThinking:false,command:data.command||null,code:data.code||'',shouldContinue:Boolean(data.shouldContinue)});renderAssistantHistory();});
 s.on('eb_assistant_info_fetched',(info)=>{pendingAssistantContinue=false;sendAssistantPrompt(`Fetched user info:\n\`\`\`json\n${JSON.stringify(info,null,2)}\n\`\`\`\nPlease continue with this info.`);});
 s.on('eb_assistant_error',(data)=>{finishAssistantGen();alert(data.error||"AI Assistant error.");});
@@ -1662,6 +1734,214 @@ let initTimeout=setTimeout(()=>{if(!socket||!socket.connected){document.getEleme
 const t=await fetchLatestTunnelUrl();if(t)PUBLIC_TUNNEL_URL=t;
 socket=io(PUBLIC_TUNNEL_URL,{auth:{token:"default_key"},transports:['websocket','polling'],timeout:10000,reconnection:true,reconnectionAttempts:Infinity,reconnectionDelay:1000,reconnectionDelayMax:5000,maxHttpBufferSize:1e8});
 attachSocketEvents(socket);
+})();
+window.addEventListener('beforeunload',()=>{if(aiBrowsingMode&&socket&&socket.connected)socket.emit('eb_browser_stop');});
+function updateBrowserToggleUI(active){
+  aiBrowsingMode=Boolean(active);
+  const btn=document.getElementById('btn-ai-browsing-toggle');
+  if(btn){
+    if(aiBrowsingMode){btn.classList.remove('btn-secondary');btn.classList.add('btn-green');btn.innerText="🌐 AI BROWSING MODE: ON (uses more tokens)";}
+    else{btn.classList.remove('btn-green');btn.classList.add('btn-secondary');btn.innerText="🌐 AI BROWSING MODE (uses more tokens)";}
+  }
+  const qBtn=document.getElementById('btn-model-qwen');
+  if(qBtn){
+    qBtn.disabled=aiBrowsingMode;
+    qBtn.style.opacity=aiBrowsingMode?'0.35':'1';
+    qBtn.innerText=aiBrowsingMode?'• Qwen3:0.6b (Cannot see images)':'• Qwen3:0.6b (-35% tokens)';
+  }
+  if(aiBrowsingMode&&assistantModel.includes('qwen'))selectAssistantModel('gemini-3.5-flash-lite','Gemini-3.5-flash-lite [Recommended]');
+}
+function toggleAiBrowsingMode(forceState){
+  const next=(forceState!==undefined)?Boolean(forceState):!aiBrowsingMode;
+  if(next){
+    if(!browserPlayCtx)browserPlayCtx=new (window.AudioContext||window.webkitAudioContext)();
+    if(browserPlayCtx.state==='suspended')browserPlayCtx.resume().catch(()=>{});
+    browserNextPlayTime=0;
+    updateBrowserToggleUI(true);
+    socket.emit('eb_browser_start');
+  }else{
+    updateBrowserToggleUI(false);
+    document.getElementById('browser-float-box').style.display='none';
+    browserInputFocused=false;
+    if(socket&&socket.connected)socket.emit('eb_browser_stop');
+  }
+}
+function browserNav(action,val){if(socket&&socket.connected)socket.emit('eb_browser_nav',{action,url:val,index:val});}
+function renderBrowserTabs(tabs){
+  const bar=document.getElementById('browser-tabs-bar');if(!bar)return;
+  bar.innerHTML='';
+  tabs.forEach(t=>{
+    const pill=document.createElement('div');
+    pill.className='browser-tab-pill'+(t.active?' active':'');
+    let host='Tab '+(t.index+1);
+    try{if(t.url&&t.url.startsWith('http'))host=new URL(t.url).hostname;}catch(e){}
+    pill.innerHTML=`<span onclick="browserNav('switchtab',${t.index})" style="overflow:hidden;text-overflow:ellipsis;">${escapeHtml(host)}</span>${tabs.length>1?`<span onclick="event.stopPropagation();browserNav('closetab',${t.index})" style="color:#ef4444;font-weight:bold;padding:0 2px;">×</span>`:''}`;
+    bar.appendChild(pill);
+  });
+  if(tabs.length<5){
+    const add=document.createElement('button');
+    add.className='btn-icon';add.style.cssText='padding:1px 7px;font-size:0.75rem;';add.innerText='+';
+    add.onclick=()=>browserNav('newtab');
+    bar.appendChild(add);
+  }
+}
+function getBrowserImgCoords(clientX,clientY){
+  const img=document.getElementById('browser-stream-img');if(!img)return null;
+  const r=img.getBoundingClientRect();if(r.width<=0||r.height<=0)return null;
+  const aspect=854/480,boxAspect=r.width/r.height;
+  let drawW=r.width,drawH=r.height,offX=0,offY=0;
+  if(boxAspect>aspect){drawW=r.height*aspect;offX=(r.width-drawW)/2;}
+  else{drawH=r.width/aspect;offY=(r.height-drawH)/2;}
+  const x=Math.max(0,Math.min(854,Math.round(((clientX-r.left-offX)/drawW)*854)));
+  const y=Math.max(0,Math.min(480,Math.round(((clientY-r.top-offY)/drawH)*480)));
+  return {x,y,offX,offY,drawW,drawH,rectLeft:r.left,rectTop:r.top};
+}
+function updateVirtualCursorUI(vx,vy){
+  browserCursorPos={x:vx,y:vy};
+  const wrap=document.getElementById('browser-viewport-wrap'),cur=document.getElementById('browser-virtual-cursor');
+  if(!wrap||!cur)return;
+  const r=wrap.getBoundingClientRect();if(r.width<=0||r.height<=0)return;
+  const aspect=854/480,boxAspect=r.width/r.height;
+  let drawW=r.width,drawH=r.height,offX=0,offY=0;
+  if(boxAspect>aspect){drawW=r.height*aspect;offX=(r.width-drawW)/2;}
+  else{drawH=r.width/aspect;offY=(r.height-drawH)/2;}
+  cur.style.display='block';
+  cur.style.left=`${offX+(vx/854)*drawW}px`;
+  cur.style.top=`${offY+(vy/480)*drawH}px`;
+}
+function sendBrowserPasteInPackets(text){
+  if(!socket||!socket.connected||!text)return;
+  const pasteId=Math.random().toString(36).slice(2,8),sz=4096,total=Math.max(1,Math.ceil(text.length/sz));
+  for(let i=0;i<total;i++)socket.emit('eb_browser_paste_chunk',{pasteId,index:i,total,chunk:text.slice(i*sz,(i+1)*sz)});
+}
+function handleIncomingBrowserAudio(d){
+  if(isUiMuted||!d||!d.chunk)return;
+  if(!browserPlayCtx)browserPlayCtx=new (window.AudioContext||window.webkitAudioContext)();
+  if(browserPlayCtx.state==='suspended')browserPlayCtx.resume().catch(()=>{});
+  try{
+    const bin=atob(d.chunk),u8=new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);
+    const i16=new Int16Array(u8.buffer),sr=Number(d.sampleRate)||16000;
+    const audioBuf=browserPlayCtx.createBuffer(1,i16.length,sr),ch=audioBuf.getChannelData(0);
+    for(let i=0;i<i16.length;i++)ch[i]=i16[i]/32768;
+    const src=browserPlayCtx.createBufferSource();src.buffer=audioBuf;src.connect(browserPlayCtx.destination);
+    const now=browserPlayCtx.currentTime;
+    if(browserNextPlayTime<now||browserNextPlayTime>now+0.45)browserNextPlayTime=now+0.02;
+    src.start(browserNextPlayTime);
+    browserNextPlayTime+=audioBuf.duration;
+  }catch(e){}
+}
+(function setupVirtualBrowserControls(){
+  const box=document.getElementById('browser-float-box'),hdr=document.getElementById('browser-drag-header'),vp=document.getElementById('browser-viewport-wrap'),kb=document.getElementById('browser-mobile-kb-input'),badge=document.getElementById('browser-focus-badge');
+  let ox=0,oy=0,drag=false;
+  hdr.addEventListener('mousedown',(e)=>{if(e.target.closest('button'))return;drag=true;ox=e.clientX-box.offsetLeft;oy=e.clientY-box.offsetTop;});
+  window.addEventListener('mousemove',(e)=>{if(!drag)return;box.style.left=`${Math.max(0,e.clientX-ox)}px`;box.style.top=`${Math.max(0,e.clientY-oy)}px`;});
+  window.addEventListener('mouseup',()=>{drag=false;});
+  hdr.addEventListener('touchstart',(e)=>{if(e.target.closest('button'))return;drag=true;ox=e.touches[0].clientX-box.offsetLeft;oy=e.touches[0].clientY-box.offsetTop;},{passive:true});
+  window.addEventListener('touchmove',(e)=>{if(!drag)return;box.style.left=`${Math.max(0,e.touches[0].clientX-ox)}px`;box.style.top=`${Math.max(0,e.touches[0].clientY-oy)}px`;},{passive:true});
+  window.addEventListener('touchend',()=>{drag=false;});
+  function setFocus(val){
+    browserInputFocused=Boolean(val);
+    if(browserInputFocused){box.classList.add('focused');if(badge){badge.innerText='Input Active';badge.style.color='#10b981';}}
+    else{box.classList.remove('focused');if(badge){badge.innerText='Unfocused';badge.style.color='var(--muted)';}}
+  }
+  document.addEventListener('mousedown',(e)=>{setFocus(Boolean(e.target&&e.target.closest&&e.target.closest('#browser-float-box')));},true);
+  document.addEventListener('touchstart',(e)=>{setFocus(Boolean(e.target&&e.target.closest&&e.target.closest('#browser-float-box')));},{passive:true,capture:true});
+  vp.addEventListener('mousemove',(e)=>{
+    if(!aiBrowsingMode||!socket||!socket.connected)return;
+    const now=Date.now();if(now-lastBrowserMouseEmit<50)return;
+    lastBrowserMouseEmit=now;
+    const pt=getBrowserImgCoords(e.clientX,e.clientY);
+    if(pt){updateVirtualCursorUI(pt.x,pt.y);socket.emit('eb_browser_mouse',{type:'move',x:pt.x,y:pt.y});}
+  });
+  vp.addEventListener('mousedown',(e)=>{
+    if(!aiBrowsingMode||!socket||!socket.connected)return;
+    e.preventDefault();setFocus(true);
+    const pt=getBrowserImgCoords(e.clientX,e.clientY);if(!pt)return;
+    updateVirtualCursorUI(pt.x,pt.y);
+    socket.emit('eb_browser_mouse',{type:'down',x:pt.x,y:pt.y,button:e.button===2?'right':'left'});
+  });
+  vp.addEventListener('mouseup',(e)=>{
+    if(!aiBrowsingMode||!socket||!socket.connected)return;
+    const pt=getBrowserImgCoords(e.clientX,e.clientY);if(!pt)return;
+    socket.emit('eb_browser_mouse',{type:'up',x:pt.x,y:pt.y,button:e.button===2?'right':'left'});
+  });
+  vp.addEventListener('contextmenu',(e)=>{e.preventDefault();});
+  vp.addEventListener('wheel',(e)=>{
+    if(!aiBrowsingMode||!socket||!socket.connected)return;
+    e.preventDefault();
+    const pt=getBrowserImgCoords(e.clientX,e.clientY);
+    socket.emit('eb_browser_mouse',{type:'wheel',x:pt?pt.x:browserCursorPos.x,y:pt?pt.y:browserCursorPos.y,deltaX:e.deltaX,deltaY:e.deltaY});
+  },{passive:false});
+  vp.addEventListener('touchstart',(e)=>{
+    if(!aiBrowsingMode||!e.touches||!e.touches[0])return;
+    e.preventDefault();setFocus(true);
+    const t=e.touches[0];
+    browserTouchState.dragging=false;browserTouchState.holding=false;
+    browserTouchState.startX=t.clientX;browserTouchState.startY=t.clientY;
+    browserTouchState.lastX=t.clientX;browserTouchState.lastY=t.clientY;
+    browserTouchState.startTime=Date.now();
+    if(browserTouchState.holdTimer)clearTimeout(browserTouchState.holdTimer);
+    browserTouchState.holdTimer=setTimeout(()=>{
+      browserTouchState.holding=true;
+      socket.emit('eb_browser_mouse',{type:'down',x:browserCursorPos.x,y:browserCursorPos.y,button:'left'});
+    },420);
+  },{passive:false});
+  vp.addEventListener('touchmove',(e)=>{
+    if(!aiBrowsingMode||!e.touches||!e.touches[0])return;
+    e.preventDefault();
+    const t=e.touches[0],dx=t.clientX-browserTouchState.lastX,dy=t.clientY-browserTouchState.lastY;
+    browserTouchState.lastX=t.clientX;browserTouchState.lastY=t.clientY;
+    if(Math.hypot(t.clientX-browserTouchState.startX,t.clientY-browserTouchState.startY)>8){
+      browserTouchState.dragging=true;
+      if(!browserTouchState.holding&&browserTouchState.holdTimer){clearTimeout(browserTouchState.holdTimer);browserTouchState.holdTimer=null;}
+    }
+    const r=vp.getBoundingClientRect(),scaleX=854/Math.max(100,r.width),scaleY=480/Math.max(100,r.height);
+    const nx=Math.max(0,Math.min(854,Math.round(browserCursorPos.x+dx*scaleX))),ny=Math.max(0,Math.min(480,Math.round(browserCursorPos.y+dy*scaleY)));
+    updateVirtualCursorUI(nx,ny);
+    const now=Date.now();if(now-lastBrowserMouseEmit>=45){lastBrowserMouseEmit=now;socket.emit('eb_browser_mouse',{type:'move',x:nx,y:ny});}
+  },{passive:false});
+  vp.addEventListener('touchend',(e)=>{
+    if(!aiBrowsingMode)return;
+    e.preventDefault();
+    if(browserTouchState.holdTimer){clearTimeout(browserTouchState.holdTimer);browserTouchState.holdTimer=null;}
+    if(browserTouchState.holding){
+      browserTouchState.holding=false;
+      socket.emit('eb_browser_mouse',{type:'up',x:browserCursorPos.x,y:browserCursorPos.y,button:'left'});
+      return;
+    }
+    if(!browserTouchState.dragging&&(Date.now()-browserTouchState.startTime)<280){
+      const now=Date.now();
+      if(now-browserTouchState.lastTapAt<300){
+        if(browserTouchState.tapTimer){clearTimeout(browserTouchState.tapTimer);browserTouchState.tapTimer=null;}
+        browserTouchState.lastTapAt=0;
+        socket.emit('eb_browser_mouse',{type:'rightclick',x:browserCursorPos.x,y:browserCursorPos.y});
+      }else{
+        browserTouchState.lastTapAt=now;
+        const cx=browserCursorPos.x,cy=browserCursorPos.y;
+        browserTouchState.tapTimer=setTimeout(()=>{browserTouchState.tapTimer=null;socket.emit('eb_browser_mouse',{type:'click',x:cx,y:cy,button:'left'});},260);
+      }
+    }
+  },{passive:false});
+  window.addEventListener('keydown',(e)=>{
+    if(!aiBrowsingMode||!browserInputFocused||!socket||!socket.connected)return;
+    if(document.activeElement&&document.activeElement.id==='browser-url-bar')return;
+    if(document.activeElement&&document.activeElement.id==='browser-mobile-kb-input')return;
+    if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='v')return;
+    e.preventDefault();
+    if(e.key.length===1&&!e.ctrlKey&&!e.metaKey&&!e.altKey)socket.emit('eb_browser_key',{type:'type',text:e.key});
+    else socket.emit('eb_browser_key',{type:'press',key:e.key});
+  },true);
+  window.addEventListener('paste',(e)=>{
+    if(!aiBrowsingMode||!browserInputFocused||!socket||!socket.connected)return;
+    if(document.activeElement&&document.activeElement.id==='browser-url-bar')return;
+    const txt=(e.clipboardData||window.clipboardData).getData('text');
+    if(txt){e.preventDefault();sendBrowserPasteInPackets(txt);}
+  },true);
+  if(kb){
+    kb.addEventListener('input',()=>{if(kb.value){const v=kb.value;kb.value='';if(v.length>1)sendBrowserPasteInPackets(v);else socket.emit('eb_browser_key',{type:'type',text:v});}});
+    kb.addEventListener('keydown',(e)=>{if(e.key==='Backspace'||e.key==='Enter'||e.key==='Tab'){e.preventDefault();socket.emit('eb_browser_key',{type:'press',key:e.key});}});
+  }
 })();
 function showCaptchaOverlay(){isCaptchaTagged=false;captchaGen++;document.getElementById('captcha-status-msg').innerText="";const qEl=document.getElementById('captcha-queue-msg');if(qEl)qEl.style.display='none';const img=document.getElementById('captcha-frame-img');if(img){img.style.visibility='hidden';img.removeAttribute('src');}document.getElementById('overlay-captcha').style.display='flex';if(socket&&socket.connected)socket.emit('eb_captcha_get',{captchaSessionId,reset:true});}
 function getCaptchaCoords(clientX,clientY){const img=document.getElementById('captcha-frame-img');if(!img)return null;const rect=img.getBoundingClientRect();if(rect.width<=0||rect.height<=0)return null;return{x:Math.max(0,Math.min(captchaFrameW,Math.round(((clientX-rect.left)/rect.width)*captchaFrameW))),y:Math.max(0,Math.min(captchaFrameH,Math.round(((clientY-rect.top)/rect.height)*captchaFrameH)))};}
@@ -1843,9 +2123,10 @@ function captchaSolved(){isCaptchaTagged=true;document.getElementById('overlay-c
 function exploreSitesAsGuest(){isGuestMode=true;document.getElementById('overlay-captcha').style.display='none';document.getElementById('overlay-google-auth').style.display='none';navigateToPath('sites');}
 function returnToLoginFromSites(){isGuestMode=false;if(siteSearchDebounce)clearTimeout(siteSearchDebounce);siteFetchCancelled=true;document.getElementById('modal-see-publish').style.display='none';navigateToPath('login');}
 function applyRolePermissions(){const tag=document.getElementById('role-tag-display'),termBtn=document.getElementById('terminal-btn'),btnChangeUser=document.getElementById('btn-change-username'),btnChangePass=document.getElementById('btn-change-password'),btnReports=document.getElementById('btn-check-reports'),btnAssist=document.getElementById('btn-open-assistant');termBtn.style.display='none';if(btnReports)btnReports.style.display='none';if(btnAssist)btnAssist.style.display=(ezbridgeUsername||googleSub||serverKey)?'inline-block':'none';if(ezbridgeUsername){btnChangeUser.style.display='block';btnChangePass.style.display='block';}else{btnChangeUser.style.display='none';btnChangePass.style.display='none';}
-const uUpdate=document.getElementById('btn-univ-update'),uCoins=document.getElementById('btn-univ-coins'),uRestart=document.getElementById('btn-univ-restart'),uRole=document.getElementById('btn-role-mgr'),uBan=document.getElementById('btn-ban-user'),uMgmt=document.getElementById('btn-server-mgmt');
+const uUpdate=document.getElementById('btn-univ-update'),uTermUpdate=document.getElementById('btn-univ-terminal-update'),uCoins=document.getElementById('btn-univ-coins'),uRestart=document.getElementById('btn-univ-restart'),uRole=document.getElementById('btn-role-mgr'),uBan=document.getElementById('btn-ban-user'),uMgmt=document.getElementById('btn-server-mgmt');
 if(userRole==='Owner'||userRole==='Dev'||userRole==='Admin')termBtn.style.display='block';
 if(uUpdate)uUpdate.style.display=(userRole==='Owner')?'block':'none';
+if(uTermUpdate)uTermUpdate.style.display=(userRole==='Owner')?'block':'none';
 if(uCoins)uCoins.style.display=(userRole==='Owner')?'block':'none';
 if(uRole)uRole.style.display=(userRole==='Owner'||userRole==='Dev')?'block':'none';
 if(uRestart)uRestart.style.display=(userRole==='Owner'||userRole==='Dev')?'block':'none';
@@ -1884,15 +2165,15 @@ function sendChatMessage(){const input=document.getElementById('chat-textbox');l
 function renderChatHistory(messagesList,preserveScroll=false){const box=document.getElementById('chat-messages-container');box.innerHTML="";messagesList.forEach(msg=>appendSingleChatMessage(msg,preserveScroll));if(!preserveScroll)box.scrollTop=box.scrollHeight;}
 function appendSingleChatMessage(msg,skipScroll=false){const box=document.getElementById('chat-messages-container'),bubble=document.createElement('div');bubble.className='chat-bubble';bubble.setAttribute('data-sender-id',msg.userId);const isDeleted=(msg.userId==="Deleted"||msg.displayName==="Deleted Account");let roleTagHTML="";if(!isDeleted){if(msg.role==='Owner')roleTagHTML=`<span class="role-tag role-owner">OWNER</span>`;else if(msg.role==='Dev')roleTagHTML=`<span class="role-tag role-dev">DEVELOPER</span>`;else if(msg.role==='Admin')roleTagHTML=`<span class="role-tag role-admin">ADMIN</span>`;}const copyBtnHTML=(!isDeleted&&(userRole==='Owner'||userRole==='Dev'||userRole==='Admin'))?`<button class="btn-secondary" style="padding:2px 6px;font-size:0.65rem;margin-left:6px;" onclick="copyTextValue('${escapeHtml(msg.userId)}')">Copy ID</button>`:'';const resolvedProfile=isDeleted?{displayName:"Deleted Account",pfpData:msg.pfpData||currentProfile.pfpData}:{displayName:(cachedUserProfiles[msg.userId]?cachedUserProfiles[msg.userId].displayName:msg.displayName),pfpData:(cachedUserProfiles[msg.userId]?cachedUserProfiles[msg.userId].pfpData:msg.pfpData)};if(!isDeleted&&!cachedUserProfiles[msg.userId]&&!profileFetchInFlight[msg.userId]&&msg.userId&&msg.userId!=="Guest"){profileFetchInFlight[msg.userId]=true;socket.emit('eb_get_profile',{targetUserId:msg.userId});}const canClick=(!isDeleted&&msg.userId&&msg.userId!=="Guest");const clickAttr=canClick?` onclick="openUserProfilePopup('${escapeHtml(msg.userId)}')"`:'';const cursorStyle=canClick?'cursor:pointer;':'cursor:default;';const dispName=(resolvedProfile.displayName&&String(resolvedProfile.displayName).trim())?resolvedProfile.displayName:((msg.displayName&&String(msg.displayName).trim())?msg.displayName:(msg.userId||'Guest'));const pfpHTML=`<img class="chat-pfp-img" src="${resolvedProfile.pfpData||''}" style="width:20px;height:20px;border-radius:50% !important;vertical-align:middle;margin-right:4px;object-fit:cover;${cursorStyle}"${clickAttr}>`;bubble.innerHTML=`<div style="font-size:0.75rem;font-weight:bold;color:var(--accent);margin-bottom:4px;display:flex;align-items:center;flex-wrap:wrap;gap:2px;"><span class="chat-pfp-slot">${pfpHTML}</span><span class="chat-name-slot" style="${cursorStyle}"${clickAttr}>${escapeHtml(dispName)}</span>${roleTagHTML}${copyBtnHTML}</div><div>${escapeHtml(msg.text)}</div>`;box.appendChild(bubble);if(!skipScroll)box.scrollTop=box.scrollHeight;}
 function refreshChatAvatars(userId){if(!cachedUserProfiles[userId]||userId==="Deleted")return;const profile=cachedUserProfiles[userId];document.querySelectorAll(`.chat-bubble[data-sender-id="${userId}"]`).forEach(b=>{const nameSlot=b.querySelector('.chat-name-slot'),pfpSlot=b.querySelector('.chat-pfp-slot');if(nameSlot&&profile.displayName&&String(profile.displayName).trim()){nameSlot.innerText=profile.displayName;nameSlot.style.cursor='pointer';nameSlot.onclick=()=>openUserProfilePopup(userId);}if(pfpSlot)pfpSlot.innerHTML=`<img class="chat-pfp-img" src="${profile.pfpData||''}" style="width:20px;height:20px;border-radius:50% !important;vertical-align:middle;margin-right:4px;object-fit:cover;cursor:pointer;" onclick="openUserProfilePopup('${escapeHtml(userId)}')">`;});}
-function openAssistantModal(floatingCtx=null){assistantContextType=floatingCtx;assistantFloatingMode=Boolean(floatingCtx);assistantMinimized=false;assistantMaximized=false;const modal=document.getElementById('modal-assistant'),card=document.getElementById('assistant-card'),minBtn=document.getElementById('btn-assistant-min'),maxBtn=document.getElementById('btn-assistant-max'),ctxBadge=document.getElementById('assistant-context-badge'),hdr=document.getElementById('assistant-drag-header');document.getElementById('assistant-min-pill').style.display='none';if(assistantFloatingMode){modal.style.background='transparent';modal.style.backdropFilter='none';modal.style.pointerEvents='none';modal.style.zIndex='9999960';card.classList.add('assistant-floating-card');card.classList.remove('maximized');card.style.pointerEvents='auto';minBtn.style.display='inline-block';maxBtn.style.display='inline-block';hdr.style.cursor='move';ctxBadge.style.display='block';ctxBadge.innerText=floatingCtx==='serverscript'?'Shortcut: Reading ServerScript Editor automatically when needed':'Shortcut: Reading Site HTML Editor automatically when needed';}else{modal.style.background='';modal.style.backdropFilter='';modal.style.pointerEvents='auto';modal.style.zIndex='2000';card.classList.remove('assistant-floating-card','maximized');card.style.left='';card.style.top='';card.style.transform='';card.style.width='';card.style.height='';minBtn.style.display='none';maxBtn.style.display='none';hdr.style.cursor='default';ctxBadge.style.display='none';}modal.style.display='flex';socket.emit('eb_assistant_get_quota');renderAssistantHistory();}
+function openAssistantModal(floatingCtx=null){assistantContextType=floatingCtx;assistantFloatingMode=Boolean(floatingCtx);assistantMinimized=false;assistantMaximized=false;const modal=document.getElementById('modal-assistant'),card=document.getElementById('assistant-card'),minBtn=document.getElementById('btn-assistant-min'),maxBtn=document.getElementById('btn-assistant-max'),ctxBadge=document.getElementById('assistant-context-badge'),hdr=document.getElementById('assistant-drag-header'),browBar=document.getElementById('assistant-browsing-bar');document.getElementById('assistant-min-pill').style.display='none';if(browBar)browBar.style.display=floatingCtx?'none':'block';if(assistantFloatingMode){modal.style.background='transparent';modal.style.backdropFilter='none';modal.style.pointerEvents='none';modal.style.zIndex='9999960';card.classList.add('assistant-floating-card');card.classList.remove('maximized');card.style.pointerEvents='auto';minBtn.style.display='inline-block';maxBtn.style.display='inline-block';hdr.style.cursor='move';ctxBadge.style.display='block';ctxBadge.innerText=floatingCtx==='serverscript'?'Shortcut: Reading ServerScript Editor automatically when needed':'Shortcut: Reading Site HTML Editor automatically when needed';}else{modal.style.background='';modal.style.backdropFilter='';modal.style.pointerEvents='auto';modal.style.zIndex='2000';card.classList.remove('assistant-floating-card','maximized');card.style.left='';card.style.top='';card.style.transform='';card.style.width='';card.style.height='';minBtn.style.display='none';maxBtn.style.display='none';hdr.style.cursor='default';ctxBadge.style.display='none';}modal.style.display='flex';socket.emit('eb_assistant_get_quota');renderAssistantHistory();}
 function openFloatingAssistantFromEditor(ctx){if(assistantTokensRemaining<=0)return alert("Remaining AI tokens reached 0. Please wait for the 24h reset or buy more tokens in the shop.");openAssistantModal(ctx);}
-function closeAssistantModal(){assistantContextType=null;assistantFloatingMode=false;assistantMinimized=false;assistantMaximized=false;document.getElementById('assistant-min-pill').style.display='none';document.getElementById('modal-assistant').style.display='none';}
+function closeAssistantModal(){if(aiBrowsingMode)toggleAiBrowsingMode(false);assistantContextType=null;assistantFloatingMode=false;assistantMinimized=false;assistantMaximized=false;document.getElementById('assistant-min-pill').style.display='none';document.getElementById('modal-assistant').style.display='none';}
 function minimizeAssistantModal(){assistantMinimized=true;document.getElementById('modal-assistant').style.display='none';document.getElementById('assistant-min-pill').style.display='block';}
 function restoreAssistantModal(){assistantMinimized=false;document.getElementById('assistant-min-pill').style.display='none';document.getElementById('modal-assistant').style.display='flex';}
 function toggleMaximizeAssistantModal(){assistantMaximized=!assistantMaximized;const card=document.getElementById('assistant-card');if(assistantMaximized)card.classList.add('maximized');else card.classList.remove('maximized');}
 (function makeAssistantDraggable(){const card=document.getElementById('assistant-card'),hdr=document.getElementById('assistant-drag-header');let ox=0,oy=0,drag=false;hdr.addEventListener('mousedown',(e)=>{if(!assistantFloatingMode||assistantMaximized||e.target.closest('button'))return;drag=true;ox=e.clientX-card.offsetLeft;oy=e.clientY-card.offsetTop;});window.addEventListener('mousemove',(e)=>{if(!drag)return;card.style.left=`${e.clientX-ox}px`;card.style.top=`${e.clientY-oy}px`;card.style.transform='none';});window.addEventListener('mouseup',()=>{drag=false;});hdr.addEventListener('touchstart',(e)=>{if(!assistantFloatingMode||assistantMaximized||e.target.closest('button'))return;drag=true;ox=e.touches[0].clientX-card.offsetLeft;oy=e.touches[0].clientY-card.offsetTop;},{passive:true});window.addEventListener('touchmove',(e)=>{if(!drag)return;card.style.left=`${e.touches[0].clientX-ox}px`;card.style.top=`${e.touches[0].clientY-oy}px`;card.style.transform='none';},{passive:true});window.addEventListener('touchend',()=>{drag=false;});})();
 function toggleAssistantModelMenu(){const m=document.getElementById('assistant-model-menu');m.style.display=(m.style.display==='none'||m.style.display==='')?'block':'none';}
-function selectAssistantModel(id,label){assistantModel=id;document.getElementById('btn-assistant-model').innerText=`${label} ▾`;document.getElementById('assistant-model-menu').style.display='none';}
+function selectAssistantModel(id,label){if(aiBrowsingMode&&id.includes('qwen'))return alert("Qwen3:0.6b cannot see images! Disable AI Browsing Mode to use it.");assistantModel=id;document.getElementById('btn-assistant-model').innerText=`${label} ▾`;document.getElementById('assistant-model-menu').style.display='none';}
 function updateAssistantQuotaUI(rem,resetAt){assistantTokensRemaining=Number(rem||0);const el=document.getElementById('assistant-tokens-left');if(el)el.innerText=assistantTokensRemaining.toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.');if(resetAt)assistantResetAt=resetAt;if(assistantTokensTimerInt)clearInterval(assistantTokensTimerInt);assistantTokensTimerInt=setInterval(()=>{const diff=Math.max(0,assistantResetAt-Date.now()),h=String(Math.floor(diff/3600000)).padStart(2,'0'),m=String(Math.floor((diff%3600000)/60000)).padStart(2,'0'),s=String(Math.floor((diff%60000)/1000)).padStart(2,'0'),tEl=document.getElementById('assistant-tokens-timer');if(tEl)tEl.innerText=`${h}:${m}:${s}`;},1000);}
 function renderAssistantMarkdown(raw){assistantCodeStore=[];let html=escapeHtml(raw||'');html=html.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g,(m,lang,code)=>{const idx=assistantCodeStore.length;const rawCode=code.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>');assistantCodeStore.push(rawCode);return `<div class="ai-code-block"><button class="ai-copy-btn" onclick="copyAssistantCode(${idx})">Copy</button><code>${code}</code></div>`;});html=html.replace(/^##\s*(.+?)\s*##$/gm,'<div style="font-size:1rem;font-weight:bold;color:var(--accent);margin:6px 0;">$1</div>');html=html.replace(/^##\s*(.+)$/gm,'<div style="font-size:1rem;font-weight:bold;color:var(--accent);margin:6px 0;">$1</div>');html=html.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');html=html.replace(/\n/g,'<br>');return html;}
 function copyAssistantCode(idx){if(assistantCodeStore[idx]!==undefined)copyTextValue(assistantCodeStore[idx]);}
@@ -1938,10 +2219,10 @@ function toggleAssistantThinking(idx){
   m.showThinking=!m.showThinking;
   renderAssistantHistory();
 }
-function renderAssistantHistory(){const box=document.getElementById('assistant-chat-box');box.innerHTML="";assistantHistory.forEach((m,idx)=>{const div=document.createElement('div');if(m.role==='user'){div.className='chat-bubble';div.style.alignSelf='flex-end';div.style.maxWidth='85%';div.style.borderColor='#eab308';div.innerHTML=`<div style="font-size:0.7rem;color:#fde047;font-weight:bold;">You</div><div>${escapeHtml(m.text)}</div>`;}else if(m.role==='interrupted'){div.style.color='var(--error)';div.style.fontSize='0.8rem';div.style.fontWeight='bold';div.innerText=m.text;}else{div.className='chat-bubble';div.style.alignSelf='flex-start';div.style.maxWidth='92%';let thinkHtml='';if(m.thinking&&m.thinking.trim()){thinkHtml=`<div style="margin:4px 0;"><button class="btn btn-secondary" style="width:auto;margin:0;padding:2px 8px;font-size:0.68rem;" onclick="toggleAssistantThinking(${idx})">${m.showThinking?'Hide Thinking Process':'Show Thinking Process'}</button>${m.showThinking?`<div class="ai-think-box">${escapeHtml(m.thinking)}</div>`:''}</div>`;}let cmdHtml='';if(m.command&&!m.cmdHandled){let q="The AI is requesting your approval for an app creation.";if(m.command==='updsite')q="The AI is requesting script changes in your site.";else if(m.command==='updserver')q="The AI is requesting script changes in your serverscript.";else if(m.command==='updserversettings')q="The AI is requesting permission to update your server settings.";else if(m.command==='fetchinfo')q="The AI is requesting permission to fetch your account & server info.";cmdHtml=`<div style="margin-top:8px;padding:8px;background:#020617;border:1px solid var(--border);"><div style="font-size:0.8rem;font-weight:bold;margin-bottom:6px;">${q}</div><div style="display:flex;gap:8px;"><button class="btn btn-green" style="margin:0;padding:4px 10px;font-size:0.75rem;" onclick="handleAssistantCmd(${idx},true)">ALLOW</button><button class="btn btn-danger" style="margin:0;padding:4px 10px;font-size:0.75rem;" onclick="handleAssistantCmd(${idx},false)">DENY</button></div></div>`;}div.innerHTML=`<div style="font-size:0.7rem;color:var(--green);font-weight:bold;">EzBridge AI</div>${thinkHtml}<div>${renderAssistantMarkdown(m.text)}</div>${cmdHtml}`;}box.appendChild(div);});box.scrollTop=box.scrollHeight;}
-function handleAssistantCmd(idx,allow){const item=assistantHistory[idx];if(!item)return;item.cmdHandled=true;renderAssistantHistory();if(!allow)return;if(item.command==='requestapp'){sendAssistantPrompt(item.code);}else if(item.command==='fetchinfo'){socket.emit('eb_assistant_fetch_info');}else{pendingAssistantContinue=Boolean(item.shouldContinue);socket.emit('eb_assistant_apply_command',{command:item.command,code:item.code});}}
+function renderAssistantHistory(){const box=document.getElementById('assistant-chat-box');box.innerHTML="";assistantHistory.forEach((m,idx)=>{const div=document.createElement('div');if(m.role==='user'){div.className='chat-bubble';div.style.alignSelf='flex-end';div.style.maxWidth='85%';div.style.borderColor='#eab308';div.innerHTML=`<div style="font-size:0.7rem;color:#fde047;font-weight:bold;">You</div><div>${escapeHtml(m.text)}</div>`;}else if(m.role==='interrupted'){div.style.color='var(--error)';div.style.fontSize='0.8rem';div.style.fontWeight='bold';div.innerText=m.text;}else{div.className='chat-bubble';div.style.alignSelf='flex-start';div.style.maxWidth='92%';let thinkHtml='';if(m.thinking&&m.thinking.trim()){thinkHtml=`<div style="margin:4px 0;"><button class="btn btn-secondary" style="width:auto;margin:0;padding:2px 8px;font-size:0.68rem;" onclick="toggleAssistantThinking(${idx})">${m.showThinking?'Hide Thinking Process':'Show Thinking Process'}</button>${m.showThinking?`<div class="ai-think-box">${escapeHtml(m.thinking)}</div>`:''}</div>`;}let cmdHtml='';if(m.command&&!m.cmdHandled){let q="The AI is requesting your approval for an app creation.";if(m.command==='updsite')q="The AI is requesting script changes in your site.";else if(m.command==='updserver')q="The AI is requesting script changes in your serverscript.";else if(m.command==='updserversettings')q="The AI is requesting permission to update your server settings.";else if(m.command==='fetchinfo')q="The AI is requesting permission to fetch your account & server info.";else if(m.command==='browser_allow')q="The AI wants to start controlling the Virtual Chromium Browser for this prompt.";cmdHtml=`<div style="margin-top:8px;padding:8px;background:#020617;border:1px solid var(--border);"><div style="font-size:0.8rem;font-weight:bold;margin-bottom:6px;">${q}</div><div style="display:flex;gap:8px;"><button class="btn btn-green" style="margin:0;padding:4px 10px;font-size:0.75rem;" onclick="handleAssistantCmd(${idx},true)">ALLOW</button><button class="btn btn-danger" style="margin:0;padding:4px 10px;font-size:0.75rem;" onclick="handleAssistantCmd(${idx},false)">DENY</button></div></div>`;}div.innerHTML=`<div style="font-size:0.7rem;color:var(--green);font-weight:bold;">EzBridge AI</div>${thinkHtml}<div>${renderAssistantMarkdown(m.text)}</div>${cmdHtml}`;}box.appendChild(div);});box.scrollTop=box.scrollHeight;}
+function handleAssistantCmd(idx,allow){const item=assistantHistory[idx];if(!item)return;item.cmdHandled=true;renderAssistantHistory();if(item.command==='browser_allow'){socket.emit('eb_assistant_browser_allow',{allow:Boolean(allow)});if(allow){const box=document.getElementById('assistant-chat-box');const statusDiv=document.createElement('div');statusDiv.id='assistant-status-gen';statusDiv.style.cssText='font-size:0.75rem;color:#10b981;text-align:left;';statusDiv.innerText='🌐 Controlling Virtual Browser...';box.appendChild(statusDiv);box.scrollTop=box.scrollHeight;}return;}if(!allow)return;if(item.command==='requestapp'){sendAssistantPrompt(item.code);}else if(item.command==='fetchinfo'){socket.emit('eb_assistant_fetch_info');}else{pendingAssistantContinue=Boolean(item.shouldContinue);socket.emit('eb_assistant_apply_command',{command:item.command,code:item.code});}}
 function handleAssistantSendOrStop(){if(assistantGenerating){socket.emit('eb_assistant_stop');return;}if(assistantTokensRemaining<=0)return alert("Remaining tokens reached 0. Please wait for the 24h reset.");const inp=document.getElementById('assistant-input'),txt=inp.value.trim();if(!txt)return;inp.value="";sendAssistantPrompt(txt);}
-function sendAssistantPrompt(txt){assistantHistory=assistantHistory.filter(m=>m.role!=='interrupted');assistantHistory.push({role:'user',text:txt});renderAssistantHistory();const box=document.getElementById('assistant-chat-box');const statusDiv=document.createElement('div');statusDiv.id='assistant-status-gen';statusDiv.style.fontSize='0.75rem';statusDiv.style.color='var(--muted)';statusDiv.style.textAlign='left';statusDiv.innerText=ASSISTANT_STATUSES[Math.floor(Math.random()*ASSISTANT_STATUSES.length)];box.appendChild(statusDiv);box.scrollTop=box.scrollHeight;if(assistantStatusTimer)clearInterval(assistantStatusTimer);assistantStatusTimer=setInterval(()=>{const el=document.getElementById('assistant-status-gen');if(el)el.innerText=ASSISTANT_STATUSES[Math.floor(Math.random()*ASSISTANT_STATUSES.length)];},5000);let ctxScript=null;if(assistantContextType==='serverscript'){const v=document.getElementById('script-editor')?document.getElementById('script-editor').value:'';if(v&&v.trim())ctxScript=v;}else if(assistantContextType==='site'){const v=document.getElementById('site-html-field')?document.getElementById('site-html-field').value:'';if(v&&v.trim())ctxScript=v;}socket.emit('eb_assistant_send',{model:assistantModel,contextType:assistantContextType,contextScript:ctxScript,messages:assistantHistory.filter(m=>m.role==='user'||m.role==='assistant').map(m=>({role:m.role,text:m.text}))});}
+function sendAssistantPrompt(txt){assistantHistory=assistantHistory.filter(m=>m.role!=='interrupted');assistantHistory.push({role:'user',text:txt});renderAssistantHistory();const box=document.getElementById('assistant-chat-box');const statusDiv=document.createElement('div');statusDiv.id='assistant-status-gen';statusDiv.style.fontSize='0.75rem';statusDiv.style.color='var(--muted)';statusDiv.style.textAlign='left';statusDiv.innerText=ASSISTANT_STATUSES[Math.floor(Math.random()*ASSISTANT_STATUSES.length)];box.appendChild(statusDiv);box.scrollTop=box.scrollHeight;if(assistantStatusTimer)clearInterval(assistantStatusTimer);assistantStatusTimer=setInterval(()=>{const el=document.getElementById('assistant-status-gen');if(el)el.innerText=ASSISTANT_STATUSES[Math.floor(Math.random()*ASSISTANT_STATUSES.length)];},5000);let ctxScript=null;if(assistantContextType==='serverscript'){const v=document.getElementById('script-editor')?document.getElementById('script-editor').value:'';if(v&&v.trim())ctxScript=v;}else if(assistantContextType==='site'){const v=document.getElementById('site-html-field')?document.getElementById('site-html-field').value:'';if(v&&v.trim())ctxScript=v;}socket.emit('eb_assistant_send',{model:assistantModel,browsingMode:aiBrowsingMode,contextType:assistantContextType,contextScript:ctxScript,messages:assistantHistory.filter(m=>m.role==='user'||m.role==='assistant').map(m=>({role:m.role,text:m.text}))});}
 function stopAssistantStatusCycle(){if(assistantStatusTimer){clearInterval(assistantStatusTimer);assistantStatusTimer=null;}const el=document.getElementById('assistant-status-gen');if(el)el.remove();const sb=document.getElementById('assistant-streaming-bubble');if(sb)sb.remove();}
 function finishAssistantGen(){assistantGenerating=false;assistantTaskId=null;if(assistantPingTimer){clearInterval(assistantPingTimer);assistantPingTimer=null;}stopAssistantStatusCycle();const btn=document.getElementById('btn-assistant-send');if(btn)btn.innerText="Generate";}
 function playAsset1NotificationSound(){if(isUiMuted)return;const snd=cachedAssetsRam[1]||loadCachedAssetCookie(1);if(snd&&typeof snd==='string'){try{new Audio(snd).play().catch(()=>{});}catch(e){}return;}if(socket&&socket.connected)socket.emit('RemoteEvent',{type:'eb_asset_get_1'});}
@@ -2061,10 +2342,14 @@ function openUpdateUnivServerModal(){closeUniversalPanelModal();document.getElem
 function closeUpdateUnivServerModal(){isUploadingUnivScript=false;document.getElementById('univ-upload-progress').style.display='none';document.getElementById('modal-update-univserver').style.display='none';}
 function startUnivServerChunkUpload(){const scriptText=document.getElementById('univserver-script-editor').value;if(!scriptText||scriptText.trim().length===0)return alert("Script text cannot be empty!");const totalChunks=Math.ceil(scriptText.length/UNIV_CHUNK_SIZE);isUploadingUnivScript=true;document.getElementById('univ-upload-progress').style.display='block';sendUnivChunk(0,totalChunks,scriptText);}
 function sendUnivChunk(index,total,fullText){if(!isUploadingUnivScript)return;const start=index*UNIV_CHUNK_SIZE,end=Math.min(start+UNIV_CHUNK_SIZE,fullText.length);socket.emit('eb_update_univserver_chunk',{index,total,chunk:fullText.slice(start,end),ownerId,googleSub});}
+function openUpdateTerminalModal(){closeUniversalPanelModal();document.getElementById('terminal-script-editor').value="";document.getElementById('term-upload-progress').style.display='none';document.getElementById('modal-update-terminal').style.display='flex';}
+function closeUpdateTerminalModal(){isUploadingTerminalScript=false;document.getElementById('term-upload-progress').style.display='none';document.getElementById('modal-update-terminal').style.display='none';}
+function startTerminalScriptChunkUpload(){const scriptText=document.getElementById('terminal-script-editor').value;if(!scriptText||scriptText.trim().length===0)return alert("Terminal script text cannot be empty!");const totalChunks=Math.ceil(scriptText.length/UNIV_CHUNK_SIZE);isUploadingTerminalScript=true;document.getElementById('term-upload-progress').style.display='block';sendTerminalChunk(0,totalChunks,scriptText);}
+function sendTerminalChunk(index,total,fullText){if(!isUploadingTerminalScript)return;const start=index*UNIV_CHUNK_SIZE,end=Math.min(start+UNIV_CHUNK_SIZE,fullText.length);socket.emit('eb_update_terminal_chunk',{index,total,chunk:fullText.slice(start,end),ownerId,googleSub});}
 function restartNodeOnly(){if(confirm("Restart Node server only?")){socket.emit('eb_restart_node_only',{ownerId,googleSub});closeUniversalPanelModal();}}
 function openAccountSettingsModal(){applyRolePermissions();document.getElementById('modal-account-settings').style.display='flex';}
 function closeAccountSettingsModal(){document.getElementById('modal-account-settings').style.display='none';}
-function accountLogout(){ownerId="";serverKey="";setCookie("eb_owner_id","",-1);const savedMute=localStorage.getItem('eb_ui_muted');localStorage.clear();if(savedMute!==null)localStorage.setItem('eb_ui_muted',savedMute);sessionStorage.clear();window.location.hash="#/login/";window.location.reload();}
+function accountLogout(){if(aiBrowsingMode)toggleAiBrowsingMode(false);ownerId="";serverKey="";setCookie("eb_owner_id","",-1);const savedMute=localStorage.getItem('eb_ui_muted');localStorage.clear();if(savedMute!==null)localStorage.setItem('eb_ui_muted',savedMute);sessionStorage.clear();window.location.hash="#/login/";window.location.reload();}
 function accountRegenUserId(){enqueueClientAction(()=>socket.emit('eb_regen_user_id',{key:serverKey,ownerId,googleSub}));closeAccountSettingsModal();}
 function closeNewUserIdModal(){document.getElementById('modal-new-userid').style.display='none';}
 function openPyTerminalModal(){closeConsoleModal();document.getElementById('modal-pyterminal').style.display='flex';document.getElementById('pyterminal-display').innerText="Connecting to Python worker...";socket.emit('eb_pyterminal_start',{serverKey:serverKey});}
@@ -2492,8 +2777,8 @@ const asset = await fetch(TUNNEL_URL + "/eb_asset_get_" + assetId).then(r => r.j
 ==================================================
 5 - AI GENERATION API (Streaming is NOT supported)
 ==================================================
-Available models: "gemini-3.5-flash-lite", "gemma4:26b", "qwen2.5:1.5b", "qwen3:0.6b".
-Parameters: key/aiKey (your 50-char AI Auth Key), model, Prompt (1-60000 chars), Instruction (2-20000 chars), Temp (0.0-1.0), Mtokens (1-10000).
+Available models: "gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemma4:26b", "qwen2.5:1.5b", "qwen3:0.6b".
+Parameters: key/aiKey (your 50-char AI Auth Key), model, Prompt (1-60000 chars), Instruction (2-30000 chars), Temp (0.0-1.0), Mtokens (1-10000).
 Limits: 20 requests/minute per AI key; minimum 200ms between requests; 10 max active+queued local generations.
 - HTTP: POST ${PUBLIC_TUNNEL_URL}/eb_callai (header "ai-key") -> returns { id, text, done } or { error }.
 - WebSocket: socket.emit("eb_callai_direct", {...}) -> listens for "eb_ai_response".
@@ -2501,9 +2786,9 @@ Limits: 20 requests/minute per AI key; minimum 200ms between requests; 10 max ac
 - Cancel AI tasks in ServerScript: Server.stopAILatest(), Server.stopAIAll(), Server.stopAIId(id).
 
 ==================================================
-6 - NEW SERVER-SIDED MODERATION API: eb_callai_moderate (DistilBERT ONNX)
+6 - NEW SERVER-SIDED MODERATION API: eb_callai_moderate (DistilBERT ONNX + Slur Filter)
 ==================================================
-Use this ServerScript-only API to check user messages, usernames, chat text, or prompts for toxicity/inappropriate content BEFORE broadcasting or saving!
+Use this ServerScript-only API to check user messages, usernames, chat text, or prompts for toxicity/racism/inappropriate content BEFORE broadcasting or saving!
 - Method: Server.eb_callai_moderate({ prompt, level }, callback)  (Alias: Server.eb_callai_moderation)
 - Parameters:
   - prompt: string (REQUIRED, must be > 0 chars and < 10000 chars).
@@ -2526,9 +2811,9 @@ Use this ServerScript-only API to check user messages, usernames, chat text, or 
   });
 
 ==================================================
-7 - SERVERSCRIPT SANDBOX APIs (150MB RAM Limit, 100MB Storage)
+7 - SERVERSCRIPT SANDBOX APIs (1.5 CPU Threads, 150MB RAM Limit, 100MB Storage)
 ==================================================
-ServerScripts run in an isolated Node.js VM sandbox (150MB RAM limit; exceeding triggers temporary RAM lockdown; 3s freeze triggers watchdog lockdown).
+ServerScripts run in an isolated Node.js VM sandbox (1.5 CPU threads max, 150MB RAM limit; exceeding triggers temporary RAM lockdown; 3s freeze triggers watchdog lockdown).
 - Event handlers:
   Server.on('event_name', evt => {
     // evt.senderId, evt.connectionId, evt.data
@@ -2584,8 +2869,8 @@ function openCommandsModal(){const isHttp=serverType==='http',box=document.getEl
    Output: { "status": "success", "events": [{ "type": "id_verified", "clientId": "..." }] }
 
 5. CALL AI DIRECTLY (Streaming is NOT supported; Requires AI Auth Key):
-   Description: Sends a prompt to an EzBridge AI model ("gemini-3.5-flash-lite", "gemma4:26b", "qwen2.5:1.5b", "qwen3:0.6b").
-   Limits: Temp 0.0-1.0, Mtokens 1-10000, Instruction 2-20000 chars, Prompt 1-60000 chars. Max 20 req/min, >=200ms cooldown.
+   Description: Sends a prompt to an EzBridge AI model ("gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemma4:26b", "qwen2.5:1.5b", "qwen3:0.6b").
+   Limits: Temp 0.0-1.0, Mtokens 1-10000, Instruction 2-30000 chars, Prompt 1-60000 chars. Max 20 req/min, >=200ms cooldown.
    Request: POST ${PUBLIC_TUNNEL_URL}/eb_callai
    Headers: {"Content-Type":"application/json","ai-key":"${userAIKey||'YOUR_AI_KEY'}"}
    Body: { "model": "gemini-3.5-flash-lite", "Temp": 0.7, "Mtokens": 1500, "Instruction": "You are helpful.", "Prompt": "Hello!" }
@@ -2600,7 +2885,7 @@ function openCommandsModal(){const isHttp=serverType==='http',box=document.getEl
    Body: {"type":"event_name","data":{"example":123}}   (Use "type":"poll" to only collect queued broadcasts)
    Output: JSON { "status": "success", "events": [ { "type": "reply_evt", "data": {...} } ] }
 
-<span class="api-tag-server">SERVER-SIDED APIs (Inside ServerScript Sandbox — 150MB RAM Limit)</span>
+<span class="api-tag-server">SERVER-SIDED APIs (Inside ServerScript Sandbox — 1.5 CPU Threads, 150MB RAM Limit)</span>
 7. EVENT HANDLING & MESSAGING:
    - Server.on("event_name", evt => {
        // evt.senderId (Client ID), evt.connectionId, evt.data
@@ -2617,16 +2902,16 @@ function openCommandsModal(){const isHttp=serverType==='http',box=document.getEl
    - Server.storage.getUsageBytes();
 
 9. FIXED-RATE SERVER TICK LOOP (33Hz):
-   Description: Runs continuously up to 33 times/sec while players are active (auto-throttles if RAM > 110MB).
+   Description: Runs continuously up to 33 times/sec while players are active (auto-throttles if RAM > 110MB or CPU > 1.5 threads).
    - Server.on("tick", dt => { /* dt = elapsed seconds */ });
 
 10. SERVER-SIDE AI GENERATION:
-    Description: Calls AI securely from ServerScript without exposing your AI Key to clients.
-    - Server.eb_callai({ key: "${userAIKey||'YOUR_AI_KEY'}", model: "gemini-3.5-flash-lite", Temp: 0.5, Mtokens: 1500, Instruction: "...", Prompt: "..." }, res => { console.log(res.text || res.error); });
+    Description: Calls AI securely from ServerScript without exposing your AI Key to clients. Models: "gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemma4:26b", "qwen2.5:1.5b", "qwen3:0.6b".
+    - Server.eb_callai({ key: "${userAIKey||'YOUR_AI_KEY'}", model: "gemini-3.1-flash-lite", Temp: 0.5, Mtokens: 1500, Instruction: "...", Prompt: "..." }, res => { console.log(res.text || res.error); });
     - Server.stopAILatest(); Server.stopAIAll(); Server.stopAIId(id);
 
-11. SERVER-SIDE TOXICITY MODERATION (eb_callai_moderate):
-    Description: Uses EzBridge's DistilBERT ONNX classifier to moderate text before saving or broadcasting!
+11. SERVER-SIDE TOXICITY & SLUR MODERATION (eb_callai_moderate):
+    Description: Uses EzBridge's DistilBERT ONNX classifier + slur filter to moderate text before saving or broadcasting!
     Limits: prompt must be > 0 and < 10000 chars. level must be "low" (0.30+), "medium" (0.65+), or "high" (0.87+).
     Rate Limit: Max 5 requests/second per server. Max 5 running + 5 queued (10 total capacity).
     - Server.eb_callai_moderate({ prompt: "text to check", level: "medium" }, res => {
@@ -2679,12 +2964,12 @@ function openCommandsModal(){const isHttp=serverType==='http',box=document.getEl
    socket.on("RemoteEvent", pkt => { if (pkt.type === "server_reply") console.log(pkt.data); });
 
 6. DIRECT WEBSOCKET AI CALL (Streaming is NOT supported; Requires AI Auth Key):
-   Description: Calls an EzBridge AI model directly from the client ("gemini-3.5-flash-lite", "gemma4:26b", "qwen2.5:1.5b", "qwen3:0.6b").
+   Description: Calls an EzBridge AI model directly from the client ("gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemma4:26b", "qwen2.5:1.5b", "qwen3:0.6b").
    Limits: Temp 0.0-1.0, Mtokens 1-10000, Prompt 1-60000 chars, 20 req/min, 200ms cooldown.
-   socket.emit("eb_callai_direct", { key: "${userAIKey||'YOUR_AI_KEY'}", model: "gemini-3.5-flash-lite", Temp: 0.7, Mtokens: 1500, Instruction: "...", Prompt: "Hi!" });
+   socket.emit("eb_callai_direct", { key: "${userAIKey||'YOUR_AI_KEY'}", model: "gemini-3.1-flash-lite", Temp: 0.7, Mtokens: 1500, Instruction: "...", Prompt: "Hi!" });
    socket.on("eb_ai_response", res => { console.log(res.text || res.error); });
 
-<span class="api-tag-server">SERVER-SIDED APIs (Inside ServerScript Sandbox — 150MB RAM Limit)</span>
+<span class="api-tag-server">SERVER-SIDED APIs (Inside ServerScript Sandbox — 1.5 CPU Threads, 150MB RAM Limit)</span>
 7. EVENT HANDLING & MESSAGING:
    - Server.on("my_event", evt => {
        evt.send("private", {});                  // Reply only to sender
@@ -2700,16 +2985,16 @@ function openCommandsModal(){const isHttp=serverType==='http',box=document.getEl
    - Server.storage.getUsageBytes();
 
 9. FIXED-RATE SERVER TICK LOOP (33Hz):
-   Description: Runs up to 33Hz for authoritative game physics/state (auto-throttles if RAM > 110MB).
+   Description: Runs up to 33Hz for authoritative game physics/state (auto-throttles if RAM > 110MB or CPU > 1.5 threads).
    - Server.on("tick", dt => { /* dt = elapsed seconds */ });
 
 10. SERVER-SIDE AI GENERATION:
-    Description: Runs AI inference from ServerScript without exposing your AI Key to clients.
-    - Server.eb_callai({ key: "${userAIKey||'YOUR_AI_KEY'}", model: "gemini-3.5-flash-lite", Temp: 0.7, Mtokens: 1500, Instruction: "...", Prompt: "..." }, res => {});
+    Description: Runs AI inference from ServerScript without exposing your AI Key to clients. Models: "gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemma4:26b", "qwen2.5:1.5b", "qwen3:0.6b".
+    - Server.eb_callai({ key: "${userAIKey||'YOUR_AI_KEY'}", model: "gemini-3.1-flash-lite", Temp: 0.7, Mtokens: 1500, Instruction: "...", Prompt: "..." }, res => {});
     - Server.stopAILatest(); Server.stopAIAll(); Server.stopAIId(id);
 
-11. SERVER-SIDE TOXICITY MODERATION (eb_callai_moderate):
-    Description: Evaluates text toxicity using EzBridge's DistilBERT ONNX classifier directly inside ServerScript.
+11. SERVER-SIDE TOXICITY & SLUR MODERATION (eb_callai_moderate):
+    Description: Evaluates text toxicity & slurs using EzBridge's DistilBERT ONNX classifier directly inside ServerScript.
     Limits: prompt must be > 0 and < 10000 chars. level must be "low" (0.30+), "medium" (0.65+), or "high" (0.87+).
     Rate Limit: Max 5 moderation calls/second per server. Max 5 running + 5 queued (10 max capacity).
     - Server.eb_callai_moderate({ prompt: "the cat sat on the mat", level: "medium" }, res => {
