@@ -144,7 +144,6 @@ iframe.site-frame{width:100%;height:100%;border:none;display:block;}
 .browser-tab-pill.active{background:#10b981;color:#000;border-color:#10b981;font-weight:bold;}
 #browser-viewport-wrap{flex:1;position:relative;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center;touch-action:none;user-select:none;}
 #browser-stream-img{width:100%;height:100%;object-fit:contain;display:block;pointer-events:none;-webkit-user-drag:none;}
-#browser-virtual-cursor{position:absolute;width:16px;height:16px;pointer-events:none;z-index:20;transform:translate(-2px,-2px);display:none;}
 @media (max-width:640px){.tos-floating-btn{bottom:32px;right:12px;}}
 </style>
 </head>
@@ -159,10 +158,16 @@ iframe.site-frame{width:100%;height:100%;border:none;display:block;}
 <button class="btn tos-floating-btn" onclick="openTosModal()">TOS</button>
 <div id="top-notif-banner" class="top-notif-banner"></div>
 <div id="browser-float-box" class="browser-float-box">
-<div id="browser-drag-header" style="display:flex;justify-content:space-between;align-items:center;cursor:move;padding:6px 8px;background:#020617;border-bottom:1px solid #1e293b;">
-<span style="font-size:0.74rem;font-weight:bold;color:#10b981;">🌐 VIRTUAL CHROMIUM (480p • 10 FPS)</span>
-<div style="display:flex;align-items:center;gap:6px;">
-<span id="browser-focus-badge" style="font-size:0.65rem;color:var(--muted);">Unfocused</span>
+<div id="browser-drag-header" style="display:flex;justify-content:space-between;align-items:center;cursor:move;padding:6px 8px;background:#020617;border-bottom:1px solid #1e293b;gap:6px;flex-wrap:wrap;">
+<span id="browser-title-badge" style="font-size:0.72rem;font-weight:bold;color:#10b981;">🌐 VIRTUAL CHROMIUM (410p • 10 FPS)</span>
+<div style="display:flex;align-items:center;gap:5px;">
+<select id="browser-quality-select" onchange="changeBrowserQuality(this.value)" style="padding:2px 5px;font-size:0.66rem;background:#0f172a;color:#e2e8f0;border:1px solid #334155;outline:none;">
+<option value="higher_fps">Higher Framerate (30 FPS • 140p)</option>
+<option value="higher_quality">Higher Quality (5 FPS • 720p)</option>
+<option value="balanced" selected>Balanced (10 FPS • 410p)</option>
+<option value="balanced_fps">Balanced + FPS (15 FPS • 340p)</option>
+</select>
+<span id="browser-focus-badge" style="font-size:0.64rem;color:var(--muted);">Unfocused</span>
 <button class="btn btn-danger" style="width:auto;margin:0;padding:2px 8px;font-size:0.68rem;" onclick="toggleAiBrowsingMode(false)">Close</button>
 </div>
 </div>
@@ -176,7 +181,6 @@ iframe.site-frame{width:100%;height:100%;border:none;display:block;}
 </div>
 <div id="browser-viewport-wrap">
 <img id="browser-stream-img" alt="Starting Chromium...">
-<div id="browser-virtual-cursor"><svg width="16" height="16" viewBox="0 0 16 16"><polygon points="0,0 0,14 4,10 8,15 10,14 6,9 11,9" fill="#ffffff" stroke="#000000" stroke-width="1.2"/></svg></div>
 <input id="browser-mobile-kb-input" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;bottom:0;left:0;">
 </div>
 </div>
@@ -496,8 +500,23 @@ iframe.site-frame{width:100%;height:100%;border:none;display:block;}
 <button class="btn-icon" id="btn-assistant-max" style="display:none;padding:2px 8px;font-size:0.78rem;" onclick="toggleMaximizeAssistantModal()" title="Maximize">⛶</button>
 </div>
 </div>
+<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px;padding:5px 8px;background:#020617;border:1px solid #1e293b;font-size:0.72rem;">
+<div style="display:flex;align-items:center;gap:6px;">
+<span style="color:var(--muted);font-weight:bold;">TEMP:</span>
+<input type="range" id="assistant-temp-slider" min="0" max="1" step="0.05" value="0.4" oninput="document.getElementById('assistant-temp-val').innerText=Number(this.value).toFixed(2).replace(/\.?0+$/,'')||'0'" style="width:92px;padding:0;margin:0;cursor:pointer;">
+<span id="assistant-temp-val" style="color:var(--yellow);font-family:monospace;font-weight:bold;min-width:26px;">0.4</span>
+</div>
+<div style="display:flex;align-items:center;gap:6px;">
+<span style="color:var(--muted);font-weight:bold;">THINKING:</span>
+<select id="assistant-think-select" style="padding:3px 6px;font-size:0.72rem;background:#0f172a;color:#fff;border:1px solid #334155;outline:none;">
+<option value="low">Low (-15% tokens)</option>
+<option value="medium" selected>Medium (Default)</option>
+<option value="high">High (+15% tokens)</option>
+</select>
+</div>
+</div>
 <div id="assistant-context-badge" style="display:none;font-size:0.72rem;color:#fde047;background:rgba(234,179,8,0.12);border:1px solid #eab308;padding:4px 8px;margin-bottom:6px;text-align:left;"></div>
-<div id="assistant-chat-box" class="chat-bubble-box" style="flex:1;min-height:260px;max-height:400px;border-color:#eab308;"></div>
+<div id="assistant-chat-box" class="chat-bubble-box" style="flex:1;min-height:240px;max-height:380px;border-color:#eab308;"></div>
 <div id="assistant-browsing-bar" style="display:none;margin-top:6px;">
 <button id="btn-ai-browsing-toggle" class="btn btn-secondary" style="margin:0;padding:7px;font-size:0.78rem;" onclick="toggleAiBrowsingMode()">🌐 AI BROWSING MODE (uses more tokens)</button>
 </div>
@@ -1467,7 +1486,7 @@ const SCRIPT_CHUNK_SIZE=100*1024,UNIV_CHUNK_SIZE=50*1024,SITE_CHUNK_SIZE=150*102
 let isUploadingScript=false,isUploadingUnivScript=false,isUploadingTerminalScript=false,isUploadingSiteScript=false,isUploadingAsset=false;
 const ASSISTANT_STATUSES=["Thinking. . .","Making. . .","Imagining. . .","Reimagining. . .","Inspiring. . .","Researching. . .","Reflecting. . .","Building. . .","Placing bricks. . .","Guessing. . .","Predicting. . .","Casting. . .","Coding. . .","Vibing. . .","Focusing. . .","Prioritizing. . .","Completing. . .","Filling. . .","Brainstorming. . .","Tunneling. . .","Bridging. . .","Simplifying. . .","Checking. . .","Interacting. . .","Displaying. . .","Reasoning. . .","Planting. . .","Recovering. . .","Verifying. . .","Finishing. . .","Admiring. . .","Sparkling. . .","Printing. . ."];
 let assistantModel="gemini-3.5-flash-lite",assistantHistory=[],assistantGenerating=false,assistantTaskId=null,assistantStatusTimer=null,assistantPingTimer=null,assistantResetAt=Date.now()+86400000,assistantTokensTimerInt=null,assistantCodeStore=[],pendingAssistantContinue=false,assistantContextType=null,assistantFloatingMode=false,assistantMinimized=false,assistantMaximized=false,assistantTokensRemaining=50000,assistantStreamShowThinking=true,assistantStreamThinkingText="",assistantStreamAnswerText="",activeBrowserCmdMsgIdx=null;
-let aiBrowsingMode=false,browserInputFocused=false,browserCursorPos={x:427,y:240},lastBrowserMouseEmit=0,lastLocalBrowserCursorAt=0,browserPlayCtx=null,browserNextPlayTime=0,browserTouchState={dragging:false,holding:false,holdTimer:null,lastX:0,lastY:0,startX:0,startY:0,startTime:0,lastTapAt:0,tapTimer:null};
+let aiBrowsingMode=false,browserInputFocused=false,browserWidth=728,browserHeight=410,browserPreset='balanced',browserCursorPos={x:364,y:205},lastBrowserMouseEmit=0,browserPlayCtx=null,browserNextPlayTime=0,browserTouchState={dragging:false,holding:false,holdTimer:null,lastX:0,lastY:0,startX:0,startY:0,startTime:0,lastTapAt:0,tapTimer:null};
 let activeReportTarget=null,activeReportEmailId=null,isSendingReportEmail=false;
 let socialState={friends:[],requests:[],blocked:[],groupChats:[]},socialShowRequests=false,gcSelectMode=false,selectedGcFriends=[],stagedGcPfpBase64="",currentGc=null,gcMessagesCache=[],gcOffset=0,gcHasMore=false,isLoadingMoreGc=false,gcMsgChunks=[],gcMicRecorder=null,gcMicChunks=[],gcMicStream=null,gcMicTimerInt=null,gcMicSeconds=0,gcMicAnalyser=null,gcMicAnimFrame=null,gcTypingOutTimer=null,gcPeerTypingTimeout=null,currentDmPeer=null,dmMessagesCache=[],dmOffset=0,dmHasMore=false,isLoadingMoreDm=false,dmMsgChunks=[],dmMediaDlCache={},dmMediaDlPending={},pendingDedupUploads={},autoPlayDmAudioId=null,dmMicRecorder=null,dmMicChunks=[],dmMicStream=null,dmMicTimerInt=null,dmMicSeconds=0,dmMicAnalyser=null,dmMicAnimFrame=null,dmTypingOutTimer=null,dmPeerTypingTimeout=null,currentPopupProfileId=null;
 let notifQueue=[],activeNotif=null,notifTimerInt=null,notifStartTime=0,notifDuration=0,notifPausedRem=0,quickReplyTargetId=null;
@@ -1733,19 +1752,22 @@ setInterval(()=>{if(s&&s.connected)s.emit('eb_active_ping');},4000);
 s.on('eb_active_users_update',(d)=>{const el=document.getElementById('global-active-users-count');if(el)el.innerText=d.count||0;});
 s.on('eb_sites_online_update',(onlineMap)=>{if(onlineMap&&publishedSitesCache.length>0){publishedSitesCache.forEach(site=>{if(onlineMap[site.id]!==undefined)site.onlineCount=onlineMap[site.id];});renderPublishedSitesList(publishedSitesCache);}});
 s.on('eb_punish_refresh',()=>{window.location.reload();});
-s.on('eb_browser_started',()=>{updateBrowserToggleUI(true);document.getElementById('browser-float-box').style.display='flex';if(browserPlayCtx&&browserPlayCtx.state==='suspended')browserPlayCtx.resume().catch(()=>{});});
+s.on('eb_browser_started',(d)=>{applyBrowserMetrics(d);updateBrowserToggleUI(true);document.getElementById('browser-float-box').style.display='flex';if(browserPlayCtx&&browserPlayCtx.state==='suspended')browserPlayCtx.resume().catch(()=>{});});
 s.on('eb_browser_stopped',(d)=>{updateBrowserToggleUI(false);document.getElementById('browser-float-box').style.display='none';browserInputFocused=false;});
 s.on('eb_browser_error',(d)=>{updateBrowserToggleUI(false);document.getElementById('browser-float-box').style.display='none';alert((d&&d.error)||"Virtual browser error.");});
+s.on('eb_browser_quality_updated',(d)=>{applyBrowserMetrics(d);});
 s.on('eb_browser_tabs',(d)=>{
+  applyBrowserMetrics(d);
   const urlBar=document.getElementById('browser-url-bar');
   if(urlBar&&document.activeElement!==urlBar&&d&&d.url)urlBar.value=d.url;
   if(d&&Array.isArray(d.tabs))renderBrowserTabs(d.tabs);
 });
 s.on('eb_browser_frame',(d)=>{
+  applyBrowserMetrics(d);
   const img=document.getElementById('browser-stream-img'),urlBar=document.getElementById('browser-url-bar');
   if(img&&d.frame)img.src=d.frame;
   if(urlBar&&document.activeElement!==urlBar&&d.url)urlBar.value=d.url;
-  if(d.cursor&&(Date.now()-lastLocalBrowserCursorAt>900))updateVirtualCursorUI(d.cursor.x,d.cursor.y);
+  if(d.cursor)browserCursorPos={x:d.cursor.x,y:d.cursor.y};
   if(Array.isArray(d.tabs))renderBrowserTabs(d.tabs);
 });
 s.on('eb_browser_audio',(d)=>{handleIncomingBrowserAudio(d);});
@@ -1919,6 +1941,30 @@ socket=io(PUBLIC_TUNNEL_URL,{auth:{token:"default_key"},transports:['websocket',
 attachSocketEvents(socket);
 })();
 window.addEventListener('beforeunload',()=>{if(aiBrowsingMode&&socket&&socket.connected)socket.emit('eb_browser_stop');});
+function applyBrowserMetrics(d){
+  if(!d)return;
+  if(d.width&&d.height){
+    browserWidth=Number(d.width)||browserWidth;
+    browserHeight=Number(d.height)||browserHeight;
+  }
+  if(d.preset){
+    browserPreset=d.preset;
+    const sel=document.getElementById('browser-quality-select');
+    if(sel&&sel.value!==d.preset)sel.value=d.preset;
+  }
+  const badge=document.getElementById('browser-title-badge');
+  if(badge){
+    const fpsMap={higher_fps:30,higher_quality:5,balanced:10,balanced_fps:15};
+    const resMap={higher_fps:'140p',higher_quality:'720p',balanced:'410p',balanced_fps:'340p'};
+    const p=browserPreset||'balanced';
+    badge.innerText=`🌐 VIRTUAL CHROMIUM (${resMap[p]||(browserHeight+'p')} • ${d.fps||fpsMap[p]||10} FPS)`;
+  }
+}
+function changeBrowserQuality(preset){
+  browserPreset=preset;
+  applyBrowserMetrics({preset});
+  if(socket&&socket.connected&&aiBrowsingMode)socket.emit('eb_browser_quality',{preset});
+}
 function updateBrowserToggleUI(active){
   aiBrowsingMode=Boolean(active);
   const btn=document.getElementById('btn-ai-browsing-toggle');
@@ -1949,7 +1995,10 @@ function toggleAiBrowsingMode(forceState){
     if(socket&&socket.connected)socket.emit('eb_browser_stop');
   }
 }
-function browserNav(action,val){if(socket&&socket.connected)socket.emit('eb_browser_nav',{action,url:val,index:val});}
+function browserNav(action,val){
+  if(browserPlayCtx&&browserPlayCtx.state==='suspended')browserPlayCtx.resume().catch(()=>{});
+  if(socket&&socket.connected)socket.emit('eb_browser_nav',{action,url:val,index:val});
+}
 function renderBrowserTabs(tabs){
   const bar=document.getElementById('browser-tabs-bar');if(!bar)return;
   bar.innerHTML='';
@@ -1971,26 +2020,13 @@ function renderBrowserTabs(tabs){
 function getBrowserImgCoords(clientX,clientY){
   const img=document.getElementById('browser-stream-img');if(!img)return null;
   const r=img.getBoundingClientRect();if(r.width<=0||r.height<=0)return null;
-  const aspect=854/480,boxAspect=r.width/r.height;
+  const vw=browserWidth||728,vh=browserHeight||410,aspect=vw/vh,boxAspect=r.width/r.height;
   let drawW=r.width,drawH=r.height,offX=0,offY=0;
   if(boxAspect>aspect){drawW=r.height*aspect;offX=(r.width-drawW)/2;}
   else{drawH=r.width/aspect;offY=(r.height-drawH)/2;}
-  const x=Math.max(0,Math.min(854,Math.round(((clientX-r.left-offX)/drawW)*854)));
-  const y=Math.max(0,Math.min(480,Math.round(((clientY-r.top-offY)/drawH)*480)));
+  const x=Math.max(0,Math.min(vw,Math.round(((clientX-r.left-offX)/drawW)*vw)));
+  const y=Math.max(0,Math.min(vh,Math.round(((clientY-r.top-offY)/drawH)*vh)));
   return {x,y,offX,offY,drawW,drawH,rectLeft:r.left,rectTop:r.top};
-}
-function updateVirtualCursorUI(vx,vy){
-  browserCursorPos={x:vx,y:vy};
-  const wrap=document.getElementById('browser-viewport-wrap'),cur=document.getElementById('browser-virtual-cursor');
-  if(!wrap||!cur)return;
-  const r=wrap.getBoundingClientRect();if(r.width<=0||r.height<=0)return;
-  const aspect=854/480,boxAspect=r.width/r.height;
-  let drawW=r.width,drawH=r.height,offX=0,offY=0;
-  if(boxAspect>aspect){drawW=r.height*aspect;offX=(r.width-drawW)/2;}
-  else{drawH=r.width/aspect;offY=(r.height-drawH)/2;}
-  cur.style.display='block';
-  cur.style.left=`${offX+(vx/854)*drawW}px`;
-  cur.style.top=`${offY+(vy/480)*drawH}px`;
 }
 function sendBrowserPasteInPackets(text){
   if(!socket||!socket.connected||!text)return;
@@ -2017,16 +2053,18 @@ function handleIncomingBrowserAudio(d){
 (function setupVirtualBrowserControls(){
   const box=document.getElementById('browser-float-box'),hdr=document.getElementById('browser-drag-header'),vp=document.getElementById('browser-viewport-wrap'),kb=document.getElementById('browser-mobile-kb-input'),badge=document.getElementById('browser-focus-badge');
   let ox=0,oy=0,drag=false;
-  hdr.addEventListener('mousedown',(e)=>{if(e.target.closest('button'))return;drag=true;ox=e.clientX-box.offsetLeft;oy=e.clientY-box.offsetTop;});
+  hdr.addEventListener('mousedown',(e)=>{if(e.target.closest('button')||e.target.closest('select'))return;drag=true;ox=e.clientX-box.offsetLeft;oy=e.clientY-box.offsetTop;});
   window.addEventListener('mousemove',(e)=>{if(!drag)return;box.style.left=`${Math.max(0,e.clientX-ox)}px`;box.style.top=`${Math.max(0,e.clientY-oy)}px`;});
   window.addEventListener('mouseup',()=>{drag=false;});
-  hdr.addEventListener('touchstart',(e)=>{if(e.target.closest('button'))return;drag=true;ox=e.touches[0].clientX-box.offsetLeft;oy=e.touches[0].clientY-box.offsetTop;},{passive:true});
+  hdr.addEventListener('touchstart',(e)=>{if(e.target.closest('button')||e.target.closest('select'))return;drag=true;ox=e.touches[0].clientX-box.offsetLeft;oy=e.touches[0].clientY-box.offsetTop;},{passive:true});
   window.addEventListener('touchmove',(e)=>{if(!drag)return;box.style.left=`${Math.max(0,e.touches[0].clientX-ox)}px`;box.style.top=`${Math.max(0,e.touches[0].clientY-oy)}px`;},{passive:true});
   window.addEventListener('touchend',()=>{drag=false;});
   function setFocus(val){
     browserInputFocused=Boolean(val);
-    if(browserInputFocused){box.classList.add('focused');if(badge){badge.innerText='Input Active';badge.style.color='#10b981';}}
-    else{box.classList.remove('focused');if(badge){badge.innerText='Unfocused';badge.style.color='var(--muted)';}}
+    if(browserInputFocused){
+      box.classList.add('focused');if(badge){badge.innerText='Input Active';badge.style.color='#10b981';}
+      if(browserPlayCtx&&browserPlayCtx.state==='suspended')browserPlayCtx.resume().catch(()=>{});
+    }else{box.classList.remove('focused');if(badge){badge.innerText='Unfocused';badge.style.color='var(--muted)';}}
   }
   document.addEventListener('mousedown',(e)=>{setFocus(Boolean(e.target&&e.target.closest&&e.target.closest('#browser-float-box')));},true);
   document.addEventListener('touchstart',(e)=>{setFocus(Boolean(e.target&&e.target.closest&&e.target.closest('#browser-float-box')));},{passive:true,capture:true});
@@ -2034,8 +2072,7 @@ function handleIncomingBrowserAudio(d){
     if(!aiBrowsingMode||!socket||!socket.connected)return;
     const pt=getBrowserImgCoords(e.clientX,e.clientY);
     if(!pt)return;
-    lastLocalBrowserCursorAt=Date.now();
-    updateVirtualCursorUI(pt.x,pt.y);
+    browserCursorPos={x:pt.x,y:pt.y};
     const now=Date.now();if(now-lastBrowserMouseEmit<40)return;
     lastBrowserMouseEmit=now;
     socket.emit('eb_browser_mouse',{type:'move',x:pt.x,y:pt.y});
@@ -2044,14 +2081,13 @@ function handleIncomingBrowserAudio(d){
     if(!aiBrowsingMode||!socket||!socket.connected)return;
     e.preventDefault();setFocus(true);
     const pt=getBrowserImgCoords(e.clientX,e.clientY);if(!pt)return;
-    lastLocalBrowserCursorAt=Date.now();
-    updateVirtualCursorUI(pt.x,pt.y);
+    browserCursorPos={x:pt.x,y:pt.y};
     socket.emit('eb_browser_mouse',{type:'down',x:pt.x,y:pt.y,button:e.button===2?'right':'left'});
   });
   vp.addEventListener('mouseup',(e)=>{
     if(!aiBrowsingMode||!socket||!socket.connected)return;
     const pt=getBrowserImgCoords(e.clientX,e.clientY);if(!pt)return;
-    lastLocalBrowserCursorAt=Date.now();
+    browserCursorPos={x:pt.x,y:pt.y};
     socket.emit('eb_browser_mouse',{type:'up',x:pt.x,y:pt.y,button:e.button===2?'right':'left'});
   });
   vp.addEventListener('contextmenu',(e)=>{e.preventDefault();});
@@ -2064,7 +2100,6 @@ function handleIncomingBrowserAudio(d){
   vp.addEventListener('touchstart',(e)=>{
     if(!aiBrowsingMode||!e.touches||!e.touches[0])return;
     e.preventDefault();setFocus(true);
-    lastLocalBrowserCursorAt=Date.now();
     const t=e.touches[0];
     browserTouchState.dragging=false;browserTouchState.holding=false;
     browserTouchState.startX=t.clientX;browserTouchState.startY=t.clientY;
@@ -2079,22 +2114,21 @@ function handleIncomingBrowserAudio(d){
   vp.addEventListener('touchmove',(e)=>{
     if(!aiBrowsingMode||!e.touches||!e.touches[0])return;
     e.preventDefault();
-    lastLocalBrowserCursorAt=Date.now();
     const t=e.touches[0],dx=t.clientX-browserTouchState.lastX,dy=t.clientY-browserTouchState.lastY;
     browserTouchState.lastX=t.clientX;browserTouchState.lastY=t.clientY;
     if(Math.hypot(t.clientX-browserTouchState.startX,t.clientY-browserTouchState.startY)>8){
       browserTouchState.dragging=true;
       if(!browserTouchState.holding&&browserTouchState.holdTimer){clearTimeout(browserTouchState.holdTimer);browserTouchState.holdTimer=null;}
     }
-    const r=vp.getBoundingClientRect(),scaleX=854/Math.max(100,r.width),scaleY=480/Math.max(100,r.height);
-    const nx=Math.max(0,Math.min(854,Math.round(browserCursorPos.x+dx*scaleX))),ny=Math.max(0,Math.min(480,Math.round(browserCursorPos.y+dy*scaleY)));
-    updateVirtualCursorUI(nx,ny);
+    const vw=browserWidth||728,vh=browserHeight||410;
+    const r=vp.getBoundingClientRect(),scaleX=vw/Math.max(100,r.width),scaleY=vh/Math.max(100,r.height);
+    const nx=Math.max(0,Math.min(vw,Math.round(browserCursorPos.x+dx*scaleX))),ny=Math.max(0,Math.min(vh,Math.round(browserCursorPos.y+dy*scaleY)));
+    browserCursorPos={x:nx,y:ny};
     const now=Date.now();if(now-lastBrowserMouseEmit>=40){lastBrowserMouseEmit=now;socket.emit('eb_browser_mouse',{type:'move',x:nx,y:ny});}
   },{passive:false});
   vp.addEventListener('touchend',(e)=>{
     if(!aiBrowsingMode)return;
     e.preventDefault();
-    lastLocalBrowserCursorAt=Date.now();
     if(browserTouchState.holdTimer){clearTimeout(browserTouchState.holdTimer);browserTouchState.holdTimer=null;}
     if(browserTouchState.holding){
       browserTouchState.holding=false;
@@ -2480,7 +2514,7 @@ function renderAssistantHistory(){
 }
 function handleAssistantCmd(idx,allow){const item=assistantHistory[idx];if(!item)return;item.cmdHandled=true;renderAssistantHistory();if(item.command==='browser_allow'){activeBrowserCmdMsgIdx=allow?idx:null;socket.emit('eb_assistant_browser_allow',{allow:Boolean(allow)});if(allow){const box=document.getElementById('assistant-chat-box');const statusDiv=document.createElement('div');statusDiv.id='assistant-status-gen';statusDiv.style.cssText='font-size:0.75rem;color:#10b981;text-align:left;';statusDiv.innerText='🌐 Controlling Virtual Browser...';box.appendChild(statusDiv);box.scrollTop=box.scrollHeight;}return;}if(!allow)return;if(item.command==='requestapp'){sendAssistantPrompt(item.code);}else if(item.command==='fetchinfo'){socket.emit('eb_assistant_fetch_info');}else{pendingAssistantContinue=Boolean(item.shouldContinue);socket.emit('eb_assistant_apply_command',{command:item.command,code:item.code});}}
 function handleAssistantSendOrStop(){if(assistantGenerating){socket.emit('eb_assistant_stop');return;}if(assistantTokensRemaining<=0)return alert("Remaining tokens reached 0. Please wait for the 24-hour reset.");const inp=document.getElementById('assistant-input'),txt=inp.value.trim();if(!txt)return;inp.value="";sendAssistantPrompt(txt);}
-function sendAssistantPrompt(txt){assistantHistory=assistantHistory.filter(m=>m.role!=='interrupted');assistantHistory.push({role:'user',text:txt});renderAssistantHistory();const box=document.getElementById('assistant-chat-box');const statusDiv=document.createElement('div');statusDiv.id='assistant-status-gen';statusDiv.style.fontSize='0.75rem';statusDiv.style.color='var(--muted)';statusDiv.style.textAlign='left';statusDiv.innerText=ASSISTANT_STATUSES[Math.floor(Math.random()*ASSISTANT_STATUSES.length)];box.appendChild(statusDiv);box.scrollTop=box.scrollHeight;if(assistantStatusTimer)clearInterval(assistantStatusTimer);assistantStatusTimer=setInterval(()=>{const el=document.getElementById('assistant-status-gen');if(el&&!el.innerText.startsWith('🌐'))el.innerText=ASSISTANT_STATUSES[Math.floor(Math.random()*ASSISTANT_STATUSES.length)];},5000);let ctxScript=null;if(assistantContextType==='serverscript'){const v=document.getElementById('script-editor')?document.getElementById('script-editor').value:'';if(v&&v.trim())ctxScript=v;}else if(assistantContextType==='site'){const v=document.getElementById('site-html-field')?document.getElementById('site-html-field').value:'';if(v&&v.trim())ctxScript=v;}socket.emit('eb_assistant_send',{model:assistantModel,browsingMode:aiBrowsingMode,contextType:assistantContextType,contextScript:ctxScript,messages:assistantHistory.filter(m=>m.role==='user'||m.role==='assistant').map(m=>({role:m.role,text:m.text}))});}
+function sendAssistantPrompt(txt){assistantHistory=assistantHistory.filter(m=>m.role!=='interrupted');assistantHistory.push({role:'user',text:txt});renderAssistantHistory();const box=document.getElementById('assistant-chat-box');const statusDiv=document.createElement('div');statusDiv.id='assistant-status-gen';statusDiv.style.fontSize='0.75rem';statusDiv.style.color='var(--muted)';statusDiv.style.textAlign='left';statusDiv.innerText=ASSISTANT_STATUSES[Math.floor(Math.random()*ASSISTANT_STATUSES.length)];box.appendChild(statusDiv);box.scrollTop=box.scrollHeight;if(assistantStatusTimer)clearInterval(assistantStatusTimer);assistantStatusTimer=setInterval(()=>{const el=document.getElementById('assistant-status-gen');if(el&&!el.innerText.startsWith('🌐'))el.innerText=ASSISTANT_STATUSES[Math.floor(Math.random()*ASSISTANT_STATUSES.length)];},5000);let ctxScript=null;if(assistantContextType==='serverscript'){const v=document.getElementById('script-editor')?document.getElementById('script-editor').value:'';if(v&&v.trim())ctxScript=v;}else if(assistantContextType==='site'){const v=document.getElementById('site-html-field')?document.getElementById('site-html-field').value:'';if(v&&v.trim())ctxScript=v;}const tempEl=document.getElementById('assistant-temp-slider'),thinkEl=document.getElementById('assistant-think-select');const temperature=tempEl?parseFloat(tempEl.value):0.4,thinkingLevel=thinkEl?thinkEl.value:'medium';socket.emit('eb_assistant_send',{model:assistantModel,temperature,thinkingLevel,browsingMode:aiBrowsingMode,contextType:assistantContextType,contextScript:ctxScript,messages:assistantHistory.filter(m=>m.role==='user'||m.role==='assistant').map(m=>({role:m.role,text:m.text}))});}
 function stopAssistantStatusCycle(){if(assistantStatusTimer){clearInterval(assistantStatusTimer);assistantStatusTimer=null;}const el=document.getElementById('assistant-status-gen');if(el)el.remove();const sb=document.getElementById('assistant-streaming-bubble');if(sb)sb.remove();}
 function finishAssistantGen(){assistantGenerating=false;assistantTaskId=null;if(assistantPingTimer){clearInterval(assistantPingTimer);assistantPingTimer=null;}stopAssistantStatusCycle();const btn=document.getElementById('btn-assistant-send');if(btn)btn.innerText="Generate";}
 function playAsset1NotificationSound(){if(isUiMuted)return;const snd=cachedAssetsRam[1]||loadCachedAssetCookie(1);if(snd&&typeof snd==='string'){try{new Audio(snd).play().catch(()=>{});}catch(e){}return;}if(socket&&socket.connected)socket.emit('RemoteEvent',{type:'eb_asset_get_1'});}
@@ -3051,9 +3085,9 @@ Use this ServerScript-only API to check user messages, usernames, chat text, or 
 - Parameters:
   - prompt: string (REQUIRED, must be > 0 chars and < 10000 chars).
   - level: "low" | "medium" | "high" (REQUIRED).
-    * "low": flagged when toxicity score >= 0.30 (strictest)
+    * "low": flagged when toxicity score >= 0.87 (least strict)
     * "medium": flagged when toxicity score >= 0.65 (balanced)
-    * "high": flagged when toxicity score >= 0.87 (most lenient)
+    * "high": flagged when toxicity score >= 0.30 (strictest)
 - Callback response object: { passed: boolean, flagged: boolean, score: number, level: string, threshold: number, error?: string }
 - Limits: A server can only make up to 5 moderation requests per second. Max 5 moderations run concurrently and 5 can be queued (10 total server capacity).
 - Example (If pass pattern):
@@ -3170,7 +3204,7 @@ function openCommandsModal(){const isHttp=serverType==='http',box=document.getEl
 
 11. SERVER-SIDE TOXICITY & SLUR MODERATION (eb_callai_moderate):
     Description: Uses EzBridge's DistilBERT ONNX classifier + slur filter to moderate text before saving or broadcasting!
-    Limits: prompt must be > 0 and < 10000 chars. level must be "low" (0.30+), "medium" (0.65+), or "high" (0.87+).
+    Limits: prompt must be > 0 and < 10000 chars. level must be "low" (0.87+), "medium" (0.65+), or "high" (0.30+).
     Rate Limit: Max 5 requests/second per server. Max 5 running + 5 queued (10 total capacity).
     - Server.eb_callai_moderate({ prompt: "text to check", level: "medium" }, res => {
         if (res.passed) { Server.broadcast("approved", { text: "text to check" }); }
@@ -3184,7 +3218,7 @@ function openCommandsModal(){const isHttp=serverType==='http',box=document.getEl
     - Server.py.on("evt", data => {});`;}else{box.innerHTML=`<span class="api-tag-client">CLIENT-SIDED API (WEBSOCKET MODE)</span>
 1. CONNECT & JOIN VIRTUAL SERVER ROOM:
    Description: Opens a real-time Socket.IO connection and joins your Virtual Server room. Always wait for "joined_successfully" before sending RemoteEvents.
-   Limits: Max packet size 10MB. >250 req/s or >15MB/s triggers temporary ban.
+      Limits: Max packet size 10MB. >250 req/s or >15MB/s triggers temporary ban.
    Code:
    const socket = io("${PUBLIC_TUNNEL_URL}", { auth: { token: "default_key" }, transports: ["websocket", "polling"], maxHttpBufferSize: 1e8 });
    socket.on("connect", () => socket.emit("join_virtual_server", { key: "${serverKey}" }));
@@ -3253,7 +3287,7 @@ function openCommandsModal(){const isHttp=serverType==='http',box=document.getEl
 
 11. SERVER-SIDE TOXICITY & SLUR MODERATION (eb_callai_moderate):
     Description: Evaluates text toxicity & slurs using EzBridge's DistilBERT ONNX classifier directly inside ServerScript.
-    Limits: prompt must be > 0 and < 10000 chars. level must be "low" (0.30+), "medium" (0.65+), or "high" (0.87+).
+    Limits: prompt must be > 0 and < 10000 chars. level must be "low" (0.87+), "medium" (0.65+), or "high" (0.30+).
     Rate Limit: Max 5 moderation calls/second per server. Max 5 running + 5 queued (10 max capacity).
     - Server.eb_callai_moderate({ prompt: "the cat sat on the mat", level: "medium" }, res => {
         if (res.passed) { Server.broadcast("chat", { msg: "the cat sat on the mat" }); }
