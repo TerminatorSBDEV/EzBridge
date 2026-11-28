@@ -57,6 +57,10 @@ h1, h2, h3{color:var(--accent);margin-top:0;letter-spacing:1.4px;text-transform:
 .dash-stat-tile:hover{border-color:rgba(239,68,68,0.55);box-shadow:0 0 12px rgba(239,68,68,0.14);transform:translateY(-1px);}
 .dash-stat-label{font-size:0.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;}
 .dash-stat-val{font-size:0.95rem;font-weight:800;color:var(--accent);font-family:monospace;margin-top:2px;}
+.perf-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;text-align:left;}
+.perf-stat-tile{background:#020617;border:1px solid #1e293b;padding:6px 8px;}
+.perf-stat-lbl{font-size:0.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;}
+.perf-stat-val{font-size:0.78rem;font-weight:bold;color:#f8fafc;font-family:monospace;margin-top:2px;}
 .status-indicator{padding:11px;background:linear-gradient(90deg,rgba(2,6,23,0.95),rgba(15,23,42,0.7),rgba(2,6,23,0.95));border:1px solid var(--border) !important;font-size:0.85rem;font-weight:bold;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;letter-spacing:0.8px;}
 .dot{width:9px;height:9px;border-radius:0px !important;background:var(--error);box-shadow:0 0 8px var(--error);transition:background 0.25s,box-shadow 0.25s;}
 .dot.online{background:var(--green);box-shadow:0 0 10px var(--green);}
@@ -75,7 +79,7 @@ h1, h2, h3{color:var(--accent);margin-top:0;letter-spacing:1.4px;text-transform:
 .line-numbers{width:38px;padding:12px 6px;background:#000000;color:var(--muted);font-family:monospace;font-size:0.8rem;text-align:right;user-select:none;overflow:hidden;white-space:pre;border-right:1px solid #1e293b;}
 .code-textarea{flex:1;background:transparent !important;color:#f8fafc !important;padding:12px;border:none !important;font-family:monospace;font-size:0.8rem;resize:none;outline:none;white-space:pre;overflow:auto;}
 .code-box, textarea, .settings-item textarea{background:#020617 !important;color:#f8fafc !important;padding:12px;border:1px solid var(--border) !important;font-family:monospace;font-size:0.8rem;margin:10px 0;overflow-x:auto;white-space:pre;text-align:left;}
-.console-box{background:#000000;padding:12px;border:1px solid var(--border) !important;font-family:'Courier New',Courier,monospace;font-size:0.8rem;margin:15px 0;height:260px;max-height:260px;overflow-y:auto;text-align:left;display:flex;flex-direction:column;gap:4px;}
+.console-box{background:#000000;padding:12px;border:1px solid var(--border) !important;font-family:'Courier New',Courier,monospace;font-size:0.8rem;margin:10px 0;height:210px;max-height:210px;overflow-y:auto;text-align:left;display:flex;flex-direction:column;gap:4px;}
 .log-green{color:var(--green);}.log-yellow{color:var(--yellow);}.log-red{color:var(--error);}.log-white{color:#f8fafc !important;}
 .session-btn-list{display:flex;flex-direction:column;gap:8px;margin:15px 0;max-height:320px;overflow-y:auto;}
 .session-btn{background:#020617 !important;border:1px solid var(--border) !important;color:#fff !important;padding:12px;font-weight:bold;cursor:pointer;transition:background 0.2s,box-shadow 0.2s,transform 0.14s;text-align:center;}
@@ -1102,37 +1106,52 @@ iframe.site-frame{width:100%;height:100%;border:none;display:block;}
 </div>
 </div>
 <div id="modal-console" class="overlay" style="display:none;">
-<div class="card" style="max-width:600px;">
+<div class="card" style="max-width:640px;width:95%;">
 <h3>Server Console Logs</h3>
 <div id="console-logs-display" class="console-box"></div>
-<div id="console-perf-container" style="display:none;margin-top:10px;">
-<div style="font-size:0.75rem;color:var(--muted);margin-bottom:4px;display:flex;justify-content:space-between;">
-<span>Live Performance (3s window)</span>
-<span><span style="color:#10b981;">■ Rx</span> <span style="color:#eab308;">■ Tx</span> <span style="color:#ef4444;">■ RAM</span></span>
+<div id="console-perf-container" style="display:none;margin-top:10px;border-top:1px solid #1e293b;padding-top:10px;">
+<div class="perf-stat-grid">
+<div class="perf-stat-tile"><div class="perf-stat-lbl">Current Tickrate</div><div class="perf-stat-val" id="perf-tickrate" style="color:#10b981;">0.0 Hz</div></div>
+<div class="perf-stat-tile"><div class="perf-stat-lbl">Packets / Sec</div><div class="perf-stat-val">Rx <span id="perf-rx-pkts" style="color:#10b981;">0</span> | Tx <span id="perf-tx-pkts" style="color:#eab308;">0</span></div></div>
+<div class="perf-stat-tile"><div class="perf-stat-lbl">CPU Threads &amp; Usage</div><div class="perf-stat-val"><span id="perf-cpu-pct" style="color:#38bdf8;">0.0%</span> (<span id="perf-cpu-threads">0.00</span> / <span id="perf-cpu-max">1.50</span>)</div></div>
+<div class="perf-stat-tile"><div class="perf-stat-lbl">Host System CPU</div><div class="perf-stat-val" id="perf-sys-cpu" style="color:#c4b5fd;">0%</div></div>
+<div class="perf-stat-tile"><div class="perf-stat-lbl">Bandwidth / Sec</div><div class="perf-stat-val">↓<span id="perf-rx-kb" style="color:#10b981;">0.0</span> KB | ↑<span id="perf-tx-kb" style="color:#eab308;">0.0</span> KB</div></div>
+<div class="perf-stat-tile"><div class="perf-stat-lbl">RAM &amp; JS Heap</div><div class="perf-stat-val"><span id="perf-ram-mb" style="color:#ef4444;">0.0</span> / 150 MB (Heap <span id="perf-heap-mb">0.0</span>)</div></div>
+<div class="perf-stat-tile"><div class="perf-stat-lbl">Event Loop</div><div class="perf-stat-val">Act <span id="perf-active-evts">0</span> | Que <span id="perf-queued-evts">0</span> | Tmr <span id="perf-timers">0</span></div></div>
+<div class="perf-stat-tile"><div class="perf-stat-lbl">Instances &amp; V-Battery</div><div class="perf-stat-val">Inst <span id="perf-instances">0</span> | Bat <span id="perf-battery" style="color:#10b981;">100.0</span> MB</div></div>
+</div>
+<div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+<span>Live Telemetry (30s window)</span>
+<span><span style="color:#10b981;">■ Rx</span> <span style="color:#eab308;">■ Tx</span> <span style="color:#ef4444;">■ RAM</span> <span style="color:#38bdf8;">■ CPU%</span></span>
 </div>
 <canvas id="console-perf-canvas" width="540" height="120" style="width:100%;height:120px;background:#000;border:1px solid #1e293b;"></canvas>
 </div>
-<div style="display:flex;gap:10px;">
-<button class="btn btn-purple" id="btn-console-perf-toggle" style="width:110px;" onclick="toggleConsolePerf()">Performance</button>
-<button class="btn btn-green" style="flex:1;" onclick="openPyTerminalModal()">Python Terminal</button>
-<button class="btn" style="flex:1;" onclick="copyConsoleLogs()">Copy Logs</button>
-<button class="btn btn-purple" style="flex:1;" onclick="openServerStorageModal()">See Storage</button>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+<button class="btn btn-purple" id="btn-console-perf-toggle" style="flex:1;min-width:110px;" onclick="toggleConsolePerf()">Performance</button>
+<button class="btn btn-green" style="flex:1;min-width:120px;" onclick="openPyTerminalModal()">Python Terminal</button>
+<button class="btn" style="flex:1;min-width:100px;" onclick="copyConsoleLogs()">Copy Logs</button>
+<button class="btn btn-purple" style="flex:1;min-width:100px;" onclick="openServerStorageModal()">Storage</button>
 <button class="btn btn-secondary" style="width:80px;" onclick="closeConsoleModal()">Close</button>
 </div>
 </div>
 </div>
 <div id="modal-server-storage" class="overlay" style="display:none;">
-<div class="card" style="max-width:650px;width:95%;max-height:85vh;display:flex;flex-direction:column;">
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-<h3 style="margin:0;">Server 100MB Storage Data</h3>
+<div class="card" style="max-width:460px;width:95%;">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+<h3 style="margin:0;">Server 100MB Storage</h3>
 <button class="btn" style="width:auto;margin:0;padding:4px 10px;font-size:0.75rem;background:#ffffff !important;color:#000000 !important;" onclick="wipeServerStorageSubmit()">WIPE DATA</button>
 </div>
-<div style="font-size:0.75rem;color:var(--accent);margin-bottom:6px;text-align:left;">Storage Usage: <span id="storage-modal-usage">0.0 MB</span> / 100 MB</div>
-<textarea id="server-storage-display" class="code-box" readonly rows="12" style="flex:1;width:100%;resize:none;"></textarea>
-<div style="display:flex;gap:10px;margin-top:10px;">
-<button class="btn" onclick="copyText('server-storage-display')">Copy Storage Content</button>
-<button class="btn btn-secondary" onclick="closeServerStorageModal()">Close</button>
+<div class="dash-panel-box" style="margin:12px 0;">
+<div style="display:flex;justify-content:space-between;align-items:center;font-size:0.82rem;font-weight:bold;">
+<span style="color:var(--muted);">Current Size:</span>
+<span style="color:var(--accent);font-family:monospace;"><span id="storage-modal-usage">0.00 MB</span> / 100 MB (<span id="storage-modal-pct">0.0</span>%)</span>
 </div>
+<div class="progress-container" style="height:16px;margin:10px 0 6px 0;">
+<div id="storage-modal-bar" class="progress-bar"></div>
+</div>
+<div style="font-size:0.72rem;color:var(--muted);font-family:monospace;text-align:right;"><span id="storage-modal-bytes">0</span> bytes used</div>
+</div>
+<button class="btn btn-secondary" style="margin-top:8px;" onclick="closeServerStorageModal()">Close</button>
 </div>
 </div>
 <div id="modal-choose-session" class="overlay" style="display:none;">
@@ -1485,7 +1504,7 @@ const BASE_SITE_URL="https://terminatorsbdev.github.io/EzBridge/";
 let captchaSessionId=localStorage.getItem("eb_captcha_sid")||"",captchaGen=0,captchaFrameW=320,captchaFrameH=220,lastCaptchaCursorSent=0;
 let ownerId=getCookie("eb_owner_id")||"",googleSub=null,googleEmail=null,ezbridgeUsername=null,userLinkedEmail=null,activeUserId="",userRole="None",serverKey="",userAIKey=null,userAIKeyStatus=null,serverActive=false,isServerSleeping=false,serverSleepReason=null,serverType="websocket",serverSettings={},currentServerScript="",consoleLogsCache=[],isCaptchaTagged=false,currentProfile={displayName:"User_123456789",pfpData:"",description:""},cachedUserProfiles={},profileChunkPending={},profileFetchInFlight={},cachedAssetsRam={},userAssetsMeta={},currentCoins=0,currentBatteryMb=100,stagedPfpBase64=null,stagedAssetBase64=null,currentEditingAssetId=null,currentAssetCost=0,userTotalAssetBytes=0;
 const MAX_ASSET_BYTES=500*1024*1024,DM_CHUNK_SIZE=150*1024;
-let isServerLockdown=false,lockdownUntilTime=0,lockdownInterval=null,isGuestMode=false,pendingDailyRewardForNewServer=null,pendingTutorialOnDashboard=false,tutorialStepIdx=0,emailTimerInterval=null,emailTimerSeconds=1800,emailResendCooldown=0,emailResendInterval=null,pendingSignupData=null,delCodeTimerInterval=null,delCodeTimerSeconds=300,rxBytesAccum=0,txBytesAccum=0,currentPingVal=50,cooldownTimerCountdown=null,currentChatSession=null,chatHistoryChunks=[],chatTypingTimeout=null,globalChatMessages=[],globalChatOffset=0,globalChatHasMore=false,isLoadingMoreGlobal=false,publishedSitesCache=[],reportedSitesCache=[],siteFetchChunks=[],reportsFetchChunks=[],isUserHasSite=false,sitesOffset=0,sitesHasMore=false,isLoadingMoreSites=false,siteFetchCancelled=false,siteDataFetchCancelled=false,siteEnterCancelled=false,profileLoadCancelled=false,siteGenCooldownTimer=null,generatedSiteIdVal="",userSiteDataChunks=[],siteSearchDebounce=null,isSiteFileUploaded=false,currentActiveSiteId=null,isSiteViewerMaximized=false,serverStorageChunks=[],serverScriptChunks=[],serverStoragePollInterval=null,perfHistory=[],perfGraphVisible=false,siteActivePingInterval=null,siteEnterSimTimer=null,siteEnterStartTs=0;
+let isServerLockdown=false,lockdownUntilTime=0,lockdownInterval=null,isGuestMode=false,pendingDailyRewardForNewServer=null,pendingTutorialOnDashboard=false,tutorialStepIdx=0,emailTimerInterval=null,emailTimerSeconds=1800,emailResendCooldown=0,emailResendInterval=null,pendingSignupData=null,delCodeTimerInterval=null,delCodeTimerSeconds=300,rxBytesAccum=0,txBytesAccum=0,currentPingVal=50,cooldownTimerCountdown=null,currentChatSession=null,chatHistoryChunks=[],chatTypingTimeout=null,globalChatMessages=[],globalChatOffset=0,globalChatHasMore=false,isLoadingMoreGlobal=false,publishedSitesCache=[],reportedSitesCache=[],siteFetchChunks=[],reportsFetchChunks=[],isUserHasSite=false,sitesOffset=0,sitesHasMore=false,isLoadingMoreSites=false,siteFetchCancelled=false,siteDataFetchCancelled=false,siteEnterCancelled=false,profileLoadCancelled=false,siteGenCooldownTimer=null,generatedSiteIdVal="",userSiteDataChunks=[],siteSearchDebounce=null,isSiteFileUploaded=false,currentActiveSiteId=null,isSiteViewerMaximized=false,serverScriptChunks=[],serverStoragePollInterval=null,perfHistory=[],perfGraphVisible=false,siteActivePingInterval=null,siteEnterSimTimer=null,siteEnterStartTs=0;
 const SCRIPT_CHUNK_SIZE=100*1024,UNIV_CHUNK_SIZE=50*1024,SITE_CHUNK_SIZE=150*1024,ASSET_CHUNK_SIZE=150*1024;
 let isUploadingScript=false,isUploadingUnivScript=false,isUploadingTerminalScript=false,isUploadingSiteScript=false,isUploadingAsset=false;
 const ASSISTANT_STATUSES=["Thinking. . .","Making. . .","Imagining. . .","Reimagining. . .","Inspiring. . .","Researching. . .","Reflecting. . .","Building. . .","Placing bricks. . .","Guessing. . .","Predicting. . .","Casting. . .","Coding. . .","Vibing. . .","Focusing. . .","Prioritizing. . .","Completing. . .","Filling. . .","Brainstorming. . .","Tunneling. . .","Bridging. . .","Simplifying. . .","Checking. . .","Interacting. . .","Displaying. . .","Reasoning. . .","Planting. . .","Recovering. . .","Verifying. . .","Finishing. . .","Admiring. . .","Sparkling. . .","Printing. . ."];
@@ -1764,8 +1783,8 @@ s.on('eb_browser_queue',(d)=>{
   if(qPos)qPos.innerText=`position: ${(d&&d.position)||1} remaining`;
   updateBrowserToggleUI(false);
 });
-s.on('eb_browser_started',(d)=>{aiBrowsingQueued=false;const qBox=document.getElementById('browser-queue-status');if(qBox)qBox.style.display='none';applyBrowserMetrics(d);updateBrowserToggleUI(true);document.getElementById('browser-float-box').style.display='flex';if(browserPlayCtx&&browserPlayCtx.state==='suspended')browserPlayCtx.resume().catch(()=>{});});
-s.on('eb_browser_stopped',(d)=>{aiBrowsingQueued=false;const qBox=document.getElementById('browser-queue-status');if(qBox)qBox.style.display='none';updateBrowserToggleUI(false);document.getElementById('browser-float-box').style.display='none';browserInputFocused=false;});
+s.on('eb_browser_started',(d)=>{aiBrowsingQueued=false;const qBox=document.getElementById('browser-queue-status');if(qBox)qBox.style.display='none';applyBrowserMetrics(d);updateBrowserToggleUI(true);document.getElementById('browser-float-box').style.display='flex';ensureBrowserAudioCtx();});
+s.on('eb_browser_stopped',(d)=>{aiBrowsingQueued=false;const qBox=document.getElementById('browser-queue-status');if(qBox)qBox.style.display='none';updateBrowserToggleUI(false);document.getElementById('browser-float-box').style.display='none';browserInputFocused=false;browserNextPlayTime=0;});
 s.on('eb_browser_error',(d)=>{aiBrowsingQueued=false;const qBox=document.getElementById('browser-queue-status');if(qBox)qBox.style.display='none';updateBrowserToggleUI(false);document.getElementById('browser-float-box').style.display='none';alert((d&&d.error)||"Virtual browser error.");});
 s.on('eb_browser_quality_updated',(d)=>{applyBrowserMetrics(d);});
 s.on('eb_browser_tabs',(d)=>{
@@ -1810,7 +1829,7 @@ s.on('server_error',(data)=>{hideLoadingScreen();document.getElementById('overla
 s.on('eb_action_success',(data)=>{if(data.updatedType==='serverscript'&&data.code){currentServerScript=data.code;const se=document.getElementById('script-editor');if(se){se.value=data.code;updateLineNumbers('script-editor','serverscript-lines');}}if(data.updatedType==='site'&&data.code){const sh=document.getElementById('site-html-field');if(sh){sh.value=data.code;updateLineNumbers('site-html-field','site-code-lines');}}alert(data.msg);if(pendingAssistantContinue){pendingAssistantContinue=false;sendAssistantPrompt("Permission allowed and applied. Please continue.");}});
 s.on('eb_cooldown_error',(data)=>{showCooldownWarningModal(data.action,data.remMs);});
 s.on('eb_console_update',(data)=>{if(data.logs){consoleLogsCache=data.logs;renderConsoleLogs();}});
-s.on('eb_perf_tick',(data)=>{perfHistory.push(data);if(perfHistory.length>30)perfHistory.shift();if(perfGraphVisible)drawConsolePerfGraph();});
+s.on('eb_perf_tick',(data)=>{perfHistory.push(data);if(perfHistory.length>30)perfHistory.shift();if(perfGraphVisible){updateConsolePerfDetails(data);drawConsolePerfGraph();}});
 s.on('eb_system_telemetry',(data)=>{const el=document.getElementById('univ-telemetry-display');if(el&&data.line)el.innerText=data.line;});
 s.on('eb_user_id_regenerated',(data)=>{activeUserId=data.newUserId;const cidEl=document.getElementById('dash-client-id');if(cidEl)cidEl.innerText=activeUserId;document.getElementById('new-userid-display').value=activeUserId;document.getElementById('modal-new-userid').style.display='flex';});
 s.on('eb_account_deleted',()=>{alert("Account and data deleted permanently.");accountLogout();});
@@ -1821,7 +1840,7 @@ s.on('eb_terminal_update_success',(data)=>{isUploadingTerminalScript=false;docum
 s.on('eb_terminal_update_error',(data)=>{isUploadingTerminalScript=false;document.getElementById('term-upload-progress').style.display='none';alert(`TERMINAL UPDATE FAILED:\n${data.error}`);});
 s.on('eb_server_key_regenerated',(data)=>{serverKey=data.newServerKey;document.getElementById('copy-key').value=serverKey;alert("Server Auth Key regenerated successfully!");});
 s.on('eb_ai_key_regenerated',(data)=>{userAIKey=data.newAiKey;if(data.status)userAIKeyStatus=data.status;updateAIKeyDashboardDisplay();alert("AI Auth Key regenerated successfully!");});
-s.on('eb_server_storage_chunk',(data)=>{if(data.index===0)serverStorageChunks=[];serverStorageChunks.push(data.chunk);if(serverStorageChunks.length===data.total){document.getElementById('server-storage-display').value=serverStorageChunks.join('');document.getElementById('storage-modal-usage').innerText=`${(data.storageBytes/(1024*1024)).toFixed(2)} MB`;}});
+s.on('eb_server_storage_chunk',(data)=>{updateServerStorageSizeUI(data.storageBytes||0);});
 s.on('eb_serverscript_chunk_response',(data)=>{if(data.index===0)serverScriptChunks=[];serverScriptChunks.push(data.chunk);if(serverScriptChunks.length===data.total){openViewScriptModal(serverScriptChunks.join(''));}});
 s.on('eb_server_lockdown',(data)=>{isServerLockdown=true;lockdownUntilTime=data.lockdownUntil;serverActive=false;updateStatusDisplay();});
 s.on('eb_server_battery_depleted',()=>{serverActive=false;isServerSleeping=true;serverSleepReason="Insufficient V-Battery";updateBatteryDisplay(0);updateStatusDisplay();});
@@ -1995,8 +2014,12 @@ function updateBrowserToggleUI(active){
   if(aiBrowsingMode&&assistantModel.includes('qwen'))selectAssistantModel('gemini-3.5-flash-lite','Gemini-3.5-flash-lite [Recommended]');
 }
 function ensureBrowserAudioCtx(){
-  if(!browserPlayCtx)browserPlayCtx=new (window.AudioContext||window.webkitAudioContext)();
-  if(browserPlayCtx.state==='suspended')browserPlayCtx.resume().catch(()=>{});
+  const AudioCtx=window.AudioContext||window.webkitAudioContext;
+  if(!AudioCtx)return;
+  if(!browserPlayCtx){
+    try{browserPlayCtx=new AudioCtx({sampleRate:16000});}catch(e){browserPlayCtx=new AudioCtx();}
+  }
+  if(browserPlayCtx&&browserPlayCtx.state==='suspended')browserPlayCtx.resume().catch(()=>{});
 }
 function toggleAiBrowsingMode(forceState){
   if(aiBrowsingQueued&&forceState!==true){
@@ -2018,6 +2041,7 @@ function toggleAiBrowsingMode(forceState){
     updateBrowserToggleUI(false);
     document.getElementById('browser-float-box').style.display='none';
     browserInputFocused=false;
+    browserNextPlayTime=0;
     if(socket&&socket.connected)socket.emit('eb_browser_stop');
   }
 }
@@ -2062,6 +2086,7 @@ function sendBrowserPasteInPackets(text){
 function handleIncomingBrowserAudio(d){
   if(isUiMuted||!d||!d.chunk)return;
   ensureBrowserAudioCtx();
+  if(!browserPlayCtx)return;
   try{
     const bin=atob(d.chunk),u8=new Uint8Array(bin.length);
     for(let i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);
@@ -2079,20 +2104,21 @@ function handleIncomingBrowserAudio(d){
         const u1=(b1>>2)|((b2&0x0F)<<6);
         const u2=(b2>>4)|((b3&0x3F)<<4);
         const u3=(b3>>6)|(b4<<2);
-        ch[sIdx++]=(u0-512)/512;
-        ch[sIdx++]=(u1-512)/512;
-        ch[sIdx++]=(u2-512)/512;
-        ch[sIdx++]=(u3-512)/512;
+        ch[sIdx++]=Math.max(-1,Math.min(1,(u0-512)/512));
+        ch[sIdx++]=Math.max(-1,Math.min(1,(u1-512)/512));
+        ch[sIdx++]=Math.max(-1,Math.min(1,(u2-512)/512));
+        ch[sIdx++]=Math.max(-1,Math.min(1,(u3-512)/512));
       }
     }else{
       const i16=new Int16Array(u8.buffer);
       audioBuf=browserPlayCtx.createBuffer(1,i16.length,sr);
       const ch=audioBuf.getChannelData(0);
-      for(let i=0;i<i16.length;i++)ch[i]=i16[i]/32768;
+      for(let i=0;i<i16.length;i++)ch[i]=Math.max(-1,Math.min(1,i16[i]/32768));
     }
     const src=browserPlayCtx.createBufferSource();src.buffer=audioBuf;src.connect(browserPlayCtx.destination);
     const now=browserPlayCtx.currentTime;
-    if(browserNextPlayTime<now||browserNextPlayTime>now+0.45)browserNextPlayTime=now+0.025;
+    if(browserNextPlayTime<now)browserNextPlayTime=now+0.03;
+    else if(browserNextPlayTime>now+0.65)browserNextPlayTime=now+0.12;
     src.start(browserNextPlayTime);
     browserNextPlayTime+=audioBuf.duration;
   }catch(e){}
@@ -2402,7 +2428,8 @@ function openChangePasswordModal(){closeAccountSettingsModal();document.getEleme
 function closeChangePasswordModal(){document.getElementById('modal-change-password').style.display='none';}
 function submitChangePassword(){const currentPassword=document.getElementById('change-pass-current').value,newPassword=document.getElementById('change-pass-new').value;enqueueClientAction(()=>socket.emit('eb_change_password',{currentPassword,newPassword,ownerId}));closeChangePasswordModal();}
 function regenerateServerKeySubmit(){enqueueClientAction(()=>socket.emit('eb_regen_server_key',{key:serverKey,ownerId,googleSub}));}
-function openServerStorageModal(){serverStorageChunks=[];document.getElementById('modal-server-storage').style.display='flex';socket.emit('eb_get_server_storage_chunks',{key:serverKey,ownerId,googleSub});if(serverStoragePollInterval)clearInterval(serverStoragePollInterval);serverStoragePollInterval=setInterval(()=>{if(document.getElementById('modal-server-storage').style.display==='flex')socket.emit('eb_get_server_storage_chunks',{key:serverKey,ownerId,googleSub});else clearInterval(serverStoragePollInterval);},5000);}
+function updateServerStorageSizeUI(bytes){const b=Math.max(0,Number(bytes)||0),mb=(b/(1024*1024)).toFixed(2),pct=Math.min(100,(b/(100*1024*1024))*100).toFixed(1);const uEl=document.getElementById('storage-modal-usage'),pEl=document.getElementById('storage-modal-pct'),bEl=document.getElementById('storage-modal-bytes'),bar=document.getElementById('storage-modal-bar');if(uEl)uEl.innerText=`${mb} MB`;if(pEl)pEl.innerText=pct;if(bEl)bEl.innerText=b.toString().replace(/\B(?=(\d{3})+(?!\d))/g,',');if(bar)bar.style.width=`${pct}%`;}
+function openServerStorageModal(){document.getElementById('modal-server-storage').style.display='flex';socket.emit('eb_get_server_storage_chunks',{key:serverKey,ownerId,googleSub});if(serverStoragePollInterval)clearInterval(serverStoragePollInterval);serverStoragePollInterval=setInterval(()=>{if(document.getElementById('modal-server-storage').style.display==='flex')socket.emit('eb_get_server_storage_chunks',{key:serverKey,ownerId,googleSub});else clearInterval(serverStoragePollInterval);},5000);}
 function closeServerStorageModal(){if(serverStoragePollInterval)clearInterval(serverStoragePollInterval);document.getElementById('modal-server-storage').style.display='none';}
 function wipeServerStorageSubmit(){if(confirm("Are you sure you want to WIPE the entire server storage? This cannot be undone."))socket.emit('eb_storage_wipe',{key:serverKey,ownerId,googleSub});}
 function captchaSolved(){isCaptchaTagged=true;document.getElementById('overlay-captcha').style.display='none';if(!googleSub&&!ezbridgeUsername)document.getElementById('overlay-google-auth').style.display='flex';else document.getElementById('overlay-start').style.display='flex';}
@@ -2724,8 +2751,35 @@ function openConsoleModal(){document.getElementById('modal-console').style.displ
 function closeConsoleModal(){document.getElementById('modal-console').style.display='none';}
 function renderConsoleLogs(){const box=document.getElementById('console-logs-display');box.innerHTML="";consoleLogsCache.forEach(log=>{const div=document.createElement('div');div.className=`log-${log.color||'white'}`;div.innerText=log.text;box.appendChild(div);});box.scrollTop=box.scrollHeight;}
 function copyConsoleLogs(){navigator.clipboard.writeText(consoleLogsCache.map(l=>l.text).join('\n'));alert("Console logs copied to clipboard!");}
-function toggleConsolePerf(){perfGraphVisible=!perfGraphVisible;document.getElementById('console-perf-container').style.display=perfGraphVisible?'block':'none';if(perfGraphVisible)drawConsolePerfGraph();}
-function drawConsolePerfGraph(){const c=document.getElementById('console-perf-canvas');if(!c)return;const g=c.getContext('2d');g.clearRect(0,0,c.width,c.height);if(perfHistory.length<2)return;const maxBytes=Math.max(1024,...perfHistory.map(p=>Math.max(p.rx||0,p.tx||0)));function plot(fn,col){g.beginPath();g.strokeStyle=col;g.lineWidth=1.5;perfHistory.forEach((p,i)=>{const x=(i/Math.max(1,perfHistory.length-1))*c.width,y=c.height-(fn(p)*c.height);if(i===0)g.moveTo(x,y);else g.lineTo(x,y);});g.stroke();}plot(p=>(p.rx||0)/maxBytes,'#10b981');plot(p=>(p.tx||0)/maxBytes,'#eab308');plot(p=>Math.min(1,(p.ram||0)/(150*1024*1024)),'#ef4444');}
+function updateConsolePerfDetails(d){
+  if(!d)return;
+  const setTxt=(id,val)=>{const el=document.getElementById(id);if(el)el.innerText=val;};
+  setTxt('perf-tickrate',d.isSleeping?'SLEEPING':`${Number(d.tickRate||0).toFixed(1)} Hz`);
+  setTxt('perf-rx-pkts',d.rxPackets||0);
+  setTxt('perf-tx-pkts',d.txPackets||0);
+  setTxt('perf-cpu-pct',`${Number(d.cpuPercent||0).toFixed(1)}%`);
+  setTxt('perf-cpu-threads',Number(d.cpuThreads||0).toFixed(2));
+  setTxt('perf-cpu-max',Number(d.cpuMaxThreads||1.5).toFixed(2));
+  setTxt('perf-sys-cpu',`${d.sysCpuPercent||0}%`);
+  setTxt('perf-rx-kb',((d.rx||0)/1024).toFixed(1));
+  setTxt('perf-tx-kb',((d.tx||0)/1024).toFixed(1));
+  setTxt('perf-ram-mb',((d.ram||0)/(1024*1024)).toFixed(1));
+  setTxt('perf-heap-mb',((d.heapUsed||0)/(1024*1024)).toFixed(1));
+  setTxt('perf-active-evts',d.activeThreads||0);
+  setTxt('perf-queued-evts',d.queuedEvents||0);
+  setTxt('perf-timers',d.timersCount||0);
+  setTxt('perf-instances',d.instances||0);
+  setTxt('perf-battery',Number(d.batteryMb!==undefined?d.batteryMb:currentBatteryMb).toFixed(1));
+}
+function toggleConsolePerf(){
+  perfGraphVisible=!perfGraphVisible;
+  document.getElementById('console-perf-container').style.display=perfGraphVisible?'block':'none';
+  if(perfGraphVisible){
+    if(perfHistory.length>0)updateConsolePerfDetails(perfHistory[perfHistory.length-1]);
+    drawConsolePerfGraph();
+  }
+}
+function drawConsolePerfGraph(){const c=document.getElementById('console-perf-canvas');if(!c)return;const g=c.getContext('2d');g.clearRect(0,0,c.width,c.height);g.strokeStyle='rgba(30,41,59,0.7)';g.lineWidth=1;for(let gy=0.25;gy<1;gy+=0.25){const py=Math.round(c.height*gy);g.beginPath();g.moveTo(0,py);g.lineTo(c.width,py);g.stroke();}if(perfHistory.length<2)return;const maxBytes=Math.max(1024,...perfHistory.map(p=>Math.max(p.rx||0,p.tx||0)));function plot(fn,col){g.beginPath();g.strokeStyle=col;g.lineWidth=1.6;perfHistory.forEach((p,i)=>{const x=(i/Math.max(1,perfHistory.length-1))*c.width,y=Math.max(1,Math.min(c.height-1,c.height-(Math.max(0,Math.min(1,fn(p)))*c.height)));if(i===0)g.moveTo(x,y);else g.lineTo(x,y);});g.stroke();}plot(p=>(p.rx||0)/maxBytes,'#10b981');plot(p=>(p.tx||0)/maxBytes,'#eab308');plot(p=>(p.ram||0)/(150*1024*1024),'#ef4444');plot(p=>(p.cpuPercent||0)/100,'#38bdf8');}
 function openEditSettings(){showLoadingScreen("Please wait while we fetch and synchronize your server settings...");let responded=false;const fallbackTimeout=setTimeout(()=>{if(!responded){hideLoadingScreen();populateSettingsForm(serverType,serverSettings,currentServerScript);document.getElementById('dashboard').style.display='none';document.getElementById('overlay-setup').style.display='flex';document.getElementById('setup-title').innerText="Update Server";document.getElementById('setup-action-btn').innerText="UPDATE SERVER";}},3000);socket.once('eb_server_changes_response',(data)=>{responded=true;clearTimeout(fallbackTimeout);hideLoadingScreen();if(data.success){serverType=data.serverType;serverSettings=data.settings;currentServerScript=data.serverScript;populateSettingsForm(serverType,serverSettings,currentServerScript);document.getElementById('dashboard').style.display='none';document.getElementById('overlay-setup').style.display='flex';document.getElementById('setup-title').innerText="Update Server";document.getElementById('setup-action-btn').innerText="UPDATE SERVER";}else{alert(data.error||"Failed to sync settings from server.");}});socket.emit('eb_get_server_changes',{key:serverKey,ownerId,googleSub});}
 function populateSettingsForm(type,settings,script){document.getElementById('cfg-server-type').value=type;document.getElementById('cfg-target-ping').value=settings.targetPing||50;document.getElementById('cfg-target-ping-val').innerText=settings.targetPing||50;document.getElementById('script-editor').value=script;updateLineNumbers('script-editor','serverscript-lines');}
 let loadingScreenTimeout=null;
