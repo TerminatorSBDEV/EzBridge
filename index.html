@@ -519,6 +519,10 @@ iframe.site-frame{width:100%;height:100%;border:none;display:block;}
 <div id="assistant-chat-box" class="chat-bubble-box" style="flex:1;min-height:240px;max-height:380px;border-color:#eab308;"></div>
 <div id="assistant-browsing-bar" style="display:none;margin-top:6px;">
 <button id="btn-ai-browsing-toggle" class="btn btn-secondary" style="margin:0;padding:7px;font-size:0.78rem;" onclick="toggleAiBrowsingMode()">🌐 AI BROWSING MODE (uses more tokens)</button>
+<div id="browser-queue-status" style="display:none;margin-top:6px;padding:7px 9px;background:rgba(239,68,68,0.12);border:1px solid #ef4444;color:#ef4444;font-size:0.76rem;font-weight:bold;text-align:left;line-height:1.4;">
+<div>This feature cannot be activated at this moment, please wait and it shall automatically activate unless you disable it or disconnect.</div>
+<div id="browser-queue-pos" style="margin-top:3px;color:#fca5a5;">position: 1 remaining</div>
+</div>
 </div>
 <div style="display:flex;gap:8px;margin-top:8px;">
 <textarea id="assistant-input" rows="2" maxlength="12000" placeholder="Ask EzBridge AI to build a site, game or ServerScript..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();if(!assistantGenerating)handleAssistantSendOrStop();}" style="flex:1;margin:0;resize:none;padding:8px;font-family:inherit;font-size:0.85rem;"></textarea>
@@ -1486,7 +1490,7 @@ const SCRIPT_CHUNK_SIZE=100*1024,UNIV_CHUNK_SIZE=50*1024,SITE_CHUNK_SIZE=150*102
 let isUploadingScript=false,isUploadingUnivScript=false,isUploadingTerminalScript=false,isUploadingSiteScript=false,isUploadingAsset=false;
 const ASSISTANT_STATUSES=["Thinking. . .","Making. . .","Imagining. . .","Reimagining. . .","Inspiring. . .","Researching. . .","Reflecting. . .","Building. . .","Placing bricks. . .","Guessing. . .","Predicting. . .","Casting. . .","Coding. . .","Vibing. . .","Focusing. . .","Prioritizing. . .","Completing. . .","Filling. . .","Brainstorming. . .","Tunneling. . .","Bridging. . .","Simplifying. . .","Checking. . .","Interacting. . .","Displaying. . .","Reasoning. . .","Planting. . .","Recovering. . .","Verifying. . .","Finishing. . .","Admiring. . .","Sparkling. . .","Printing. . ."];
 let assistantModel="gemini-3.5-flash-lite",assistantHistory=[],assistantGenerating=false,assistantTaskId=null,assistantStatusTimer=null,assistantPingTimer=null,assistantResetAt=Date.now()+86400000,assistantTokensTimerInt=null,assistantCodeStore=[],pendingAssistantContinue=false,assistantContextType=null,assistantFloatingMode=false,assistantMinimized=false,assistantMaximized=false,assistantTokensRemaining=50000,assistantStreamShowThinking=true,assistantStreamThinkingText="",assistantStreamAnswerText="",activeBrowserCmdMsgIdx=null;
-let aiBrowsingMode=false,browserInputFocused=false,browserWidth=728,browserHeight=410,browserPreset='balanced',browserCursorPos={x:364,y:205},lastBrowserMouseEmit=0,browserPlayCtx=null,browserNextPlayTime=0,browserTouchState={dragging:false,holding:false,holdTimer:null,lastX:0,lastY:0,startX:0,startY:0,startTime:0,lastTapAt:0,tapTimer:null};
+let aiBrowsingMode=false,aiBrowsingQueued=false,browserInputFocused=false,browserWidth=1280,browserHeight=720,browserPreset='balanced',browserCursorPos={x:640,y:360},lastBrowserMouseEmit=0,browserPlayCtx=null,browserNextPlayTime=0,browserTouchState={dragging:false,holding:false,holdTimer:null,lastX:0,lastY:0,startX:0,startY:0,startTime:0,lastTapAt:0,tapTimer:null};
 let activeReportTarget=null,activeReportEmailId=null,isSendingReportEmail=false;
 let socialState={friends:[],requests:[],blocked:[],groupChats:[]},socialShowRequests=false,gcSelectMode=false,selectedGcFriends=[],stagedGcPfpBase64="",currentGc=null,gcMessagesCache=[],gcOffset=0,gcHasMore=false,isLoadingMoreGc=false,gcMsgChunks=[],gcMicRecorder=null,gcMicChunks=[],gcMicStream=null,gcMicTimerInt=null,gcMicSeconds=0,gcMicAnalyser=null,gcMicAnimFrame=null,gcTypingOutTimer=null,gcPeerTypingTimeout=null,currentDmPeer=null,dmMessagesCache=[],dmOffset=0,dmHasMore=false,isLoadingMoreDm=false,dmMsgChunks=[],dmMediaDlCache={},dmMediaDlPending={},pendingDedupUploads={},autoPlayDmAudioId=null,dmMicRecorder=null,dmMicChunks=[],dmMicStream=null,dmMicTimerInt=null,dmMicSeconds=0,dmMicAnalyser=null,dmMicAnimFrame=null,dmTypingOutTimer=null,dmPeerTypingTimeout=null,currentPopupProfileId=null;
 let notifQueue=[],activeNotif=null,notifTimerInt=null,notifStartTime=0,notifDuration=0,notifPausedRem=0,quickReplyTargetId=null;
@@ -1752,9 +1756,17 @@ setInterval(()=>{if(s&&s.connected)s.emit('eb_active_ping');},4000);
 s.on('eb_active_users_update',(d)=>{const el=document.getElementById('global-active-users-count');if(el)el.innerText=d.count||0;});
 s.on('eb_sites_online_update',(onlineMap)=>{if(onlineMap&&publishedSitesCache.length>0){publishedSitesCache.forEach(site=>{if(onlineMap[site.id]!==undefined)site.onlineCount=onlineMap[site.id];});renderPublishedSitesList(publishedSitesCache);}});
 s.on('eb_punish_refresh',()=>{window.location.reload();});
-s.on('eb_browser_started',(d)=>{applyBrowserMetrics(d);updateBrowserToggleUI(true);document.getElementById('browser-float-box').style.display='flex';if(browserPlayCtx&&browserPlayCtx.state==='suspended')browserPlayCtx.resume().catch(()=>{});});
-s.on('eb_browser_stopped',(d)=>{updateBrowserToggleUI(false);document.getElementById('browser-float-box').style.display='none';browserInputFocused=false;});
-s.on('eb_browser_error',(d)=>{updateBrowserToggleUI(false);document.getElementById('browser-float-box').style.display='none';alert((d&&d.error)||"Virtual browser error.");});
+s.on('eb_browser_queue',(d)=>{
+  aiBrowsingQueued=true;
+  aiBrowsingMode=false;
+  const qBox=document.getElementById('browser-queue-status'),qPos=document.getElementById('browser-queue-pos');
+  if(qBox)qBox.style.display='block';
+  if(qPos)qPos.innerText=`position: ${(d&&d.position)||1} remaining`;
+  updateBrowserToggleUI(false);
+});
+s.on('eb_browser_started',(d)=>{aiBrowsingQueued=false;const qBox=document.getElementById('browser-queue-status');if(qBox)qBox.style.display='none';applyBrowserMetrics(d);updateBrowserToggleUI(true);document.getElementById('browser-float-box').style.display='flex';if(browserPlayCtx&&browserPlayCtx.state==='suspended')browserPlayCtx.resume().catch(()=>{});});
+s.on('eb_browser_stopped',(d)=>{aiBrowsingQueued=false;const qBox=document.getElementById('browser-queue-status');if(qBox)qBox.style.display='none';updateBrowserToggleUI(false);document.getElementById('browser-float-box').style.display='none';browserInputFocused=false;});
+s.on('eb_browser_error',(d)=>{aiBrowsingQueued=false;const qBox=document.getElementById('browser-queue-status');if(qBox)qBox.style.display='none';updateBrowserToggleUI(false);document.getElementById('browser-float-box').style.display='none';alert((d&&d.error)||"Virtual browser error.");});
 s.on('eb_browser_quality_updated',(d)=>{applyBrowserMetrics(d);});
 s.on('eb_browser_tabs',(d)=>{
   applyBrowserMetrics(d);
@@ -1940,12 +1952,12 @@ const t=await fetchLatestTunnelUrl();if(t)PUBLIC_TUNNEL_URL=t;
 socket=io(PUBLIC_TUNNEL_URL,{auth:{token:"default_key"},transports:['websocket','polling'],timeout:10000,reconnection:true,reconnectionAttempts:Infinity,reconnectionDelay:1000,reconnectionDelayMax:5000,maxHttpBufferSize:1e8});
 attachSocketEvents(socket);
 })();
-window.addEventListener('beforeunload',()=>{if(aiBrowsingMode&&socket&&socket.connected)socket.emit('eb_browser_stop');});
+window.addEventListener('beforeunload',()=>{if((aiBrowsingMode||aiBrowsingQueued)&&socket&&socket.connected)socket.emit('eb_browser_stop');});
 function applyBrowserMetrics(d){
   if(!d)return;
   if(d.width&&d.height){
-    browserWidth=Number(d.width)||browserWidth;
-    browserHeight=Number(d.height)||browserHeight;
+    browserWidth=Number(d.width)||1280;
+    browserHeight=Number(d.height)||720;
   }
   if(d.preset){
     browserPreset=d.preset;
@@ -1957,7 +1969,7 @@ function applyBrowserMetrics(d){
     const fpsMap={higher_fps:30,higher_quality:5,balanced:10,balanced_fps:15};
     const resMap={higher_fps:'140p',higher_quality:'720p',balanced:'410p',balanced_fps:'340p'};
     const p=browserPreset||'balanced';
-    badge.innerText=`🌐 VIRTUAL CHROMIUM (${resMap[p]||(browserHeight+'p')} • ${d.fps||fpsMap[p]||10} FPS)`;
+    badge.innerText=`🌐 VIRTUAL CHROMIUM (${resMap[p]||((d.streamHeight||410)+'p')} • ${d.fps||fpsMap[p]||10} FPS)`;
   }
 }
 function changeBrowserQuality(preset){
@@ -1969,8 +1981,10 @@ function updateBrowserToggleUI(active){
   aiBrowsingMode=Boolean(active);
   const btn=document.getElementById('btn-ai-browsing-toggle');
   if(btn){
-    if(aiBrowsingMode){btn.classList.remove('btn-secondary');btn.classList.add('btn-green');btn.innerText="🌐 AI BROWSING MODE: ON (uses more tokens)";}
-    else{btn.classList.remove('btn-green');btn.classList.add('btn-secondary');btn.innerText="🌐 AI BROWSING MODE (uses more tokens)";}
+    btn.classList.remove('btn-secondary','btn-green','btn-yellow');
+    if(aiBrowsingMode){btn.classList.add('btn-green');btn.innerText="🌐 AI BROWSING MODE: ON (uses more tokens)";}
+    else if(aiBrowsingQueued){btn.classList.add('btn-yellow');btn.innerText="🌐 AI BROWSING MODE: QUEUED (Click to Cancel)";}
+    else{btn.classList.add('btn-secondary');btn.innerText="🌐 AI BROWSING MODE (uses more tokens)";}
   }
   const qBtn=document.getElementById('btn-model-qwen');
   if(qBtn){
@@ -1980,15 +1994,27 @@ function updateBrowserToggleUI(active){
   }
   if(aiBrowsingMode&&assistantModel.includes('qwen'))selectAssistantModel('gemini-3.5-flash-lite','Gemini-3.5-flash-lite [Recommended]');
 }
+function ensureBrowserAudioCtx(){
+  if(!browserPlayCtx)browserPlayCtx=new (window.AudioContext||window.webkitAudioContext)();
+  if(browserPlayCtx.state==='suspended')browserPlayCtx.resume().catch(()=>{});
+}
 function toggleAiBrowsingMode(forceState){
+  if(aiBrowsingQueued&&forceState!==true){
+    aiBrowsingQueued=false;
+    const qBox=document.getElementById('browser-queue-status');if(qBox)qBox.style.display='none';
+    updateBrowserToggleUI(false);
+    if(socket&&socket.connected)socket.emit('eb_browser_stop');
+    return;
+  }
   const next=(forceState!==undefined)?Boolean(forceState):!aiBrowsingMode;
   if(next){
-    if(!browserPlayCtx)browserPlayCtx=new (window.AudioContext||window.webkitAudioContext)();
-    if(browserPlayCtx.state==='suspended')browserPlayCtx.resume().catch(()=>{});
+    ensureBrowserAudioCtx();
     browserNextPlayTime=0;
     updateBrowserToggleUI(true);
     socket.emit('eb_browser_start');
   }else{
+    aiBrowsingQueued=false;
+    const qBox=document.getElementById('browser-queue-status');if(qBox)qBox.style.display='none';
     updateBrowserToggleUI(false);
     document.getElementById('browser-float-box').style.display='none';
     browserInputFocused=false;
@@ -1996,7 +2022,7 @@ function toggleAiBrowsingMode(forceState){
   }
 }
 function browserNav(action,val){
-  if(browserPlayCtx&&browserPlayCtx.state==='suspended')browserPlayCtx.resume().catch(()=>{});
+  ensureBrowserAudioCtx();
   if(socket&&socket.connected)socket.emit('eb_browser_nav',{action,url:val,index:val});
 }
 function renderBrowserTabs(tabs){
@@ -2020,7 +2046,7 @@ function renderBrowserTabs(tabs){
 function getBrowserImgCoords(clientX,clientY){
   const img=document.getElementById('browser-stream-img');if(!img)return null;
   const r=img.getBoundingClientRect();if(r.width<=0||r.height<=0)return null;
-  const vw=browserWidth||728,vh=browserHeight||410,aspect=vw/vh,boxAspect=r.width/r.height;
+  const vw=browserWidth||1280,vh=browserHeight||720,aspect=vw/vh,boxAspect=r.width/r.height;
   let drawW=r.width,drawH=r.height,offX=0,offY=0;
   if(boxAspect>aspect){drawW=r.height*aspect;offX=(r.width-drawW)/2;}
   else{drawH=r.width/aspect;offY=(r.height-drawH)/2;}
@@ -2035,17 +2061,38 @@ function sendBrowserPasteInPackets(text){
 }
 function handleIncomingBrowserAudio(d){
   if(isUiMuted||!d||!d.chunk)return;
-  if(!browserPlayCtx)browserPlayCtx=new (window.AudioContext||window.webkitAudioContext)();
-  if(browserPlayCtx.state==='suspended')browserPlayCtx.resume().catch(()=>{});
+  ensureBrowserAudioCtx();
   try{
     const bin=atob(d.chunk),u8=new Uint8Array(bin.length);
     for(let i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);
-    const i16=new Int16Array(u8.buffer),sr=Number(d.sampleRate)||16000;
-    const audioBuf=browserPlayCtx.createBuffer(1,i16.length,sr),ch=audioBuf.getChannelData(0);
-    for(let i=0;i<i16.length;i++)ch[i]=i16[i]/32768;
+    const sr=Number(d.sampleRate)||16000;
+    let audioBuf=null;
+    if(d.codec==='pcm10'){
+      const groups=Math.floor(u8.length/5),samples=groups*4;
+      if(samples<=0)return;
+      audioBuf=browserPlayCtx.createBuffer(1,samples,sr);
+      const ch=audioBuf.getChannelData(0);
+      let sIdx=0;
+      for(let i=0;i<groups*5;i+=5){
+        const b0=u8[i],b1=u8[i+1],b2=u8[i+2],b3=u8[i+3],b4=u8[i+4];
+        const u0=b0|((b1&0x03)<<8);
+        const u1=(b1>>2)|((b2&0x0F)<<6);
+        const u2=(b2>>4)|((b3&0x3F)<<4);
+        const u3=(b3>>6)|(b4<<2);
+        ch[sIdx++]=(u0-512)/512;
+        ch[sIdx++]=(u1-512)/512;
+        ch[sIdx++]=(u2-512)/512;
+        ch[sIdx++]=(u3-512)/512;
+      }
+    }else{
+      const i16=new Int16Array(u8.buffer);
+      audioBuf=browserPlayCtx.createBuffer(1,i16.length,sr);
+      const ch=audioBuf.getChannelData(0);
+      for(let i=0;i<i16.length;i++)ch[i]=i16[i]/32768;
+    }
     const src=browserPlayCtx.createBufferSource();src.buffer=audioBuf;src.connect(browserPlayCtx.destination);
     const now=browserPlayCtx.currentTime;
-    if(browserNextPlayTime<now||browserNextPlayTime>now+0.45)browserNextPlayTime=now+0.02;
+    if(browserNextPlayTime<now||browserNextPlayTime>now+0.45)browserNextPlayTime=now+0.025;
     src.start(browserNextPlayTime);
     browserNextPlayTime+=audioBuf.duration;
   }catch(e){}
@@ -2063,7 +2110,7 @@ function handleIncomingBrowserAudio(d){
     browserInputFocused=Boolean(val);
     if(browserInputFocused){
       box.classList.add('focused');if(badge){badge.innerText='Input Active';badge.style.color='#10b981';}
-      if(browserPlayCtx&&browserPlayCtx.state==='suspended')browserPlayCtx.resume().catch(()=>{});
+      ensureBrowserAudioCtx();
     }else{box.classList.remove('focused');if(badge){badge.innerText='Unfocused';badge.style.color='var(--muted)';}}
   }
   document.addEventListener('mousedown',(e)=>{setFocus(Boolean(e.target&&e.target.closest&&e.target.closest('#browser-float-box')));},true);
@@ -2120,7 +2167,7 @@ function handleIncomingBrowserAudio(d){
       browserTouchState.dragging=true;
       if(!browserTouchState.holding&&browserTouchState.holdTimer){clearTimeout(browserTouchState.holdTimer);browserTouchState.holdTimer=null;}
     }
-    const vw=browserWidth||728,vh=browserHeight||410;
+    const vw=browserWidth||1280,vh=browserHeight||720;
     const r=vp.getBoundingClientRect(),scaleX=vw/Math.max(100,r.width),scaleY=vh/Math.max(100,r.height);
     const nx=Math.max(0,Math.min(vw,Math.round(browserCursorPos.x+dx*scaleX))),ny=Math.max(0,Math.min(vh,Math.round(browserCursorPos.y+dy*scaleY)));
     browserCursorPos={x:nx,y:ny};
@@ -2378,7 +2425,7 @@ function handlePublishedSitesScroll(){const box=document.getElementById('publish
 function cancelSiteFetch(){siteFetchCancelled=true;isLoadingMoreSites=false;document.getElementById('overlay-fetching-sites').style.display='none';document.getElementById('search-fetching-indicator').style.display='none';if(isGuestMode)returnToLoginFromSites();else if(document.getElementById('modal-see-publish').style.display!=='flex')navigateToPath('main');}
 function cancelSiteDataFetch(){siteDataFetchCancelled=true;document.getElementById('overlay-fetching-site-data').style.display='none';openSeeAndPublishModal();}
 function closeSeeAndPublishModal(){if(siteSearchDebounce)clearTimeout(siteSearchDebounce);siteFetchCancelled=true;document.getElementById('modal-see-publish').style.display='none';if(!currentActiveSiteId&&!window.location.hash.includes('site/')){if(isGuestMode)returnToLoginFromSites();else navigateToPath('main');}}
-function updateCreateUpdateSiteBtnText(){const btn=document.getElementById('btn-create-update-site'),submitBtn=document.getElementById('submit-site-btn'),titleHeader=document.getElementById('create-site-title');if(isUserHasSite){if(btn)btn.innerText="UPDATE SITE";if(submitBtn)submitBtn.innerText="UPDATE SITE";if(titleHeader)titleHeader.innerText="UPDATE SITE";}else{if(btn)btn.innerText="Create Site";if(submitBtn)submitBtn.innerText="Create Site";if(titleHeader)titleHeader.innerText="CREATE SITE";}}
+function updateCreateUpdateSiteBtnText(){const btn=document.getElementById('btn-create-update-site'),submitBtn=document.getElementById('submit-site-btn'),titleHeader=document.getElementById('create-site-title');if(isUserHasSite){if(btn)btn.innerText="UPDATE SITE";if(submitBtn)submitBtn.innerText="UPDATE SITE";if(titleHeader)titleHeader.innerText="UPDATE SITE";}else{if(btn)btn.innerText="Create site";if(submitBtn)submitBtn.innerText="Create Site";if(titleHeader)titleHeader.innerText="CREATE SITE";}}
 function renderPublishedSitesList(sites){const container=document.getElementById('published-sites-container');container.innerHTML="";if(sites.length===0){container.innerHTML=`<div style="color:var(--muted);padding:20px;font-size:0.85rem;">No published sites found.</div>`;return;}sites.forEach(s=>{const div=document.createElement('div');div.className='site-card';let actionBtnHTML='';if(userRole==='Owner'||userRole==='Dev'){actionBtnHTML=`<button class="btn btn-danger" style="width:auto;margin:0;padding:3px 9px;font-size:0.7rem;" onclick="deletePublishedSite('${s.id}')">DELETE</button>`;}else{actionBtnHTML=`<button class="btn btn-secondary" style="width:auto;margin:0;padding:3px 9px;font-size:0.7rem;border-color:#ef4444 !important;" onclick="openReportModal('site','${s.id}')">REPORT</button>`;}const privBadge=s.visibility==='private'?`<span class="site-private-badge">Private 🔒</span>`:'';const pfpHTML=`<img src="${s.ownerPfpData}" style="width:22px;height:22px;border-radius:50% !important;vertical-align:middle;object-fit:cover;cursor:pointer;border:1px solid var(--border);" onclick="openUserProfilePopup('${s.ownerUserId}')">`,totalVotes=(s.likes||0)+(s.dislikes||0),greenPct=totalVotes>0?((s.likes||0)/totalVotes)*100:50,likeActive=s.userRating==='like'?'active':'',dislikeActive=s.userRating==='dislike'?'active':'';div.innerHTML=`<div style="display:flex;justify-content:space-between;width:100%;align-items:center;gap:8px;flex-wrap:wrap;"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><b style="font-size:0.95rem;color:#fff;">${escapeHtml(s.title)}</b>${privBadge}<span style="font-size:0.76rem;color:var(--muted);">by</span>${pfpHTML}<b style="font-size:0.8rem;color:#e2e8f0;cursor:pointer;" onclick="openUserProfilePopup('${s.ownerUserId}')">${escapeHtml(s.ownerDisplayName||s.ownerUserId)}</b></div><div style="display:flex;gap:4px;"><button class="btn btn-secondary" style="width:auto;margin:0;padding:3px 9px;font-size:0.7rem;" onclick="fetchSiteInfo('${s.id}')">INFO</button>${actionBtnHTML}</div></div><div style="display:flex;justify-content:space-between;font-size:0.74rem;color:var(--muted);flex-wrap:wrap;gap:6px;"><span>Updated: ${s.dateStr||'0/0/0'}</span><span style="color:var(--green);font-weight:bold;">● ${s.onlineCount||0} online</span><span>Visits: <b style="color:#fff;">${s.visits||0}</b></span></div><div style="display:flex;gap:8px;width:100%;align-items:center;margin-top:2px;"><button class="rate-btn ${likeActive}" onclick="rateSite('${s.id}','like')">👍 ${s.likes||0}</button><button class="rate-btn ${dislikeActive}" onclick="rateSite('${s.id}','dislike')">👎 ${s.dislikes||0}</button><div class="tug-war-bar"><div class="tug-war-green" style="width:${greenPct}%;"></div></div><button class="btn" style="width:auto;margin:0;padding:5px 16px;font-size:0.78rem;" onclick="accessSite('${s.id}')">ACCESS ▸</button></div>`;container.appendChild(div);});}
 function deletePublishedSite(siteId){if(confirm(`Delete site ${siteId} permanently?`)){enqueueClientAction(()=>socket.emit('eb_delete_site',{siteId,ownerId,googleSub}));setTimeout(openSeeAndPublishModal,500);}}
 function accessSite(siteId){if(siteSearchDebounce)clearTimeout(siteSearchDebounce);siteEnterCancelled=false;siteEnterStartTs=Date.now();document.getElementById('modal-see-publish').style.display='none';document.getElementById('modal-check-reports').style.display='none';if(window.location.hash!==`#/site/${siteId}/`)window.location.hash=`#/site/${siteId}/`;document.getElementById('overlay-site-loading').style.display='flex';document.getElementById('site-enter-progress-bar').style.width='0%';document.getElementById('site-enter-progress-val').innerText='0';const nInfo=document.getElementById('site-enter-nerd-info');if(nInfo)nInfo.innerText=`Connecting to Site ID ${siteId}... | Status: Handshake`;let simPct=0;if(siteEnterSimTimer)clearInterval(siteEnterSimTimer);siteEnterSimTimer=setInterval(()=>{if(siteEnterCancelled){clearInterval(siteEnterSimTimer);siteEnterSimTimer=null;return;}if(simPct<85){simPct+=15;document.getElementById('site-enter-progress-bar').style.width=`${simPct}%`;document.getElementById('site-enter-progress-val').innerText=`${simPct}`;}else clearInterval(siteEnterSimTimer);},80);socket.emit('eb_visit_site',{siteId});}
@@ -2641,7 +2688,7 @@ function sendTerminalChunk(index,total,fullText){if(!isUploadingTerminalScript)r
 function restartNodeOnly(){if(confirm("Restart Node server only?")){socket.emit('eb_restart_node_only',{ownerId,googleSub});closeUniversalPanelModal();}}
 function openAccountSettingsModal(){applyRolePermissions();document.getElementById('modal-account-settings').style.display='flex';}
 function closeAccountSettingsModal(){document.getElementById('modal-account-settings').style.display='none';}
-function accountLogout(){if(aiBrowsingMode)toggleAiBrowsingMode(false);ownerId="";serverKey="";setCookie("eb_owner_id","",-1);const savedMute=localStorage.getItem('eb_ui_muted');localStorage.clear();if(savedMute!==null)localStorage.setItem('eb_ui_muted',savedMute);sessionStorage.clear();window.location.hash="#/login/";window.location.reload();}
+function accountLogout(){if(aiBrowsingMode||aiBrowsingQueued)toggleAiBrowsingMode(false);ownerId="";serverKey="";setCookie("eb_owner_id","",-1);const savedMute=localStorage.getItem('eb_ui_muted');localStorage.clear();if(savedMute!==null)localStorage.setItem('eb_ui_muted',savedMute);sessionStorage.clear();window.location.hash="#/login/";window.location.reload();}
 function accountRegenUserId(){enqueueClientAction(()=>socket.emit('eb_regen_user_id',{key:serverKey,ownerId,googleSub}));closeAccountSettingsModal();}
 function closeNewUserIdModal(){document.getElementById('modal-new-userid').style.display='none';}
 function openPyTerminalModal(){closeConsoleModal();document.getElementById('modal-pyterminal').style.display='flex';document.getElementById('pyterminal-display').innerText="Connecting to Python worker...";socket.emit('eb_pyterminal_start',{serverKey:serverKey});}
